@@ -11,7 +11,7 @@ module.exports = {
       fontFamily: {
 				'fontRegular': ['fontRegular'],
 				'fontMedium': ['fontMedium'],
-				'fontSemibold': ['fontSemibold'],
+				// 'fontSemibold': ['fontSemibold'],
 				'fontBold': ['fontBold'],
         'fontExtraBold': ['fontExtraBold'],
 			},

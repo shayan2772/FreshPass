@@ -33,13 +33,13 @@ export const createStyles = (theme: Theme) =>
     placeholderStyle: {
       color: theme.text,
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontSemibold,
+      // fontFamily: fonts.fontSemibold,
       left: 7,
     },
     selectedTextStyle: {
       color: theme.text,
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontSemibold,
+      // fontFamily: fonts.fontSemibold,
       left: 5,
     },
     item: {
@@ -49,7 +49,7 @@ export const createStyles = (theme: Theme) =>
     itemText: {
       flex: 1,
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontSemibold,
+      // fontFamily: fonts.fontSemibold,
       textAlign: "center",
       color: theme.text,
     },

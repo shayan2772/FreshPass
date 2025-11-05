@@ -23,6 +23,7 @@ expo-env.d.ts
 *.mobileprovision
 *.keystore
 
+
 # Metro
 .metro-health-check*
 .metro/
@@ -46,6 +47,9 @@ yarn-error.*
 build/
 dist/
 web-build/
+
+android/
+ios/
 
 # IDE
 .vscode/

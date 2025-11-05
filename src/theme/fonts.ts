@@ -1,19 +1,23 @@
-import { fontScale } from "../constant/functions";
+import { fontScale } from "./dimensions";
 
 export const fonts = {
-  fontRegular: "fontRegular",
-  fontMedium: "fontMedium",
-  fontSemibold: "fontSemibold",
-  fontBold: "fontBold",
-  fontExtraBold: "fontExtraBold",
+  fontRegular: "fontRegular", //400
+  fontMedium: "fontMedium", //500
+  fontBold: "fontBold", //700
+  fontExtraBold: "fontExtraBold", //800
 };
 
 export const Font = {
-  fontRegular: require("@/assets/fonts/SUSEMono-Regular.ttf"),
-  fontMedium: require("@/assets/fonts/SUSEMono-Medium.ttf"),
-  fontSemibold: require("@/assets/fonts/SUSEMono-SemiBold.ttf"),
-  fontBold: require("@/assets/fonts/SUSEMono-Bold.ttf"),
-  fontExtraBold: require("@/assets/fonts/SUSEMono-ExtraBold.ttf"),
+  // fontRegular: require("@/assets/fonts/SUSEMono-Regular.ttf"),
+  // fontMedium: require("@/assets/fonts/SUSEMono-Medium.ttf"),
+  // fontSemibold: require("@/assets/fonts/SUSEMono-SemiBold.ttf"),
+  // fontBold: require("@/assets/fonts/SUSEMono-Bold.ttf"),
+  // fontExtraBold: require("@/assets/fonts/SUSEMono-ExtraBold.ttf"),
+
+  fontRegular: require("@/assets/fonts/FormaDJRDeck-Regular-Testing.ttf"),
+  fontMedium: require("@/assets/fonts/FormaDJRDisplay-Medium-Testing.ttf"),
+  fontBold: require("@/assets/fonts/FormaDJRText-Bold-Testing.ttf"),
+  fontExtraBold: require("@/assets/fonts/FormaDJRText-ExtraBold-Testing.ttf"),
 };
 
 export const fontSize = {
@@ -44,4 +48,19 @@ export const fontSize = {
   size36: fontScale(36),
   size38: fontScale(38),
   size40: fontScale(40),
+  size42: fontScale(42),
+  size44: fontScale(44),
+  size46: fontScale(46),
+  size48: fontScale(48),
+  size50: fontScale(50),
+  size52: fontScale(52),
+  size54: fontScale(54),
+  size56: fontScale(56),
+  size58: fontScale(58),
+  size60: fontScale(60),
+  size62: fontScale(62),
+  size64: fontScale(64),
+  size66: fontScale(66),
+  size68: fontScale(68),
+  size70: fontScale(70),
 };

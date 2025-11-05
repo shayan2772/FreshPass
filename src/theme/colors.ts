@@ -1,31 +1,25 @@
 export const themes = {
   light: {
-    background: "#FFFFFF",
+    background: "#FEFAE0",
     text: "#111111",
     primary: "#365AB8",
     secondary: "#F3F4F6",
     borderLine: "black",
     icon: "black",
-    selectedDropDownText:"#FFFFFF"
+    selectedDropDownText: "#FFFFFF",
+    darkGreen: "#283618",
+    lightGreen: "rgba(40, 54, 24, 0.7)",
+    lightGreen2:"rgba(40, 54, 24, 0.3)",
+    darkGreen15: "rgba(40, 54, 24, 0.15)",
+    orangeBrown: "#DDA15E",
+    lightBeige: "#28361826",
+    white: "#FFFFFF",
+    buttonBack: "#606C38",
+    buttonText: "#FFFFFF",
+    link:"#F7856B"
   },
-  dark: {
-    background: "#000000",
-    text: "#FFFFFF",
-    primary: "#4F8EF7",
-    secondary: "#1E1E1E",
-    borderLine: "white",
-    icon: "white",
-     selectedDropDownText:"#FFFFFF"
-  },
-  blue: {
-    background: "#001F3F",
-    text: "#FFFFFF",
-    primary: "#1E90FF",
-    secondary: "#003366",
-    borderLine: "white",
-    icon: "white",
-     selectedDropDownText:"#FFFFFF"
-  },
+  dark: {},
+  blue: {},
 };
 
 export type ThemeName = keyof typeof themes;

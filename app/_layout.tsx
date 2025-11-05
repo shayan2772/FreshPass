@@ -11,13 +11,14 @@ import { I18nextProvider } from "react-i18next";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import "../global.css";
+import * as SystemUI from "expo-system-ui";
+SystemUI.setBackgroundColorAsync("#FEFAE0");
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
   const [fontsLoaded] = useFonts({
     fontRegular: Font.fontRegular,
     fontMedium: Font.fontMedium,
-    fontSemibold: Font.fontSemibold,
     fontBold: Font.fontBold,
     fontExtraBold: Font.fontExtraBold,
   });

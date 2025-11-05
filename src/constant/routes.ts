@@ -1,7 +1,7 @@
 export const ROUTES = {
   MAIN: {
-    INDEX: "index",
-    HOME: "home",
+    ROLE: "role",
+    SOCIAL_LOGIN: "socialLogin",
   },
 } as const;
 
