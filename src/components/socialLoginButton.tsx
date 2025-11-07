@@ -1,7 +1,10 @@
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
-import { moderateWidthScale, moderateHeightScale } from "@/src/theme/dimensions";
+import {
+  moderateWidthScale,
+  moderateHeightScale,
+} from "@/src/theme/dimensions";
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
@@ -15,25 +18,26 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     button: {
       borderRadius: moderateWidthScale(12),
-      paddingVertical: moderateHeightScale(10),
+      paddingVertical: moderateHeightScale(7),
       paddingHorizontal: moderateWidthScale(14),
-      flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-      gap: moderateWidthScale(12),
+      gap: moderateWidthScale(10),
       borderWidth: 1,
       borderColor: theme.lightGreen,
     },
-    iconContainer: {
-      width: moderateWidthScale(24),
-      height: moderateWidthScale(24),
+    section: {
+      width: moderateWidthScale(200),
+      flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
+      justifyContent: "flex-start",
+      gap: moderateWidthScale(10),
     },
     buttonText: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      textAlign: "left",
     },
   });
 
@@ -51,11 +55,12 @@ export default function SocialLoginButton({
       onPress={onPress}
       activeOpacity={0.7}
     >
-      <View style={styles.iconContainer}>
+      <View style={styles.section}>
         {icon}
+        <Text style={styles.buttonText}>
+          {title}
+        </Text>
       </View>
-      <Text style={styles.buttonText}>{title}</Text>
     </TouchableOpacity>
   );
 }
-
