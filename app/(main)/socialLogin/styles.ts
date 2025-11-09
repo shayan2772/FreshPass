@@ -93,23 +93,8 @@ export const createStyles = (theme: Theme) =>
       position: "absolute",
       bottom: 0,
     },
-    separatorContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    separatorLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: theme.lightGreen2,
-    },
-    separatorText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen2,
-    },
     socialButtonsContainer: {
-      gap: moderateHeightScale(15),
+   
     },
     legalText: {
       fontSize: fontSize.size12,

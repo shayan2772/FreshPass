@@ -9,10 +9,14 @@ import {
 import { createStyles } from "./styles";
 import { Theme } from "@/src/theme/colors";
 import { IMAGES } from "@/src/constant/images";
-import { LeafLogo, GoogleIcon, AppleIcon, FacebookIcon } from "@/assets/icons";
+import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
-import SocialLoginButton from "@/src/components/socialLoginButton";
 import { moderateHeightScale } from "@/src/theme/dimensions";
+import { useRouter } from "expo-router";
+import { MAIN_ROUTES } from "@/src/constant/routes";
+import SocialAuthOptions from "@/src/components/socialAuthOptions";
+import SectionSeparator from "@/src/components/sectionSeparator";
+import { fontSize, fonts } from "@/src/theme/fonts";
 
 export default function SocialLogin() {
   const { colors } = useTheme();
@@ -21,10 +25,10 @@ export default function SocialLogin() {
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
   const NAVIGATION_BAR_HEIGHT = 48; // dp
   const pxHeight = PixelRatio.getPixelSizeForLayoutSize(NAVIGATION_BAR_HEIGHT);
-
+  const router = useRouter();
 
   const handleSignInOrRegister = () => {
-    // Handle sign in or register
+    router.push(`/${MAIN_ROUTES.REGISTER}`);
   };
 
   const handleGoogleLogin = () => {
@@ -39,7 +43,6 @@ export default function SocialLogin() {
     // Handle Facebook login
   };
 
- 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar
@@ -54,7 +57,7 @@ export default function SocialLogin() {
           style={[
             styles.backgroundImage,
             {
-              bottom: !isButtonMode ? 70  : 50,
+              bottom: !isButtonMode ? 70 : 50,
             },
           ]}
         />
@@ -104,29 +107,14 @@ export default function SocialLogin() {
       >
         <Button title="Sign in or Register" onPress={handleSignInOrRegister} />
 
-        <View style={styles.separatorContainer}>
-          <View style={styles.separatorLine} />
-          <Text style={styles.separatorText}>OR</Text>
-          <View style={styles.separatorLine} />
-        </View>
+        <SectionSeparator />
 
-        <View style={styles.socialButtonsContainer}>
-          <SocialLoginButton
-            icon={<GoogleIcon />}
-            title="Continue with Google"
-            onPress={handleGoogleLogin}
-          />
-          <SocialLoginButton
-            icon={<AppleIcon />}
-            title="Continue with Apple"
-            onPress={handleAppleLogin}
-          />
-          <SocialLoginButton
-            icon={<FacebookIcon />}
-            title="Continue with Facebook"
-            onPress={handleFacebookLogin}
-          />
-        </View>
+        <SocialAuthOptions
+          onGoogle={handleGoogleLogin}
+          onApple={handleAppleLogin}
+          onFacebook={handleFacebookLogin}
+          containerStyle={styles.socialButtonsContainer}
+        />
 
         <Text style={styles.legalText}>
           By continuing to use FreshPass, you agree to our{" "}
