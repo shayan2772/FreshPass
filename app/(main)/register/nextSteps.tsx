@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
-import { StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { createStyles } from "./styles";
 import RegisterStepThree from "./components/RegisterStepThree";
 import { useRouter } from "expo-router";
+import { MAIN_ROUTES } from "@/src/constant/routes";
 
 export default function RegisterNextSteps() {
   const { colors } = useTheme();
@@ -17,17 +17,11 @@ export default function RegisterNextSteps() {
   };
 
   const handleLetsGo = () => {
-    // TODO: connect with onboarding completion flow
+    router.push(`/${MAIN_ROUTES.COMPLETE_PROFILE}`);
   };
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        animated
-        translucent
-        backgroundColor={(colors as Theme).background}
-        barStyle={"dark-content"}
-      />
       <RegisterStepThree onBack={handleBack} onLetsGo={handleLetsGo} />
     </SafeAreaView>
   );

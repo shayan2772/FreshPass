@@ -23,12 +23,6 @@ export default function RegisterPassword() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        animated
-        translucent
-        backgroundColor={(colors as Theme).background}
-        barStyle={"dark-content"}
-      />
       <RegisterStepTwo onBack={handleBack} onContinue={handleContinue} />
     </SafeAreaView>
   );

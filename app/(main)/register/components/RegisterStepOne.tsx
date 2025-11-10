@@ -28,7 +28,6 @@ const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.background,
-      paddingTop: moderateHeightScale(4),
       gap: moderateHeightScale(20),
     },
     mainContent: {

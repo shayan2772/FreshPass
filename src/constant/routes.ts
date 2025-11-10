@@ -5,6 +5,7 @@ export const ROUTES = {
     REGISTER: "register",
     REGISTER_PASSWORD: "register/password",
     REGISTER_NEXT_STEPS: "register/nextSteps",
+    COMPLETE_PROFILE: "completeProfile",
   },
 } as const;
 

@@ -2,6 +2,7 @@ import { SecureStorageService } from "@/src/services/storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import generalReducer from "./slices/generalSlice";
+import completeProfileReducer from "./slices/completeProfileSlice";
 
 // ✅ Custom SecureStore adapter for redux-persist
 const SecureStorageAdapter = {
@@ -14,13 +15,14 @@ const SecureStorageAdapter = {
 const persistConfig = {
   key: "root",
   storage: SecureStorageAdapter,
-  whitelist: ["general"], // which slices to persist
+  whitelist: ["general", "completeProfile"], // which slices to persist
   keyPrefix: "",
 };
 
 // ✅ combine reducers
 const rootReducer = combineReducers({
   general: generalReducer,
+  completeProfile: completeProfileReducer,
 });
 
 // ✅ create persisted reducer
