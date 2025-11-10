@@ -10,6 +10,8 @@ export interface CompleteProfileState {
   businessName: string;
   fullName: string;
   countryCode: string;
+  countryIso: string;
+  phonePlaceholder: string;
   phoneNumber: string;
   appointmentVolume: string | null;
   addressSearch: string;
@@ -28,6 +30,8 @@ const initialState: CompleteProfileState = {
   businessName: "",
   fullName: "",
   countryCode: "+1",
+  countryIso: "US",
+  phonePlaceholder: "234 123 4455",
   phoneNumber: "",
   appointmentVolume: null,
   addressSearch: "",
@@ -53,7 +57,37 @@ const completeProfileSlice = createSlice({
     },
     goToPreviousStep: (state) => {
       if (state.currentStep > 1) {
-        state.currentStep -= 1;
+        const nextStep = state.currentStep - 1;
+
+        if (nextStep < 4) {
+          state.addressSearch = "";
+          state.selectedAddress = null;
+          state.streetAddress = "";
+          state.area = "";
+          state.zipCode = "";
+          state.useCurrentLocation = false;
+        }
+
+        if (nextStep < 3) {
+          state.appointmentVolume = null;
+        }
+
+        if (nextStep < 2) {
+          state.businessName = "";
+          state.fullName = "";
+          state.countryCode = "+1";
+          state.phoneNumber = "";
+        }
+
+        if (nextStep < 1) {
+          state.searchTerm = "";
+          state.businessCategory = null;
+        }
+
+        state.currentStep = nextStep;
+      } else {
+        state.businessCategory = null;
+        state.searchTerm = "";
       }
     },
     setSearchTerm: (state, action: PayloadAction<string>) => {
@@ -68,11 +102,22 @@ const completeProfileSlice = createSlice({
     setFullName: (state, action: PayloadAction<string>) => {
       state.fullName = action.payload;
     },
-    setCountryCode: (state, action: PayloadAction<string>) => {
-      state.countryCode = action.payload;
-    },
     setPhoneNumber: (state, action: PayloadAction<string>) => {
       state.phoneNumber = action.payload;
+    },
+    setCountryDetails: (
+      state,
+      action: PayloadAction<{
+        countryCode: string;
+        countryIso: string;
+        phonePlaceholder?: string;
+      }>
+    ) => {
+      state.countryCode = action.payload.countryCode;
+      state.countryIso = action.payload.countryIso;
+      state.phonePlaceholder =
+        action.payload.phonePlaceholder ?? state.phonePlaceholder;
+      state.phoneNumber = "";
     },
     setAppointmentVolume: (state, action: PayloadAction<string | null>) => {
       state.appointmentVolume = action.payload;
@@ -107,7 +152,7 @@ export const {
   setBusinessCategory,
   setBusinessName,
   setFullName,
-  setCountryCode,
+  setCountryDetails,
   setPhoneNumber,
   setAppointmentVolume,
   setAddressSearch,

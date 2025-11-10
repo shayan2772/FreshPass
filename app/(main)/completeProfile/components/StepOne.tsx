@@ -15,7 +15,6 @@ import {
   heightScale,
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
 } from "@/src/theme/dimensions";
 import { IMAGES } from "@/src/constant/images";
 import {
@@ -55,7 +54,8 @@ const createStyles = (theme: Theme) =>
     },
     titleSec: {
       marginTop: moderateHeightScale(8),
-      gap:5
+      gap: 5,
+      paddingHorizontal: moderateWidthScale(20),
     },
     title: {
       fontSize: fontSize.size24,
@@ -76,6 +76,9 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(16),
       paddingVertical: moderateHeightScale(5),
       gap: moderateWidthScale(12),
+      marginHorizontal: moderateWidthScale(20),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
     },
     searchInput: {
       flex: 1,
@@ -83,69 +86,89 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
+    clearButton: {
+      width: moderateWidthScale(20),
+      height: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(20 / 2),
+      borderWidth: 1,
+      borderColor: theme.darkGreen,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: theme.white,
+    },
+    lineSeparator: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
+      position: "absolute",
+    },
+    categoriesContainer: {
+      paddingVertical: moderateHeightScale(20),
+    },
     categoriesGrid: {
+      width: "100%",
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: moderateWidthScale(12),
+      alignItems: "center",
+      rowGap: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
+      gap: "5%",
     },
     categoryCard: {
-      width: widthScale(104),
-      height: heightScale(128),
-      borderRadius: moderateWidthScale(16),
-      backgroundColor: theme.white,
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      marginBottom: moderateHeightScale(12),
-    },
-    categoryCardSelected: {
-      borderColor: theme.orangeBrown,
+      width: "30%",
+      height: heightScale(115),
     },
     categoryImage: {
       width: "100%",
-      height: heightScale(80),
+      height: heightScale(90),
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      borderRadius: moderateWidthScale(12),
+    },
+    categoryCardSelected: {
+      borderColor: theme.selectCard,
+      borderWidth: 3,
     },
     categoryLabelContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: moderateWidthScale(8),
-      backgroundColor: theme.lightBeige,
+      backgroundColor: theme.background,
     },
     categoryLabel: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       textAlign: "center",
     },
     otherCategoriesContainer: {
-      marginTop: moderateHeightScale(16),
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(8),
-    },
-    otherCategoriesHeader: {
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(8),
+      gap: moderateHeightScale(15),
+      paddingHorizontal: moderateWidthScale(20),
     },
     otherCategoriesTitle: {
       fontSize: fontSize.size16,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
+      fontFamily: fonts.fontBold,
+      color: theme.lightGreen2,
+    },
+    otherCategoryContainer: {
+      gap: moderateHeightScale(12),
     },
     otherCategoryRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(12),
-      borderTopWidth: 1,
-      borderTopColor: theme.lightGreen2,
+    },
+    catSeparator: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
     },
     otherCategoryLabel: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
       flex: 1,
     },
   });
@@ -209,56 +232,77 @@ export default function StepOne() {
           value={searchTerm}
           onChangeText={handleSearchChange}
         />
+        {!!searchTerm && (
+          <Pressable
+            onPress={() => dispatch(setSearchTerm(""))}
+            style={styles.clearButton}
+            hitSlop={moderateWidthScale(10)}
+          >
+            <Feather
+              name="x"
+              size={moderateWidthScale(12)}
+              color={(colors as Theme).darkGreen}
+            />
+          </Pressable>
+        )}
       </View>
 
-      <View style={styles.categoriesGrid}>
-        {filteredPopular.map((item) => {
-          const isSelected = businessCategory === item.label;
-          return (
-            <Pressable
-              key={item.id}
-              onPress={() => handleSelectCategory(item.label)}
-              style={[
-                styles.categoryCard,
-                isSelected && styles.categoryCardSelected,
-              ]}
-            >
-              <Image
-                source={IMAGES.socialBackgroud}
-                style={styles.categoryImage}
-                resizeMode="cover"
-              />
-              <View style={styles.categoryLabelContainer}>
-                <Text style={styles.categoryLabel}>{item.label}</Text>
-              </View>
-            </Pressable>
-          );
-        })}
+      <View style={styles.categoriesContainer}>
+        <View style={[styles.lineSeparator, { top: 0 }]} />
+        <View style={styles.categoriesGrid}>
+          {filteredPopular.map((item) => {
+            const isSelected = businessCategory === item.label;
+            return (
+              <Pressable
+                key={item.id}
+                onPress={() => handleSelectCategory(item.label)}
+                style={styles.categoryCard}
+              >
+                <Image
+                  source={IMAGES.socialBackgroud}
+                  style={[
+                    styles.categoryImage,
+                    isSelected && styles.categoryCardSelected,
+                  ]}
+                  resizeMode="cover"
+                />
+                <View style={styles.categoryLabelContainer}>
+                  <Text style={styles.categoryLabel}>{item.label}</Text>
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+        <View style={[styles.lineSeparator, { bottom: 0 }]} />
       </View>
 
       <View style={styles.otherCategoriesContainer}>
-        <View style={styles.otherCategoriesHeader}>
-          <Text style={styles.otherCategoriesTitle}>Other categories</Text>
-        </View>
+        <Text style={styles.otherCategoriesTitle}>Other categories</Text>
 
-        {filteredOther.map((category) => {
+        {filteredOther.map((category, index) => {
           const isSelected = businessCategory === category;
           return (
-            <Pressable
-              key={category}
-              onPress={() => handleSelectCategory(category)}
-              style={[
-                styles.otherCategoryRow,
-                isSelected && { backgroundColor: (colors as Theme).lightBeige },
-              ]}
-            >
-              <Text style={styles.otherCategoryLabel}>{category}</Text>
-              <Feather
-                name="chevron-right"
-                size={moderateWidthScale(18)}
-                color={(colors as Theme).lightGreen}
-              />
-            </Pressable>
+            <View key={category} style={styles.otherCategoryContainer}>
+              <Pressable
+                onPress={() => handleSelectCategory(category)}
+                style={[
+                  styles.otherCategoryRow,
+                  isSelected && {
+                    backgroundColor: (colors as Theme).lightBeige,
+                  },
+                ]}
+              >
+                <Text style={styles.otherCategoryLabel}>{category}</Text>
+                <Feather
+                  name="chevron-right"
+                  size={moderateWidthScale(18)}
+                  color={(colors as Theme).darkGreen}
+                />
+              </Pressable>
+              {index < filteredOther.length - 1 && (
+                <View style={styles.catSeparator} />
+              )}
+            </View>
           );
         })}
       </View>

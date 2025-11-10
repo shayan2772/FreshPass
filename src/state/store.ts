@@ -15,7 +15,7 @@ const SecureStorageAdapter = {
 const persistConfig = {
   key: "root",
   storage: SecureStorageAdapter,
-  whitelist: ["general", "completeProfile"], // which slices to persist
+  whitelist: ["general"], // which slices to persist
   keyPrefix: "",
 };
 

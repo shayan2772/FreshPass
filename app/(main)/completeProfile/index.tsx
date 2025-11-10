@@ -48,10 +48,8 @@ export default function CompleteProfile() {
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
-    if (currentStep > 1) {
-      dispatch(goToPreviousStep());
-      return;
-    }
+    dispatch(goToPreviousStep());
+
     router.back();
   }, [currentStep, dispatch, router]);
 
@@ -67,8 +65,8 @@ export default function CompleteProfile() {
   useFocusEffect(
     useCallback(() => {
       const onHardwareBackPress = () => {
+        dispatch(goToPreviousStep());
         if (currentStep > 1) {
-          dispatch(goToPreviousStep());
           return true;
         }
 
@@ -89,19 +87,13 @@ export default function CompleteProfile() {
       return !businessCategory;
     }
     if (currentStep === 2) {
-      return (
-        !businessName.trim() ||
-        !fullName.trim() ||
-        !phoneNumber.trim()
-      );
+      return !businessName.trim() || !fullName.trim() || !phoneNumber.trim();
     }
     if (currentStep === 3) {
       return !appointmentVolume;
     }
     if (currentStep === 4) {
-      return (
-        !streetAddress.trim() || !area.trim() || !zipCode.trim()
-      );
+      return !streetAddress.trim() || !area.trim() || !zipCode.trim();
     }
     return false;
   }, [
@@ -176,5 +168,3 @@ export default function CompleteProfile() {
     </SafeAreaView>
   );
 }
-
-
