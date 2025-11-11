@@ -41,6 +41,7 @@ export default function CompleteProfile() {
     businessName,
     fullName,
     phoneNumber,
+    phoneIsValid,
     appointmentVolume,
     streetAddress,
     area,
@@ -48,7 +49,10 @@ export default function CompleteProfile() {
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
-    dispatch(goToPreviousStep());
+    if (currentStep > 1) {
+      dispatch(goToPreviousStep());
+      return;
+    }
 
     router.back();
   }, [currentStep, dispatch, router]);
@@ -65,8 +69,8 @@ export default function CompleteProfile() {
   useFocusEffect(
     useCallback(() => {
       const onHardwareBackPress = () => {
-        dispatch(goToPreviousStep());
         if (currentStep > 1) {
+          dispatch(goToPreviousStep());
           return true;
         }
 
@@ -87,7 +91,12 @@ export default function CompleteProfile() {
       return !businessCategory;
     }
     if (currentStep === 2) {
-      return !businessName.trim() || !fullName.trim() || !phoneNumber.trim();
+      return (
+        !businessName.trim() ||
+        !fullName.trim() ||
+        !phoneNumber.trim() ||
+        !phoneIsValid
+      );
     }
     if (currentStep === 3) {
       return !appointmentVolume;
@@ -104,6 +113,7 @@ export default function CompleteProfile() {
     currentStep,
     fullName,
     phoneNumber,
+    phoneIsValid,
     streetAddress,
     zipCode,
   ]);

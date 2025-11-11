@@ -13,6 +13,7 @@ export interface CompleteProfileState {
   countryIso: string;
   phonePlaceholder: string;
   phoneNumber: string;
+  phoneIsValid: boolean;
   appointmentVolume: string | null;
   addressSearch: string;
   selectedAddress: string | null;
@@ -31,8 +32,9 @@ const initialState: CompleteProfileState = {
   fullName: "",
   countryCode: "+1",
   countryIso: "US",
-  phonePlaceholder: "234 123 4455",
+  phonePlaceholder: "201 555 0123",
   phoneNumber: "",
+  phoneIsValid: false,
   appointmentVolume: null,
   addressSearch: "",
   selectedAddress: null,
@@ -76,7 +78,10 @@ const completeProfileSlice = createSlice({
           state.businessName = "";
           state.fullName = "";
           state.countryCode = "+1";
+          state.countryIso = "US";
+          state.phonePlaceholder = "201 555 0123";
           state.phoneNumber = "";
+          state.phoneIsValid = false;
         }
 
         if (nextStep < 1) {
@@ -88,6 +93,11 @@ const completeProfileSlice = createSlice({
       } else {
         state.businessCategory = null;
         state.searchTerm = "";
+        state.phoneNumber = "";
+        state.phoneIsValid = false;
+        state.countryCode = "+1";
+        state.countryIso = "US";
+        state.phonePlaceholder = "201 555 0123";
       }
     },
     setSearchTerm: (state, action: PayloadAction<string>) => {
@@ -102,8 +112,12 @@ const completeProfileSlice = createSlice({
     setFullName: (state, action: PayloadAction<string>) => {
       state.fullName = action.payload;
     },
-    setPhoneNumber: (state, action: PayloadAction<string>) => {
-      state.phoneNumber = action.payload;
+    setPhoneNumber: (
+      state,
+      action: PayloadAction<{ value: string; isValid: boolean }>
+    ) => {
+      state.phoneNumber = action.payload.value.replace(/\s+/g, "");
+      state.phoneIsValid = action.payload.isValid;
     },
     setCountryDetails: (
       state,
@@ -118,6 +132,7 @@ const completeProfileSlice = createSlice({
       state.phonePlaceholder =
         action.payload.phonePlaceholder ?? state.phonePlaceholder;
       state.phoneNumber = "";
+      state.phoneIsValid = false;
     },
     setAppointmentVolume: (state, action: PayloadAction<string | null>) => {
       state.appointmentVolume = action.payload;
