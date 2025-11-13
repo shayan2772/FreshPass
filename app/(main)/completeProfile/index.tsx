@@ -27,6 +27,7 @@ import { createStyles } from "./styles";
 import {
   goToNextStep,
   goToPreviousStep,
+  setAddressStage,
 } from "@/src/state/slices/completeProfileSlice";
 
 export default function CompleteProfile() {
@@ -46,30 +47,67 @@ export default function CompleteProfile() {
     streetAddress,
     area,
     zipCode,
+    addressStage,
+    selectedLocation,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
+    if (currentStep === 4) {
+      if (addressStage === "map") {
+        // Clear map stage fields (mapRegion will be cleared in StepFour component)
+        // Keep confirm stage fields (streetAddress, area, zipCode, selectedAddress)
+        dispatch(setAddressStage("confirm"));
+        return;
+      }
+      if (addressStage === "confirm") {
+        // Keep confirm stage fields when going back to search
+        dispatch(setAddressStage("search"));
+        return;
+      }
+    }
     if (currentStep > 1) {
       dispatch(goToPreviousStep());
       return;
     }
 
     router.back();
-  }, [currentStep, dispatch, router]);
+  }, [addressStage, currentStep, dispatch, router]);
 
   const handleContinue = useCallback(() => {
+    if (currentStep === 4) {
+      if (addressStage === "search") {
+        return;
+      }
+      if (addressStage === "confirm") {
+        dispatch(setAddressStage("map"));
+        return;
+      }
+    }
     if (currentStep < totalSteps) {
       dispatch(goToNextStep());
       return;
     }
 
     router.back();
-  }, [currentStep, dispatch, router, totalSteps]);
+  }, [addressStage, currentStep, dispatch, router, totalSteps]);
 
   useFocusEffect(
     useCallback(() => {
       const onHardwareBackPress = () => {
         if (currentStep > 1) {
+          if (currentStep === 4) {
+            if (addressStage === "map") {
+              // Clear map stage fields (mapRegion will be cleared in StepFour component)
+              // Keep confirm stage fields (streetAddress, area, zipCode, selectedAddress)
+              dispatch(setAddressStage("confirm"));
+              return true;
+            }
+            if (addressStage === "confirm") {
+              // Keep confirm stage fields when going back to search
+              dispatch(setAddressStage("search"));
+              return true;
+            }
+          }
           dispatch(goToPreviousStep());
           return true;
         }
@@ -83,7 +121,7 @@ export default function CompleteProfile() {
       );
 
       return () => subscription.remove();
-    }, [currentStep, dispatch])
+    }, [addressStage, currentStep, dispatch])
   );
 
   const isContinueDisabled = useMemo(() => {
@@ -102,7 +140,13 @@ export default function CompleteProfile() {
       return !appointmentVolume;
     }
     if (currentStep === 4) {
-      return !streetAddress.trim() || !area.trim() || !zipCode.trim();
+      if (addressStage === "search") {
+        return true;
+      }
+      if (addressStage === "confirm") {
+        return !streetAddress.trim() || !area.trim();
+      }
+      return !selectedLocation;
     }
     return false;
   }, [
@@ -116,6 +160,8 @@ export default function CompleteProfile() {
     phoneIsValid,
     streetAddress,
     zipCode,
+    addressStage,
+    selectedLocation,
   ]);
 
   const renderStep = useMemo(() => {
@@ -147,7 +193,15 @@ export default function CompleteProfile() {
     }
   }, [currentStep]);
 
-  const continueLabel = currentStep === totalSteps ? "Finish" : "Continue";
+  const continueLabel = useMemo(() => {
+    if (currentStep === totalSteps) {
+      return "Finish";
+    }
+    if (currentStep === 4 && addressStage === "map") {
+      return "Next";
+    }
+    return "Continue";
+  }, [addressStage, currentStep, totalSteps]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

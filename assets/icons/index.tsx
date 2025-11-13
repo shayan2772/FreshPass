@@ -1,4 +1,5 @@
 import React from "react";
+import { s } from "react-native-size-matters";
 import { SvgXml } from "react-native-svg";
 
 interface IconProps {
@@ -118,6 +119,8 @@ export const FacebookIcon: React.FC<SocialIconProps> = ({
 
   return <SvgXml xml={svgXml} />;
 };
+
+ 
 
 export default {
   LeafLogo,

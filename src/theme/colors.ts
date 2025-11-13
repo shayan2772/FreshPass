@@ -20,7 +20,8 @@ export const themes = {
     buttonBack: "#606C38",
     buttonText: "#FFFFFF",
     link:"#F7856B",
-    selectCard:"#BC6C25"
+    selectCard:"#BC6C25",
+    mapCircleFill: "rgba(221, 161, 94, 0.3)",
   },
   dark: {},
   blue: {},

@@ -21,10 +21,16 @@ export interface CompleteProfileState {
   area: string;
   zipCode: string;
   useCurrentLocation: boolean;
+  addressStage: "search" | "confirm" | "map";
+  selectedLocation: {
+    latitude: number;
+    longitude: number;
+  } | null;
 }
 
 const initialState: CompleteProfileState = {
-  currentStep: 1,
+  // currentStep: 1,
+  currentStep: 4,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -42,6 +48,8 @@ const initialState: CompleteProfileState = {
   area: "",
   zipCode: "",
   useCurrentLocation: false,
+  addressStage: "search",
+  selectedLocation: null,
 };
 
 const completeProfileSlice = createSlice({
@@ -60,14 +68,16 @@ const completeProfileSlice = createSlice({
     goToPreviousStep: (state) => {
       if (state.currentStep > 1) {
         const nextStep = state.currentStep - 1;
-
-        if (nextStep < 4) {
+ 
+        if (nextStep < 3) {
           state.addressSearch = "";
           state.selectedAddress = null;
           state.streetAddress = "";
           state.area = "";
           state.zipCode = "";
           state.useCurrentLocation = false;
+          state.addressStage = "search";
+          state.selectedLocation = null;
         }
 
         if (nextStep < 3) {
@@ -155,6 +165,18 @@ const completeProfileSlice = createSlice({
     setUseCurrentLocation: (state, action: PayloadAction<boolean>) => {
       state.useCurrentLocation = action.payload;
     },
+    setAddressStage: (
+      state,
+      action: PayloadAction<CompleteProfileState["addressStage"]>
+    ) => {
+      state.addressStage = action.payload;
+    },
+    setSelectedLocation: (
+      state,
+      action: PayloadAction<CompleteProfileState["selectedLocation"]>
+    ) => {
+      state.selectedLocation = action.payload;
+    },
   },
 });
 
@@ -176,6 +198,8 @@ export const {
   setArea,
   setZipCode,
   setUseCurrentLocation,
+  setAddressStage,
+  setSelectedLocation,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

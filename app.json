@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.freshpass"
+      "bundleIdentifier": "com.freshpass",
+      "config": {
+        "googleMapsApiKey": "AIzaSyCVenDT7Q0jMPj-x5tLh4gFO3aF_rP5i7c"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +24,12 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.freshpass"
+      "package": "com.freshpass",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyCVenDT7Q0jMPj-x5tLh4gFO3aF_rP5i7c"
+        }
+      }
     },
     "web": {
       "output": "static",

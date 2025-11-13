@@ -22,6 +22,14 @@ export const Font = {
 
 export const fontSize = {
   size1: fontScale(1),
+  size2: fontScale(2),
+  size3: fontScale(3),
+  size4: fontScale(4),
+  size5: fontScale(5),
+  size6: fontScale(6),
+  size7: fontScale(7),
+  size8: fontScale(8),
+  size9: fontScale(9),
   size10: fontScale(10),
   size11: fontScale(11),
   size12: fontScale(12),

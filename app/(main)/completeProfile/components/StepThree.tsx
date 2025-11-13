@@ -42,46 +42,73 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      gap: moderateHeightScale(20),
+      gap: moderateHeightScale(24),
+      paddingHorizontal: moderateWidthScale(20),
     },
-    header: {
-      gap: moderateHeightScale(8),
+    titleSec: {
+      marginTop: moderateHeightScale(8),
+      gap: 5,
     },
     title: {
       fontSize: fontSize.size24,
-      fontFamily: fonts.fontExtraBold,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     subtitle: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
     optionsContainer: {
-      gap: moderateHeightScale(12),
-    },
-    optionCard: {
-      borderRadius: moderateWidthScale(16),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(16),
       gap: moderateHeightScale(4),
     },
+    optionCard: {
+      paddingVertical: moderateHeightScale(16),
+      gap: moderateHeightScale(6),
+    },
     optionSelected: {
-      borderColor: theme.orangeBrown,
-      backgroundColor: theme.lightBeige,
+      // backgroundColor: theme.lightBeige,s
+    },
+    optionContent: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(12),
+    },
+    radioOuter: {
+      width: moderateWidthScale(20),
+      height: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(20 / 2),
+      borderWidth: 2,
+      borderColor: theme.lightGreen2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    radioOuterSelected: {
+      borderColor: theme.black,
+    },
+    radioInner: {
+      width: moderateWidthScale(10),
+      height: moderateWidthScale(10),
+      borderRadius: moderateWidthScale(10 / 2),
+      backgroundColor: theme.orangeBrown,
+    },
+    optionTextWrapper: {
+      flex: 1,
+      gap: moderateHeightScale(2),
     },
     optionTitle: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     optionDescription: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+    },
+    divider: {
+      height: 1.2,
+      backgroundColor: theme.borderLight,
     },
   });
 
@@ -95,7 +122,7 @@ export default function StepThree() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={styles.titleSec}>
         <Text style={styles.title}>
           How many appointments do you typically have per week?
         </Text>
@@ -105,23 +132,38 @@ export default function StepThree() {
       </View>
 
       <View style={styles.optionsContainer}>
-        {APPOINTMENT_OPTIONS.map((option) => {
+        {APPOINTMENT_OPTIONS.map((option, index) => {
           const isSelected = appointmentVolume === option.id;
+          const showDivider = index < APPOINTMENT_OPTIONS.length - 1;
           return (
-            <TouchableOpacity
-              key={option.id}
-              style={[styles.optionCard, isSelected && styles.optionSelected]}
-              onPress={() => dispatch(setAppointmentVolume(option.id))}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionDescription}>{option.description}</Text>
-            </TouchableOpacity>
+            <React.Fragment key={option.id}>
+              <TouchableOpacity
+                style={[styles.optionCard, isSelected && styles.optionSelected]}
+                onPress={() => dispatch(setAppointmentVolume(option.id))}
+                activeOpacity={0.7}
+              >
+                <View style={styles.optionContent}>
+                  <View
+                    style={[
+                      styles.radioOuter,
+                      isSelected && styles.radioOuterSelected,
+                    ]}
+                  >
+                    {isSelected && <View style={styles.radioInner} />}
+                  </View>
+                  <View style={styles.optionTextWrapper}>
+                    <Text style={styles.optionTitle}>{option.title}</Text>
+                    <Text style={styles.optionDescription}>
+                      {option.description}
+                    </Text>
+                  </View>
+                </View>
+              </TouchableOpacity>
+              {showDivider && <View style={styles.divider} />}
+            </React.Fragment>
           );
         })}
       </View>
     </View>
   );
 }
-
-
