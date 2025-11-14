@@ -26,11 +26,14 @@ export interface CompleteProfileState {
     latitude: number;
     longitude: number;
   } | null;
+  teamSize: string | null;
+  staffInvitationEmail: string;
+  staffInvitations: Array<{ email: string; status: "sent" | "accepted" }>;
 }
 
 const initialState: CompleteProfileState = {
   // currentStep: 1,
-  currentStep: 4,
+  currentStep: 5,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -50,6 +53,9 @@ const initialState: CompleteProfileState = {
   useCurrentLocation: false,
   addressStage: "search",
   selectedLocation: null,
+  teamSize: null,
+  staffInvitationEmail: "",
+  staffInvitations: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -99,6 +105,15 @@ const completeProfileSlice = createSlice({
         if (nextStep < 1) {
           state.searchTerm = "";
           state.businessCategory = null;
+        }
+
+        if (nextStep < 5) {
+          state.teamSize = null;
+        }
+
+        if (nextStep < 6) {
+          state.staffInvitationEmail = "";
+          state.staffInvitations = [];
         }
 
         state.currentStep = nextStep;
@@ -179,6 +194,27 @@ const completeProfileSlice = createSlice({
     ) => {
       state.selectedLocation = action.payload;
     },
+    setTeamSize: (state, action: PayloadAction<string | null>) => {
+      state.teamSize = action.payload;
+    },
+    setStaffInvitationEmail: (state, action: PayloadAction<string>) => {
+      state.staffInvitationEmail = action.payload;
+    },
+    addStaffInvitation: (
+      state,
+      action: PayloadAction<{ email: string; status: "sent" | "accepted" }>
+    ) => {
+      // Check if invitation already exists
+      const exists = state.staffInvitations.some(
+        (inv) => inv.email.toLowerCase() === action.payload.email.toLowerCase()
+      );
+      if (!exists) {
+        state.staffInvitations.push(action.payload);
+      }
+    },
+    removeStaffInvitation: (state, action: PayloadAction<number>) => {
+      state.staffInvitations.splice(action.payload, 1);
+    },
   },
 });
 
@@ -202,6 +238,10 @@ export const {
   setUseCurrentLocation,
   setAddressStage,
   setSelectedLocation,
+  setTeamSize,
+  setStaffInvitationEmail,
+  addStaffInvitation,
+  removeStaffInvitation,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

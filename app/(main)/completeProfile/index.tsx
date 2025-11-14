@@ -50,6 +50,7 @@ export default function CompleteProfile() {
     zipCode,
     addressStage,
     selectedLocation,
+    teamSize,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
@@ -151,6 +152,13 @@ export default function CompleteProfile() {
       }
       return !selectedLocation;
     }
+    if (currentStep === 5) {
+      return !teamSize;
+    }
+    if (currentStep === 6) {
+      // Step 6 is optional - can continue without invitations
+      return false;
+    }
     return false;
   }, [
     appointmentVolume,
@@ -165,6 +173,7 @@ export default function CompleteProfile() {
     zipCode,
     addressStage,
     selectedLocation,
+    teamSize,
   ]);
 
   const renderStep = useMemo(() => {

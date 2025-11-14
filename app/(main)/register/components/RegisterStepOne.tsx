@@ -71,6 +71,7 @@ const createStyles = (theme: Theme) =>
     inputContainer: {
       flexDirection: "row",
       alignItems: "center",
+      gap: moderateWidthScale(12),
     },
     textInput: {
       flex: 1,
