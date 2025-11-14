@@ -28,6 +28,7 @@ import {
   goToNextStep,
   goToPreviousStep,
   setAddressStage,
+  setSelectedLocation,
 } from "@/src/state/slices/completeProfileSlice";
 
 export default function CompleteProfile() {
@@ -54,8 +55,9 @@ export default function CompleteProfile() {
   const handleBack = useCallback(() => {
     if (currentStep === 4) {
       if (addressStage === "map") {
-        // Clear map stage fields (mapRegion will be cleared in StepFour component)
+        // Clear map stage fields (selectedLocation) when going back to confirm
         // Keep confirm stage fields (streetAddress, area, zipCode, selectedAddress)
+        dispatch(setSelectedLocation(null));
         dispatch(setAddressStage("confirm"));
         return;
       }
@@ -97,8 +99,9 @@ export default function CompleteProfile() {
         if (currentStep > 1) {
           if (currentStep === 4) {
             if (addressStage === "map") {
-              // Clear map stage fields (mapRegion will be cleared in StepFour component)
+              // Clear map stage fields (selectedLocation) when going back to confirm
               // Keep confirm stage fields (streetAddress, area, zipCode, selectedAddress)
+              dispatch(setSelectedLocation(null));
               dispatch(setAddressStage("confirm"));
               return true;
             }

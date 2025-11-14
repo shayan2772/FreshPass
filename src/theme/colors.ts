@@ -22,6 +22,8 @@ export const themes = {
     link:"#F7856B",
     selectCard:"#BC6C25",
     mapCircleFill: "rgba(221, 161, 94, 0.3)",
+    shadow:"#000",
+    cardLocBackground:"rgba(96, 108, 56, 0.3)",
   },
   dark: {},
   blue: {},

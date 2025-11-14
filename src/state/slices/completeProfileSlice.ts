@@ -69,7 +69,9 @@ const completeProfileSlice = createSlice({
       if (state.currentStep > 1) {
         const nextStep = state.currentStep - 1;
  
-        if (nextStep < 3) {
+        // Clear ALL Step 4 fields when going back to step 3 or earlier
+        // This ensures all address-related fields are cleared when going from step 4 to step 3
+        if (nextStep <= 3) {
           state.addressSearch = "";
           state.selectedAddress = null;
           state.streetAddress = "";
