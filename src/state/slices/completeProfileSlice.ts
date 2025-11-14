@@ -29,11 +29,26 @@ export interface CompleteProfileState {
   teamSize: string | null;
   staffInvitationEmail: string;
   staffInvitations: Array<{ email: string; status: "sent" | "accepted" }>;
+  businessHours: {
+    [key: string]: {
+      isOpen: boolean;
+      fromHours: number;
+      fromMinutes: number;
+      tillHours: number;
+      tillMinutes: number;
+      breaks: Array<{
+        fromHours: number;
+        fromMinutes: number;
+        tillHours: number;
+        tillMinutes: number;
+      }>;
+    };
+  };
 }
 
 const initialState: CompleteProfileState = {
   // currentStep: 1,
-  currentStep: 5,
+  currentStep: 7,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -56,6 +71,64 @@ const initialState: CompleteProfileState = {
   teamSize: null,
   staffInvitationEmail: "",
   staffInvitations: [],
+  businessHours: {
+    Sunday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Monday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Tuesday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Wednesday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Thursday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Friday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+    Saturday: {
+      isOpen: false,
+      fromHours: 0,
+      fromMinutes: 0,
+      tillHours: 0,
+      tillMinutes: 0,
+      breaks: [],
+    },
+  },
 };
 
 const completeProfileSlice = createSlice({
@@ -114,6 +187,29 @@ const completeProfileSlice = createSlice({
         if (nextStep < 6) {
           state.staffInvitationEmail = "";
           state.staffInvitations = [];
+        }
+
+        if (nextStep < 7) {
+          // Reset business hours
+          const days = [
+            "Sunday",
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+          ];
+          days.forEach((day) => {
+            state.businessHours[day] = {
+              isOpen: false,
+              fromHours: 0,
+              fromMinutes: 0,
+              tillHours: 0,
+              tillMinutes: 0,
+              breaks: [],
+            };
+          });
         }
 
         state.currentStep = nextStep;
@@ -215,6 +311,115 @@ const completeProfileSlice = createSlice({
     removeStaffInvitation: (state, action: PayloadAction<number>) => {
       state.staffInvitations.splice(action.payload, 1);
     },
+    setDayAvailability: (
+      state,
+      action: PayloadAction<{ day: string; isOpen: boolean }>
+    ) => {
+      if (!state.businessHours[action.payload.day]) {
+        state.businessHours[action.payload.day] = {
+          isOpen: false,
+          fromHours: 0,
+          fromMinutes: 0,
+          tillHours: 0,
+          tillMinutes: 0,
+          breaks: [],
+        };
+      }
+      state.businessHours[action.payload.day].isOpen = action.payload.isOpen;
+    },
+    setDayHours: (
+      state,
+      action: PayloadAction<{
+        day: string;
+        fromHours: number;
+        fromMinutes: number;
+        tillHours: number;
+        tillMinutes: number;
+        breaks: Array<{
+          fromHours: number;
+          fromMinutes: number;
+          tillHours: number;
+          tillMinutes: number;
+        }>;
+      }>
+    ) => {
+      if (!state.businessHours[action.payload.day]) {
+        state.businessHours[action.payload.day] = {
+          isOpen: true,
+          fromHours: 0,
+          fromMinutes: 0,
+          tillHours: 0,
+          tillMinutes: 0,
+          breaks: [],
+        };
+      }
+      state.businessHours[action.payload.day].fromHours =
+        action.payload.fromHours;
+      state.businessHours[action.payload.day].fromMinutes =
+        action.payload.fromMinutes;
+      state.businessHours[action.payload.day].tillHours =
+        action.payload.tillHours;
+      state.businessHours[action.payload.day].tillMinutes =
+        action.payload.tillMinutes;
+      state.businessHours[action.payload.day].breaks = action.payload.breaks;
+      // Only set isOpen to true if we're setting valid hours (not clearing)
+      if (action.payload.fromHours > 0 && action.payload.tillHours > 0) {
+        state.businessHours[action.payload.day].isOpen = true;
+      }
+    },
+    setDayBreakTime: (
+      state,
+      action: PayloadAction<{
+        day: string;
+        breakIndex: number;
+        fromHours: number;
+        fromMinutes: number;
+        tillHours: number;
+        tillMinutes: number;
+      }>
+    ) => {
+      if (!state.businessHours[action.payload.day]) {
+        return;
+      }
+      if (
+        !state.businessHours[action.payload.day].breaks[
+          action.payload.breakIndex
+        ]
+      ) {
+        state.businessHours[action.payload.day].breaks[
+          action.payload.breakIndex
+        ] = {
+          fromHours: 0,
+          fromMinutes: 0,
+          tillHours: 0,
+          tillMinutes: 0,
+        };
+      }
+      state.businessHours[action.payload.day].breaks[
+        action.payload.breakIndex
+      ].fromHours = action.payload.fromHours;
+      state.businessHours[action.payload.day].breaks[
+        action.payload.breakIndex
+      ].fromMinutes = action.payload.fromMinutes;
+      state.businessHours[action.payload.day].breaks[
+        action.payload.breakIndex
+      ].tillHours = action.payload.tillHours;
+      state.businessHours[action.payload.day].breaks[
+        action.payload.breakIndex
+      ].tillMinutes = action.payload.tillMinutes;
+    },
+    removeDayBreakTime: (
+      state,
+      action: PayloadAction<{ day: string; breakIndex: number }>
+    ) => {
+      if (!state.businessHours[action.payload.day]) {
+        return;
+      }
+      state.businessHours[action.payload.day].breaks.splice(
+        action.payload.breakIndex,
+        1
+      );
+    },
   },
 });
 
@@ -242,6 +447,10 @@ export const {
   setStaffInvitationEmail,
   addStaffInvitation,
   removeStaffInvitation,
+  setDayAvailability,
+  setDayHours,
+  setDayBreakTime,
+  removeDayBreakTime,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

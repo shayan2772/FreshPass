@@ -10,6 +10,8 @@ import { useEffect, useState } from "react";
 import { I18nextProvider } from "react-i18next";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { PortalProvider } from "@gorhom/portal";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
 SystemUI.setBackgroundColorAsync("#FEFAE0");
@@ -35,36 +37,40 @@ export default function RootLayout() {
   }
 
   return (
-    <Provider store={store}>
-      <PersistGate
-        persistor={persistor}
-        loading={null}
-        onBeforeLift={() => {
-          // Sync i18n with Redux persisted language after rehydration
-          // Ensure i18n is initialized before calling changeLanguage
-          if (!i18n || !i18n.isInitialized) {
-            return;
-          }
-          
-          const state = store.getState();
-          if (
-            state?.general?.language &&
-            i18n.language !== state.general.language
-          ) {
-            try {
-              i18n.changeLanguage(state.general.language);
-              setupRTL(state.general.language);
-            } catch (error) {
-              console.warn("Error changing language:", error);
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <PersistGate
+          persistor={persistor}
+          loading={null}
+          onBeforeLift={() => {
+            // Sync i18n with Redux persisted language after rehydration
+            // Ensure i18n is initialized before calling changeLanguage
+            if (!i18n || !i18n.isInitialized) {
+              return;
             }
-          }
-        }}
-      >
-        <I18nextProvider i18n={i18n}>
-          <ThemedStatusBar />
-          <Slot />
-        </I18nextProvider>
-      </PersistGate>
-    </Provider>
+            
+            const state = store.getState();
+            if (
+              state?.general?.language &&
+              i18n.language !== state.general.language
+            ) {
+              try {
+                i18n.changeLanguage(state.general.language);
+                setupRTL(state.general.language);
+              } catch (error) {
+                console.warn("Error changing language:", error);
+              }
+            }
+          }}
+        >
+          <PortalProvider>
+            <I18nextProvider i18n={i18n}>
+              <ThemedStatusBar />
+              <Slot />
+            </I18nextProvider>
+          </PortalProvider>
+        </PersistGate>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }

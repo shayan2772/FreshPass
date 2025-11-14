@@ -1,43 +1,256 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
-import { moderateHeightScale } from "@/src/theme/dimensions";
+import {
+  moderateHeightScale,
+  moderateWidthScale,
+} from "@/src/theme/dimensions";
+import {
+  setDayAvailability,
+  setDayHours,
+} from "@/src/state/slices/completeProfileSlice";
+import BusinessHoursBottomSheet from "@/src/components/businessHoursBottomSheet";
+import CustomToggle from "@/src/components/customToggle";
+
+const DAYS = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+];
+
+const formatTime = (hours: number, minutes: number): string => {
+  const period = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes.toString().padStart(2, "0");
+  return `${displayHours}:${displayMinutes} ${period}`;
+};
+
+const formatTimeRange = (
+  fromHours: number,
+  fromMinutes: number,
+  tillHours: number,
+  tillMinutes: number
+): string => {
+  return `${formatTime(fromHours, fromMinutes)} - ${formatTime(
+    tillHours,
+    tillMinutes
+  )}`;
+};
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      gap: moderateHeightScale(12),
+      gap: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    titleSec: {
+      marginTop: moderateHeightScale(8),
+      gap: 5,
     },
     title: {
-      fontSize: fontSize.size22,
+      fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
-    description: {
-      fontSize: fontSize.size16,
+    subtitle: {
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-      textAlign: "center",
+    },
+    daysContainer: {
+      gap: moderateHeightScale(2),
+    },
+    dayRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: moderateHeightScale(16),
+    },
+    dayLeft: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
+      flex: 1,
+    },
+    dayName: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    dayHours: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      // marginRight: moderateWidthScale(8),
+    },
+    dayHoursContainer: {
+      flex: 1,
+      alignItems: "flex-end",
+      marginRight: moderateWidthScale(8),
+      gap: moderateHeightScale(2),
+    },
+    dayHoursMultiple: {
+      gap: moderateHeightScale(2),
+      alignItems: "flex-end",
+    },
+    dayHoursLine: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
+    divider: {
+      height: 1.2,
+      backgroundColor: theme.borderLight,
+    },
+    chevronIcon: {
+      marginLeft: moderateWidthScale(8),
     },
   });
 
 export default function StepSeven() {
+  const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const theme = colors as Theme;
+  const { businessHours } = useAppSelector((state) => state.completeProfile);
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+
+  const handleToggleDay = (day: string, value: boolean) => {
+    dispatch(setDayAvailability({ day, isOpen: value }));
+    // Don't clear hours when closing - keep them so they can be restored when opening again
+    // No default hours - user must set hours manually
+    // Also open bottom sheet when toggle is turned on
+    // if (value) {
+    //   setSelectedDay(day);
+    //   setBottomSheetVisible(true);
+    // }
+  };
+
+  const handleDayPress = (day: string) => {
+    // Allow opening bottom sheet regardless of toggle status
+    setSelectedDay(day);
+    setBottomSheetVisible(true);
+  };
+
+  const handleCloseBottomSheet = () => {
+    setBottomSheetVisible(false);
+    setSelectedDay(null);
+  };
+
+  const getDayDisplayText = (day: string): string | React.ReactNode => {
+    const dayData = businessHours[day];
+
+    // If day is closed, show "Closed"
+    if (!dayData?.isOpen) {
+      return "Closed";
+    }
+
+    // If day is open but no valid hours are set, show "---" to indicate hours need to be set
+    if (
+      !dayData.fromHours ||
+      !dayData.tillHours ||
+      dayData.fromHours === 0 ||
+      dayData.tillHours === 0 ||
+      dayData.fromHours >= dayData.tillHours
+    ) {
+      return "---";
+    }
+
+    const mainHours = formatTimeRange(
+      dayData.fromHours,
+      dayData.fromMinutes,
+      dayData.tillHours,
+      dayData.tillMinutes
+    );
+
+    if (dayData.breaks && dayData.breaks.length > 0) {
+      return (
+        <View style={styles.dayHoursMultiple}>
+          <Text style={styles.dayHoursLine}>{mainHours}</Text>
+          {dayData.breaks.map((breakTime, index) => (
+            <Text key={index} style={styles.dayHoursLine}>
+              Break:{" "}
+              {formatTimeRange(
+                breakTime.fromHours,
+                breakTime.fromMinutes,
+                breakTime.tillHours,
+                breakTime.tillMinutes
+              )}
+            </Text>
+          ))}
+        </View>
+      );
+    }
+
+    return mainHours;
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Step 7 placeholder</Text>
-      <Text style={styles.description}>
-        Detailed inputs for this step will be wired soon.
-      </Text>
+      <View style={styles.titleSec}>
+        <Text style={styles.title}>Business hours</Text>
+        <Text style={styles.subtitle}>When clients can book your services</Text>
+      </View>
+
+      <View style={styles.daysContainer}>
+        {DAYS.map((day, index) => {
+          const dayData = businessHours[day];
+          const isOpen = dayData?.isOpen ?? false;
+          const showDivider = index < DAYS.length - 1;
+          const displayText = getDayDisplayText(day);
+          // Allow clicking regardless of toggle status
+          const canClick = true;
+
+          return (
+            <React.Fragment key={day}>
+              <TouchableOpacity
+                style={styles.dayRow}
+                onPress={() => handleDayPress(day)}
+                disabled={!canClick}
+                activeOpacity={canClick ? 0.7 : 1}
+              >
+                <View style={styles.dayLeft}>
+                  <CustomToggle
+                    value={isOpen}
+                    onValueChange={(value) => handleToggleDay(day, value)}
+                  />
+                  <Text style={styles.dayName}>{day}</Text>
+                  <View style={styles.dayHoursContainer}>
+                    {typeof displayText === "string" ? (
+                      <Text style={styles.dayHours}>{displayText}</Text>
+                    ) : (
+                      <View style={styles.dayHoursMultiple}>{displayText}</View>
+                    )}
+                  </View>
+                  <Feather
+                    name="chevron-right"
+                    size={moderateWidthScale(18)}
+                    color={theme.darkGreen}
+                    style={styles.chevronIcon}
+                  />
+                </View>
+              </TouchableOpacity>
+              {showDivider && <View style={styles.divider} />}
+            </React.Fragment>
+          );
+        })}
+      </View>
+
+      <BusinessHoursBottomSheet
+        visible={bottomSheetVisible  }
+        onClose={handleCloseBottomSheet}
+        day={selectedDay || ""}
+      />
     </View>
   );
 }
-
-
