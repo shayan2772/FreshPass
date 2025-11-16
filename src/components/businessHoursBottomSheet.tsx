@@ -93,6 +93,7 @@ const createStyles = (theme: Theme) =>
     content: {
       paddingHorizontal: moderateWidthScale(20),
       marginTop: moderateHeightScale(7),
+  
     },
     sectionTitle: {
       fontSize: fontSize.size16,
@@ -165,7 +166,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: moderateHeightScale(12),
+      // marginBottom: moderateHeightScale(12),
     },
     addBreakButton: {
       paddingHorizontal: moderateWidthScale(12),
@@ -181,6 +182,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(12),
+      marginBottom: moderateHeightScale(12),
     },
     breakTimeInputs: {
       flex: 1,
@@ -241,11 +243,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    dayPillTextSelected: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
-      color: theme.white,
-    },
+
     buttonContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingTop: moderateHeightScale(20),
@@ -484,7 +482,7 @@ export default function BusinessHoursBottomSheet({
           </View>
         }
       >
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.content}  showsVerticalScrollIndicator={false}>
           <View style={{ gap: 3 }}>
             <Text style={styles.sectionTitle}>Business hours</Text>
             <Text style={styles.sectionDescription}>
@@ -539,19 +537,20 @@ export default function BusinessHoursBottomSheet({
             </View>
           </View>
 
-          <View style={styles.breakTimeSection}>
-            <View style={styles.breakTimeHeader}>
-              <Text style={styles.sectionTitle2}>Break time</Text>
-              <TouchableOpacity
-                onPress={handleAddBreak}
-                style={styles.addBreakButton}
-              >
-                <Text style={styles.addBreakButtonText}>Add new +</Text>
-              </TouchableOpacity>
+      
+            <View style={styles.breakTimeSection}>
+              <View style={styles.breakTimeHeader}>
+                <Text style={styles.sectionTitle2}>Break time</Text>
+                <TouchableOpacity
+                  onPress={handleAddBreak}
+                  style={styles.addBreakButton}
+                >
+                  <Text style={styles.addBreakButtonText}>Add new +</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          {/* {breaks.map((breakTime, index) => (
+            {breaks.map((breakTime, index) => (
               <View key={index} style={styles.breakTimeItem}>
                 <View style={styles.breakTimeInputs}>
                   <View style={styles.inputWrapper}>
@@ -612,9 +611,10 @@ export default function BusinessHoursBottomSheet({
                   />
                 </TouchableOpacity>
               </View>
-            ))} */}
+            ))}
+           
 
-          <View style={{gap:15}}>
+          <View style={{ gap: 15 }}>
             <View style={styles.copyHoursSection}>
               <TouchableOpacity
                 onPress={() => setCopyHoursEnabled(!copyHoursEnabled)}
@@ -663,19 +663,11 @@ export default function BusinessHoursBottomSheet({
                     <Feather
                       name="check"
                       size={moderateWidthScale(14)}
-                      color={theme.white}
+                      color={theme.darkGreen}
                       style={{ marginRight: moderateWidthScale(4) }}
                     />
                   )}
-                  <Text
-                    style={[
-                      styles.dayPillText,
-                      selectedDays.length === DAYS.length - 1 &&
-                        styles.dayPillTextSelected,
-                    ]}
-                  >
-                    All
-                  </Text>
+                  <Text style={[styles.dayPillText]}>All</Text>
                 </TouchableOpacity>
                 {DAYS.filter((d) => d !== day).map((dayName) => {
                   const isSelected = selectedDays.includes(dayName);
@@ -692,18 +684,11 @@ export default function BusinessHoursBottomSheet({
                         <Feather
                           name="check"
                           size={moderateWidthScale(14)}
-                          color={theme.white}
+                          color={theme.darkGreen}
                           style={{ marginRight: moderateWidthScale(4) }}
                         />
                       )}
-                      <Text
-                        style={[
-                          styles.dayPillText,
-                          isSelected && styles.dayPillTextSelected,
-                        ]}
-                      >
-                        {dayName}
-                      </Text>
+                      <Text style={[styles.dayPillText]}>{dayName}</Text>
                     </TouchableOpacity>
                   );
                 })}
