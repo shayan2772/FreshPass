@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
+  Dimensions,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -61,7 +62,6 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderTopLeftRadius: moderateWidthScale(24),
       borderTopRightRadius: moderateWidthScale(24),
-      maxHeight: "90%",
     },
     header: {
       flexDirection: "row",
@@ -93,7 +93,14 @@ const createStyles = (theme: Theme) =>
     content: {
       paddingHorizontal: moderateWidthScale(20),
       marginTop: moderateHeightScale(7),
-  
+    },
+    scrollView: {
+      width: "100%",
+    },
+    scrollContent: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(7),
+      paddingBottom: moderateHeightScale(20),
     },
     sectionTitle: {
       fontSize: fontSize.size16,
@@ -262,6 +269,8 @@ export default function BusinessHoursBottomSheet({
   const theme = colors as Theme;
   const insets = useSafeAreaInsets();
   const { businessHours } = useAppSelector((state) => state.completeProfile);
+  const screenHeight = Dimensions.get("window").height;
+  const maxContentHeight = screenHeight * 0.75;
 
   const dayData = businessHours[day] || {
     isOpen: false,
@@ -456,7 +465,7 @@ export default function BusinessHoursBottomSheet({
         panGestureEnabled
         avoidKeyboardLikeIOS
         overlayStyle={styles.modalOverlay}
-        modalStyle={[styles.bottomSheet]}
+        modalStyle={[styles.bottomSheet, { maxHeight: screenHeight * 0.9 }]}
         HeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>{day} availability</Text>
@@ -482,7 +491,12 @@ export default function BusinessHoursBottomSheet({
           </View>
         }
       >
-        <ScrollView style={styles.content}  showsVerticalScrollIndicator={false}>
+        <ScrollView
+          nestedScrollEnabled
+          style={[styles.scrollView, { maxHeight: maxContentHeight }]}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={true}
+        >
           <View style={{ gap: 3 }}>
             <Text style={styles.sectionTitle}>Business hours</Text>
             <Text style={styles.sectionDescription}>
@@ -537,82 +551,74 @@ export default function BusinessHoursBottomSheet({
             </View>
           </View>
 
-      
-            <View style={styles.breakTimeSection}>
-              <View style={styles.breakTimeHeader}>
-                <Text style={styles.sectionTitle2}>Break time</Text>
-                <TouchableOpacity
-                  onPress={handleAddBreak}
-                  style={styles.addBreakButton}
-                >
-                  <Text style={styles.addBreakButtonText}>Add new +</Text>
-                </TouchableOpacity>
-              </View>
+          <View style={styles.breakTimeSection}>
+            <View style={styles.breakTimeHeader}>
+              <Text style={styles.sectionTitle2}>Break time</Text>
+              <TouchableOpacity
+                onPress={handleAddBreak}
+                style={styles.addBreakButton}
+              >
+                <Text style={styles.addBreakButtonText}>Add new +</Text>
+              </TouchableOpacity>
             </View>
+          </View>
 
-            {breaks.map((breakTime, index) => (
-              <View key={index} style={styles.breakTimeItem}>
-                <View style={styles.breakTimeInputs}>
-                  <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>From</Text>
-                    <TouchableOpacity
-                      style={styles.dropdownButton}
-                      onPress={() => setShowBreakFromDropdown(index)}
-                    >
-                      {breakTime.fromHours > 0 || breakTime.fromMinutes > 0 ? (
-                        <Text style={styles.dropdownText}>
-                          {formatTime(
-                            breakTime.fromHours,
-                            breakTime.fromMinutes
-                          )}
-                        </Text>
-                      ) : (
-                        <Text style={styles.dropdownPlaceholder}>From</Text>
-                      )}
-                      <Feather
-                        name="chevron-down"
-                        size={moderateWidthScale(16)}
-                        color={theme.darkGreen}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.inputWrapper}>
-                    <Text style={styles.inputLabel}>Till</Text>
-                    <TouchableOpacity
-                      style={styles.dropdownButton}
-                      onPress={() => setShowBreakTillDropdown(index)}
-                    >
-                      {breakTime.tillHours > 0 || breakTime.tillMinutes > 0 ? (
-                        <Text style={styles.dropdownText}>
-                          {formatTime(
-                            breakTime.tillHours,
-                            breakTime.tillMinutes
-                          )}
-                        </Text>
-                      ) : (
-                        <Text style={styles.dropdownPlaceholder}>Till</Text>
-                      )}
-                      <Feather
-                        name="chevron-down"
-                        size={moderateWidthScale(16)}
-                        color={theme.darkGreen}
-                      />
-                    </TouchableOpacity>
-                  </View>
+          {breaks.map((breakTime, index) => (
+            <View key={index} style={styles.breakTimeItem}>
+              <View style={styles.breakTimeInputs}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>From</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowBreakFromDropdown(index)}
+                  >
+                    {breakTime.fromHours > 0 || breakTime.fromMinutes > 0 ? (
+                      <Text style={styles.dropdownText}>
+                        {formatTime(breakTime.fromHours, breakTime.fromMinutes)}
+                      </Text>
+                    ) : (
+                      <Text style={styles.dropdownPlaceholder}>From</Text>
+                    )}
+                    <Feather
+                      name="chevron-down"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                    />
+                  </TouchableOpacity>
                 </View>
-                <TouchableOpacity
-                  onPress={() => handleRemoveBreak(index)}
-                  style={styles.deleteButton}
-                >
-                  <Feather
-                    name="trash-2"
-                    size={moderateWidthScale(20)}
-                    color={theme.link}
-                  />
-                </TouchableOpacity>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.inputLabel}>Till</Text>
+                  <TouchableOpacity
+                    style={styles.dropdownButton}
+                    onPress={() => setShowBreakTillDropdown(index)}
+                  >
+                    {breakTime.tillHours > 0 || breakTime.tillMinutes > 0 ? (
+                      <Text style={styles.dropdownText}>
+                        {formatTime(breakTime.tillHours, breakTime.tillMinutes)}
+                      </Text>
+                    ) : (
+                      <Text style={styles.dropdownPlaceholder}>Till</Text>
+                    )}
+                    <Feather
+                      name="chevron-down"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                    />
+                  </TouchableOpacity>
+                </View>
               </View>
-            ))}
-           
+              <TouchableOpacity
+                onPress={() => handleRemoveBreak(index)}
+                style={styles.deleteButton}
+              >
+                <Feather
+                  name="trash-2"
+                  size={moderateWidthScale(20)}
+                  color={theme.link}
+                />
+              </TouchableOpacity>
+            </View>
+          ))}
 
           <View style={{ gap: 15 }}>
             <View style={styles.copyHoursSection}>
