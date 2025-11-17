@@ -107,6 +107,11 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
+    dayHorsBreak:{
+      fontSize: fontSize.size9,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
     divider: {
       height: 1.2,
       backgroundColor: theme.borderLight,
@@ -126,14 +131,30 @@ export default function StepSeven() {
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
 
   const handleToggleDay = (day: string, value: boolean) => {
+    const dayData = businessHours[day];
     dispatch(setDayAvailability({ day, isOpen: value }));
-    // Don't clear hours when closing - keep them so they can be restored when opening again
-    // No default hours - user must set hours manually
-    // Also open bottom sheet when toggle is turned on
-    // if (value) {
-    //   setSelectedDay(day);
-    //   setBottomSheetVisible(true);
-    // }
+    
+    // If turning day ON and no hours are set (all zeros), set default hours (9 AM - 6 PM)
+    if (value && dayData) {
+      const hasNoHours = 
+        dayData.fromHours === 0 && 
+        dayData.fromMinutes === 0 && 
+        dayData.tillHours === 0 && 
+        dayData.tillMinutes === 0;
+      
+      if (hasNoHours) {
+        dispatch(
+          setDayHours({
+            day,
+            fromHours: 9, // 9 AM
+            fromMinutes: 0,
+            tillHours: 18, // 6 PM
+            tillMinutes: 0,
+            breaks: [],
+          })
+        );
+      }
+    }
   };
 
   const handleDayPress = (day: string) => {
@@ -157,11 +178,9 @@ export default function StepSeven() {
 
     // If day is open but no valid hours are set, show "---" to indicate hours need to be set
     if (
-      !dayData.fromHours ||
-      !dayData.tillHours ||
-      dayData.fromHours === 0 ||
-      dayData.tillHours === 0 ||
-      dayData.fromHours >= dayData.tillHours
+      !dayData.fromHours &&
+      !dayData.tillHours 
+      
     ) {
       return "---";
     }
@@ -178,7 +197,7 @@ export default function StepSeven() {
         <View style={styles.dayHoursMultiple}>
           <Text style={styles.dayHoursLine}>{mainHours}</Text>
           {dayData.breaks.map((breakTime, index) => (
-            <Text key={index} style={styles.dayHoursLine}>
+            <Text key={index} style={styles.dayHorsBreak}>
               Break:{" "}
               {formatTimeRange(
                 breakTime.fromHours,
@@ -194,6 +213,8 @@ export default function StepSeven() {
 
     return mainHours;
   };
+
+  console.log("businessHours : ",businessHours)
 
   return (
     <View style={styles.container}>

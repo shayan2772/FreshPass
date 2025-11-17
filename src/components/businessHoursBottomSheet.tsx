@@ -41,6 +41,8 @@ interface BreakTime {
   tillMinutes: number;
 }
 
+const getTotalMinutes = (hours: number, minutes: number) => hours * 60 + minutes;
+
 const DAYS = [
   "Sunday",
   "Monday",
@@ -116,6 +118,12 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+    },
+    errorText: {
+      marginTop: moderateHeightScale(6),
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.link,
     },
     inputRow: {
       flexDirection: "row",
@@ -281,10 +289,30 @@ export default function BusinessHoursBottomSheet({
     breaks: [],
   };
 
-  const [fromHours, setFromHours] = useState(dayData.fromHours || 10);
-  const [fromMinutes, setFromMinutes] = useState(dayData.fromMinutes || 0);
-  const [tillHours, setTillHours] = useState(dayData.tillHours || 19);
-  const [tillMinutes, setTillMinutes] = useState(dayData.tillMinutes || 30);
+  // Default hours: 9 AM - 6 PM
+  const DEFAULT_FROM_HOURS = 9;
+  const DEFAULT_FROM_MINUTES = 0;
+  const DEFAULT_TILL_HOURS = 18;
+  const DEFAULT_TILL_MINUTES = 0;
+
+  // Check if day has no hours set
+  const hasNoHours = 
+    (dayData.fromHours === 0 && dayData.fromMinutes === 0 && 
+     dayData.tillHours === 0 && dayData.tillMinutes === 0) ||
+    (!dayData.fromHours && !dayData.tillHours);
+
+  const [fromHours, setFromHours] = useState(
+    hasNoHours ? DEFAULT_FROM_HOURS : (dayData.fromHours || 0)
+  );
+  const [fromMinutes, setFromMinutes] = useState(
+    hasNoHours ? DEFAULT_FROM_MINUTES : (dayData.fromMinutes || 0)
+  );
+  const [tillHours, setTillHours] = useState(
+    hasNoHours ? DEFAULT_TILL_HOURS : (dayData.tillHours || 0)
+  );
+  const [tillMinutes, setTillMinutes] = useState(
+    hasNoHours ? DEFAULT_TILL_MINUTES : (dayData.tillMinutes || 0)
+  );
   const [breaks, setBreaks] = useState<BreakTime[]>(dayData.breaks || []);
   const [copyHoursEnabled, setCopyHoursEnabled] = useState(false);
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -296,13 +324,30 @@ export default function BusinessHoursBottomSheet({
   const [showBreakTillDropdown, setShowBreakTillDropdown] = useState<
     number | null
   >(null);
+  const [openingHoursError, setOpeningHoursError] = useState<string | null>(null);
+  const [breakTimeError, setBreakTimeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (visible && day) {
-      setFromHours(dayData.fromHours || 0);
-      setFromMinutes(dayData.fromMinutes || 0);
-      setTillHours(dayData.tillHours || 0);
-      setTillMinutes(dayData.tillMinutes || 0);
+      // Check if day has no hours set (all zeros)
+      const hasNoHours = 
+        (dayData.fromHours === 0 && dayData.fromMinutes === 0 && 
+         dayData.tillHours === 0 && dayData.tillMinutes === 0) ||
+        (!dayData.fromHours && !dayData.tillHours);
+      
+      // If no hours are set, use default hours (9 AM - 6 PM)
+      if (hasNoHours) {
+        setFromHours(9); // 9 AM
+        setFromMinutes(0);
+        setTillHours(18); // 6 PM
+        setTillMinutes(0);
+      } else {
+        setFromHours(dayData.fromHours || 0);
+        setFromMinutes(dayData.fromMinutes || 0);
+        setTillHours(dayData.tillHours || 0);
+        setTillMinutes(dayData.tillMinutes || 0);
+      }
+      
       // Auto-add at least 1 break time field if no breaks exist
       const existingBreaks = dayData.breaks || [];
       if (existingBreaks.length === 0) {
@@ -329,7 +374,28 @@ export default function BusinessHoursBottomSheet({
   }, [visible, day, dayData]);
 
   const handleSave = () => {
-    // Filter out empty break times (all zeros) before saving
+    setOpeningHoursError(null);
+    setBreakTimeError(null);
+
+    const fromTotalMinutes = getTotalMinutes(fromHours, fromMinutes);
+    const tillTotalMinutes = getTotalMinutes(tillHours, tillMinutes);
+
+    let hasError = false;
+
+    // Validate opening hours: from must be less than till
+    // Check if times are set (we set defaults, so if both are 0, user might have cleared them or selected 12 AM for both)
+    const bothAreZero = fromHours === 0 && fromMinutes === 0 && tillHours === 0 && tillMinutes === 0;
+    
+    if (bothAreZero) {
+      // This could be "not set" or "both 12 AM" - either way, it's invalid
+      setOpeningHoursError("Please select valid opening and closing times.");
+      hasError = true;
+    } else if (fromTotalMinutes >= tillTotalMinutes) {
+      setOpeningHoursError("Opening time must be earlier than closing time.");
+      hasError = true;
+    }
+
+    // Filter valid breaks (non-empty ones)
     const validBreaks = breaks.filter(
       (breakTime) =>
         breakTime.fromHours > 0 ||
@@ -337,6 +403,81 @@ export default function BusinessHoursBottomSheet({
         breakTime.tillHours > 0 ||
         breakTime.tillMinutes > 0
     );
+
+    // Validate break times
+    if (validBreaks.length > 0) {
+      // Check for duplicate break times
+      for (let i = 0; i < validBreaks.length; i++) {
+        for (let j = i + 1; j < validBreaks.length; j++) {
+          const break1From = getTotalMinutes(
+            validBreaks[i].fromHours,
+            validBreaks[i].fromMinutes
+          );
+          const break1Till = getTotalMinutes(
+            validBreaks[i].tillHours,
+            validBreaks[i].tillMinutes
+          );
+          const break2From = getTotalMinutes(
+            validBreaks[j].fromHours,
+            validBreaks[j].fromMinutes
+          );
+          const break2Till = getTotalMinutes(
+            validBreaks[j].tillHours,
+            validBreaks[j].tillMinutes
+          );
+
+          if (
+            break1From === break2From &&
+            break1Till === break2Till
+          ) {
+            setBreakTimeError("Break times cannot be the same. Please set different break times.");
+            hasError = true;
+            break;
+          }
+        }
+        if (hasError) break;
+      }
+
+      // Check each break time validity
+      if (!hasError) {
+        const hasInvalidBreak = validBreaks.some((breakTime) => {
+          const breakFrom = getTotalMinutes(
+            breakTime.fromHours,
+            breakTime.fromMinutes
+          );
+          const breakTill = getTotalMinutes(
+            breakTime.tillHours,
+            breakTime.tillMinutes
+          );
+
+          // Break from must be less than break till
+          if (breakFrom >= breakTill) {
+            return true;
+          }
+
+          // Break time must be within opening hours
+          if (
+            breakFrom < fromTotalMinutes ||
+            breakTill > tillTotalMinutes
+          ) {
+            return true;
+          }
+
+          return false;
+        });
+
+        if (hasInvalidBreak) {
+          setBreakTimeError(
+            "Break times must be valid (from < till) and within opening hours."
+          );
+          hasError = true;
+        }
+      }
+    }
+
+    if (hasError) {
+      return;
+    }
 
     dispatch(
       setDayHours({
@@ -381,20 +522,8 @@ export default function BusinessHoursBottomSheet({
   };
 
   const handleRemoveBreak = (index: number) => {
-    // Keep at least 1 break time field
-    if (breaks.length > 1) {
-      setBreaks(breaks.filter((_, i) => i !== index));
-    } else {
-      // If only 1 break exists, reset it to empty instead of removing
-      setBreaks([
-        {
-          fromHours: 0,
-          fromMinutes: 0,
-          tillHours: 0,
-          tillMinutes: 0,
-        },
-      ]);
-    }
+    // Remove the entire break row
+    setBreaks(breaks.filter((_, i) => i !== index));
   };
 
   const handleBreakTimeChange = (
@@ -433,20 +562,28 @@ export default function BusinessHoursBottomSheet({
       setTillMinutes(minutes);
       setShowTillDropdown(false);
     } else if (type === "breakFrom" && breakIndex !== undefined) {
-      handleBreakTimeChange(breakIndex, "fromHours", hours);
-      handleBreakTimeChange(breakIndex, "fromMinutes", minutes);
+      const updatedBreaks = [...breaks];
+      updatedBreaks[breakIndex] = {
+        ...updatedBreaks[breakIndex],
+        fromHours: hours,
+        fromMinutes: minutes,
+      };
+      setBreaks(updatedBreaks);
       setShowBreakFromDropdown(null);
     } else if (type === "breakTill" && breakIndex !== undefined) {
-      handleBreakTimeChange(breakIndex, "tillHours", hours);
-      handleBreakTimeChange(breakIndex, "tillMinutes", minutes);
+      const updatedBreaks = [...breaks];
+      updatedBreaks[breakIndex] = {
+        ...updatedBreaks[breakIndex],
+        tillHours: hours,
+        tillMinutes: minutes,
+      };
+      setBreaks(updatedBreaks);
       setShowBreakTillDropdown(null);
     }
   };
 
   const formatTime = (hours: number, minutes: number): string => {
-    if (hours === 0 && minutes === 0) {
-      return "";
-    }
+    // Always format time, even if it's 12:00 AM (0,0)
     const period = hours >= 12 ? "PM" : "AM";
     const displayHours = hours % 12 || 12;
     const displayMinutes = minutes.toString().padStart(2, "0");
@@ -514,7 +651,7 @@ export default function BusinessHoursBottomSheet({
                   style={styles.dropdownButton}
                   onPress={() => setShowFromDropdown(true)}
                 >
-                  {fromHours > 0 || fromMinutes > 0 ? (
+                  {fromHours !== undefined && fromMinutes !== undefined ? (
                     <Text style={styles.dropdownText}>
                       {formatTime(fromHours, fromMinutes)}
                     </Text>
@@ -534,7 +671,7 @@ export default function BusinessHoursBottomSheet({
                   style={styles.dropdownButton}
                   onPress={() => setShowTillDropdown(true)}
                 >
-                  {tillHours > 0 || tillMinutes > 0 ? (
+                  {tillHours !== undefined && tillMinutes !== undefined ? (
                     <Text style={styles.dropdownText}>
                       {formatTime(tillHours, tillMinutes)}
                     </Text>
@@ -549,6 +686,9 @@ export default function BusinessHoursBottomSheet({
                 </TouchableOpacity>
               </View>
             </View>
+            {openingHoursError ? (
+              <Text style={styles.errorText}>{openingHoursError}</Text>
+            ) : null}
           </View>
 
           <View style={styles.breakTimeSection}>
@@ -561,6 +701,9 @@ export default function BusinessHoursBottomSheet({
                 <Text style={styles.addBreakButtonText}>Add new +</Text>
               </TouchableOpacity>
             </View>
+            {breakTimeError ? (
+              <Text style={styles.errorText}>{breakTimeError}</Text>
+            ) : null}
           </View>
 
           {breaks.map((breakTime, index) => (
@@ -572,7 +715,7 @@ export default function BusinessHoursBottomSheet({
                     style={styles.dropdownButton}
                     onPress={() => setShowBreakFromDropdown(index)}
                   >
-                    {breakTime.fromHours > 0 || breakTime.fromMinutes > 0 ? (
+                    {breakTime.fromHours !== undefined && breakTime.fromMinutes !== undefined ? (
                       <Text style={styles.dropdownText}>
                         {formatTime(breakTime.fromHours, breakTime.fromMinutes)}
                       </Text>
@@ -592,7 +735,7 @@ export default function BusinessHoursBottomSheet({
                     style={styles.dropdownButton}
                     onPress={() => setShowBreakTillDropdown(index)}
                   >
-                    {breakTime.tillHours > 0 || breakTime.tillMinutes > 0 ? (
+                    {breakTime.tillHours !== undefined && breakTime.tillMinutes !== undefined ? (
                       <Text style={styles.dropdownText}>
                         {formatTime(breakTime.tillHours, breakTime.tillMinutes)}
                       </Text>

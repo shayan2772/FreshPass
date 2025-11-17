@@ -83,11 +83,11 @@ export default function TimePickerModal({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
+  const insets = useSafeAreaInsets();
 
   if (!visible) return null;
 
   const currentValue = getTimeValue(currentHours, currentMinutes);
-  const insets = useSafeAreaInsets();
 
   return (
     <Modal
