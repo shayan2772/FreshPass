@@ -6,7 +6,7 @@ import {
   setTheme,
   setThemeType,
 } from "@/src/state/slices/generalSlice";
-import { ThemeName } from "@/src/theme/colors";
+import { Theme, ThemeName } from "@/src/theme/colors";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -19,7 +19,7 @@ export default function Header() {
   const dispatch = useAppDispatch();
   const { colors, theme } = useTheme();
   const { i18n } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors as Theme), [colors]);
 
   const renderItem2 = (item: any) => {
     const isSel = item.value === theme;
@@ -28,7 +28,7 @@ export default function Header() {
         <Text
           style={[
             styles.itemText,
-            { color: isSel ? colors.selectedDropDownText : colors.text },
+            { color: isSel ? (colors as Theme).selectedDropDownText : (colors as Theme).text },
           ]}
         >
           {item.label}
@@ -44,7 +44,7 @@ export default function Header() {
         <Text
           style={[
             styles.itemText,
-            { color: isSel ? colors.selectedDropDownText : colors.text },
+            { color: isSel ? (colors as Theme).selectedDropDownText : (colors as Theme).text },
           ]}
         >
           {item.label}
@@ -88,7 +88,7 @@ export default function Header() {
         <Dropdown
           style={styles.dropdown}
           containerStyle={styles.dropdownListCont}
-          activeColor={colors.primary}
+          activeColor={(colors as Theme).primary}
           showsVerticalScrollIndicator={false}
           dropdownPosition="auto"
           placeholderStyle={styles.placeholderStyle}
@@ -108,7 +108,7 @@ export default function Header() {
             <MaterialCommunityIcons
               name="theme-light-dark"
               size={20}
-              color={colors.icon}
+              color={(colors as Theme).icon}
             />
           )}
           renderRightIcon={() => null}
@@ -118,7 +118,7 @@ export default function Header() {
           style={styles.dropdown}
           containerStyle={styles.dropdownListCont}
           showsVerticalScrollIndicator={false}
-          activeColor={colors.primary}
+          activeColor={(colors as Theme).primary}
           dropdownPosition="auto"
           placeholderStyle={styles.placeholderStyle}
           selectedTextStyle={styles.selectedTextStyle}
@@ -130,7 +130,7 @@ export default function Header() {
           value={i18n.language}
           onChange={(item) => changeLang(item.value)}
           renderLeftIcon={() => (
-            <Ionicons name="language" size={20} color={colors.icon} />
+            <Ionicons name="language" size={20} color={(colors as Theme).icon} />
           )}
           renderRightIcon={() => null}
           renderItem={renderItem}

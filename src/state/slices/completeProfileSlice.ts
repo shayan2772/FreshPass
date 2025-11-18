@@ -52,6 +52,14 @@ export interface CompleteProfileState {
     price: number;
     currency: string;
   }>;
+  subscriptions: Array<{
+    id: string;
+    packageName: string;
+    servicesPerMonth: number;
+    price: number;
+    currency: string;
+    serviceIds: string[];
+  }>;
 }
 
 const initialState: CompleteProfileState = {
@@ -138,6 +146,7 @@ const initialState: CompleteProfileState = {
     },
   },
   services: [],
+  subscriptions: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -224,6 +233,11 @@ const completeProfileSlice = createSlice({
         if (nextStep < 8) {
           // Reset services
           state.services = [];
+        }
+
+        if (nextStep < 9) {
+          // Reset subscriptions
+          state.subscriptions = [];
         }
 
         state.currentStep = nextStep;
@@ -499,6 +513,51 @@ const completeProfileSlice = createSlice({
         }
       });
     },
+    addSubscription: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        packageName: string;
+        servicesPerMonth: number;
+        price: number;
+        currency: string;
+        serviceIds: string[];
+      }>
+    ) => {
+      // Check if subscription with same id already exists
+      const existingIndex = state.subscriptions.findIndex(
+        (s) => s.id === action.payload.id
+      );
+      if (existingIndex === -1) {
+        state.subscriptions.push(action.payload);
+      } else {
+        // Update existing subscription
+        state.subscriptions[existingIndex] = action.payload;
+      }
+    },
+    updateSubscription: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        packageName: string;
+        servicesPerMonth: number;
+        price: number;
+        currency: string;
+        serviceIds: string[];
+      }>
+    ) => {
+      const index = state.subscriptions.findIndex(
+        (s) => s.id === action.payload.id
+      );
+      if (index !== -1) {
+        state.subscriptions[index] = action.payload;
+      }
+    },
+    removeSubscription: (state, action: PayloadAction<string>) => {
+      state.subscriptions = state.subscriptions.filter(
+        (s) => s.id !== action.payload
+      );
+    },
   },
 });
 
@@ -534,6 +593,9 @@ export const {
   updateService,
   removeService,
   addServicesFromSuggestions,
+  addSubscription,
+  updateSubscription,
+  removeSubscription,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

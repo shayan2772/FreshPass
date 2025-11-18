@@ -14,23 +14,23 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import {
-  addService,
-  removeService,
+  addSubscription,
+  removeSubscription,
 } from "@/src/state/slices/completeProfileSlice";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 
-interface ServiceListBottomSheetProps {
+interface SubscriptionListBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   suggestions: Array<{
     id: string;
-    name: string;
-    hours: number;
-    minutes: number;
+    packageName: string;
+    servicesPerMonth: number;
     price: number;
     currency: string;
+    serviceIds: string[];
   }>;
-  selectedServiceIds: string[];
+  selectedSubscriptionIds: string[];
 }
 
 const createStyles = (theme: Theme) =>
@@ -41,7 +41,7 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen4,
       marginBottom: moderateHeightScale(12),
     },
-    serviceItem: {
+    subscriptionItem: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
@@ -49,7 +49,7 @@ const createStyles = (theme: Theme) =>
       borderBottomWidth: 1,
       borderBottomColor: theme.borderLight,
     },
-    serviceName: {
+    subscriptionName: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
@@ -82,103 +82,72 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function ServiceListBottomSheet({
+export default function SubscriptionListBottomSheet({
   visible,
   onClose,
   suggestions,
-  selectedServiceIds,
-}: ServiceListBottomSheetProps) {
+  selectedSubscriptionIds,
+}: SubscriptionListBottomSheetProps) {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
   const [localSelectedIds, setLocalSelectedIds] =
-    useState<string[]>(selectedServiceIds);
+    useState<string[]>(selectedSubscriptionIds);
 
   React.useEffect(() => {
     if (visible) {
-      setLocalSelectedIds(selectedServiceIds);
+      setLocalSelectedIds(selectedSubscriptionIds);
     }
-  }, [visible, selectedServiceIds]);
+  }, [visible, selectedSubscriptionIds]);
 
-  const handleToggleService = (serviceId: string) => {
-    // Get all service IDs except "all-over"
-    const otherServiceIds = suggestions
-      .filter((s) => s.id !== "all-over")
-      .map((s) => s.id);
-
-    // Handle "all-over" service - select/deselect all
-    if (serviceId === "all-over") {
-      const isAllOverSelected = localSelectedIds.includes("all-over");
-      if (isAllOverSelected) {
-        // Unselect "all-over" and all other services
-        setLocalSelectedIds([]);
-      } else {
-        // Select "all-over" and all other services
-        setLocalSelectedIds(["all-over", ...otherServiceIds]);
-      }
+  const handleToggleSubscription = (subscriptionId: string) => {
+    const isSelected = localSelectedIds.includes(subscriptionId);
+    if (isSelected) {
+      setLocalSelectedIds(
+        localSelectedIds.filter((id) => id !== subscriptionId)
+      );
     } else {
-      // Handle regular service toggle
-      const isSelected = localSelectedIds.includes(serviceId);
-      let newSelectedIds: string[];
-
-      if (isSelected) {
-        // Remove this service and "all-over" if it was selected
-        newSelectedIds = localSelectedIds.filter(
-          (id) => id !== serviceId && id !== "all-over"
-        );
-      } else {
-        // Add this service
-        newSelectedIds = [...localSelectedIds, serviceId];
-        // Check if all other services are now selected, then also select "all-over"
-        const allOtherSelected = otherServiceIds.every((id) =>
-          newSelectedIds.includes(id)
-        );
-        if (allOtherSelected && suggestions.find((s) => s.id === "all-over")) {
-          newSelectedIds.push("all-over");
-        }
-      }
-
-      setLocalSelectedIds(newSelectedIds);
+      setLocalSelectedIds([...localSelectedIds, subscriptionId]);
     }
   };
 
   const handleSelect = () => {
-    // Add newly selected services
+    // Add newly selected subscriptions
     const newlySelected = suggestions.filter(
       (s) =>
-        localSelectedIds.includes(s.id) && !selectedServiceIds.includes(s.id)
+        localSelectedIds.includes(s.id) && !selectedSubscriptionIds.includes(s.id)
     );
 
-    // Remove unselected services
-    const toRemove = selectedServiceIds.filter(
+    // Remove unselected subscriptions
+    const toRemove = selectedSubscriptionIds.filter(
       (id) => !localSelectedIds.includes(id)
     );
 
-    newlySelected.forEach((service) => {
-      dispatch(addService(service));
+    newlySelected.forEach((subscription) => {
+      dispatch(addSubscription(subscription));
     });
 
     toRemove.forEach((id) => {
-      dispatch(removeService(id));
+      dispatch(removeSubscription(id));
     });
 
     onClose();
   };
 
-  const renderServiceItem = (
-    service: (typeof suggestions)[0],
+  const renderSubscriptionItem = (
+    subscription: (typeof suggestions)[0],
     showBorder: boolean = true
   ) => {
-    const isSelected = localSelectedIds.includes(service.id);
+    const isSelected = localSelectedIds.includes(subscription.id);
     return (
       <TouchableOpacity
         activeOpacity={0.7}
-        key={service.id}
-        style={[styles.serviceItem, !showBorder && { borderBottomWidth: 0 }]}
-        onPress={() => handleToggleService(service.id)}
+        key={subscription.id}
+        style={[styles.subscriptionItem, !showBorder && { borderBottomWidth: 0 }]}
+        onPress={() => handleToggleSubscription(subscription.id)}
       >
-        <Text style={styles.serviceName}>{service.name}</Text>
+        <Text style={styles.subscriptionName}>{subscription.packageName}</Text>
         <View
           style={[styles.selectButton, isSelected && styles.selectedButton]}
         >
@@ -190,36 +159,29 @@ export default function ServiceListBottomSheet({
             />
           )}
           <Text style={[styles.selectButtonText]}>
-            {isSelected ? "Selected" : "+  Select"}
+            {isSelected ? "Selected" : "Select"}
           </Text>
         </View>
       </TouchableOpacity>
     );
   };
 
+  // Filter out selected subscriptions from the list
+  const unselectedSuggestions = suggestions.filter(
+    (s) => !localSelectedIds.includes(s.id)
+  );
+
   return (
     <ModalizeBottomSheet
       visible={visible}
       onClose={onClose}
-      title="Select services"
+      title="Select subscription plans"
       footerButtonTitle="Select"
       onFooterButtonPress={handleSelect}
     >
-      {/* All over service at the top */}
-      {(() => {
-        const allOverService = suggestions.find((s) => s.id === "all-over");
-        if (!allOverService) return null;
-        return renderServiceItem(allOverService, false);
-      })()}
-
-      {/* Separator line */}
-      <View style={styles.separator} />
-
       {/* Popular starting points section */}
       <Text style={styles.sectionTitle}>Popular starting points:</Text>
-      {suggestions
-        .filter((service) => service.id !== "all-over")
-        .map((service) => renderServiceItem(service))}
+      {unselectedSuggestions.map((subscription) => renderSubscriptionItem(subscription))}
     </ModalizeBottomSheet>
   );
 }

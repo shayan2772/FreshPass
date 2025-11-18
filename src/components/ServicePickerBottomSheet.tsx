@@ -6,32 +6,109 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import {
-  addService,
-  removeService,
-} from "@/src/state/slices/completeProfileSlice";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 
-interface ServiceListBottomSheetProps {
+interface ServicePickerBottomSheetProps {
   visible: boolean;
   onClose: () => void;
-  suggestions: Array<{
-    id: string;
-    name: string;
-    hours: number;
-    minutes: number;
-    price: number;
-    currency: string;
-  }>;
   selectedServiceIds: string[];
+  onSelectServices: (serviceIds: string[]) => void;
 }
+
+// Popular starting points suggestions (same as Step 8)
+const POPULAR_SUGGESTIONS = [
+  {
+    id: "haircut-blowdry",
+    name: "Haircut & blowdry",
+    hours: 1,
+    minutes: 0,
+    price: 50,
+    currency: "USD",
+  },
+  {
+    id: "classic-manicure",
+    name: "Classic manicure",
+    hours: 0,
+    minutes: 45,
+    price: 35,
+    currency: "USD",
+  },
+  {
+    id: "60-min-massage",
+    name: "60-minute massage",
+    hours: 1,
+    minutes: 0,
+    price: 80,
+    currency: "USD",
+  },
+];
+
+// More suggestions for bottom sheet (same as Step 8)
+const MORE_SUGGESTIONS = [
+  {
+    id: "all-over",
+    name: "All over",
+    hours: 2,
+    minutes: 0,
+    price: 100,
+    currency: "USD",
+  },
+  {
+    id: "female-haircut",
+    name: "Female haircut",
+    hours: 1,
+    minutes: 5,
+    price: 60,
+    currency: "USD",
+  },
+  {
+    id: "deep-conditioning",
+    name: "Deep conditioning treatment",
+    hours: 0,
+    minutes: 45,
+    price: 75,
+    currency: "USD",
+  },
+  {
+    id: "hair-styling",
+    name: "Hair styling",
+    hours: 1,
+    minutes: 30,
+    price: 90,
+    currency: "USD",
+  },
+  {
+    id: "silk-press",
+    name: "Silk press",
+    hours: 2,
+    minutes: 0,
+    price: 120,
+    currency: "USD",
+  },
+  {
+    id: "full-highlights",
+    name: "Full highlights",
+    hours: 3,
+    minutes: 0,
+    price: 200,
+    currency: "USD",
+  },
+  {
+    id: "balayage",
+    name: "Balayage",
+    hours: 3,
+    minutes: 30,
+    price: 250,
+    currency: "USD",
+  },
+];
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -82,18 +159,33 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function ServiceListBottomSheet({
+export default function ServicePickerBottomSheet({
   visible,
   onClose,
-  suggestions,
   selectedServiceIds,
-}: ServiceListBottomSheetProps) {
-  const dispatch = useAppDispatch();
+  onSelectServices,
+}: ServicePickerBottomSheetProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
+  const { services } = useAppSelector((state) => state.completeProfile);
   const [localSelectedIds, setLocalSelectedIds] =
     useState<string[]>(selectedServiceIds);
+
+  // Combine Redux services with suggestions (same as Step 8)
+  const allSuggestions = [...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS];
+  
+  // Merge with actual services from Redux, prioritizing Redux services
+  const availableServices = services.length > 0 
+    ? services.map(s => ({
+        id: s.id,
+        name: s.name,
+        hours: s.hours,
+        minutes: s.minutes,
+        price: s.price,
+        currency: s.currency,
+      }))
+    : allSuggestions;
 
   React.useEffect(() => {
     if (visible) {
@@ -103,7 +195,7 @@ export default function ServiceListBottomSheet({
 
   const handleToggleService = (serviceId: string) => {
     // Get all service IDs except "all-over"
-    const otherServiceIds = suggestions
+    const otherServiceIds = availableServices
       .filter((s) => s.id !== "all-over")
       .map((s) => s.id);
 
@@ -134,7 +226,7 @@ export default function ServiceListBottomSheet({
         const allOtherSelected = otherServiceIds.every((id) =>
           newSelectedIds.includes(id)
         );
-        if (allOtherSelected && suggestions.find((s) => s.id === "all-over")) {
+        if (allOtherSelected && availableServices.find((s) => s.id === "all-over")) {
           newSelectedIds.push("all-over");
         }
       }
@@ -144,30 +236,12 @@ export default function ServiceListBottomSheet({
   };
 
   const handleSelect = () => {
-    // Add newly selected services
-    const newlySelected = suggestions.filter(
-      (s) =>
-        localSelectedIds.includes(s.id) && !selectedServiceIds.includes(s.id)
-    );
-
-    // Remove unselected services
-    const toRemove = selectedServiceIds.filter(
-      (id) => !localSelectedIds.includes(id)
-    );
-
-    newlySelected.forEach((service) => {
-      dispatch(addService(service));
-    });
-
-    toRemove.forEach((id) => {
-      dispatch(removeService(id));
-    });
-
+    onSelectServices(localSelectedIds);
     onClose();
   };
 
   const renderServiceItem = (
-    service: (typeof suggestions)[0],
+    service: (typeof availableServices)[0],
     showBorder: boolean = true
   ) => {
     const isSelected = localSelectedIds.includes(service.id);
@@ -207,7 +281,7 @@ export default function ServiceListBottomSheet({
     >
       {/* All over service at the top */}
       {(() => {
-        const allOverService = suggestions.find((s) => s.id === "all-over");
+        const allOverService = availableServices.find((s) => s.id === "all-over");
         if (!allOverService) return null;
         return renderServiceItem(allOverService, false);
       })()}
@@ -217,7 +291,7 @@ export default function ServiceListBottomSheet({
 
       {/* Popular starting points section */}
       <Text style={styles.sectionTitle}>Popular starting points:</Text>
-      {suggestions
+      {availableServices
         .filter((service) => service.id !== "all-over")
         .map((service) => renderServiceItem(service))}
     </ModalizeBottomSheet>

@@ -1,15 +1,10 @@
-import React, { useMemo, useState, useEffect, useRef } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
-  Dimensions,
-  Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Modalize } from "react-native-modalize";
-import { Portal } from "@gorhom/portal";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -18,15 +13,13 @@ import {
   heightScale,
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
 } from "@/src/theme/dimensions";
 import {
   setDayHours,
   setDayAvailability,
 } from "@/src/state/slices/completeProfileSlice";
-import Button from "@/src/components/button";
+import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import TimePickerModal from "@/src/components/timePickerModal";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface BusinessHoursBottomSheetProps {
   visible: boolean;
@@ -55,55 +48,6 @@ const DAYS = [
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "flex-end",
-    },
-    bottomSheet: {
-      backgroundColor: theme.white,
-      borderTopLeftRadius: moderateWidthScale(24),
-      borderTopRightRadius: moderateWidthScale(24),
-    },
-    header: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingTop: moderateHeightScale(22),
-      paddingHorizontal: moderateWidthScale(20),
-    },
-    headerTitle: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      flex: 1,
-    },
-    headerRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    closeButton: {
-      width: widthScale(18),
-      height: widthScale(18),
-      borderRadius: moderateWidthScale(18 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    content: {
-      paddingHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(7),
-    },
-    scrollView: {
-      width: "100%",
-    },
-    scrollContent: {
-      paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(7),
-      paddingBottom: moderateHeightScale(20),
-    },
     sectionTitle: {
       fontSize: fontSize.size16,
       fontFamily: fonts.fontMedium,
@@ -259,10 +203,6 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
 
-    buttonContainer: {
-      paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(5),
-    },
   });
 
 export default function BusinessHoursBottomSheet({
@@ -270,15 +210,11 @@ export default function BusinessHoursBottomSheet({
   onClose,
   day,
 }: BusinessHoursBottomSheetProps) {
-  const modalizeRef = useRef<Modalize>(null);
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const insets = useSafeAreaInsets();
   const { businessHours } = useAppSelector((state) => state.completeProfile);
-  const screenHeight = Dimensions.get("window").height;
-  const maxContentHeight = screenHeight * 0.75;
 
   const dayData = businessHours[day] || {
     isOpen: false,
@@ -364,12 +300,6 @@ export default function BusinessHoursBottomSheet({
       }
       setCopyHoursEnabled(false);
       setSelectedDays([]);
-      // Use setTimeout to ensure Modalize ref is ready
-      setTimeout(() => {
-        modalizeRef.current?.open();
-      }, 100);
-    } else if (!visible) {
-      modalizeRef.current?.close();
     }
   }, [visible, day, dayData]);
 
@@ -591,49 +521,14 @@ export default function BusinessHoursBottomSheet({
   };
 
   return (
-    <Portal>
-      <Modalize
-        ref={modalizeRef}
-        onClosed={onClose}
-        adjustToContentHeight
-        handlePosition="inside"
-        withOverlay
-        closeOnOverlayTap
-        panGestureEnabled
-        avoidKeyboardLikeIOS
-        overlayStyle={styles.modalOverlay}
-        modalStyle={[styles.bottomSheet, { maxHeight: screenHeight * 0.9 }]}
-        HeaderComponent={
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>{day} availability</Text>
-            <View style={styles.headerRight}>
-              <Pressable onPress={onClose} style={styles.closeButton}>
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(12)}
-                  color={theme.darkGreen}
-                />
-              </Pressable>
-            </View>
-          </View>
-        }
-        FooterComponent={
-          <View
-            style={[
-              styles.buttonContainer,
-              { paddingBottom: insets.bottom + 15 },
-            ]}
-          >
-            <Button title="Save" onPress={handleSave} />
-          </View>
-        }
+    <>
+      <ModalizeBottomSheet
+        visible={visible}
+        onClose={onClose}
+        title={`${day} availability`}
+        footerButtonTitle="Save"
+        onFooterButtonPress={handleSave}
       >
-        <ScrollView
-          nestedScrollEnabled
-          style={[styles.scrollView, { maxHeight: maxContentHeight }]}
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={true}
-        >
           <View style={{ gap: 3 }}>
             <Text style={styles.sectionTitle}>Business hours</Text>
             <Text style={styles.sectionDescription}>
@@ -844,8 +739,7 @@ export default function BusinessHoursBottomSheet({
               </View>
             )}
           </View>
-        </ScrollView>
-      </Modalize>
+      </ModalizeBottomSheet>
 
       <TimePickerModal
         visible={showFromDropdown}
@@ -885,6 +779,6 @@ export default function BusinessHoursBottomSheet({
           />
         </React.Fragment>
       ))}
-    </Portal>
+    </>
   );
 }
