@@ -31,9 +31,6 @@ interface EditServiceBottomSheetProps {
   serviceId: string | null;
 }
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, i) => i);
-const MINUTE_OPTIONS = [0, 15, 30, 45];
-
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     modalOverlay: {
@@ -112,7 +109,7 @@ const createStyles = (theme: Theme) =>
     serviceNameWrapper: {
       gap: moderateHeightScale(2),
       marginTop: moderateHeightScale(16),
-      backgroundColor: theme.lightGreen1,
+      backgroundColor: theme.lightGreen5,
       borderRadius: moderateWidthScale(8),
       borderWidth: 1,
       borderColor: theme.lightGreen2,
@@ -241,17 +238,11 @@ export default function EditServiceBottomSheet({
   useEffect(() => {
     if (visible && service) {
       setServiceName(service.name);
-      setHours(service.hours);
-      // Round minutes to nearest option
-      let serviceMinutes = service.minutes;
-      if (!MINUTE_OPTIONS.includes(serviceMinutes)) {
-        const closest = MINUTE_OPTIONS.reduce((prev, curr) =>
-          Math.abs(curr - serviceMinutes) < Math.abs(prev - serviceMinutes)
-            ? curr
-            : prev
-        );
-        serviceMinutes = closest;
-      }
+      // Clamp hours to 0-12 range
+      const serviceHours = Math.min(Math.max(service.hours, 0), 12);
+      setHours(serviceHours);
+      // Clamp minutes to 0-60 range
+      const serviceMinutes = Math.min(Math.max(service.minutes, 0), 60);
       setMinutes(serviceMinutes);
       setPrice(service.price.toString());
       setErrors({});
@@ -269,21 +260,27 @@ export default function EditServiceBottomSheet({
       setHours(0);
     } else {
       const value = parseInt(cleaned, 10);
-      if (!isNaN(value) && value >= 0 && value <= 23) {
+      if (!isNaN(value) && value >= 0 && value <= 12) {
         setHours(value);
       }
     }
   };
 
   const handleIncrementHours = () => {
-    if (hours < 23) {
+    if (hours < 12) {
       setHours(hours + 1);
+    } else {
+      // If at max (12), wrap to 0
+      setHours(0);
     }
   };
 
   const handleDecrementHours = () => {
     if (hours > 0) {
       setHours(hours - 1);
+    } else {
+      // If at 0, wrap to 12
+      setHours(12);
     }
   };
 
@@ -294,53 +291,27 @@ export default function EditServiceBottomSheet({
       setMinutes(0);
     } else {
       const value = parseInt(cleaned, 10);
-      if (!isNaN(value) && value >= 0 && value <= 59) {
-        // Round to nearest option
-        const closest = MINUTE_OPTIONS.reduce((prev, curr) =>
-          Math.abs(curr - value) < Math.abs(prev - value) ? curr : prev
-        );
-        setMinutes(closest);
+      if (!isNaN(value) && value >= 0 && value <= 60) {
+        setMinutes(value);
       }
     }
   };
 
   const handleIncrementMinutes = () => {
-    let currentIndex = MINUTE_OPTIONS.indexOf(minutes);
-    // If current minutes not in options, find closest
-    if (currentIndex === -1) {
-      currentIndex = MINUTE_OPTIONS.findIndex((m) => m > minutes);
-      if (currentIndex === -1) currentIndex = MINUTE_OPTIONS.length - 1;
-      else currentIndex = Math.max(0, currentIndex - 1);
-    }
-
-    if (currentIndex < MINUTE_OPTIONS.length - 1) {
-      setMinutes(MINUTE_OPTIONS[currentIndex + 1]);
+    if (minutes < 60) {
+      setMinutes(minutes + 1);
     } else {
-      // If at max, go to next hour
-      if (hours < 23) {
-        setHours(hours + 1);
-        setMinutes(0);
-      }
+      // If at max (60), wrap to 0 (don't affect hours)
+      setMinutes(0);
     }
   };
 
   const handleDecrementMinutes = () => {
-    let currentIndex = MINUTE_OPTIONS.indexOf(minutes);
-    // If current minutes not in options, find closest
-    if (currentIndex === -1) {
-      currentIndex = MINUTE_OPTIONS.findIndex((m) => m > minutes);
-      if (currentIndex === -1) currentIndex = MINUTE_OPTIONS.length - 1;
-      else currentIndex = Math.max(0, currentIndex - 1);
-    }
-
-    if (currentIndex > 0) {
-      setMinutes(MINUTE_OPTIONS[currentIndex - 1]);
+    if (minutes > 0) {
+      setMinutes(minutes - 1);
     } else {
-      // If at 0, go to previous hour
-      if (hours > 0) {
-        setHours(hours - 1);
-        setMinutes(MINUTE_OPTIONS[MINUTE_OPTIONS.length - 1]);
-      }
+      // If at 0, wrap to 60 (don't affect hours)
+      setMinutes(60);
     }
   };
 

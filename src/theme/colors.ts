@@ -12,6 +12,7 @@ export const themes = {
     lightGreen: "rgba(40, 54, 24, 0.7)",
     lightGreen2: "rgba(40, 54, 24, 0.3)",
     lightGreen4: "rgba(40, 54, 24, 0.4)",
+    lightGreen5: "rgba(40, 54, 24, 0.07)",
     lightGreen1: "rgba(40, 54, 24, 0.1)",
     borderLight: "#2836181A",
     darkGreen15: "rgba(40, 54, 24, 0.15)",
