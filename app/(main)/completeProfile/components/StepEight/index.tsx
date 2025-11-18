@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -17,7 +16,6 @@ import {
 import {
   addService,
   removeService,
-  addServicesFromSuggestions,
 } from "@/src/state/slices/completeProfileSlice";
 import ServiceListBottomSheet from "./ServiceListBottomSheet";
 import EditServiceBottomSheet from "./EditServiceBottomSheet";
