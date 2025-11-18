@@ -52,6 +52,7 @@ export default function CompleteProfile() {
     selectedLocation,
     teamSize,
     businessHours,
+    services,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
@@ -165,6 +166,11 @@ export default function CompleteProfile() {
       // User can set business hours later from settings
       return false;
     }
+    if (currentStep === 8) {
+      // Step 8 is optional - can continue without adding services
+      // User can add services later
+      return false;
+    }
     return false;
   }, [
     appointmentVolume,
@@ -181,6 +187,7 @@ export default function CompleteProfile() {
     selectedLocation,
     teamSize,
     businessHours,
+    services,
   ]);
 
   const renderStep = useMemo(() => {

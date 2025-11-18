@@ -1,6 +1,6 @@
 import { PlacePrediction, ParsedAddress } from "@/src/types/location";
-import { parseAddressComponents } from "@/app/(main)/completeProfile/components/StepFour/stepFourLocation";
-
+import { parseAddressComponents } from "../constant/functions";
+ 
 const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 const TIMEOUT_MS = 12000; // 12 seconds
 

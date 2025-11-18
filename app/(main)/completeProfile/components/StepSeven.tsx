@@ -214,7 +214,7 @@ export default function StepSeven() {
     return mainHours;
   };
 
-  console.log("businessHours : ",businessHours)
+ 
 
   return (
     <View style={styles.container}>

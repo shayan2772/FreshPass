@@ -261,7 +261,7 @@ const createStyles = (theme: Theme) =>
 
     buttonContainer: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
+      paddingTop: moderateHeightScale(5),
     },
   });
 

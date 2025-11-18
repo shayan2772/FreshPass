@@ -27,13 +27,13 @@ import {
 import StepFourSearchSection from "./StepFourSearchSection";
 import StepFourConfirmSection from "./StepFourConfirmSection";
 import StepFourMapSection from "./StepFourMapSection";
-import { resolveCurrentLocation } from "./stepFourLocation";
 import { PlacePrediction } from "@/src/types/location";
 import {
   fetchSuggestions as fetchSuggestionsApi,
   fetchPlaceDetails as fetchPlaceDetailsApi,
 } from "@/src/services/googlePlacesApi";
 import { handleLocationPermission } from "@/src/services/locationPermissionService";
+import { resolveCurrentLocation } from "@/src/constant/functions";
 
 const generateSessionToken = () =>
   Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);

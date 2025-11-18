@@ -44,11 +44,19 @@ export interface CompleteProfileState {
       }>;
     };
   };
+  services: Array<{
+    id: string;
+    name: string;
+    hours: number;
+    minutes: number;
+    price: number;
+    currency: string;
+  }>;
 }
 
 const initialState: CompleteProfileState = {
   // currentStep: 1,
-  currentStep: 7,
+  currentStep: 8,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -129,6 +137,7 @@ const initialState: CompleteProfileState = {
       breaks: [],
     },
   },
+  services: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -210,6 +219,11 @@ const completeProfileSlice = createSlice({
               breaks: [],
             };
           });
+        }
+
+        if (nextStep < 8) {
+          // Reset services
+          state.services = [];
         }
 
         state.currentStep = nextStep;
@@ -420,6 +434,71 @@ const completeProfileSlice = createSlice({
         1
       );
     },
+    addService: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        name: string;
+        hours: number;
+        minutes: number;
+        price: number;
+        currency: string;
+      }>
+    ) => {
+      // Check if service with same id already exists
+      const existingIndex = state.services.findIndex(
+        (s) => s.id === action.payload.id
+      );
+      if (existingIndex === -1) {
+        state.services.push(action.payload);
+      } else {
+        // Update existing service
+        state.services[existingIndex] = action.payload;
+      }
+    },
+    updateService: (
+      state,
+      action: PayloadAction<{
+        id: string;
+        name: string;
+        hours: number;
+        minutes: number;
+        price: number;
+        currency: string;
+      }>
+    ) => {
+      const index = state.services.findIndex(
+        (s) => s.id === action.payload.id
+      );
+      if (index !== -1) {
+        state.services[index] = action.payload;
+      }
+    },
+    removeService: (state, action: PayloadAction<string>) => {
+      state.services = state.services.filter((s) => s.id !== action.payload);
+    },
+    addServicesFromSuggestions: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: string;
+          name: string;
+          hours: number;
+          minutes: number;
+          price: number;
+          currency: string;
+        }>
+      >
+    ) => {
+      action.payload.forEach((service) => {
+        const existingIndex = state.services.findIndex(
+          (s) => s.id === service.id
+        );
+        if (existingIndex === -1) {
+          state.services.push(service);
+        }
+      });
+    },
   },
 });
 
@@ -451,6 +530,10 @@ export const {
   setDayHours,
   setDayBreakTime,
   removeDayBreakTime,
+  addService,
+  updateService,
+  removeService,
+  addServicesFromSuggestions,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

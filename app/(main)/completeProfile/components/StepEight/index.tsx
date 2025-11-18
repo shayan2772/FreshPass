@@ -1,0 +1,407 @@
+import React, { useMemo, useState } from "react";
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ScrollView,
+} from "react-native";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { Theme } from "@/src/theme/colors";
+import { fontSize, fonts } from "@/src/theme/fonts";
+import {
+  moderateHeightScale,
+  moderateWidthScale,
+} from "@/src/theme/dimensions";
+import {
+  addService,
+  removeService,
+  addServicesFromSuggestions,
+} from "@/src/state/slices/completeProfileSlice";
+import ServiceListBottomSheet from "./ServiceListBottomSheet";
+import EditServiceBottomSheet from "./EditServiceBottomSheet";
+
+// Popular starting points suggestions
+const POPULAR_SUGGESTIONS = [
+  {
+    id: "haircut-blowdry",
+    name: "Haircut & blowdry",
+    hours: 1,
+    minutes: 0,
+    price: 50,
+    currency: "USD",
+  },
+  {
+    id: "classic-manicure",
+    name: "Classic manicure",
+    hours: 0,
+    minutes: 45,
+    price: 35,
+    currency: "USD",
+  },
+  {
+    id: "60-min-massage",
+    name: "60-minute massage",
+    hours: 1,
+    minutes: 0,
+    price: 80,
+    currency: "USD",
+  },
+];
+
+// More suggestions for bottom sheet
+const MORE_SUGGESTIONS = [
+  {
+    id: "all-over",
+    name: "All over",
+    hours: 2,
+    minutes: 0,
+    price: 100,
+    currency: "USD",
+  },
+  {
+    id: "female-haircut",
+    name: "Female haircut",
+    hours: 1,
+    minutes: 5,
+    price: 60,
+    currency: "USD",
+  },
+  {
+    id: "deep-conditioning",
+    name: "Deep conditioning treatment",
+    hours: 0,
+    minutes: 45,
+    price: 75,
+    currency: "USD",
+  },
+  {
+    id: "hair-styling",
+    name: "Hair styling",
+    hours: 1,
+    minutes: 30,
+    price: 90,
+    currency: "USD",
+  },
+  {
+    id: "silk-press",
+    name: "Silk press",
+    hours: 2,
+    minutes: 0,
+    price: 120,
+    currency: "USD",
+  },
+  {
+    id: "full-highlights",
+    name: "Full highlights",
+    hours: 3,
+    minutes: 0,
+    price: 200,
+    currency: "USD",
+  },
+  {
+    id: "balayage",
+    name: "Balayage",
+    hours: 3,
+    minutes: 30,
+    price: 250,
+    currency: "USD",
+  },
+];
+
+const formatDuration = (hours: number, minutes: number): string => {
+  if (hours > 0 && minutes > 0) {
+    return `${hours} hours ${minutes} mins`;
+  } else if (hours > 0) {
+    return `${hours} hours`;
+  } else if (minutes > 0) {
+    return `${minutes} mins`;
+  }
+  return "0 mins";
+};
+
+const formatPrice = (price: number, currency: string): string => {
+  return `${currency} $${price.toFixed(2)}`;
+};
+
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: {
+      flex: 1,
+      gap: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    titleSec: {
+      marginTop: moderateHeightScale(8),
+      gap: moderateHeightScale(5),
+    },
+    title: {
+      fontSize: fontSize.size24,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    subtitle: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: moderateHeightScale(20),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen4,
+    },
+    popularSection: {
+      // gap: moderateHeightScale(12),
+    },
+    popularTitle: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.lightGreen4,
+    },
+    suggestionSeparator: {
+      height: 1,
+      width: "100%",
+      backgroundColor: theme.borderLight,
+    },
+    suggestionItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: moderateHeightScale(15),
+    },
+    suggestionText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    selectButton: {
+      paddingHorizontal: moderateWidthScale(10),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(6),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(4),
+    },
+    selectButtonText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    selectedButton: {
+      backgroundColor: theme.orangeBrown,
+      borderColor: theme.orangeBrown,
+    },
+    viewMoreButton: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(16),
+      width: "100%",
+      backgroundColor: theme.grey15,
+      borderRadius: moderateWidthScale(12),
+    },
+    viewMoreButtonText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    servicesList: {
+      gap: moderateHeightScale(12),
+    },
+    serviceCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(16),
+      borderRadius: moderateWidthScale(8),
+      backgroundColor: theme.white,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+    },
+    deleteButton: {
+      width: moderateWidthScale(24),
+      height: moderateWidthScale(24),
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(12),
+    },
+    serviceInfo: {
+      flex: 1,
+      gap: moderateHeightScale(3),
+    },
+    serviceName: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    serviceDetails: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    servicePrice: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    editButton: {
+      marginLeft: moderateWidthScale(8),
+    },
+  });
+
+export default function StepEight() {
+  const dispatch = useAppDispatch();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const theme = colors as Theme;
+  const { services } = useAppSelector((state) => state.completeProfile);
+  const [serviceListVisible, setServiceListVisible] = useState(false);
+  const [editServiceVisible, setEditServiceVisible] = useState(false);
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+
+  const handleSelectSuggestion = (
+    suggestion: (typeof POPULAR_SUGGESTIONS)[0]
+  ) => {
+    const isSelected = services.some((s) => s.id === suggestion.id);
+    if (isSelected) {
+      dispatch(removeService(suggestion.id));
+    } else {
+      dispatch(addService(suggestion));
+    }
+  };
+
+  const handleViewMore = () => {
+    setServiceListVisible(true);
+  };
+
+  const handleEditService = (serviceId: string) => {
+    setEditingServiceId(serviceId);
+    setEditServiceVisible(true);
+  };
+
+  const handleCloseEditService = () => {
+    setEditServiceVisible(false);
+    setEditingServiceId(null);
+  };
+
+  const handleDeleteService = (serviceId: string) => {
+    dispatch(removeService(serviceId));
+  };
+
+  return (
+    <View style={styles.container}>
+      <View style={styles.titleSec}>
+        <Text style={styles.title}>Let's add your first service</Text>
+        <Text style={styles.subtitle}>
+          This is how clients will book and pay for your work. You can always
+          add more later.
+        </Text>
+      </View>
+
+      {services.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            You haven't added any service yet
+          </Text>
+        </View>
+      ) : (
+        <View style={styles.servicesList}>
+          {services.map((service) => (
+            <View key={service.id} style={styles.serviceCard}>
+              <TouchableOpacity
+                onPress={() => handleDeleteService(service.id)}
+                style={styles.deleteButton}
+              >
+                <MaterialIcons
+                  name="delete-outline"
+                  size={moderateWidthScale(18)}
+                  color={theme.red}
+                />
+              </TouchableOpacity>
+              <View style={styles.serviceInfo}>
+                <Text style={styles.serviceName}>{service.name}</Text>
+                <Text style={styles.serviceDetails}>
+                  {formatDuration(service.hours, service.minutes)}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => handleEditService(service.id)}
+                style={styles.editButton}
+              >
+                <Text style={styles.servicePrice}>
+                  {formatPrice(service.price, service.currency)} {" >"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+      )}
+
+      {services.length === 0 && (
+        <>
+          <View style={styles.popularSection}>
+            <Text style={styles.popularTitle}>Popular starting points:</Text>
+            {POPULAR_SUGGESTIONS.map((suggestion) => {
+              const isSelected = services.some((s) => s.id === suggestion.id);
+              return (
+                <View key={suggestion.id}>
+                  <TouchableOpacity
+                    onPress={() => handleSelectSuggestion(suggestion)}
+                    activeOpacity={0.7}
+                    style={styles.suggestionItem}
+                  >
+                    <Text style={styles.suggestionText}>{suggestion.name}</Text>
+                    <View
+                      style={[
+                        styles.selectButton,
+                        isSelected && styles.selectedButton,
+                      ]}
+                    >
+                      {isSelected && (
+                        <Feather
+                          name="check"
+                          size={moderateWidthScale(12)}
+                          color={theme.darkGreen}
+                        />
+                      )}
+                      <Text style={[styles.selectButtonText]}>
+                        {isSelected ? "Selected" : "Select"}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                  <View style={styles.suggestionSeparator} />
+                </View>
+              );
+            })}
+          </View>
+        </>
+      )}
+
+      <TouchableOpacity style={styles.viewMoreButton} onPress={handleViewMore}>
+        <Text style={styles.viewMoreButtonText}>+ View more suggestion</Text>
+      </TouchableOpacity>
+
+      <ServiceListBottomSheet
+        visible={serviceListVisible}
+        onClose={() => setServiceListVisible(false)}
+        suggestions={[...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS]}
+        selectedServiceIds={services.map((s) => s.id)}
+      />
+
+      <EditServiceBottomSheet
+        visible={editServiceVisible}
+        onClose={handleCloseEditService}
+        serviceId={editingServiceId}
+      />
+    </View>
+  );
+}
