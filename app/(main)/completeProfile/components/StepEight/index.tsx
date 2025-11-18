@@ -122,7 +122,7 @@ const formatDuration = (hours: number, minutes: number): string => {
 };
 
 const formatPrice = (price: number, currency: string): string => {
-  return `${currency} $${price.toFixed(2)}`;
+  return `$${price.toFixed(2)} ${currency}`;
 };
 
 const createStyles = (theme: Theme) =>
@@ -215,24 +215,38 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     servicesList: {
-      gap: moderateHeightScale(12),
+      borderRadius: moderateWidthScale(8),
+      backgroundColor: theme.white,
+      borderWidth: 0.5,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      elevation: 2,
     },
     serviceCard: {
       flexDirection: "row",
       alignItems: "center",
-      paddingVertical: moderateHeightScale(12),
+      paddingVertical: moderateHeightScale(14),
       paddingHorizontal: moderateWidthScale(16),
-      borderRadius: moderateWidthScale(8),
-      backgroundColor: theme.white,
-      borderWidth: 1,
-      borderColor: theme.borderLight,
+    },
+    serviceSeparator: {
+      height: 1,
+      width: "100%",
+      backgroundColor: theme.borderLight,
+      marginHorizontal: moderateWidthScale(16),
     },
     deleteButton: {
       width: moderateWidthScale(24),
       height: moderateWidthScale(24),
       alignItems: "center",
       justifyContent: "center",
-      marginRight: moderateWidthScale(12),
+      marginRight: moderateWidthScale(7),
     },
     serviceInfo: {
       flex: 1,
@@ -315,33 +329,38 @@ export default function StepEight() {
         </View>
       ) : (
         <View style={styles.servicesList}>
-          {services.map((service) => (
-            <View key={service.id} style={styles.serviceCard}>
-              <TouchableOpacity
-                onPress={() => handleDeleteService(service.id)}
-                style={styles.deleteButton}
-              >
-                <MaterialIcons
-                  name="delete-outline"
-                  size={moderateWidthScale(18)}
-                  color={theme.red}
-                />
-              </TouchableOpacity>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.serviceDetails}>
-                  {formatDuration(service.hours, service.minutes)}
-                </Text>
+          {services.map((service, index) => (
+            <React.Fragment key={service.id}>
+              <View style={styles.serviceCard}>
+                <TouchableOpacity
+                  onPress={() => handleDeleteService(service.id)}
+                  style={styles.deleteButton}
+                >
+                  <MaterialIcons
+                    name="delete-outline"
+                    size={moderateWidthScale(19)}
+                    color={theme.red}
+                  />
+                </TouchableOpacity>
+                <View style={styles.serviceInfo}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={styles.serviceDetails}>
+                    {formatDuration(service.hours, service.minutes)}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  onPress={() => handleEditService(service.id)}
+                  style={styles.editButton}
+                >
+                  <Text style={styles.servicePrice}>
+                    {formatPrice(service.price, service.currency)} {"  >"}
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                onPress={() => handleEditService(service.id)}
-                style={styles.editButton}
-              >
-                <Text style={styles.servicePrice}>
-                  {formatPrice(service.price, service.currency)} {" >"}
-                </Text>
-              </TouchableOpacity>
-            </View>
+              {index < services.length - 1 && (
+                <View style={styles.serviceSeparator} />
+              )}
+            </React.Fragment>
           ))}
         </View>
       )}
