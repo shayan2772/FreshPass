@@ -31,24 +31,26 @@ const createStyles = (theme: Theme) =>
     scrollContent: {
       gap: moderateHeightScale(16),
     },
-    inputLabelTitle: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
-      color: theme.lightGreen,
-    },
-    inputWrapper: {
+    packageNameWrapper: {
+      gap: moderateHeightScale(2),
+      marginTop: moderateHeightScale(16),
+      backgroundColor: theme.lightGreen5,
       borderRadius: moderateWidthScale(8),
       borderWidth: 1,
       borderColor: theme.lightGreen2,
       paddingHorizontal: moderateWidthScale(15),
-      paddingVertical: moderateHeightScale(12),
-      gap: moderateHeightScale(4),
-      marginTop: moderateHeightScale(16),
+      paddingVertical: moderateHeightScale(10),
     },
     inputLabel: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+    },
+    packageNameText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen4,
+      flex: 1,
     },
     textInput: {
       fontSize: fontSize.size16,
@@ -135,8 +137,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.lightGreen2,
       paddingHorizontal: moderateWidthScale(15),
-      paddingVertical: moderateHeightScale(12),
-      marginTop: moderateHeightScale(16),
+      paddingVertical: moderateHeightScale(15),
     },
     serviceDropdownButton: {
       flexDirection: "row",
@@ -145,24 +146,24 @@ const createStyles = (theme: Theme) =>
     },
     serviceDropdownText: {
       fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen2,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
       flex: 1,
     },
     selectedServicesContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: moderateWidthScale(8),
-      marginTop: moderateHeightScale(12),
+      gap: moderateWidthScale(10),
     },
     serviceTag: {
       flexDirection: "row",
       alignItems: "center",
       backgroundColor: theme.orangeBrown,
-      paddingHorizontal: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(6),
-      borderRadius: moderateWidthScale(16),
-      gap: moderateWidthScale(6),
+      borderRadius: moderateWidthScale(10),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
     },
     serviceTagText: {
       fontSize: fontSize.size12,
@@ -221,7 +222,6 @@ export default function EditSubscriptionBottomSheet({
       setErrors({});
     }
   }, [visible, subscription]);
-
 
   const handleServicesPerMonthChange = (text: string) => {
     const cleaned = text.replace(/[^0-9]/g, "");
@@ -311,22 +311,15 @@ export default function EditSubscriptionBottomSheet({
       onFooterButtonPress={handleSave}
       contentStyle={styles.scrollContent}
     >
-      <View style={styles.inputWrapper}>
+      <View style={styles.packageNameWrapper}>
         <Text style={styles.inputLabel}>Package Name</Text>
-        <TextInput
-          style={styles.textInput}
-          value={packageName}
-          onChangeText={setPackageName}
-          placeholder="Enter package name"
-          placeholderTextColor={theme.lightGreen2}
-        />
+        <Text style={styles.packageNameText}>{packageName}</Text>
         {errors.packageName && (
           <Text style={styles.errorText}>{errors.packageName}</Text>
         )}
       </View>
 
       <View style={{ gap: moderateHeightScale(15) }}>
-        <Text style={styles.inputLabelTitle}>Services/month</Text>
         <View style={styles.rowContainer}>
           <View style={styles.timeInputWrapper}>
             <View style={styles.mainTimeCon}>
@@ -388,7 +381,7 @@ export default function EditSubscriptionBottomSheet({
                 />
               </View>
             </View>
-            <View style={[styles.arrowButtonsContainer, { width: "14%" }]}>
+            <View style={styles.arrowButtonsContainer}>
               <TouchableOpacity
                 onPress={handleIncrementPrice}
                 style={styles.timeButton}
@@ -424,13 +417,10 @@ export default function EditSubscriptionBottomSheet({
           <Text style={styles.serviceDropdownText}>Select to add service</Text>
           <Feather
             name="chevron-down"
-            size={moderateWidthScale(20)}
-            color={theme.lightGreen2}
+            size={moderateWidthScale(19)}
+            color={theme.darkGreen}
           />
         </TouchableOpacity>
-        {errors.services && (
-          <Text style={styles.errorText}>{errors.services}</Text>
-        )}
       </View>
 
       {selectedServiceIds.length > 0 && (
@@ -438,7 +428,7 @@ export default function EditSubscriptionBottomSheet({
           {selectedServiceIds.map((serviceId) => {
             // First try to find in Redux services
             let service = services.find((s) => s.id === serviceId);
-            
+
             // If not found in Redux, check suggestions
             if (!service) {
               const allSuggestions = [
@@ -447,7 +437,10 @@ export default function EditSubscriptionBottomSheet({
                 { id: "60-min-massage", name: "60-minute massage" },
                 { id: "all-over", name: "All over" },
                 { id: "female-haircut", name: "Female haircut" },
-                { id: "deep-conditioning", name: "Deep conditioning treatment" },
+                {
+                  id: "deep-conditioning",
+                  name: "Deep conditioning treatment",
+                },
                 { id: "hair-styling", name: "Hair styling" },
                 { id: "silk-press", name: "Silk press" },
                 { id: "full-highlights", name: "Full highlights" },
@@ -465,7 +458,7 @@ export default function EditSubscriptionBottomSheet({
                 };
               }
             }
-            
+
             if (!service) return null;
             return (
               <View key={serviceId} style={styles.serviceTag}>
@@ -476,7 +469,8 @@ export default function EditSubscriptionBottomSheet({
                 >
                   <Feather
                     name="x"
-                    size={moderateWidthScale(12)}
+                    size={moderateWidthScale(13)}
+                    style={{ marginLeft: moderateWidthScale(4) }}
                     color={theme.darkGreen}
                   />
                 </TouchableOpacity>
@@ -495,4 +489,3 @@ export default function EditSubscriptionBottomSheet({
     </ModalizeBottomSheet>
   );
 }
-
