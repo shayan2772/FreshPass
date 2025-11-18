@@ -106,7 +106,7 @@ const createStyles = (theme: Theme) =>
     },
     timeInput: {
       fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       paddingVertical: 0,
       height: heightScale(22),
