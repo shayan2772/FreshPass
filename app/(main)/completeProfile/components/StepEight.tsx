@@ -17,8 +17,8 @@ import {
   addService,
   removeService,
 } from "@/src/state/slices/completeProfileSlice";
-import ServiceListBottomSheet from "./ServiceListBottomSheet";
-import EditServiceBottomSheet from "./EditServiceBottomSheet";
+import ServiceListBottomSheet from "@/src/components/ServiceListBottomSheet";
+import EditServiceBottomSheet from "@/src/components/EditServiceBottomSheet";
 
 // Popular starting points suggestions
 const POPULAR_SUGGESTIONS = [
@@ -422,3 +422,4 @@ export default function StepEight() {
     </View>
   );
 }
+

@@ -11,7 +11,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import Button from "@/src/components/button";
-import CompleteProfileHeader from "./components/CompleteProfileHeader";
+import CompleteProfileHeader from "@/src/components/CompleteProfileHeader";
 import StepOne from "./components/StepOne";
 import StepTwo from "./components/StepTwo";
 import StepThree from "./components/StepThree";
