@@ -366,7 +366,7 @@ export default function EditSubscriptionBottomSheet({
               <View style={styles.timeInputContainer}>
                 <TextInput
                   style={styles.timeInput}
-                  value={`${currency} $${parseFloat(price || "0").toFixed(2)}`}
+                  value={`$${parseFloat(price || "0").toFixed(2)}`}
                   onChangeText={(text) => {
                     const cleaned = text.replace(/[^0-9.]/g, "");
                     if (cleaned) {
@@ -376,7 +376,7 @@ export default function EditSubscriptionBottomSheet({
                     }
                   }}
                   keyboardType="decimal-pad"
-                  placeholder={`${currency} $0.00`}
+                  placeholder="$0.00"
                   placeholderTextColor={theme.lightGreen2}
                 />
               </View>
