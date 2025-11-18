@@ -441,7 +441,7 @@ export default function EditServiceBottomSheet({
             <Text style={styles.serviceNameText}>{serviceName}</Text>
           </View>
 
-          <View style={{ gap: 10 }}>
+          <View style={{ gap: 15 }}>
             <Text style={styles.inputLabelTitle}>Service time</Text>
             <View style={styles.timeRow}>
               <View style={styles.timeInputWrapper}>
