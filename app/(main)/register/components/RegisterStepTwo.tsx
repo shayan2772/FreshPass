@@ -1,16 +1,16 @@
 import React, { useMemo, useState, useCallback } from "react";
-import { View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
-  heightScale,
   moderateHeightScale,
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
 import Button from "@/src/components/button";
+import FloatingInput from "@/src/components/floatingInput";
 import RegisterHeader from "@/src/components/registerHeader";
 
 interface RegisterStepTwoProps {
@@ -42,34 +42,6 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       lineHeight: fontSize.size32,
-    },
-    inputWrapper: {
-      borderRadius: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(15),
-      paddingVertical: moderateHeightScale(10),
-      gap: moderateHeightScale(2),
-    },
-    inputLabel: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    textInput: {
-      flex: 1,
-      height: heightScale(22),
-      paddingVertical: 0,
-      textAlignVertical: "center",
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
     },
     iconButton: {
       width: widthScale(18),
@@ -141,8 +113,7 @@ export default function RegisterStepTwo({
     setPassword("");
   }, []);
 
-  const placeholderColor = (colors as Theme).lightGreen2;
-
+ 
   return (
     <View style={styles.container}>
       <RegisterHeader onBack={onBack} />
@@ -152,44 +123,30 @@ export default function RegisterStepTwo({
             <Text style={styles.title}>Create your password</Text>
           </View>
 
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Type password</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry={!isPasswordVisible}
-                placeholder="Type your password"
-                placeholderTextColor={placeholderColor}
-                autoCapitalize="none"
-              />
-              {password.length > 0 && (
+          <FloatingInput
+            label="Type password"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!isPasswordVisible}
+            placeholder="Type your password"
+            autoCapitalize="none"
+            onClear={handleClear}
+            renderRightAccessory={() =>
+              password.length > 0 ? (
                 <Pressable
-                  onPress={handleClear}
-                  style={styles.iconButton}
-                  // hitSlop={moderateWidthScale(8)}
+                  onPress={handleToggleVisibility}
+                  style={styles.toggleButton}
+                  hitSlop={moderateWidthScale(8)}
                 >
                   <Feather
-                    name="x"
-                    size={moderateWidthScale(15)}
+                    name={isPasswordVisible ? "eye-off" : "eye"}
+                    size={moderateWidthScale(20)}
                     color={(colors as Theme).darkGreen}
                   />
                 </Pressable>
-              )}
-              <Pressable
-                onPress={handleToggleVisibility}
-                style={styles.toggleButton}
-                hitSlop={moderateWidthScale(8)}
-              >
-                <Feather
-                  name={isPasswordVisible ? "eye-off" : "eye"}
-                  size={moderateWidthScale(19)}
-                  color={(colors as Theme).darkGreen}
-                />
-              </Pressable>
-            </View>
-          </View>
+              ) : null
+            }
+          />
           <Pressable
             onPress={handleToggleSavePassword}
             style={styles.saveRow}
