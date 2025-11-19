@@ -363,12 +363,18 @@ export default function StepEight() {
         </View>
       )}
 
-      {services.length === 0 && (
-        <>
+      {(() => {
+        // Filter out selected services from popular suggestions
+        const unselectedSuggestions = POPULAR_SUGGESTIONS.filter(
+          (s) => !services.some((service) => service.id === s.id)
+        );
+
+        if (unselectedSuggestions.length === 0) return null;
+
+        return (
           <View style={styles.popularSection}>
             <Text style={styles.popularTitle}>Popular starting points:</Text>
-            {POPULAR_SUGGESTIONS.map((suggestion) => {
-              const isSelected = services.some((s) => s.id === suggestion.id);
+            {unselectedSuggestions.map((suggestion) => {
               return (
                 <View key={suggestion.id}>
                   <TouchableOpacity
@@ -377,22 +383,8 @@ export default function StepEight() {
                     style={styles.suggestionItem}
                   >
                     <Text style={styles.suggestionText}>{suggestion.name}</Text>
-                    <View
-                      style={[
-                        styles.selectButton,
-                        isSelected && styles.selectedButton,
-                      ]}
-                    >
-                      {isSelected && (
-                        <Feather
-                          name="check"
-                          size={moderateWidthScale(12)}
-                          color={theme.darkGreen}
-                        />
-                      )}
-                      <Text style={[styles.selectButtonText]}>
-                        {isSelected ? "Selected" : "Select"}
-                      </Text>
+                    <View style={styles.selectButton}>
+                      <Text style={styles.selectButtonText}>Select</Text>
                     </View>
                   </TouchableOpacity>
                   <View style={styles.suggestionSeparator} />
@@ -400,8 +392,8 @@ export default function StepEight() {
               );
             })}
           </View>
-        </>
-      )}
+        );
+      })()}
 
       <TouchableOpacity style={styles.viewMoreButton} onPress={handleViewMore}>
         <Text style={styles.viewMoreButtonText}>+ View more suggestion</Text>

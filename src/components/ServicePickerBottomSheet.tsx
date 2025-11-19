@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -168,24 +168,11 @@ export default function ServicePickerBottomSheet({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { services } = useAppSelector((state) => state.completeProfile);
   const [localSelectedIds, setLocalSelectedIds] =
     useState<string[]>(selectedServiceIds);
 
-  // Combine Redux services with suggestions (same as Step 8)
-  const allSuggestions = [...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS];
-  
-  // Merge with actual services from Redux, prioritizing Redux services
-  const availableServices = services.length > 0 
-    ? services.map(s => ({
-        id: s.id,
-        name: s.name,
-        hours: s.hours,
-        minutes: s.minutes,
-        price: s.price,
-        currency: s.currency,
-      }))
-    : allSuggestions;
+  // Always show all suggestions - independent of Step 8 selections
+  const availableServices = [...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS];
 
   React.useEffect(() => {
     if (visible) {

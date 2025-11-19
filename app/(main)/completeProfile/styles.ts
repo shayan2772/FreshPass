@@ -14,7 +14,7 @@ export const createStyles = (theme: Theme) =>
     },
     scrollContent: {
       flexGrow: 1,
-      // paddingBottom: moderateHeightScale(15),
+     paddingBottom: moderateHeightScale(15),
     },
     buttonWrapper: {
       marginTop: moderateHeightScale(15),
