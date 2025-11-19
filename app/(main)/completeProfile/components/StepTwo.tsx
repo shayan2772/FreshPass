@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import {
   Dimensions,
   Pressable,
@@ -140,7 +146,6 @@ const createStyles = (theme: Theme) =>
     },
     field: {},
     phoneField: {
-      // gap: moderateHeightScale(6),
       gap: moderateHeightScale(2),
     },
     phoneFieldContainer: {
@@ -153,7 +158,7 @@ const createStyles = (theme: Theme) =>
       gap: moderateHeightScale(2),
     },
     inputLabel: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
@@ -166,6 +171,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       position: "relative",
       justifyContent: "center",
+      // backgroundColor:"yellow"
     },
     segInputWrapper: {
       flexDirection: "row",
@@ -176,30 +182,30 @@ const createStyles = (theme: Theme) =>
       minWidth: moderateWidthScale(13),
       alignItems: "center",
       justifyContent: "flex-end",
-      // backgroundColor:"red"
+      // backgroundColor:"pink"
     },
     digitChar: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
     },
     digitCharPlaceholder: {
       color: theme.lightGreen2,
     },
     digitCharFilled: {
       color: theme.darkGreen,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
     },
     digitGuideline: {
       width: "100%",
       // height: moderateHeightScale(1),
-      // backgroundColor: "transparent",
+      backgroundColor: "transparent",
       // backgroundColor:theme.borderLight
     },
     digitGuidelineFilled: {
       backgroundColor: "transparent",
     },
     groupSpacer: {
-      width: moderateWidthScale(2),
+      width: moderateWidthScale(4),
     },
     hiddenInput: {
       position: "absolute",
@@ -207,8 +213,14 @@ const createStyles = (theme: Theme) =>
       top: 0,
       right: 0,
       bottom: 0,
-      opacity: 0,
-      color: "transparent",
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+      paddingVertical: 0,
+      paddingHorizontal: 0,
+      textAlignVertical: "center",
+      includeFontPadding: false,
+      letterSpacing: moderateWidthScale(7),
     },
     countrySelector: {
       flexDirection: "row",
@@ -216,8 +228,8 @@ const createStyles = (theme: Theme) =>
       gap: moderateWidthScale(6),
     },
     countryCodeText: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     errorText: {
@@ -242,10 +254,31 @@ export default function StepTwo() {
     phoneIsValid,
   } = useAppSelector((state) => state.completeProfile);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const phoneInputRef = useRef<TextInput>(null);
+  const [selection, setSelection] = useState({ start: 0, end: 0 });
+  const previousDigitCountRef = useRef(0);
+  const isSettingCursorRef = useRef(false);
   const maxDigits = useMemo(
     () => phonePlaceholder.replace(/\s+/g, "").length,
     [phonePlaceholder]
   );
+  const formattedPhoneValue = useMemo(() => {
+    if (!phoneNumber) return "";
+    const digits = phoneNumber.replace(/\D/g, "");
+    const groups = phonePlaceholder.split(" ").filter(Boolean);
+    let result = "";
+    let digitIndex = 0;
+
+    for (let i = 0; i < groups.length && digitIndex < digits.length; i++) {
+      if (i > 0) result += " ";
+      const groupLength = groups[i].length;
+      result += digits.slice(digitIndex, digitIndex + groupLength);
+      digitIndex += groupLength;
+    }
+
+    return result;
+  }, [phoneNumber, phonePlaceholder]);
+
   const segmentNodes = useMemo(() => {
     let cursor = 0;
     const groups = phonePlaceholder.split(" ").filter(Boolean);
@@ -297,6 +330,7 @@ export default function StepTwo() {
           ),
         })
       );
+      previousDigitCountRef.current = 0;
       setPickerVisible(false);
     },
     [dispatch]
@@ -323,15 +357,79 @@ export default function StepTwo() {
         }
       }
 
+      // Check if user is typing (digit count increased) vs clicking/selecting
+      const isTyping = parsedDigits.length > previousDigitCountRef.current;
+      const previousLength = previousDigitCountRef.current;
+      previousDigitCountRef.current = parsedDigits.length;
+
       dispatch(
         setPhoneNumber({
           value: parsedDigits,
           isValid,
         })
       );
+
+      // Calculate formatted value for cursor positioning
+      const groups = phonePlaceholder.split(" ").filter(Boolean);
+      let newFormatted = "";
+      let digitIndex = 0;
+
+      for (
+        let i = 0;
+        i < groups.length && digitIndex < parsedDigits.length;
+        i++
+      ) {
+        if (i > 0) newFormatted += " ";
+        const groupLength = groups[i].length;
+        newFormatted += parsedDigits.slice(
+          digitIndex,
+          digitIndex + groupLength
+        );
+        digitIndex += groupLength;
+      }
+
+      // Always move cursor to end when typing (digit count increased)
+      // This ensures cursor moves forward as user types
+      if (isTyping) {
+        // Use requestAnimationFrame for better timing with React Native
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (phoneInputRef.current) {
+              const endPosition = newFormatted.length;
+
+              // Set flag to prevent handleSelectionChange from interfering
+              isSettingCursorRef.current = true;
+
+              // Set cursor to end when typing
+              setSelection({ start: endPosition, end: endPosition });
+              phoneInputRef.current.setNativeProps({
+                selection: { start: endPosition, end: endPosition },
+              });
+
+              // Reset flag after a short delay
+              setTimeout(() => {
+                isSettingCursorRef.current = false;
+              }, 50);
+            }
+          }, 10);
+        });
+      }
     },
-    [countryCode, countryIso, dispatch, maxDigits]
+    [countryCode, countryIso, dispatch, maxDigits, phonePlaceholder]
   );
+
+  const handleSelectionChange = useCallback((event: any) => {
+    // Don't update selection if we're programmatically setting it
+    if (isSettingCursorRef.current) {
+      return;
+    }
+
+    const newSelection = {
+      start: event.nativeEvent.selection.start,
+      end: event.nativeEvent.selection.end,
+    };
+    setSelection(newSelection);
+  }, []);
 
   const pickerStyles = useMemo<CountryPickerStyle>(
     () => ({
@@ -410,7 +508,6 @@ export default function StepTwo() {
             value={businessName}
             onChangeText={(value) => dispatch(setBusinessName(value))}
             placeholder="Business name"
-            placeholderTextColor={(colors as Theme).lightGreen2}
             onClear={() => dispatch(setBusinessName(""))}
           />
         </View>
@@ -421,7 +518,6 @@ export default function StepTwo() {
             value={fullName}
             onChangeText={(value) => dispatch(setFullName(value))}
             placeholder="Your full name"
-            placeholderTextColor={(colors as Theme).lightGreen2}
             onClear={() => dispatch(setFullName(""))}
           />
         </View>
@@ -443,23 +539,31 @@ export default function StepTwo() {
                 />
               </Pressable>
               <View style={styles.segmentWrapper}>
+                <TextInput
+                  ref={phoneInputRef}
+                  style={styles.hiddenInput}
+                  value={formattedPhoneValue}
+                  onChangeText={handlePhoneChange}
+                  onSelectionChange={handleSelectionChange}
+                  selection={selection}
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                  maxLength={phonePlaceholder.length}
+                  // selectionColor={(colors as Theme).da}
+                  // cursorColor={(colors as Theme).red}
+                  showSoftInputOnFocus={true}
+                  caretHidden={false}
+                />
                 <View style={styles.segInputWrapper} pointerEvents="none">
                   {segmentNodes}
                 </View>
-                <TextInput
-                  style={styles.hiddenInput}
-                  value={phoneNumber}
-                  onChangeText={handlePhoneChange}
-                  keyboardType="phone-pad"
-                  returnKeyType="done"
-                  maxLength={maxDigits}
-                />
               </View>
               {!!phoneNumber && (
                 <Pressable
-                  onPress={() =>
-                    dispatch(setPhoneNumber({ value: "", isValid: false }))
-                  }
+                  onPress={() => {
+                    previousDigitCountRef.current = 0;
+                    dispatch(setPhoneNumber({ value: "", isValid: false }));
+                  }}
                   hitSlop={moderateWidthScale(10)}
                 >
                   <CloseIcon color={(colors as Theme).darkGreen} />
