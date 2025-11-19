@@ -7,7 +7,9 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import FloatingInput from "@/src/components/floatingInput";
+import { CloseIcon } from "@/assets/icons";
 import {
   CountryCode as PhoneCountryCode,
   getExampleNumber,
@@ -137,25 +139,6 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(10),
     },
     field: {},
-    inputContainer: {
-      borderRadius: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(6),
-    },
-    inputRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    textInput: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-      flex: 1,
-    },
     phoneField: {
       // gap: moderateHeightScale(6),
       gap: moderateHeightScale(2),
@@ -236,16 +219,6 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size16,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-    },
-    clearButton: {
-      width: moderateWidthScale(20),
-      height: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(20 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.white,
     },
     errorText: {
       fontSize: fontSize.size12,
@@ -370,7 +343,7 @@ export default function StepTwo() {
         paddingTop: moderateHeightScale(20),
         paddingBottom: moderateHeightScale(16) + insets.bottom,
         gap: moderateHeightScale(16),
-        shadowColor: "#000",
+        shadowColor: (colors as Theme).shadow,
         shadowOffset: {
           width: 0,
           height: 1,
@@ -432,57 +405,25 @@ export default function StepTwo() {
 
       <View style={styles.formGroup}>
         <View style={styles.field}>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Business name"
-                placeholderTextColor={(colors as Theme).lightGreen2}
-                value={businessName}
-                onChangeText={(value) => dispatch(setBusinessName(value))}
-              />
-              {!!businessName && (
-                <Pressable
-                  onPress={() => dispatch(setBusinessName(""))}
-                  style={styles.clearButton}
-                  hitSlop={moderateWidthScale(10)}
-                >
-                  <Feather
-                    name="x"
-                    size={moderateWidthScale(12)}
-                    color={(colors as Theme).darkGreen}
-                  />
-                </Pressable>
-              )}
-            </View>
-          </View>
+          <FloatingInput
+            label="Business name"
+            value={businessName}
+            onChangeText={(value) => dispatch(setBusinessName(value))}
+            placeholder="Business name"
+            placeholderTextColor={(colors as Theme).lightGreen2}
+            onClear={() => dispatch(setBusinessName(""))}
+          />
         </View>
 
         <View style={styles.field}>
-          <View style={styles.inputContainer}>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Your full name"
-                placeholderTextColor={(colors as Theme).lightGreen2}
-                value={fullName}
-                onChangeText={(value) => dispatch(setFullName(value))}
-              />
-              {!!fullName && (
-                <Pressable
-                  onPress={() => dispatch(setFullName(""))}
-                  style={styles.clearButton}
-                  hitSlop={moderateWidthScale(10)}
-                >
-                  <Feather
-                    name="x"
-                    size={moderateWidthScale(12)}
-                    color={(colors as Theme).darkGreen}
-                  />
-                </Pressable>
-              )}
-            </View>
-          </View>
+          <FloatingInput
+            label="Your full name"
+            value={fullName}
+            onChangeText={(value) => dispatch(setFullName(value))}
+            placeholder="Your full name"
+            placeholderTextColor={(colors as Theme).lightGreen2}
+            onClear={() => dispatch(setFullName(""))}
+          />
         </View>
 
         <View style={[styles.field, styles.phoneField]}>
@@ -515,23 +456,16 @@ export default function StepTwo() {
                 />
               </View>
               {!!phoneNumber && (
-              <Pressable
-                onPress={() =>
-                  dispatch(setPhoneNumber({ value: "", isValid: false }))
-                }
-                style={styles.clearButton}
-                hitSlop={moderateWidthScale(10)}
-              >
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(12)}
-                  color={(colors as Theme).darkGreen}
-                />
-              </Pressable>
-            )}
+                <Pressable
+                  onPress={() =>
+                    dispatch(setPhoneNumber({ value: "", isValid: false }))
+                  }
+                  hitSlop={moderateWidthScale(10)}
+                >
+                  <CloseIcon color={(colors as Theme).darkGreen} />
+                </Pressable>
+              )}
             </View>
-
-          
           </View>
 
           {isPhoneInvalid && (

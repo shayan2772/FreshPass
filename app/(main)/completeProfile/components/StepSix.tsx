@@ -1,22 +1,18 @@
 import React, { useMemo } from "react";
 import {
-  Pressable,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
-  heightScale,
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
 } from "@/src/theme/dimensions";
+import FloatingInput from "@/src/components/floatingInput";
 import {
   addStaffInvitation,
   setStaffInvitationEmail,
@@ -43,52 +39,10 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
-    inputSection: {
- 
-    },
+    inputSection: {},
     inputRowContainer: {
       flexDirection: "row",
-      // alignItems: "flex-end",
       gap: moderateWidthScale(12),
-    },
-    inputWrapper: {
-      flex: 1,
-      borderRadius: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(15),
-      paddingVertical: moderateHeightScale(10),
-      gap: moderateHeightScale(2),
-    },
-    inputLabel: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    inputRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    textInput: {
-      flex: 1,
-      height: heightScale(22),
-      paddingVertical: 0,
-      textAlignVertical: "center",
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-    },
-    clearButton: {
-      width: widthScale(18),
-      height: widthScale(18),
-      borderRadius: moderateWidthScale(18 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.white,
     },
     inviteButton: {
       backgroundColor: theme.orangeBrown,
@@ -209,33 +163,17 @@ export default function StepSix() {
 
       <View style={styles.inputSection}>
         <View style={styles.inputRowContainer}>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.inputLabel}>Email or phone number</Text>
-            <View style={styles.inputRow}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter email or phone"
-                placeholderTextColor={theme.lightGreen2}
-                value={staffInvitationEmail}
-                onChangeText={(value) => dispatch(setStaffInvitationEmail(value))}
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-              {staffInvitationEmail.length > 0 && (
-                <Pressable
-                  onPress={handleClearEmail}
-                  style={styles.clearButton}
-                  hitSlop={moderateWidthScale(10)}
-                >
-                  <Feather
-                    name="x"
-                    size={moderateWidthScale(14)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-              )}
-            </View>
-          </View>
+          <FloatingInput
+            label="Email or phone number"
+            value={staffInvitationEmail}
+            onChangeText={(value) => dispatch(setStaffInvitationEmail(value))}
+            placeholder="Enter email or phone"
+            placeholderTextColor={theme.lightGreen2}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            onClear={handleClearEmail}
+            containerStyle={{ flex: 1 }}
+          />
           <TouchableOpacity
             onPress={handleInvite}
             disabled={!canInvite}

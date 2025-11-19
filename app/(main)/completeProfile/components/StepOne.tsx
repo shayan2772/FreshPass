@@ -1,12 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -21,6 +14,7 @@ import {
   setBusinessCategory,
   setSearchTerm,
 } from "@/src/state/slices/completeProfileSlice";
+import FloatingInput from "@/src/components/floatingInput";
 
 const POPULAR_CATEGORIES = [
   { id: "hair_salon", label: "Hair salon" },
@@ -69,32 +63,7 @@ const createStyles = (theme: Theme) =>
     },
     searchContainer: {
       marginTop: moderateHeightScale(5),
-      borderRadius: moderateWidthScale(999),
-      backgroundColor: theme.white,
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(5),
-      gap: moderateWidthScale(12),
       marginHorizontal: moderateWidthScale(20),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-    },
-    clearButton: {
-      width: moderateWidthScale(20),
-      height: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(20 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.white,
     },
     lineSeparator: {
       width: "100%",
@@ -220,31 +189,27 @@ export default function StepOne() {
       </View>
 
       <View style={styles.searchContainer}>
-        <Feather
-          name="search"
-          size={moderateWidthScale(18)}
-          color={(colors as Theme).darkGreen}
-        />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search"
-          placeholderTextColor={(colors as Theme).lightGreen2}
+        <FloatingInput
+          label="Search"
           value={searchTerm}
           onChangeText={handleSearchChange}
-        />
-        {!!searchTerm && (
-          <Pressable
-            onPress={() => dispatch(setSearchTerm(""))}
-            style={styles.clearButton}
-            hitSlop={moderateWidthScale(10)}
-          >
+          placeholder="Search"
+          placeholderTextColor={(colors as Theme).lightGreen2}
+          onClear={() => dispatch(setSearchTerm(""))}
+          containerStyle={{
+            borderRadius: moderateWidthScale(999),
+          }}
+          inputStyle={{
+            height: heightScale(18),
+          }}
+          renderLeftAccessory={() => (
             <Feather
-              name="x"
-              size={moderateWidthScale(12)}
+              name="search"
+              size={moderateWidthScale(18)}
               color={(colors as Theme).darkGreen}
             />
-          </Pressable>
-        )}
+          )}
+        />
       </View>
 
       <View style={styles.categoriesContainer}>

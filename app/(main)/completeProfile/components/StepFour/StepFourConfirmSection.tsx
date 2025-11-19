@@ -1,15 +1,13 @@
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
-  heightScale,
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
 } from "@/src/theme/dimensions";
+import FloatingInput from "@/src/components/floatingInput";
 
 interface StepFourConfirmSectionProps {
   streetAddress: string;
@@ -48,44 +46,6 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-    },
-    inputWrapper: {
-      borderRadius: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(15),
-      paddingVertical: moderateHeightScale(10),
-      gap: moderateHeightScale(2),
-    },
-    inputLabel: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    inputContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(10),
-    },
-    textInput: {
-      flex: 1,
-      height: heightScale(22),
-      paddingVertical: 0,
-      textAlignVertical: "center",
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-    },
-    iconButton: {
-      width: widthScale(18),
-      height: widthScale(18),
-      borderRadius: moderateWidthScale(18 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.white,
     },
     infoText: {
       fontSize: fontSize.size12,
@@ -132,72 +92,33 @@ export default function StepFourConfirmSection({
       </View>
 
       <View style={styles.main}>
-        <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>Street address</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="24 Adeola Odeku Street, Wuse 2"
-              placeholderTextColor={placeholderColor}
-              value={streetAddress}
-              onChangeText={onChangeStreet}
-            />
-            {streetAddress.length > 0 && (
-              <Pressable onPress={handleClearStreet} style={styles.iconButton}>
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(14)}
-                  color={theme.darkGreen}
-                />
-              </Pressable>
-            )}
-          </View>
-        </View>
+        <FloatingInput
+          label="Street address"
+          value={streetAddress}
+          onChangeText={onChangeStreet}
+          placeholder="Street address"
+          placeholderTextColor={placeholderColor}
+          onClear={handleClearStreet}
+        />
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>Area / City</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Downtown"
-              placeholderTextColor={placeholderColor}
-              value={area}
-              onChangeText={onChangeArea}
-            />
-            {area.length > 0 && (
-              <Pressable onPress={handleClearArea} style={styles.iconButton}>
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(14)}
-                  color={theme.darkGreen}
-                />
-              </Pressable>
-            )}
-          </View>
-        </View>
+        <FloatingInput
+          label="Area / City"
+          value={area}
+          onChangeText={onChangeArea}
+          placeholder="Area / City"
+          placeholderTextColor={placeholderColor}
+          onClear={handleClearArea}
+        />
 
-        <View style={styles.inputWrapper}>
-          <Text style={styles.inputLabel}>Zip code (Optional)</Text>
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="29209"
-              placeholderTextColor={placeholderColor}
-              value={zipCode}
-              onChangeText={onChangeZip}
-              keyboardType="number-pad"
-            />
-            {zipCode.length > 0 && (
-              <Pressable onPress={handleClearZip} style={styles.iconButton}>
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(14)}
-                  color={theme.darkGreen}
-                />
-              </Pressable>
-            )}
-          </View>
-        </View>
+        <FloatingInput
+          label="Zip code"
+          value={zipCode}
+          onChangeText={onChangeZip}
+          placeholder="Zip code (Optional)"
+          placeholderTextColor={placeholderColor}
+          keyboardType="number-pad"
+          onClear={handleClearZip}
+        />
 
         {(isFetchingDetails || notice) && (
           <Text style={styles.infoText}>

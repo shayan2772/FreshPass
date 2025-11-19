@@ -4,7 +4,6 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -16,6 +15,7 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { PlacePrediction } from "@/src/types/location";
+import FloatingInput from "@/src/components/floatingInput";
 
 interface StepFourSearchSectionProps {
   addressSearch: string;
@@ -36,25 +36,6 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(12),
       flex: 1,
       paddingHorizontal: moderateWidthScale(20),
-    },
-    searchContainer: {
-      borderRadius: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(6),
-    },
-    searchRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(12),
-    },
-    searchInput: {
-      flex: 1,
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
     },
     suggestionsContainer: {
       borderRadius: moderateWidthScale(16),
@@ -111,16 +92,6 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       textAlign: "center",
     },
-    clearButton: {
-      width: moderateWidthScale(20),
-      height: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(20 / 2),
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: theme.white,
-    },
   });
 
 export default function StepFourSearchSection({
@@ -140,36 +111,22 @@ export default function StepFourSearchSection({
   return (
     <View style={styles.container}>
       <View className="flex-1">
-        <View style={styles.searchContainer}>
-          <View style={styles.searchRow}>
+        <FloatingInput
+          label="Search"
+          value={addressSearch}
+          onChangeText={onChangeSearch}
+          placeholder="Search your address"
+          placeholderTextColor={(colors as Theme).lightGreen2}
+          returnKeyType="search"
+          onClear={() => onChangeSearch("")}
+          renderLeftAccessory={() => (
             <Feather
               name="search"
               size={moderateWidthScale(18)}
               color={(colors as Theme).darkGreen}
             />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search for your address"
-              placeholderTextColor={(colors as Theme).lightGreen2}
-              value={addressSearch}
-              onChangeText={onChangeSearch}
-              returnKeyType="search"
-            />
-            {!!addressSearch && (
-              <Pressable
-                onPress={() => onChangeSearch("")}
-                style={styles.clearButton}
-                hitSlop={moderateWidthScale(10)}
-              >
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(12)}
-                  color={(colors as Theme).darkGreen}
-                />
-              </Pressable>
-            )}
-          </View>
-        </View>
+          )}
+        />
 
         {addressSearch.trim().length > 0 && (
           <View style={styles.suggestionsContainer}>
