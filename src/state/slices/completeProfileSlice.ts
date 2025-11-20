@@ -60,11 +60,18 @@ export interface CompleteProfileState {
     currency: string;
     serviceIds: string[];
   }>;
+  tiktokUrl: string;
+  instagramUrl: string;
+  facebookUrl: string;
+  photos: Array<{
+    id: string;
+    uri: string;
+  }>;
 }
 
 const initialState: CompleteProfileState = {
-  currentStep: 1,
-  // currentStep: 8,
+  // currentStep: 1,
+  currentStep: 9,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -147,6 +154,10 @@ const initialState: CompleteProfileState = {
   },
   services: [],
   subscriptions: [],
+  tiktokUrl: "",
+  instagramUrl: "",
+  facebookUrl: "",
+  photos: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -238,6 +249,18 @@ const completeProfileSlice = createSlice({
         if (nextStep < 9) {
           // Reset subscriptions
           state.subscriptions = [];
+        }
+
+        if (nextStep < 10) {
+          // Reset social media URLs
+          state.tiktokUrl = "";
+          state.instagramUrl = "";
+          state.facebookUrl = "";
+        }
+
+        if (nextStep < 11) {
+          // Reset photos
+          state.photos = [];
         }
 
         state.currentStep = nextStep;
@@ -558,6 +581,30 @@ const completeProfileSlice = createSlice({
         (s) => s.id !== action.payload
       );
     },
+    setTiktokUrl: (state, action: PayloadAction<string>) => {
+      state.tiktokUrl = action.payload;
+    },
+    setInstagramUrl: (state, action: PayloadAction<string>) => {
+      state.instagramUrl = action.payload;
+    },
+    setFacebookUrl: (state, action: PayloadAction<string>) => {
+      state.facebookUrl = action.payload;
+    },
+    addPhoto: (
+      state,
+      action: PayloadAction<{ id: string; uri: string }>
+    ) => {
+      state.photos.push(action.payload);
+    },
+    removePhoto: (state, action: PayloadAction<string>) => {
+      state.photos = state.photos.filter((p) => p.id !== action.payload);
+    },
+    setPhotos: (
+      state,
+      action: PayloadAction<Array<{ id: string; uri: string }>>
+    ) => {
+      state.photos = action.payload;
+    },
   },
 });
 
@@ -596,6 +643,12 @@ export const {
   addSubscription,
   updateSubscription,
   removeSubscription,
+  setTiktokUrl,
+  setInstagramUrl,
+  setFacebookUrl,
+  addPhoto,
+  removePhoto,
+  setPhotos,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

@@ -202,13 +202,7 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       backgroundColor: theme.borderLight,
     },
-    deleteButton: {
-      width: moderateWidthScale(24),
-      height: moderateWidthScale(24),
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: moderateWidthScale(7),
-    },
+   
     subscriptionInfo: {
       flex: 1,
       gap: moderateHeightScale(3),

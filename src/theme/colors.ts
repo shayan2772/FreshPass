@@ -30,6 +30,7 @@ export const themes = {
     cardLocBackground: "rgba(96, 108, 56, 0.3)",
     grey15: "rgba(40, 54, 24, 0.15)",
     grey30: "rgba(40, 54, 24, 0.30)",
+    galleryPhotoBack:"rgba(96, 108, 56, 0.25)"
   },
   dark: {},
   blue: {},

@@ -11,13 +11,12 @@ import { Theme } from "@/src/theme/colors";
 import { IMAGES } from "@/src/constant/images";
 import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
-import { moderateHeightScale } from "@/src/theme/dimensions";
+import { moderateHeightScale, moderateWidthScale } from "@/src/theme/dimensions";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
-import { fontSize, fonts } from "@/src/theme/fonts";
-
+ 
 export default function SocialLogin() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
@@ -64,8 +63,8 @@ export default function SocialLogin() {
         <View style={styles.topSection}>
           <View style={styles.logoContainer}>
             <LeafLogo
-              width={24}
-              height={33}
+              width={moderateWidthScale(24)}
+              height={moderateWidthScale(33)}
               color1={(colors as Theme).white}
               color2={(colors as Theme).white}
             />

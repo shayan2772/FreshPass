@@ -5,6 +5,8 @@ import {
   Platform,
   ScrollView,
   View,
+  TouchableOpacity,
+  Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -30,6 +32,7 @@ import {
   setAddressStage,
   setSelectedLocation,
 } from "@/src/state/slices/completeProfileSlice";
+import PrivacyBanner from "@/src/components/privacyBanner";
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -90,6 +93,12 @@ export default function CompleteProfile() {
     }
     if (currentStep < totalSteps) {
       dispatch(goToNextStep());
+      return;
+    }
+
+    // Navigate to acceptTerms screen when step 11 is completed
+    if (currentStep === totalSteps) {
+      router.replace("/(main)/acceptTerms");
       return;
     }
 
@@ -171,6 +180,18 @@ export default function CompleteProfile() {
       // User can add services later
       return false;
     }
+    if (currentStep === 9) {
+      // Step 9 is optional - can continue without adding subscriptions
+      return false;
+    }
+    if (currentStep === 10) {
+      // Step 10 is optional - can continue without linking social media
+      return false;
+    }
+    if (currentStep === 11) {
+      // Step 11 is optional - can continue without adding photos
+      return false;
+    }
     return false;
   }, [
     appointmentVolume,
@@ -221,7 +242,7 @@ export default function CompleteProfile() {
 
   const continueLabel = useMemo(() => {
     if (currentStep === totalSteps) {
-      return "Finish";
+      return "You're almost there";
     }
     if (currentStep === 4 && addressStage === "map") {
       return "Next";
@@ -248,6 +269,21 @@ export default function CompleteProfile() {
           {renderStep}
         </ScrollView>
         <View style={styles.buttonWrapper}>
+          {(currentStep === 10 || currentStep === 11) && (
+            <>
+              {currentStep == 11 && (
+                <PrivacyBanner message="Our App will only have access to the photos that you select" />
+              )}
+
+              <TouchableOpacity
+                style={styles.skipButton}
+                onPress={handleContinue}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.skipButtonText}>Skip</Text>
+              </TouchableOpacity>
+            </>
+          )}
           <Button
             title={continueLabel}
             onPress={handleContinue}

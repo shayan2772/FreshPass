@@ -51,6 +51,13 @@
           }
         }
       ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your clients.",
+          "cameraPermission": "The app accesses your camera to let you take photos for your portfolio."
+        }
+      ],
       "expo-font",
       "expo-secure-store"
     ],
