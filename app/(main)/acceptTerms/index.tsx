@@ -17,6 +17,7 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { IMAGES } from "@/src/constant/images";
+import { MAIN_ROUTES } from "@/src/constant/routes";
 import { LeafLogo } from "@/assets/icons";
 
 const createStyles = (theme: Theme) =>
@@ -107,7 +108,7 @@ export default function AcceptTerms() {
 
   const handleGetStarted = useCallback(() => {
     // Navigate to dashboard
-    router.replace("/(main)/dashboard");
+    router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}`);
   }, [router]);
 
   return (

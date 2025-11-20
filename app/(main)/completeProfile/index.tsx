@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
+import { MAIN_ROUTES } from "@/src/constant/routes";
 import Button from "@/src/components/button";
 import CompleteProfileHeader from "@/src/components/CompleteProfileHeader";
 import StepOne from "./components/StepOne";
@@ -98,7 +99,7 @@ export default function CompleteProfile() {
 
     // Navigate to acceptTerms screen when step 11 is completed
     if (currentStep === totalSteps) {
-      router.replace("/(main)/acceptTerms");
+      router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
       return;
     }
 
