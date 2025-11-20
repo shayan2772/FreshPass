@@ -24,6 +24,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
+      backgroundColor: theme.darkGreen,
     },
     backgroundImage: {
       flex: 1,
