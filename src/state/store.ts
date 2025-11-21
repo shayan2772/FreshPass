@@ -11,26 +11,29 @@ const SecureStorageAdapter = {
   removeItem: (key: string) => SecureStorageService.removeItem(key),
 };
 
-// ✅ persist config
-const persistConfig = {
-  key: "root",
+// ✅ Nested persist config for general slice - only persist specific fields
+// This approach is more reliable than using transforms at root level
+const generalPersistConfig = {
+  key: "general",
   storage: SecureStorageAdapter,
-  whitelist: ["general"], // which slices to persist
-  keyPrefix: "",
+  whitelist: ["theme", "themeType", "language"], // Only persist these fields
 };
+
+// ✅ Persist the general reducer with field filtering
+const persistedGeneralReducer = persistReducer(generalPersistConfig, generalReducer);
 
 // ✅ combine reducers
 const rootReducer = combineReducers({
-  general: generalReducer,
-  completeProfile: completeProfileReducer,
+  general: persistedGeneralReducer, // Already persisted with field filtering
+  completeProfile: completeProfileReducer, // Not persisted
 });
 
-// ✅ create persisted reducer
-const persistedReducer = persistReducer(persistConfig, rootReducer);
+// ✅ No root-level persistence needed - general is already persisted with nested config
+// Just use rootReducer directly since nested persist handles it
 
 // ✅ store config
 export const store = configureStore({
-  reducer: persistedReducer,
+  reducer: rootReducer, // Use rootReducer directly - general is already persisted via nested persist
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: false, // required for redux-persist

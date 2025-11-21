@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { View, Text, Pressable, StyleSheet } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
@@ -12,6 +12,10 @@ import {
 import Button from "@/src/components/button";
 import FloatingInput from "@/src/components/floatingInput";
 import RegisterHeader from "@/src/components/registerHeader";
+import {
+  validatePassword,
+  validatePasswordMatch,
+} from "@/src/services/validationService";
 
 interface RegisterStepTwoProps {
   onBack: () => void;
@@ -89,6 +93,13 @@ const createStyles = (theme: Theme) =>
     buttonWrapper: {
       marginTop: moderateHeightScale(16),
     },
+    errorText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.link,
+      marginTop: moderateHeightScale(-16),
+      marginBottom: moderateHeightScale(4),
+    },
   });
 
 export default function RegisterStepTwo({
@@ -98,11 +109,42 @@ export default function RegisterStepTwo({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isConfirmPasswordVisible, setIsConfirmPasswordVisible] =
+    useState(false);
   const [savePassword, setSavePassword] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordLengthError, setPasswordLengthError] = useState<string | null>(
+    null
+  );
+
+  // Validate password length (min 8 characters)
+  useEffect(() => {
+    if (password.length > 0) {
+      const validation = validatePassword(password);
+      setPasswordLengthError(validation.error);
+    } else {
+      setPasswordLengthError(null);
+    }
+  }, [password]);
+
+  // Validate passwords match
+  useEffect(() => {
+    if (confirmPassword.length > 0) {
+      const validation = validatePasswordMatch(password, confirmPassword);
+      setPasswordError(validation.error);
+    } else {
+      setPasswordError(null);
+    }
+  }, [password, confirmPassword]);
 
   const handleToggleVisibility = useCallback(() => {
     setIsPasswordVisible((prev) => !prev);
+  }, []);
+
+  const handleToggleConfirmPasswordVisibility = useCallback(() => {
+    setIsConfirmPasswordVisible((prev) => !prev);
   }, []);
 
   const handleToggleSavePassword = useCallback(() => {
@@ -111,9 +153,40 @@ export default function RegisterStepTwo({
 
   const handleClear = useCallback(() => {
     setPassword("");
+    setPasswordError(null);
+    setPasswordLengthError(null);
   }, []);
 
- 
+  const handleClearConfirmPassword = useCallback(() => {
+    setConfirmPassword("");
+    setPasswordError(null);
+  }, []);
+
+  const handleContinue = useCallback(() => {
+    const passwordValidation = validatePassword(password);
+    const matchValidation = validatePasswordMatch(password, confirmPassword);
+
+    if (passwordValidation.isValid && matchValidation.isValid) {
+      onContinue();
+    } else {
+      if (!passwordValidation.isValid) {
+        setPasswordLengthError(passwordValidation.error);
+      }
+      if (!matchValidation.isValid) {
+        setPasswordError(matchValidation.error);
+      }
+    }
+  }, [password, confirmPassword, onContinue]);
+
+  // Form is valid only if both password and confirm password are valid
+  const passwordValidation = validatePassword(password);
+  const matchValidation = validatePasswordMatch(password, confirmPassword);
+  const isFormValid =
+    password.length > 0 &&
+    confirmPassword.length > 0 &&
+    passwordValidation.isValid &&
+    matchValidation.isValid;
+
   return (
     <View style={styles.container}>
       <RegisterHeader onBack={onBack} />
@@ -147,6 +220,40 @@ export default function RegisterStepTwo({
               ) : null
             }
           />
+
+          {passwordLengthError && (
+            <Text style={styles.errorText}>{passwordLengthError}</Text>
+          )}
+
+          <FloatingInput
+            label="Confirm password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry={!isConfirmPasswordVisible}
+            placeholder="Confirm your password"
+            autoCapitalize="none"
+            onClear={handleClearConfirmPassword}
+            renderRightAccessory={() =>
+              confirmPassword.length > 0 ? (
+                <Pressable
+                  onPress={handleToggleConfirmPasswordVisibility}
+                  style={styles.toggleButton}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <Feather
+                    name={isConfirmPasswordVisible ? "eye-off" : "eye"}
+                    size={moderateWidthScale(20)}
+                    color={(colors as Theme).darkGreen}
+                  />
+                </Pressable>
+              ) : null
+            }
+          />
+
+          {passwordError && (
+            <Text style={styles.errorText}>{passwordError}</Text>
+          )}
+
           <Pressable
             onPress={handleToggleSavePassword}
             style={styles.saveRow}
@@ -167,10 +274,11 @@ export default function RegisterStepTwo({
           </Pressable>
         </View>
         <Button
-            title="Continue"
-            onPress={onContinue}
-            containerStyle={styles.buttonWrapper}
-          />
+          title="Continue"
+          onPress={handleContinue}
+          disabled={!isFormValid}
+          containerStyle={styles.buttonWrapper}
+        />
       </View>
     </View>
   );

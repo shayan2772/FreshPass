@@ -1,6 +1,5 @@
-import { useTheme } from "@/src/hooks/hooks";
-import React, { useState, useMemo } from "react";
-import { useTranslation } from "react-i18next";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
+import React, { useMemo } from "react";
 import { View, Text } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -10,20 +9,27 @@ import { createStyles } from "./styles";
 import { Theme } from "@/src/theme/colors";
 import RadioOption from "@/src/components/radioOption";
 import Button from "@/src/components/button";
-type UserType = "business" | "client" | null;
+import { setRole, UserRole } from "@/src/state/slices/generalSlice";
 
 export default function Role() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
-  const [selectedOption, setSelectedOption] = useState<UserType>("business");
-
-  const handleOptionSelect = (option: UserType) => {
-    setSelectedOption(option);
+  const dispatch = useAppDispatch();
+  
+  // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
+  const selectedRole = useAppSelector((state) => state.general.role);
+ 
+  const handleOptionSelect = (option: UserRole) => {
+    // Save selected role to Redux immediately when user selects
+    dispatch(setRole(option));
   };
 
   const handleContinue = () => {
-    router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+    // Only continue if role is selected and saved in Redux
+    if (selectedRole) {
+      router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+    }
   };
 
   return (
@@ -51,7 +57,7 @@ export default function Role() {
             title="I manage a Business"
             subtitle="Login to your business dashboard"
             option="business"
-            selectedOption={selectedOption}
+            selectedOption={selectedRole}
             onPress={handleOptionSelect}
           />
 
@@ -59,7 +65,7 @@ export default function Role() {
             title="I'm a Client"
             subtitle="Book, subscribe, and manage your visits"
             option="client"
-            selectedOption={selectedOption}
+            selectedOption={selectedRole}
             onPress={handleOptionSelect}
           />
         </View>
@@ -72,7 +78,11 @@ export default function Role() {
         </Text>
       </View>
 
-      <Button title="Continue" onPress={handleContinue} />
+      <Button 
+        title="Continue" 
+        onPress={handleContinue}
+        disabled={!selectedRole} // Disable button if no role is selected
+      />
     </SafeAreaView>
   );
 }

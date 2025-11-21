@@ -2,17 +2,16 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { moderateWidthScale } from "@/src/theme/dimensions";
+import { UserRole } from "@/src/state/slices/generalSlice";
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-
-type UserType = "business" | "client";
 
 interface RadioOptionProps {
   title: string;
   subtitle: string;
-  option: UserType;
-  selectedOption: UserType | null;
-  onPress: (option: UserType) => void;
+  option: Exclude<UserRole, null>; // Only accept "business" | "client" | "staff", not null
+  selectedOption: UserRole; // Can be null when nothing is selected
+  onPress: (option: Exclude<UserRole, null>) => void;
 }
 
 const createStyles = (theme: Theme) =>

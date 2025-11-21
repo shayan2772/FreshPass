@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
@@ -14,6 +14,7 @@ import FloatingInput from "@/src/components/floatingInput";
 import RegisterHeader from "@/src/components/registerHeader";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
+import { validateEmail } from "@/src/services/validationService";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -111,6 +112,13 @@ const createStyles = (theme: Theme) =>
       textDecorationLine: "underline",
       textDecorationColor: theme.link,
     },
+    errorText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.link,
+      marginTop: moderateHeightScale(-16),
+      marginBottom: moderateHeightScale(4),
+    },
   });
 
 const DEFAULT_EMAIL = "";
@@ -124,14 +132,37 @@ export default function RegisterStepOne({
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [email, setEmail] = useState(DEFAULT_EMAIL);
   const [isSubscribed, setIsSubscribed] = useState(true);
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  // Validate email when it changes
+  useEffect(() => {
+    if (email.length > 0) {
+      const validation = validateEmail(email);
+      setEmailError(validation.error);
+    } else {
+      setEmailError(null);
+    }
+  }, [email]);
 
   const handleClear = useCallback(() => {
     setEmail("");
+    setEmailError(null);
   }, []);
 
   const handleToggleNewsletter = useCallback(() => {
     setIsSubscribed((prev) => !prev);
   }, []);
+
+  const handleContinue = useCallback(() => {
+    const validation = validateEmail(email);
+    if (validation.isValid) {
+      onContinue();
+    } else {
+      setEmailError(validation.error);
+    }
+  }, [email, onContinue]);
+
+  const isFormValid = email.length > 0 && validateEmail(email).isValid;
 
   
   return (
@@ -159,6 +190,10 @@ export default function RegisterStepOne({
             onClear={handleClear}
           />
 
+          {emailError && (
+            <Text style={styles.errorText}>{emailError}</Text>
+          )}
+
           <Pressable
             onPress={handleToggleNewsletter}
             style={styles.newsletterRow}
@@ -183,7 +218,8 @@ export default function RegisterStepOne({
 
           <Button
             title="Continue"
-            onPress={onContinue}
+            onPress={handleContinue}
+            disabled={!isFormValid}
             containerStyle={styles.primaryButtonWrapper}
           />
 
