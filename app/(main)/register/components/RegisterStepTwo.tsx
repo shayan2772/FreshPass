@@ -28,7 +28,7 @@ const createStyles = (theme: Theme) =>
     mainContent: {
       flex: 1,
       paddingHorizontal: moderateWidthScale(24),
-      paddingBottom: moderateHeightScale(15),
+      paddingBottom: moderateHeightScale(30),
     },
     content: {
       flexGrow: 1,

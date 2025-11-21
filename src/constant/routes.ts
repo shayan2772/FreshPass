@@ -7,6 +7,7 @@ export const ROUTES = {
     REGISTER_NEXT_STEPS: "register/nextSteps",
     COMPLETE_PROFILE: "completeProfile",
     ACCEPT_TERMS: "acceptTerms",
+    INTRODUCTION: "introduction",
     DASHBOARD: "dashboard",
   },
 } as const;

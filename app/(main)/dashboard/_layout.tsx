@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useMemo } from "react";
-import { StyleSheet } from "react-native";
+import { PixelRatio, Platform, StyleSheet } from "react-native";
 import { Theme } from "@/src/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -17,7 +17,6 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderTopWidth: 1,
       borderTopColor: theme.borderLight,
-      height: moderateHeightScale(80),
       paddingTop: moderateHeightScale(8),
     },
     tabBarLabel: {
@@ -31,14 +30,16 @@ export default function DashboardLayout() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const inset = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
+  const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
+ 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
         tabBarInactiveTintColor: theme.lightGreen,
-        tabBarStyle: [styles.tabBar, {}],
+        tabBarStyle: [styles.tabBar, {height: isButtonMode ? moderateHeightScale(110)   : moderateHeightScale(80)}],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
       }}

@@ -17,11 +17,13 @@ export const createStyles = (theme: Theme) =>
       height: Dimensions.get("window").height / 1.5,
       alignItems: "center",
       justifyContent: "center",
+      backgroundColor:theme.darkGreen
     },
     backgroundImage: {
       width: "100%",
       height: "100%",
       resizeMode: "contain",
+      backgroundColor:theme.darkGreen
     },
     topSection: {
       gap: moderateHeightScale(20),
@@ -76,14 +78,6 @@ export const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(2),
       backgroundColor: "rgba(255, 255, 255, 0.3)",
     },
-    // shade:{
-    //   position:"absolute",
-    //   bottom:0,
-    //   left:0,
-    //   right:0,
-    //   height:moderateHeightScale(260),
-    //   zIndex: 0,
-    // },
     bottomSection: {
       backgroundColor: theme.background,
       borderTopLeftRadius: moderateWidthScale(24),

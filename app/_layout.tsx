@@ -14,7 +14,9 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PortalProvider } from "@gorhom/portal";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
+import { LogBox } from "react-native";
 SystemUI.setBackgroundColorAsync("#FEFAE0");
+LogBox.ignoreAllLogs(true);
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);

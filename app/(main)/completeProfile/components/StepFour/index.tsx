@@ -32,7 +32,10 @@ import {
   fetchSuggestions as fetchSuggestionsApi,
   fetchPlaceDetails as fetchPlaceDetailsApi,
 } from "@/src/services/googlePlacesApi";
-import { handleLocationPermission } from "@/src/services/locationPermissionService";
+import {
+  handleLocationPermission,
+  openLocationSettings,
+} from "@/src/services/locationPermissionService";
 import { resolveCurrentLocation } from "@/src/constant/functions";
 
 const generateSessionToken = () =>
@@ -96,7 +99,10 @@ export default function StepFour() {
 
   const sessionTokenRef = useRef<string>(generateSessionToken());
   const isZoomingRef = useRef<boolean>(false);
-  const originalLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const originalLocationRef = useRef<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const isSearchStage = addressStage === "search";
   const isConfirmStage = addressStage === "confirm";
   const isMapStage = addressStage === "map";
@@ -321,10 +327,18 @@ export default function StepFour() {
     setLocationNotice(null);
 
     // Step 1: Check and request location permission first
-    const hasPermission = await handleLocationPermission();
-    
-    if (!hasPermission) {
-      // Permission denied - alert already shown by handleLocationPermission
+    const permissionResult = await handleLocationPermission();
+
+    if (!permissionResult.granted) {
+      // Permission denied or location services OFF
+      // Display error message as red text (no alert)
+      if (permissionResult.errorMessage) {
+        setLocationMessage(permissionResult.errorMessage);
+        // If settings should be opened, open them automatically
+        if (permissionResult.shouldOpenSettings) {
+          await openLocationSettings();
+        }
+      }
       return;
     }
 
@@ -359,7 +373,6 @@ export default function StepFour() {
     dispatch(setArea(details.area ?? ""));
     dispatch(setZipCode(details.postal ?? ""));
     dispatch(setAddressStage("confirm"));
-
     setMapRegion({
       latitude: details.coordinates.latitude,
       longitude: details.coordinates.longitude,
@@ -392,34 +405,28 @@ export default function StepFour() {
     [dispatch]
   );
 
-  const handleZoom = useCallback(
-    (direction: "in" | "out") => {
-      // Mark that we're programmatically zooming (not user drag)
-      isZoomingRef.current = true;
-      setMapRegion((current: Region | null) => {
-        if (!current) {
-          return current;
-        }
-        const factor = direction === "in" ? 0.7 : 1.3;
-        const latitudeDelta = Math.max(current.latitudeDelta * factor, 0.0005);
-        const longitudeDelta = Math.max(
-          current.longitudeDelta * factor,
-          0.0005
-        );
-        const newRegion = {
-          ...current,
-          latitudeDelta,
-          longitudeDelta,
-        };
-        // Reset zoom flag after a short delay to allow region change to complete
-        setTimeout(() => {
-          isZoomingRef.current = false;
-        },400);
-        return newRegion;
-      });
-    },
-    []
-  );
+  const handleZoom = useCallback((direction: "in" | "out") => {
+    // Mark that we're programmatically zooming (not user drag)
+    isZoomingRef.current = true;
+    setMapRegion((current: Region | null) => {
+      if (!current) {
+        return current;
+      }
+      const factor = direction === "in" ? 0.7 : 1.3;
+      const latitudeDelta = Math.max(current.latitudeDelta * factor, 0.0005);
+      const longitudeDelta = Math.max(current.longitudeDelta * factor, 0.0005);
+      const newRegion = {
+        ...current,
+        latitudeDelta,
+        longitudeDelta,
+      };
+      // Reset zoom flag after a short delay to allow region change to complete
+      setTimeout(() => {
+        isZoomingRef.current = false;
+      }, 400);
+      return newRegion;
+    });
+  }, []);
 
   const handleRegionChangeComplete = useCallback(
     (region: Region) => {
@@ -503,4 +510,3 @@ export default function StepFour() {
     </View>
   );
 }
-

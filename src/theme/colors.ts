@@ -19,6 +19,7 @@ export const themes = {
     orangeBrown: "#DDA15E",
     lightBeige: "rgba(40, 54, 24, 0.05)",
     white: "#FFFFFF",
+    white70: "rgba(255, 255, 255, 0.7)",
     black: "#000000",
     buttonBack: "#606C38",
     buttonText: "#FFFFFF",

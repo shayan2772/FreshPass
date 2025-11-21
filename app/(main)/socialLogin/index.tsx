@@ -1,6 +1,6 @@
 import { useTheme } from "@/src/hooks/hooks";
 import React, { useMemo } from "react";
-import { View, Text, StatusBar, Platform, PixelRatio } from "react-native";
+import { View, Text, StatusBar, Platform } from "react-native";
 import { Image } from "expo-image";
 import {
   SafeAreaView,
@@ -11,19 +11,20 @@ import { Theme } from "@/src/theme/colors";
 import { IMAGES } from "@/src/constant/images";
 import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
-import { moderateHeightScale, moderateWidthScale } from "@/src/theme/dimensions";
+import {
+  moderateHeightScale,
+  moderateWidthScale,
+} from "@/src/theme/dimensions";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
- 
+
 export default function SocialLogin() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const insets = useSafeAreaInsets();
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
-  const NAVIGATION_BAR_HEIGHT = 48; // dp
-  const pxHeight = PixelRatio.getPixelSizeForLayoutSize(NAVIGATION_BAR_HEIGHT);
   const router = useRouter();
 
   const handleSignInOrRegister = () => {
@@ -56,14 +57,14 @@ export default function SocialLogin() {
           style={[
             styles.backgroundImage,
             {
-              bottom: !isButtonMode ? 70 : 50,
+              bottom: !isButtonMode ? 90 : 70,
             },
           ]}
         />
         <View style={styles.topSection}>
           <View style={styles.logoContainer}>
             <LeafLogo
-              width={moderateWidthScale(24)}
+              width={moderateWidthScale(25)}
               height={moderateWidthScale(33)}
               color1={(colors as Theme).white}
               color2={(colors as Theme).white}
@@ -84,14 +85,6 @@ export default function SocialLogin() {
             <View style={styles.dotOuter} />
           </View>
         </View>
-
-        {/* <LinearGradient
-          colors={["rgba(254, 250, 224, 0)", (colors as Theme).darkGreen]}
-          locations={[0, 1]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.shade}
-        /> */}
       </View>
 
       <View

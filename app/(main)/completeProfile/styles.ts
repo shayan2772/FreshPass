@@ -11,7 +11,7 @@ export const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flex: 1,
-      paddingBottom: moderateHeightScale(15),
+      paddingBottom: moderateHeightScale(30),
     },
     scrollContent: {
       flexGrow: 1,

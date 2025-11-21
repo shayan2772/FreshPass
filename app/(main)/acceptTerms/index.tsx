@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   BackHandler,
   StatusBar,
+  Platform,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
@@ -19,6 +20,7 @@ import {
 import { IMAGES } from "@/src/constant/images";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import { LeafLogo } from "@/assets/icons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -35,7 +37,6 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       paddingHorizontal: moderateWidthScale(15),
       paddingTop: moderateHeightScale(45),
-      paddingBottom: moderateHeightScale(40),
     },
     logoContainer: {
       marginBottom: moderateHeightScale(70),
@@ -44,7 +45,7 @@ const createStyles = (theme: Theme) =>
       gap: 6,
     },
     logoText: {
-      fontSize: fontSize.size24,
+      fontSize: fontSize.size22,
       fontFamily: fonts.fontBold,
       color: theme.white,
     },
@@ -88,7 +89,8 @@ export default function AcceptTerms() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
-  const theme = colors as Theme;
+  const insets = useSafeAreaInsets();
+  const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
 
   // Disable back button
   useFocusEffect(
@@ -108,8 +110,8 @@ export default function AcceptTerms() {
   );
 
   const handleGetStarted = useCallback(() => {
-    // Navigate to dashboard
-    router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}`);
+    // Navigate to introduction screen
+    router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
   }, [router]);
 
   return (
@@ -120,11 +122,20 @@ export default function AcceptTerms() {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <View style={styles.content}>
+        <View
+          style={[
+            styles.content,
+            {
+              paddingBottom: isButtonMode
+                ? moderateHeightScale(30) + insets.bottom
+                : moderateHeightScale(30),
+            },
+          ]}
+        >
           <View style={styles.logoContainer}>
             <LeafLogo
-              width={moderateWidthScale(30)}
-              height={moderateWidthScale(30)}
+              width={moderateWidthScale(25)}
+              height={moderateWidthScale(33)}
               color1={(colors as Theme).white}
               color2={(colors as Theme).white}
             />

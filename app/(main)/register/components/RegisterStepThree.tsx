@@ -47,7 +47,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.background,
       paddingHorizontal: moderateWidthScale(24),
       paddingTop: moderateHeightScale(24),
-      paddingBottom: moderateHeightScale(15),
+      paddingBottom: moderateHeightScale(30),
       gap: moderateHeightScale(24),
     },
     content: {

@@ -17,6 +17,7 @@ import {
   addStaffInvitation,
   setStaffInvitationEmail,
 } from "@/src/state/slices/completeProfileSlice";
+import { Feather } from "@expo/vector-icons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

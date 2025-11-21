@@ -10,12 +10,14 @@ interface ButtonProps {
   onPress: () => void;
   disabled?: boolean;
   containerStyle?: ViewStyle;
+  textColor?: string;
+  backgroundColor?: string;
 }
 
-const createStyles = (theme: Theme) =>
+const createStyles = (theme: Theme, textColor?: string, backgroundColor?: string) =>
   StyleSheet.create({
     button: {
-      backgroundColor: theme.buttonBack,
+      backgroundColor: backgroundColor || theme.buttonBack,
       borderRadius: moderateWidthScale(12),
       paddingVertical: moderateHeightScale(14),
       alignItems: "center",
@@ -25,9 +27,9 @@ const createStyles = (theme: Theme) =>
       opacity: 0.5,
     },
     buttonText: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
-      color: theme.buttonText,
+      color: textColor || theme.buttonText,
     },
   });
 
@@ -36,9 +38,11 @@ export default function Button({
   onPress,
   disabled = false,
   containerStyle,
+  textColor,
+  backgroundColor,
 }: ButtonProps) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const styles = useMemo(() => createStyles(colors as Theme, textColor, backgroundColor), [colors, textColor, backgroundColor]);
 
   return (
     <TouchableOpacity
