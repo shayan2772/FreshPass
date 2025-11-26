@@ -78,6 +78,12 @@ export default function AccountScreen() {
   const handleRowPress = (key: string) => {
     if (key === "personal") {
       router.push("./(profile)");
+    } else if (key === "rules") {
+      router.push("./rulesAndTerms");
+    } else if (key === "notifications") {
+      router.push("./notificationSettings");
+    } else if (key === "business") {
+      router.push("./businessProfileSettings");
     } else {
       console.log("Account row pressed:", key);
     }

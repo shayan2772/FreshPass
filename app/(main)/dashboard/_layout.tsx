@@ -57,6 +57,28 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("(profile)");
+  const isRulesAndTermsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("rulesAndTerms");
+  const isChangePasswordScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("(profile)") &&
+    segments.includes("changePassword");
+  const isEditProfileScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("(profile)") &&
+    segments.includes("editProfile");
+  const isNotificationSettingsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("notificationSettings");
+  const isBusinessProfileSettingsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("businessProfileSettings");
  
   return (
     <Tabs
@@ -71,7 +93,13 @@ export default function DashboardLayout() {
               ? moderateHeightScale(110)
               : moderateHeightScale(80),
           },
-          (isUserReviewsScreen || isProfileScreen) && { display: "none" },
+          (isUserReviewsScreen ||
+            isProfileScreen ||
+            isRulesAndTermsScreen ||
+            isChangePasswordScreen ||
+            isEditProfileScreen ||
+            isNotificationSettingsScreen ||
+            isBusinessProfileSettingsScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
