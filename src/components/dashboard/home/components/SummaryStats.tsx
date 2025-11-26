@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -9,6 +9,7 @@ import {
 } from "@/src/theme/dimensions";
 import { Entypo } from "@expo/vector-icons";
 import { DollarCheckIcon, StarIcon } from "@/assets/icons";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -103,6 +104,7 @@ export default function SummaryStats() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
 
   return (
     <>
@@ -119,7 +121,13 @@ export default function SummaryStats() {
           </View>
           <Text style={styles.revenueLabel}>Today's revenue</Text>
         </View>
-        <View style={[styles.revenueCard, styles.reviewCard]}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={[styles.revenueCard, styles.reviewCard]}
+          onPress={() =>
+            router.push("/(main)/dashboard/(home)/userReviews")
+          }
+        >
           <View style={styles.titleSec}>
             <Text numberOfLines={1} style={styles.reviewRate}>
               4.0
@@ -137,7 +145,7 @@ export default function SummaryStats() {
               color={theme.darkGreen}
             />
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.appointmentStatsRow}>

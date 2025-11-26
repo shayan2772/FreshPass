@@ -61,7 +61,7 @@ export default function DashboardLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="(home)"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
@@ -79,7 +79,7 @@ export default function DashboardLayout() {
       <Tabs.Screen
         name="calendar"
         options={{
-          title: "Booking",
+          title: "Calendar",
           tabBarIcon: ({ color, size, focused }) => (
             <View
               style={[

@@ -1,11 +1,5 @@
 import React, { useMemo } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  StatusBar,
-} from "react-native";
+import { StyleSheet, Text, View, ScrollView, StatusBar } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -14,6 +8,7 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
+import DashboardHeader from "@/src/components/DashboardHeader";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -43,22 +38,19 @@ const createStyles = (theme: Theme) =>
 
 export default function AccountScreen() {
   const { colors } = useTheme();
+  const theme = colors as Theme;
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+    <View style={styles.container}>
+      <DashboardHeader />
       <ScrollView
         style={styles.content}
         contentContainerStyle={{ paddingBottom: moderateHeightScale(20) }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Account</Text>
-        <Text style={styles.placeholderText}>
-          Account content will be displayed here
-        </Text>
+        <Text style={styles.title}>Account settings</Text>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
-

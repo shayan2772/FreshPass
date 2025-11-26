@@ -14,6 +14,7 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
+import DashboardHeader from "@/src/components/DashboardHeader";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -43,22 +44,20 @@ const createStyles = (theme: Theme) =>
 
 export default function NotificationsScreen() {
   const { colors } = useTheme();
+  const theme=(colors) as Theme
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+    <View style={styles.container} >
+      <DashboardHeader/>
       <ScrollView
         style={styles.content}
         contentContainerStyle={{ paddingBottom: moderateHeightScale(20) }}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>Notifications</Text>
-        <Text style={styles.placeholderText}>
-          Notifications content will be displayed here
-        </Text>
+       
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 }
 

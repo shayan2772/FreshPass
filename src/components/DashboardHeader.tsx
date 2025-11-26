@@ -38,6 +38,11 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
     },
+    line: {
+      width: "100%",
+      height: 1.1,
+      backgroundColor: theme.borderLight,
+    },
   });
 
 export default function DashboardHeader() {
@@ -45,25 +50,32 @@ export default function DashboardHeader() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const [isOnline, setIsOnline] = useState(true);
- const insets = useSafeAreaInsets();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[styles.headerContainer, { paddingTop: insets.top+moderateHeightScale(12) }]}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <LeafLogo
-            width={widthScale(18)}
-            height={heightScale(24)}
-            color1={theme.darkGreen}
-            color2={theme.darkGreen}
-          />
-          <Text style={styles.logoText}>FRESHPASS</Text>
-        </View>
-        <View style={styles.toggleContainer}>
-          <CustomToggleInside value={isOnline} onValueChange={setIsOnline} />
+    <View>
+      <View
+        style={[
+          styles.headerContainer,
+          { paddingTop: insets.top + moderateHeightScale(12) },
+        ]}
+      >
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <LeafLogo
+              width={widthScale(18)}
+              height={heightScale(24)}
+              color1={theme.darkGreen}
+              color2={theme.darkGreen}
+            />
+            <Text style={styles.logoText}>FRESHPASS</Text>
+          </View>
+          <View style={styles.toggleContainer}>
+            <CustomToggleInside value={isOnline} onValueChange={setIsOnline} />
+          </View>
         </View>
       </View>
+      <View style={styles.line} />
     </View>
   );
 }
-

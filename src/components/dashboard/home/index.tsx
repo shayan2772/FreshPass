@@ -6,11 +6,11 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import DashboardHeader from "./components/DashboardHeader";
 import SummaryStats from "./components/SummaryStats";
 import StaffOnDuty from "./components/StaffOnDuty";
 import AppointmentsSection from "./components/AppointmentsSection";
 import WorkHistory from "./components/WorkHistory";
+import DashboardHeader from "../../DashboardHeader";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -47,7 +47,6 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <DashboardHeader />
-      <View style={styles.line} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
