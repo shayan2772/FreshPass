@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useMemo } from "react";
 import { StyleSheet, View, Text, ScrollView } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -9,9 +9,16 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import { Stack, useRouter, useNavigation } from "expo-router";
-import { Entypo } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
+import StackHeader from "@/src/components/StackHeader";
+import { MaterialIcons } from "@expo/vector-icons";
+
+type Review = {
+  id: string;
+  name: string;
+  date: string;
+  rating: number;
+  text: string;
+};
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -21,50 +28,27 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flexGrow: 1,
-      paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
+      // paddingHorizontal: moderateWidthScale(20),
+      // paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(24),
-      backgroundColor: theme.background,
-    },
-    headerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      paddingHorizontal: moderateWidthScale(20),
-      paddingVertical: moderateHeightScale(16),
-      backgroundColor: theme.lightYellow,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
-    },
-    headerTitle: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-    },
-    backIconWrapper: {
-      width: widthScale(24),
-      height: widthScale(24),
-      alignItems: "center",
-      justifyContent: "center",
     },
     metricsCard: {
-      backgroundColor: theme.lightYellow,
-      borderRadius: moderateWidthScale(8),
+      backgroundColor: theme.lightBeige,
       paddingVertical: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(16),
-      borderWidth: 1,
+      borderBottomWidth: 1,
       borderColor: theme.borderLight,
-      marginBottom: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(12),
+      gap: moderateHeightScale(12),
     },
     metricRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginBottom: moderateHeightScale(12),
     },
     metricLabel: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       flex: 1,
     },
@@ -82,7 +66,7 @@ const createStyles = (theme: Theme) =>
     metricCount: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.textLight,
+      color: theme.lightGreen,
     },
     progressTrack: {
       flex: 1,
@@ -100,34 +84,26 @@ const createStyles = (theme: Theme) =>
     progressFillSecondary: {
       backgroundColor: theme.lightGreen,
     },
-    averageWrapper: {
-      marginTop: moderateHeightScale(12),
-    },
     averageText: {
       fontSize: fontSize.size32,
-      fontFamily: fonts.fontExtraBold,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-    },
-    averageLabel: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      marginTop: moderateHeightScale(4),
     },
     countLabel: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.textLight,
+      color: theme.lightGreen,
       marginBottom: moderateHeightScale(12),
     },
     card: {
-      backgroundColor: theme.lightYellow,
+      backgroundColor: theme.lightBeige,
       borderRadius: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(16),
       borderWidth: 1,
-      borderColor: theme.borderLight,
+      borderColor: theme.lightGreen2,
       marginBottom: moderateHeightScale(16),
+      marginHorizontal:moderateWidthScale(20),
     },
     cardHeaderRow: {
       flexDirection: "row",
@@ -135,9 +111,9 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(8),
     },
     avatar: {
-      width: widthScale(48),
-      height: widthScale(48),
-      borderRadius: moderateWidthScale(8),
+      width: widthScale(42),
+      height: widthScale(42),
+      borderRadius: moderateWidthScale(4),
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(12),
@@ -149,24 +125,21 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     nameText: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     dateText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.textLight,
+      color: theme.lightGreen,
       marginTop: moderateHeightScale(4),
     },
     starsRow: {
       flexDirection: "row",
       marginBottom: moderateHeightScale(12),
     },
-    starText: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
+    starIcon: {
       marginRight: moderateWidthScale(4),
     },
     reviewText: {
@@ -178,50 +151,54 @@ const createStyles = (theme: Theme) =>
     seeMoreText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
-      color: theme.buttonBack,
-      marginTop: moderateHeightScale(12),
+      color: theme.selectCard,
+      textDecorationLine:"underline",
+      textDecorationColor:theme.selectCard,
+      marginTop: moderateHeightScale(8),
     },
   });
+
+const REVIEWS: Review[] = [
+  {
+    id: "1",
+    name: "Ofir Kiran",
+    date: "September 28, 2023",
+    rating: 5,
+    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time.",
+  },
+  {
+    id: "2",
+    name: "Ofir Kiran",
+    date: "September 28, 2023",
+    rating: 3.4,
+    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time.",
+  },
+];
 
 export default function UserReviewsScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const router = useRouter();
-  const navigation = useNavigation();
 
-  useFocusEffect(
-    useCallback(() => {
-      const parent = navigation.getParent();
-      parent?.setOptions({
-        tabBarStyle: { display: "none" },
-      });
-
-      return () => {
-        parent?.setOptions({
-          tabBarStyle: undefined,
-        });
-      };
-    }, [navigation])
-  );
+  const getStars = (rating: number) => {
+    const stars: ("star" | "star-half" | "star-border")[] = [];
+    for (let i = 1; i <= 5; i += 1) {
+      if (rating >= i) {
+        stars.push("star");
+      } else if (rating >= i - 0.5) {
+        stars.push("star-half");
+      } else {
+        stars.push("star-border");
+      }
+    }
+    return stars;
+  };
 
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <View style={styles.backIconWrapper}>
-          <Entypo
-            name="chevron-small-left"
-            size={moderateWidthScale(22)}
-            color={theme.darkGreen}
-            onPress={() => router.back()}
-          />
-        </View>
-        <Text style={styles.headerTitle}>User reviews rate</Text>
-        <View style={styles.backIconWrapper} />
-      </View>
-
+      <StackHeader title="User reviews rate" />
       <ScrollView
-        style={{ flex: 1, backgroundColor: theme.background }}
+        style={{ flex: 1 }}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
@@ -240,13 +217,7 @@ export default function UserReviewsScreen() {
           <View style={styles.metricRow}>
             <Text style={styles.metricLabel}>Experience</Text>
             <View style={styles.progressTrack}>
-              <View
-                style={[
-                  styles.progressFill,
-                  styles.progressFillSecondary,
-                  { width: "80%" },
-                ]}
-              />
+              <View style={[styles.progressFill, { width: "80%" }]} />
             </View>
             <View style={styles.metricRight}>
               <Text style={styles.metricScore}>4.6</Text>
@@ -277,58 +248,38 @@ export default function UserReviewsScreen() {
           </View>
         </View>
 
-        <View>
-          <View style={styles.averageWrapper}>
-            <Text style={styles.averageText}>4.9 Average</Text>
-          </View>
+        <View style={{ paddingHorizontal: moderateWidthScale(20) }}>
+          <Text style={styles.averageText}>4.9 Average</Text>
           <Text style={styles.countLabel}>276 ratings</Text>
         </View>
 
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarIcon}>👤</Text>
+        {REVIEWS.map((review) => (
+          <View key={review.id} style={styles.card}>
+            <View style={styles.cardHeaderRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarIcon}>👤</Text>
+              </View>
+              <View>
+                <Text style={styles.nameText}>{review.name}</Text>
+                <Text style={styles.dateText}>{review.date}</Text>
+              </View>
             </View>
-            <View>
-              <Text style={styles.nameText}>Ofir Kiran</Text>
-              <Text style={styles.dateText}>September 28, 2023</Text>
+
+            <View style={styles.starsRow}>
+              {getStars(review.rating).map((icon, index) => (
+                <MaterialIcons
+                  key={`${review.id}-star-${index}`}
+                  name={icon}
+                  size={moderateWidthScale(18)}
+                  color={theme.darkGreen}
+                  style={styles.starIcon}
+                />
+              ))}
             </View>
+            <Text style={styles.reviewText}>{review.text}</Text>
+            <Text style={styles.seeMoreText}>See more</Text>
           </View>
-
-          <View style={styles.starsRow}>
-            <Text style={styles.starText}>★ ★ ★ ★ ★</Text>
-          </View>
-
-          <Text style={styles.reviewText}>
-            Super professional and right on time. Loved the attention to detail.
-            From booking to the cut—it's a smooth experience every time.
-          </Text>
-
-          <Text style={styles.seeMoreText}>See more</Text>
-        </View>
-
-        <View style={styles.card}>
-          <View style={styles.cardHeaderRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarIcon}>👤</Text>
-            </View>
-            <View>
-              <Text style={styles.nameText}>Ofir Kiran</Text>
-              <Text style={styles.dateText}>September 28, 2023</Text>
-            </View>
-          </View>
-
-          <View style={styles.starsRow}>
-            <Text style={styles.starText}>★ ★ ★ ★ ★</Text>
-          </View>
-
-          <Text style={styles.reviewText}>
-            Super professional and right on time. Loved the attention to detail.
-            From booking to the cut—it's a smooth experience every time.
-          </Text>
-
-          <Text style={styles.seeMoreText}>See more</Text>
-        </View>
+        ))}
       </ScrollView>
     </View>
   );

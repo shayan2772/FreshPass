@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useSegments } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useMemo } from "react";
 import { Platform, StyleSheet, View } from "react-native";
@@ -48,6 +48,11 @@ export default function DashboardLayout() {
   const theme = colors as Theme;
   const insets = useSafeAreaInsets();
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
+  const segments = useSegments() as string[];
+  const isUserReviewsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(home)") &&
+    segments.includes("userReviews");
  
   return (
     <Tabs
@@ -55,7 +60,15 @@ export default function DashboardLayout() {
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
         tabBarInactiveTintColor: theme.lightGreen,
-        tabBarStyle: [styles.tabBar, {height: isButtonMode ? moderateHeightScale(110)   : moderateHeightScale(80)}],
+        tabBarStyle: [
+          styles.tabBar,
+          {
+            height: isButtonMode
+              ? moderateHeightScale(110)
+              : moderateHeightScale(80),
+          },
+          isUserReviewsScreen && { display: "none" },
+        ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
       }}
