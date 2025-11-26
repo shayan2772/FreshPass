@@ -19,13 +19,14 @@ const createStyles = (theme: Theme) =>
     content: {
       flex: 1,
       paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
+    },
+    contentContainer: {
+      paddingVertical: moderateHeightScale(20),
     },
     title: {
-      fontSize: fontSize.size24,
+      fontSize: fontSize.size22,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(20),
     },
     placeholderText: {
       fontSize: fontSize.size16,
@@ -46,7 +47,7 @@ export default function AccountScreen() {
       <DashboardHeader />
       <ScrollView
         style={styles.content}
-        contentContainerStyle={{ paddingBottom: moderateHeightScale(20) }}
+        contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>Account settings</Text>
