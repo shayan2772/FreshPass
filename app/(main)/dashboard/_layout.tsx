@@ -1,9 +1,15 @@
 import { Tabs } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useMemo } from "react";
-import { PixelRatio, Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, View } from "react-native";
 import { Theme } from "@/src/theme/colors";
-import { Ionicons } from "@expo/vector-icons";
+import {
+  HomeIcon,
+  CalendarIcon,
+  ChatIcon,
+  NotificationIcon,
+  AccountIcon,
+} from "@/assets/icons";
 import {
   moderateHeightScale,
   moderateWidthScale,
@@ -23,6 +29,16 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       marginTop: moderateHeightScale(4),
+    },
+    iconContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(20),
+    },
+    iconBackground: {
+      backgroundColor: theme.lightGreen2,
     },
   });
 
@@ -48,58 +64,94 @@ export default function DashboardLayout() {
         name="index"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[
+                styles.iconContainer,
+                focused && styles.iconBackground,
+              ]}
+            >
+              <HomeIcon width={size} height={size} color={color} focused={focused} />
+            </View>
           ),
         }}
       />
       <Tabs.Screen
         name="calendar"
         options={{
-          title: "Calendar",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar" size={size} color={color} />
+          title: "Booking",
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[
+                styles.iconContainer,
+                focused && styles.iconBackground,
+              ]}
+            >
+              <CalendarIcon width={size} height={size} color={color} focused={focused} />
+            </View>
           ),
-        }}
-      />
-      <Tabs.Screen
-        name="chat"
-        options={{
-          title: "Chat",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="chatbubble" size={size} color={color} />
-          ),
-          tabBarBadge: 1,
-          tabBarBadgeStyle: {
-            backgroundColor: theme.red,
-            minWidth: moderateWidthScale(18),
-            height: moderateHeightScale(18),
-            borderRadius: moderateWidthScale(9),
-          },
         }}
       />
       <Tabs.Screen
         name="notifications"
         options={{
           title: "Notifications",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="notifications" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[
+                styles.iconContainer,
+                focused && styles.iconBackground,
+              ]}
+            >
+              <NotificationIcon width={size} height={size} color={color} focused={focused} />
+            </View>
           ),
-          tabBarBadge: "9+",
-          tabBarBadgeStyle: {
-            backgroundColor: theme.red,
-            minWidth: moderateWidthScale(18),
-            height: moderateHeightScale(18),
-            borderRadius: moderateWidthScale(9),
-          },
+          // tabBarBadge: "9+",
+          // tabBarBadgeStyle: {
+          //   backgroundColor: theme.red,
+          //   minWidth: moderateWidthScale(18),
+          //   height: moderateHeightScale(18),
+          //   borderRadius: moderateWidthScale(9),
+          // },
         }}
       />
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: "Chat",
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[
+                styles.iconContainer,
+                focused && styles.iconBackground,
+              ]}
+            >
+              <ChatIcon width={size} height={size} color={color} focused={focused} />
+            </View>
+          ),
+          // tabBarBadge: 1,
+          // tabBarBadgeStyle: {
+          //   backgroundColor: theme.red,
+          //   minWidth: moderateWidthScale(18),
+          //   height: moderateHeightScale(18),
+          //   borderRadius: moderateWidthScale(9),
+          // },
+        }}
+      />
+      
       <Tabs.Screen
         name="account"
         options={{
           title: "Account",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[
+                styles.iconContainer,
+                focused && styles.iconBackground,
+              ]}
+            >
+              <AccountIcon width={size} height={size} color={color} focused={focused} />
+            </View>
           ),
         }}
       />

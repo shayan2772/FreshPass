@@ -3,7 +3,6 @@ import {
   Animated,
   Pressable,
   StyleSheet,
-  View,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -130,3 +129,5 @@ export default function CustomToggle({
   );
 }
 
+
+ 

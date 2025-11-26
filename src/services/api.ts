@@ -1,0 +1,348 @@
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosResponse,
+  AxiosError,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { store } from "@/src/state/store";
+import { setTokens, resetUser } from "@/src/state/slices/userSlice";
+import { resetGeneral, setRole } from "../state/slices/generalSlice";
+import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
+// Get base URL from environment
+const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+
+// Create axios instance
+const apiClient: AxiosInstance = axios.create({
+  baseURL: BASE_URL,
+  timeout: 30000, // 30 seconds
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
+});
+
+// Flag to prevent multiple simultaneous refresh token requests
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (value?: any) => void;
+  reject: (error?: any) => void;
+}> = [];
+
+// Process queued requests after token refresh
+const processQueue = (
+  error: AxiosError | null,
+  token: string | null = null
+) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+/**
+ * Get access token from Redux userSlice
+ */
+const getAccessToken = (): string | null => {
+  try {
+    const state = store.getState();
+    return state.user?.accessToken || null;
+  } catch (error) {
+    console.error("❌ Failed to get access token:", error);
+    return null;
+  }
+};
+
+/**
+ * Get refresh token from Redux userSlice
+ */
+const getRefreshToken = (): string | null => {
+  try {
+    const state = store.getState();
+    return state.user?.refreshToken || null;
+  } catch (error) {
+    console.error("❌ Failed to get refresh token:", error);
+    return null;
+  }
+};
+
+/**
+ * Refresh access token using refresh token
+ */
+const refreshAccessToken = async (): Promise<string | null> => {
+  try {
+    const refreshToken = getRefreshToken();
+    if (!refreshToken) {
+      throw new Error("No refresh token available");
+    }
+
+    // Determine which refresh endpoint to use based on current context
+    // You may need to adjust this based on your API structure
+    const refreshEndpoint = `${BASE_URL}/auth/refresh`;
+
+    const response = await axios.post(refreshEndpoint, {
+      refreshToken,
+    });
+
+    const { accessToken, refreshToken: newRefreshToken } = response.data;
+
+    if (accessToken) {
+      // Update tokens in Redux
+      store.dispatch(
+        setTokens({
+          accessToken: accessToken,
+          refreshToken: newRefreshToken || undefined,
+        })
+      );
+      return accessToken;
+    }
+
+    throw new Error("Invalid refresh token response");
+  } catch (error) {
+    console.error("❌ Failed to refresh token:", error);
+    handleLogout();
+    throw error;
+  }
+};
+
+/**
+ * Handle logout - clear tokens
+ * Note: Navigation and Redux reset should be handled in the component calling logout
+ * This function only clears tokens from storage
+ */
+const handleLogout = async () => {
+  store.dispatch(resetUser());
+  store.dispatch(resetCompleteProfile());
+  store.dispatch(setRole(null));
+  store.dispatch(resetGeneral());
+};
+
+/**
+ * Get readable error message from API response
+ */
+const getErrorMessage = (error: AxiosError): string => {
+  // Handle network errors
+  if (!error.response) {
+    if (error.code === "ECONNABORTED") {
+      return "Request timeout. Please check your connection and try again.";
+    }
+    if (error.message === "Network Error") {
+      return "Network error. Please check your internet connection.";
+    }
+    return "Unable to connect to server. Please try again later.";
+  }
+
+  const { status, data } = error.response;
+
+  // Handle specific status codes
+  switch (status) {
+    case 400:
+      return (
+        (data as any)?.message ||
+        (data as any)?.error ||
+        "Invalid request. Please check your input."
+      );
+    case 401:
+      return "Unauthorized. Please login again.";
+    case 403:
+      return "You don't have permission to perform this action.";
+    case 404:
+      return "Resource not found.";
+    case 422:
+      return (
+        (data as any)?.message ||
+        (data as any)?.error ||
+        "Validation error. Please check your input."
+      );
+    case 429:
+      return "Too many requests. Please try again later.";
+    case 500:
+      return "Server error. Please try again later.";
+    case 502:
+      return "Bad gateway. Please try again later.";
+    case 503:
+      return "Service unavailable. Please try again later.";
+    default:
+      return (
+        (data as any)?.message ||
+        (data as any)?.error ||
+        `An error occurred (${status}). Please try again.`
+      );
+  }
+};
+
+// Request interceptor - Add access token to headers
+apiClient.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    try {
+      const token = getAccessToken();
+      if (token && config.headers) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.error("❌ Failed to add token to request:", error);
+    }
+    return config;
+  },
+  (error: AxiosError) => {
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor - Handle errors and token refresh
+apiClient.interceptors.response.use(
+  (response: AxiosResponse) => {
+    return response;
+  },
+  async (error: AxiosError) => {
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
+    // Handle 401 Unauthorized - Try to refresh token
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // If already refreshing, queue this request
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (originalRequest.headers && token) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return apiClient(originalRequest);
+          })
+          .catch((err) => {
+            return Promise.reject(err);
+          });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const newToken = await refreshAccessToken();
+        processQueue(null, newToken);
+
+        if (originalRequest.headers && newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+
+        return apiClient(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError as AxiosError, null);
+        await handleLogout();
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    // For other errors, return readable error message
+    const errorMessage = getErrorMessage(error);
+    const customError = new Error(errorMessage);
+    (customError as any).status = error.response?.status;
+    (customError as any).data = error.response?.data;
+
+    return Promise.reject(customError);
+  }
+);
+
+/**
+ * API Service Class
+ * Provides unified methods for all API calls
+ */
+export class ApiService {
+  /**
+   * GET request
+   */
+  static async get<T = any>(
+    url: string,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    try {
+      const response = await apiClient.get<T>(url, config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * POST request
+   */
+  static async post<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    try {
+      const response = await apiClient.post<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * PUT request
+   */
+  static async put<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    try {
+      const response = await apiClient.put<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * PATCH request
+   */
+  static async patch<T = any>(
+    url: string,
+    data?: any,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    try {
+      const response = await apiClient.patch<T>(url, data, config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * DELETE request
+   */
+  static async delete<T = any>(
+    url: string,
+    config?: AxiosRequestConfig
+  ): Promise<T> {
+    try {
+      const response = await apiClient.delete<T>(url, config);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Logout user (only clears tokens)
+   * For complete logout with Redux reset, use performLogout from logoutService
+   */
+  static async logout(): Promise<void> {
+    await handleLogout();
+  }
+}
+
+// Export the axios instance for advanced usage if needed
+export default apiClient;

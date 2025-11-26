@@ -17,8 +17,11 @@ export default function Register() {
     router.back();
   };
 
-  const handleContinue = () => {
-    router.push(`/${MAIN_ROUTES.REGISTER_PASSWORD}`);
+  const handleContinue = (email: string, isSubscribed: boolean) => {
+    router.push({
+      pathname: `/${MAIN_ROUTES.REGISTER_PASSWORD}`,
+      params: { email, isSubscribed: isSubscribed.toString() },
+    });
   };
 
   const handleSocialLogin = (provider: "google" | "apple" | "facebook") => {

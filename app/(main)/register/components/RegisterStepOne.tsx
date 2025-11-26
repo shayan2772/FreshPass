@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { View, Text, StyleSheet, Pressable } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import {   FontAwesome5 } from "@expo/vector-icons";
+import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -20,7 +20,7 @@ type SocialProvider = "google" | "apple" | "facebook";
 
 interface RegisterStepOneProps {
   onBack: () => void;
-  onContinue: () => void;
+  onContinue: (email: string,isSubscribed:boolean) => void;
   onSocialLogin: (provider: SocialProvider) => void;
 }
 
@@ -130,7 +130,11 @@ export default function RegisterStepOne({
 }: RegisterStepOneProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
-  const [email, setEmail] = useState(DEFAULT_EMAIL);
+  
+  // Get saved email from general state (if exists from previous registration)
+  const savedEmail = useAppSelector((state) => state.general.registerEmail);
+  
+  const [email, setEmail] = useState(savedEmail || DEFAULT_EMAIL);
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [emailError, setEmailError] = useState<string | null>(null);
 
@@ -156,7 +160,8 @@ export default function RegisterStepOne({
   const handleContinue = useCallback(() => {
     const validation = validateEmail(email);
     if (validation.isValid) {
-      onContinue();
+      // Pass email as param to next screen
+      onContinue(email.trim(),isSubscribed);
     } else {
       setEmailError(validation.error);
     }

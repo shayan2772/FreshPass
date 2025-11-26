@@ -3,6 +3,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import generalReducer from "./slices/generalSlice";
 import completeProfileReducer from "./slices/completeProfileSlice";
+import userReducer from "./slices/userSlice";
 
 // ✅ Custom SecureStore adapter for redux-persist
 const SecureStorageAdapter = {
@@ -16,16 +17,27 @@ const SecureStorageAdapter = {
 const generalPersistConfig = {
   key: "general",
   storage: SecureStorageAdapter,
-  whitelist: ["theme", "themeType", "language"], // Only persist these fields
+  whitelist: ["theme", "themeType", "language", "savedPassword","registerEmail"], // Only persist these fields
+};
+
+// ✅ Nested persist config for user slice - only persist name, id, email, tokens, and userRole
+const userPersistConfig = {
+  key: "user",
+  storage: SecureStorageAdapter,
+  whitelist: ["id", "name", "email", "accessToken", "refreshToken", "userRole"], // Only persist these fields
 };
 
 // ✅ Persist the general reducer with field filtering
 const persistedGeneralReducer = persistReducer(generalPersistConfig, generalReducer);
 
+// ✅ Persist the user reducer with field filtering
+const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
+
 // ✅ combine reducers
 const rootReducer = combineReducers({
   general: persistedGeneralReducer, // Already persisted with field filtering
   completeProfile: completeProfileReducer, // Not persisted
+  user: persistedUserReducer, // Persisted with field filtering (id, name, token)
 });
 
 // ✅ No root-level persistence needed - general is already persisted with nested config

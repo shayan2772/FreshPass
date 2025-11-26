@@ -379,7 +379,235 @@ export const RevenueReportingIcon: React.FC<RevenueReportingIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Home Icon SVG (Unfocused - Outline)
+const homeIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 6.19L17 10.69V18.5H15V12.5H9V18.5H7V10.69L12 6.19ZM12 3.5L2 12.5H5V20.5H11V14.5H13V20.5H19V12.5H22L12 3.5Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+// Home Icon SVG (Focused - Filled)
+const homeIconFilledSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10 20.5V14.5H14V20.5H19V12.5H22L12 3.5L2 12.5H5V20.5H10Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface HomeIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  focused?: boolean;
+}
+
+export const HomeIcon: React.FC<HomeIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+  focused = false,
+}) => {
+  const svgXml = (focused ? homeIconFilledSvg : homeIconSvg)
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Calendar Icon SVG (Unfocused - Outline)
+const calendarIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 3H19V1H17V3H7V1H5V3H4C2.9 3 2 3.9 2 5V21C2 22.1 2.9 23 4 23H20C21.1 23 22 22.1 22 21V5C22 3.9 21.1 3 20 3ZM20 21H4V10H20V21ZM20 8H4V5H20V8Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+// Calendar Icon SVG (Focused - Filled)
+const calendarIconFilledSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 3H19V1H17V3H7V1H5V3H4C2.9 3 2 3.9 2 5V21C2 22.1 2.9 23 4 23H20C21.1 23 22 22.1 22 21V5C22 3.9 21.1 3 20 3ZM20 8H4V5H20V8Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface CalendarIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  focused?: boolean;
+}
+
+export const CalendarIcon: React.FC<CalendarIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+  focused = false,
+}) => {
+  const svgXml = (focused ? calendarIconFilledSvg : calendarIconSvg)
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Notification Icon SVG (Unfocused - Outline)
+const notificationIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 21.75C13.1 21.75 14 20.85 14 19.75H10C10 20.85 10.9 21.75 12 21.75ZM18 15.75V10.75C18 7.68 16.37 5.11 13.5 4.43V3.75C13.5 2.92 12.83 2.25 12 2.25C11.17 2.25 10.5 2.92 10.5 3.75V4.43C7.64 5.11 6 7.67 6 10.75V15.75L4 17.75V18.75H20V17.75L18 15.75ZM16 16.75H8V10.75C8 8.27 9.51 6.25 12 6.25C14.49 6.25 16 8.27 16 10.75V16.75Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+// Notification Icon SVG (Focused - Filled)
+const notificationIconFilledSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 21.75C13.1 21.75 14 20.85 14 19.75H10C10 20.85 10.9 21.75 12 21.75ZM18 15.75V10.75C18 7.68 16.37 5.11 13.5 4.43V3.75C13.5 2.92 12.83 2.25 12 2.25C11.17 2.25 10.5 2.92 10.5 3.75V4.43C7.64 5.11 6 7.67 6 10.75V15.75L4 17.75V18.75H20V17.75L18 15.75Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface NotificationIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  focused?: boolean;
+}
+
+export const NotificationIcon: React.FC<NotificationIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+  focused = false,
+}) => {
+  const svgXml = (focused ? notificationIconFilledSvg : notificationIconSvg)
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Chat Icon SVG (Unfocused - Outline)
+const chatIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2ZM20 16H6L4 18V4H20V16Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+// Chat Icon SVG (Focused - Filled)
+const chatIconFilledSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface ChatIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  focused?: boolean;
+}
+
+export const ChatIcon: React.FC<ChatIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+  focused = false,
+}) => {
+  const svgXml = (focused ? chatIconFilledSvg : chatIconSvg)
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Account Icon SVG (Unfocused - Outline)
+const accountIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M19 5V19H5V5H19ZM19 3H5C3.89 3 3 3.9 3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM12 12C10.35 12 9 10.65 9 9C9 7.35 10.35 6 12 6C13.65 6 15 7.35 15 9C15 10.65 13.65 12 12 12ZM12 8C11.45 8 11 8.45 11 9C11 9.55 11.45 10 12 10C12.55 10 13 9.55 13 9C13 8.45 12.55 8 12 8ZM18 18H6V16.47C6 13.97 9.97 12.89 12 12.89C14.03 12.89 18 13.97 18 16.47V18ZM8.31 16H15.69C15 15.44 13.31 14.88 12 14.88C10.69 14.88 8.99 15.44 8.31 16Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+// Account Icon SVG (Focused - Filled)
+const accountIconFilledSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 5V19C3 20.1 3.89 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3H5C3.89 3 3 3.9 3 5ZM15 9C15 10.66 13.66 12 12 12C10.34 12 9 10.66 9 9C9 7.34 10.34 6 12 6C13.66 6 15 7.34 15 9ZM6 17C6 15 10 13.9 12 13.9C14 13.9 18 15 18 17V18H6V17Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface AccountIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+  focused?: boolean;
+}
+
+export const AccountIcon: React.FC<AccountIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+  focused = false,
+}) => {
+  const svgXml = (focused ? accountIconFilledSvg : accountIconSvg)
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
  
+
+// Dollar Check Icon SVG
+const dollarCheckIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.5 13V9C10.5 8.45 10.05 8 9.5 8H5.5V6H10.5V4H8V3H6V4H4.5C3.95 4 3.5 4.45 3.5 5V9C3.5 9.55 3.95 10 4.5 10H8.5V12H3.5V14H6V15H8V14H9.5C10.05 14 10.5 13.55 10.5 13Z" fill="{{COLOR}}"/>
+<path d="M19.09 12.52L13.43 18.17L10.6 15.34L9.19 16.76L13.43 21L20.5 13.93L19.09 12.52Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface DollarCheckIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const DollarCheckIcon: React.FC<DollarCheckIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = dollarCheckIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Star Icon SVG
+const starIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 8.89L12.94 12H15.76L13.49 13.62L14.42 16.63L12 14.79L9.58 16.63L10.51 13.62L8.24 12H11.06L12 8.89ZM12 2L9.58 10H2L8.17 14.41L5.83 22L12 17.31L18.18 22L15.83 14.41L22 10H14.42L12 2Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface StarIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const StarIcon: React.FC<StarIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = starIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
 
 export default {
   LeafLogo,
@@ -393,4 +621,11 @@ export default {
   DashboardIcon,
   CRMIcon,
   RevenueReportingIcon,
+  HomeIcon,
+  CalendarIcon,
+  NotificationIcon,
+  ChatIcon,
+  AccountIcon,
+  DollarCheckIcon,
+  StarIcon,
 };
