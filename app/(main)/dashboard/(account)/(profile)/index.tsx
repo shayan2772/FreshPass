@@ -36,7 +36,7 @@ const createStyles = (theme: Theme) =>
     profileImageContainer: {
       width: widthScale(120),
       height: widthScale(120),
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(12),
       overflow: "hidden",
       marginBottom: moderateHeightScale(16),
       borderWidth: 1,
@@ -45,27 +45,30 @@ const createStyles = (theme: Theme) =>
     profileImage: {
       width: "100%",
       height: "100%",
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
     },
     nameText: {
-      fontSize: fontSize.size22,
+      fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(5),
     },
     emailText: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(24),
     },
     editButtonContainer: {
-      width: "100%",
+      width: "30%",
       marginBottom: moderateHeightScale(16),
     },
     editButton: {
-      backgroundColor: theme.buttonBack,
-      borderRadius: moderateWidthScale(12),
-      paddingVertical: moderateHeightScale(14),
+      backgroundColor: theme.darkGreen,
+      borderRadius: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
@@ -73,15 +76,14 @@ const createStyles = (theme: Theme) =>
     },
     editButtonText: {
       fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.buttonText,
     },
     privacyNote: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
+      color: theme.lightGreen,
       textAlign: "center",
-      marginBottom: moderateHeightScale(32),
       paddingHorizontal: moderateWidthScale(20),
     },
     changePasswordRow: {
@@ -89,12 +91,17 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "space-between",
       width: "100%",
-      paddingVertical: moderateHeightScale(16),
     },
     changePasswordText: {
       fontSize: fontSize.size15,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
+    },
+    line: {
+      height: 1,
+      width: "100%",
+      backgroundColor: theme.borderLight,
+      marginVertical: moderateHeightScale(20),
     },
   });
 
@@ -154,6 +161,8 @@ export default function ProfileScreen() {
           reviews.
         </Text>
 
+        <View style={styles.line} />
+
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={handleChangePasswordPress}
@@ -170,4 +179,3 @@ export default function ProfileScreen() {
     </View>
   );
 }
-

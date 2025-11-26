@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  TextInput,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -17,6 +16,7 @@ import {
   widthScale,
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
+import FloatingInput from "@/src/components/floatingInput";
 import { MaterialIcons } from "@expo/vector-icons";
 
 const createStyles = (theme: Theme) =>
@@ -35,90 +35,59 @@ const createStyles = (theme: Theme) =>
     profileSection: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(32),
+      marginBottom: moderateHeightScale(40),
+      gap: 15,
     },
     profileImageContainer: {
-      width: widthScale(80),
-      height: widthScale(80),
-      borderRadius: moderateWidthScale(8),
+      width: widthScale(90),
+      height: widthScale(90),
+      borderRadius: moderateWidthScale(12),
       overflow: "hidden",
-      marginRight: moderateWidthScale(16),
       borderWidth: 1,
       borderColor: theme.borderLight,
     },
     profileImage: {
       width: "100%",
       height: "100%",
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
     },
     uploadSection: {
       flex: 1,
+      justifyContent: "space-between",
+      gap:10
     },
     uploadText: {
       fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(12),
     },
     uploadButton: {
       backgroundColor: theme.orangeBrown,
-      borderRadius: moderateWidthScale(12),
-      paddingVertical: moderateHeightScale(14),
+      borderWidth: 2,
+      borderColor: theme.darkGreen,
+      borderRadius: 9999,
+      paddingVertical: moderateHeightScale(8),
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
       gap: moderateWidthScale(8),
-      marginBottom: moderateHeightScale(8),
+      width:155
     },
     uploadButtonText: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
     },
     googleDriveLink: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.orangeBrown,
+      color: theme.selectCard,
       textDecorationLine: "underline",
-      textDecorationColor: theme.orangeBrown,
+      textDecorationColor: theme.selectCard,
     },
     inputContainer: {
       marginBottom: moderateHeightScale(24),
-    },
-    inputLabel: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(8),
-    },
-    input: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(14),
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-      borderWidth: 1,
-      borderColor: theme.borderLight,
-    },
-    inputWithClear: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      paddingHorizontal: moderateWidthScale(16),
-      borderWidth: 1,
-      borderColor: theme.borderLight,
-    },
-    inputText: {
-      flex: 1,
-      paddingVertical: moderateHeightScale(14),
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-    },
-    clearButton: {
-      padding: moderateWidthScale(4),
     },
   });
 
@@ -129,6 +98,18 @@ export default function EditProfileScreen() {
   const [email, setEmail] = useState("Daniel1123@gmail.com");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("Daniel");
+
+  const handleClearEmail = useCallback(() => {
+    setEmail("");
+  }, []);
+
+  const handleClearFirstName = useCallback(() => {
+    setFirstName("");
+  }, []);
+
+  const handleClearLastName = useCallback(() => {
+    setLastName("");
+  }, []);
 
   const handleUploadPhoto = () => {
     // TODO: Implement photo upload
@@ -166,9 +147,9 @@ export default function EditProfileScreen() {
               style={styles.uploadButton}
             >
               <MaterialIcons
-                name="cloud-upload"
+                name="arrow-upward"
                 size={moderateWidthScale(18)}
-                color={theme.white}
+                color={theme.darkGreen}
               />
               <Text style={styles.uploadButtonText}>Upload photo</Text>
             </TouchableOpacity>
@@ -184,73 +165,40 @@ export default function EditProfileScreen() {
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Email</Text>
-          <View style={styles.inputWithClear}>
-            <TextInput
-              style={styles.inputText}
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              placeholderTextColor={theme.lightGreen}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            {email.length > 0 && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setEmail("")}
-                style={styles.clearButton}
-              >
-                <MaterialIcons
-                  name="cancel"
-                  size={moderateWidthScale(20)}
-                  color={theme.lightGreen}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>First name</Text>
-          <TextInput
-            style={styles.input}
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="First name"
-            placeholderTextColor={theme.lightGreen}
-            autoCapitalize="words"
+          <FloatingInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            onClear={handleClearEmail}
           />
         </View>
 
         <View style={styles.inputContainer}>
-          <Text style={styles.inputLabel}>Last name</Text>
-          <View style={styles.inputWithClear}>
-            <TextInput
-              style={styles.inputText}
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder="Last name"
-              placeholderTextColor={theme.lightGreen}
-              autoCapitalize="words"
-            />
-            {lastName.length > 0 && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setLastName("")}
-                style={styles.clearButton}
-              >
-                <MaterialIcons
-                  name="cancel"
-                  size={moderateWidthScale(20)}
-                  color={theme.lightGreen}
-                />
-              </TouchableOpacity>
-            )}
-          </View>
+          <FloatingInput
+            label="First name"
+            value={firstName}
+            onChangeText={setFirstName}
+            placeholder="First name"
+            autoCapitalize="words"
+            onClear={handleClearFirstName}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <FloatingInput
+            label="Last name"
+            value={lastName}
+            onChangeText={setLastName}
+            placeholder="Last name"
+            autoCapitalize="words"
+            onClear={handleClearLastName}
+          />
         </View>
       </ScrollView>
     </View>
   );
 }
-

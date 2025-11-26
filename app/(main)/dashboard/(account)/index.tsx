@@ -1,4 +1,3 @@
-//export { default } from "@/src/components/dashboard/account";
 import React, { useMemo } from "react";
 import {
   StyleSheet,
