@@ -79,6 +79,14 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("businessProfileSettings");
+  const isBusinessProfileScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("businessProfile");
+  const isEditBusinessProfileScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("editBusinessProfile");
  
   return (
     <Tabs
@@ -99,7 +107,9 @@ export default function DashboardLayout() {
             isChangePasswordScreen ||
             isEditProfileScreen ||
             isNotificationSettingsScreen ||
-            isBusinessProfileSettingsScreen) && { display: "none" },
+            isBusinessProfileSettingsScreen ||
+            isBusinessProfileScreen ||
+            isEditBusinessProfileScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,

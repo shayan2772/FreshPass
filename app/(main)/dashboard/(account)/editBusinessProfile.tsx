@@ -26,10 +26,7 @@ import {
   handleMediaLibraryPermission,
   handleCameraPermission,
 } from "@/src/services/mediaPermissionService";
-import {
-  validateEmail,
-  validateName,
-} from "@/src/services/validationService";
+import { validateName } from "@/src/services/validationService";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -67,7 +64,7 @@ const createStyles = (theme: Theme) =>
     uploadSection: {
       flex: 1,
       justifyContent: "space-between",
-      gap:10
+      gap: 10,
     },
     uploadText: {
       fontSize: fontSize.size15,
@@ -84,7 +81,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       gap: moderateWidthScale(8),
-      width:155
+      width: 155,
     },
     uploadButtonText: {
       fontSize: fontSize.size14,
@@ -117,7 +114,7 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       flex: 1,
     },
-    updateButtonContainer: {
+    continueButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(34),
       paddingTop: moderateHeightScale(16),
@@ -131,64 +128,33 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function EditProfileScreen() {
+export default function EditBusinessProfileScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const [email, setEmail] = useState("Daniel1123@gmail.com");
-  const [firstName, setFirstName] = useState("Jack");
-  const [lastName, setLastName] = useState("Daniel");
-  const [profileImageUri, setProfileImageUri] = useState(
+  const [businessName, setBusinessName] = useState("Ra Benjamin Styles LLC");
+  const [slogan, setSlogan] = useState("");
+  const [logoImageUri, setLogoImageUri] = useState(
     "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg"
   );
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
-  const [emailError, setEmailError] = useState<string | null>(null);
-  const [firstNameError, setFirstNameError] = useState<string | null>(null);
-  const [lastNameError, setLastNameError] = useState<string | null>(null);
+  const [businessNameError, setBusinessNameError] = useState<string | null>(
+    null
+  );
 
-  // Validate email when it changes
+  // Validate business name when it changes
   useEffect(() => {
-    if (email.length > 0) {
-      const validation = validateEmail(email);
-      setEmailError(validation.error);
+    if (businessName.length > 0) {
+      const validation = validateName(businessName, "Business name");
+      setBusinessNameError(validation.error);
     } else {
-      setEmailError(null);
+      setBusinessNameError(null);
     }
-  }, [email]);
+  }, [businessName]);
 
-  // Validate first name when it changes
-  useEffect(() => {
-    if (firstName.length > 0) {
-      const validation = validateName(firstName, "First name");
-      setFirstNameError(validation.error);
-    } else {
-      setFirstNameError(null);
-    }
-  }, [firstName]);
-
-  // Validate last name when it changes
-  useEffect(() => {
-    if (lastName.length > 0) {
-      const validation = validateName(lastName, "Last name");
-      setLastNameError(validation.error);
-    } else {
-      setLastNameError(null);
-    }
-  }, [lastName]);
-
-  const handleClearEmail = useCallback(() => {
-    setEmail("");
-    setEmailError(null);
-  }, []);
-
-  const handleClearFirstName = useCallback(() => {
-    setFirstName("");
-    setFirstNameError(null);
-  }, []);
-
-  const handleClearLastName = useCallback(() => {
-    setLastName("");
-    setLastNameError(null);
+  const handleClearBusinessName = useCallback(() => {
+    setBusinessName("");
+    setBusinessNameError(null);
   }, []);
 
   const handleSelectFromGallery = useCallback(async () => {
@@ -207,7 +173,7 @@ export default function EditProfileScreen() {
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
-        setProfileImageUri(result.assets[0].uri);
+        setLogoImageUri(result.assets[0].uri);
       }
     } catch (error) {
       console.error("Error selecting image from gallery:", error);
@@ -233,7 +199,7 @@ export default function EditProfileScreen() {
       });
 
       if (!result.canceled && result.assets && result.assets[0]) {
-        setProfileImageUri(result.assets[0].uri);
+        setLogoImageUri(result.assets[0].uri);
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -252,49 +218,30 @@ export default function EditProfileScreen() {
 
   // Check if form is valid
   const isFormValid = useMemo(() => {
-    const emailValidation = validateEmail(email);
-    const firstNameValidation = validateName(firstName, "First name");
-    const lastNameValidation = validateName(lastName, "Last name");
+    const businessNameValidation = validateName(businessName, "Business name");
 
-    return (
-      email.trim().length > 0 &&
-      firstName.trim().length > 0 &&
-      lastName.trim().length > 0 &&
-      emailValidation.isValid &&
-      firstNameValidation.isValid &&
-      lastNameValidation.isValid
-    );
-  }, [email, firstName, lastName]);
+    return businessName.trim().length > 0 && businessNameValidation.isValid;
+  }, [businessName]);
 
-  const handleUpdateProfile = () => {
+  const handleContinue = () => {
     // Validate all fields before submitting
-    const emailValidation = validateEmail(email);
-    const firstNameValidation = validateName(firstName, "First name");
-    const lastNameValidation = validateName(lastName, "Last name");
+    const businessNameValidation = validateName(businessName, "Business name");
 
-    setEmailError(emailValidation.error);
-    setFirstNameError(firstNameValidation.error);
-    setLastNameError(lastNameValidation.error);
+    setBusinessNameError(businessNameValidation.error);
 
-    if (
-      emailValidation.isValid &&
-      firstNameValidation.isValid &&
-      lastNameValidation.isValid
-    ) {
-      // TODO: Implement update profile logic
-      console.log("Update profile pressed", {
-        email: email.trim(),
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        profileImageUri,
+    if (businessNameValidation.isValid) {
+      // TODO: Implement update business profile logic
+      console.log("Continue pressed", {
+        businessName: businessName.trim(),
+        slogan: slogan.trim(),
+        logoImageUri,
       });
     }
   };
 
- 
   return (
     <View style={styles.container}>
-      <StackHeader title="Edit Profile" />
+      <StackHeader title="Edit business profile" />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -304,14 +251,14 @@ export default function EditProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image
               source={{
-                uri: profileImageUri,
+                uri: logoImageUri,
               }}
               style={styles.profileImage}
               resizeMode="cover"
             />
           </View>
           <View style={styles.uploadSection}>
-            <Text style={styles.uploadText}>Add your new image</Text>
+            <Text style={styles.uploadText}>Add your business logo</Text>
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={handleUploadPhoto}
@@ -337,51 +284,34 @@ export default function EditProfileScreen() {
 
         <View style={styles.inputContainer}>
           <FloatingInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onClear={handleClearEmail}
-          />
-          {emailError && <Text style={styles.errorText}>{emailError}</Text>}
-        </View>
-
-        <View style={styles.inputContainer}>
-          <FloatingInput
-            label="First name"
-            value={firstName}
-            onChangeText={setFirstName}
-            placeholder="First name"
+            label="Business name"
+            value={businessName}
+            onChangeText={setBusinessName}
+            placeholder="Business name *"
             autoCapitalize="words"
-            onClear={handleClearFirstName}
+            onClear={handleClearBusinessName}
           />
-          {firstNameError && (
-            <Text style={styles.errorText}>{firstNameError}</Text>
+          {businessNameError && (
+            <Text style={styles.errorText}>{businessNameError}</Text>
           )}
         </View>
 
         <View style={styles.inputContainer}>
           <FloatingInput
-            label="Last name"
-            value={lastName}
-            onChangeText={setLastName}
-            placeholder="Last name"
-            autoCapitalize="words"
-            onClear={handleClearLastName}
+            label="Slogan (optional)"
+            value={slogan}
+            onChangeText={setSlogan}
+            placeholder="Slogan (optional)"
+            autoCapitalize="sentences"
+            onClear={() => setSlogan("")}
           />
-          {lastNameError && (
-            <Text style={styles.errorText}>{lastNameError}</Text>
-          )}
         </View>
       </ScrollView>
 
-      <View style={styles.updateButtonContainer}>
+      <View style={styles.continueButtonContainer}>
         <Button
           title="Update"
-          onPress={handleUpdateProfile}
+          onPress={handleContinue}
           disabled={!isFormValid}
         />
       </View>

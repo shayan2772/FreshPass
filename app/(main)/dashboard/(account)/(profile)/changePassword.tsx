@@ -51,8 +51,8 @@ const createStyles = (theme: Theme) =>
     },
     changePasswordButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(24),
-      paddingTop: moderateHeightScale(28),
+      paddingBottom: moderateHeightScale(34),
+      paddingTop: moderateHeightScale(16),
     },
   });
 
@@ -265,15 +265,15 @@ export default function ChangePasswordScreen() {
             <Text style={styles.errorText}>{retryPasswordError}</Text>
           )}
         </View>
-
-        <View style={styles.changePasswordButtonContainer}>
-          <Button
-            title="Change Password"
-            onPress={handleChangePassword}
-            disabled={!isFormValid}
-          />
-        </View>
       </ScrollView>
+
+      <View style={styles.changePasswordButtonContainer}>
+        <Button
+          title="Change Password"
+          onPress={handleChangePassword}
+          disabled={!isFormValid}
+        />
+      </View>
     </View>
   );
 }

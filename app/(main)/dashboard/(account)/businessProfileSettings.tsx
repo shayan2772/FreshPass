@@ -15,6 +15,7 @@ import {
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -55,14 +56,19 @@ export default function BusinessProfileSettingsScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
 
   const handleRowPress = (key: string) => {
-    // TODO: Navigate to respective screens
-    console.log("Business profile setting pressed:", key);
+    if (key === "businessProfile") {
+      router.push("./businessProfile");
+    } else {
+      // TODO: Navigate to respective screens
+      console.log("Business profile setting pressed:", key);
+    }
   };
 
   const settings = [
-    { key: "businessProfile", title: "Business profile settings" },
+    { key: "businessProfile", title: "Business profile" },
     { key: "businessLocation", title: "Your business location" },
     { key: "description", title: "Description" },
     { key: "availability", title: "Set availability" },
