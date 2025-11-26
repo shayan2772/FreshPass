@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -17,7 +18,18 @@ import {
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import FloatingInput from "@/src/components/floatingInput";
+import Button from "@/src/components/button";
+import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
+import {
+  handleMediaLibraryPermission,
+  handleCameraPermission,
+} from "@/src/services/mediaPermissionService";
+import {
+  validateEmail,
+  validateName,
+} from "@/src/services/validationService";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -87,7 +99,35 @@ const createStyles = (theme: Theme) =>
       textDecorationColor: theme.selectCard,
     },
     inputContainer: {
-      marginBottom: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(20),
+    },
+    optionItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: moderateHeightScale(16),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    optionIcon: {
+      marginRight: moderateWidthScale(16),
+    },
+    optionText: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    updateButtonContainer: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingBottom: moderateHeightScale(24),
+      paddingTop: moderateHeightScale(28),
+    },
+    errorText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.link,
+      marginTop: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(4),
     },
   });
 
@@ -96,24 +136,113 @@ export default function EditProfileScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const [email, setEmail] = useState("Daniel1123@gmail.com");
-  const [firstName, setFirstName] = useState("");
+  const [firstName, setFirstName] = useState("Jack");
   const [lastName, setLastName] = useState("Daniel");
+  const [profileImageUri, setProfileImageUri] = useState(
+    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg"
+  );
+  const [showImagePickerModal, setShowImagePickerModal] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [firstNameError, setFirstNameError] = useState<string | null>(null);
+  const [lastNameError, setLastNameError] = useState<string | null>(null);
+
+  // Validate email when it changes
+  useEffect(() => {
+    if (email.length > 0) {
+      const validation = validateEmail(email);
+      setEmailError(validation.error);
+    } else {
+      setEmailError(null);
+    }
+  }, [email]);
+
+  // Validate first name when it changes
+  useEffect(() => {
+    if (firstName.length > 0) {
+      const validation = validateName(firstName, "First name");
+      setFirstNameError(validation.error);
+    } else {
+      setFirstNameError(null);
+    }
+  }, [firstName]);
+
+  // Validate last name when it changes
+  useEffect(() => {
+    if (lastName.length > 0) {
+      const validation = validateName(lastName, "Last name");
+      setLastNameError(validation.error);
+    } else {
+      setLastNameError(null);
+    }
+  }, [lastName]);
 
   const handleClearEmail = useCallback(() => {
     setEmail("");
+    setEmailError(null);
   }, []);
 
   const handleClearFirstName = useCallback(() => {
     setFirstName("");
+    setFirstNameError(null);
   }, []);
 
   const handleClearLastName = useCallback(() => {
     setLastName("");
+    setLastNameError(null);
+  }, []);
+
+  const handleSelectFromGallery = useCallback(async () => {
+    setShowImagePickerModal(false);
+    const hasPermission = await handleMediaLibraryPermission();
+    if (!hasPermission) {
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: false,
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setProfileImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error selecting image from gallery:", error);
+      Alert.alert(
+        "Error",
+        "Failed to select image from gallery. Please try again."
+      );
+    }
+  }, []);
+
+  const handleTakePhoto = useCallback(async () => {
+    setShowImagePickerModal(false);
+    const hasPermission = await handleCameraPermission();
+    if (!hasPermission) {
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        setProfileImageUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error", "Failed to take photo. Please try again.");
+    }
   }, []);
 
   const handleUploadPhoto = () => {
-    // TODO: Implement photo upload
-    console.log("Upload photo pressed");
+    setShowImagePickerModal(true);
   };
 
   const handleImportFromGoogleDrive = () => {
@@ -121,6 +250,48 @@ export default function EditProfileScreen() {
     console.log("Import from Google Drive pressed");
   };
 
+  // Check if form is valid
+  const isFormValid = useMemo(() => {
+    const emailValidation = validateEmail(email);
+    const firstNameValidation = validateName(firstName, "First name");
+    const lastNameValidation = validateName(lastName, "Last name");
+
+    return (
+      email.trim().length > 0 &&
+      firstName.trim().length > 0 &&
+      lastName.trim().length > 0 &&
+      emailValidation.isValid &&
+      firstNameValidation.isValid &&
+      lastNameValidation.isValid
+    );
+  }, [email, firstName, lastName]);
+
+  const handleUpdateProfile = () => {
+    // Validate all fields before submitting
+    const emailValidation = validateEmail(email);
+    const firstNameValidation = validateName(firstName, "First name");
+    const lastNameValidation = validateName(lastName, "Last name");
+
+    setEmailError(emailValidation.error);
+    setFirstNameError(firstNameValidation.error);
+    setLastNameError(lastNameValidation.error);
+
+    if (
+      emailValidation.isValid &&
+      firstNameValidation.isValid &&
+      lastNameValidation.isValid
+    ) {
+      // TODO: Implement update profile logic
+      console.log("Update profile pressed", {
+        email: email.trim(),
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        profileImageUri,
+      });
+    }
+  };
+
+ 
   return (
     <View style={styles.container}>
       <StackHeader title="Edit Profile" />
@@ -133,7 +304,7 @@ export default function EditProfileScreen() {
           <View style={styles.profileImageContainer}>
             <Image
               source={{
-                uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                uri: profileImageUri,
               }}
               style={styles.profileImage}
               resizeMode="cover"
@@ -175,6 +346,7 @@ export default function EditProfileScreen() {
             autoCorrect={false}
             onClear={handleClearEmail}
           />
+          {emailError && <Text style={styles.errorText}>{emailError}</Text>}
         </View>
 
         <View style={styles.inputContainer}>
@@ -186,6 +358,9 @@ export default function EditProfileScreen() {
             autoCapitalize="words"
             onClear={handleClearFirstName}
           />
+          {firstNameError && (
+            <Text style={styles.errorText}>{firstNameError}</Text>
+          )}
         </View>
 
         <View style={styles.inputContainer}>
@@ -197,8 +372,53 @@ export default function EditProfileScreen() {
             autoCapitalize="words"
             onClear={handleClearLastName}
           />
+          {lastNameError && (
+            <Text style={styles.errorText}>{lastNameError}</Text>
+          )}
+        </View>
+
+        <View style={styles.updateButtonContainer}>
+          <Button
+            title="Update Profile"
+            onPress={handleUpdateProfile}
+            disabled={!isFormValid}
+          />
         </View>
       </ScrollView>
+
+      <ModalizeBottomSheet
+        visible={showImagePickerModal}
+        onClose={() => setShowImagePickerModal(false)}
+        title="Select Photo"
+      >
+        <TouchableOpacity
+          style={styles.optionItem}
+          onPress={handleSelectFromGallery}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons
+            name="photo-library"
+            size={moderateWidthScale(24)}
+            color={theme.darkGreen}
+            style={styles.optionIcon}
+          />
+          <Text style={styles.optionText}>From Gallery</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.optionItem}
+          onPress={handleTakePhoto}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons
+            name="camera-alt"
+            size={moderateWidthScale(24)}
+            color={theme.darkGreen}
+            style={styles.optionIcon}
+          />
+          <Text style={styles.optionText}>From Camera</Text>
+        </TouchableOpacity>
+      </ModalizeBottomSheet>
     </View>
   );
 }

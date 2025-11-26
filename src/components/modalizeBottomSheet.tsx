@@ -26,8 +26,8 @@ interface ModalizeBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   title: string;
-  footerButtonTitle: string;
-  onFooterButtonPress: () => void;
+  footerButtonTitle?: string;
+  onFooterButtonPress?: () => void;
   children: React.ReactNode;
   contentStyle?: ViewStyle;
   scrollViewStyle?: ViewStyle;
@@ -142,14 +142,21 @@ export default function ModalizeBottomSheet({
           </View>
         }
         FooterComponent={
-          <View
-            style={[
-              styles.buttonContainer,
-              { paddingBottom: insets.bottom + 15 },
-            ]}
-          >
-            <Button title={footerButtonTitle} onPress={onFooterButtonPress} />
-          </View>
+          footerButtonTitle ? (
+            <View
+              style={[
+                styles.buttonContainer,
+                { paddingBottom: insets.bottom + 15 },
+              ]}
+            >
+              <Button
+                title={footerButtonTitle}
+                onPress={onFooterButtonPress || (() => {})}
+              />
+            </View>
+          ) : (
+            <View style={{ paddingBottom: insets.bottom + 15 }} />
+          )
         }
       >
         <ScrollView
@@ -168,4 +175,3 @@ export default function ModalizeBottomSheet({
     </Portal>
   );
 }
-

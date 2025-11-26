@@ -116,8 +116,7 @@ export default function ProfileScreen() {
   };
 
   const handleChangePasswordPress = () => {
-    // TODO: Navigate to change password screen
-    console.log("Change password pressed");
+    router.push("./changePassword");
   };
 
   return (
