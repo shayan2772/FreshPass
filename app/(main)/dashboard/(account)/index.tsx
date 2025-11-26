@@ -1,3 +1,4 @@
+//export { default } from "@/src/components/dashboard/account";
 import React, { useMemo } from "react";
 import {
   StyleSheet,
@@ -15,6 +16,7 @@ import {
 } from "@/src/theme/dimensions";
 import DashboardHeader from "@/src/components/DashboardHeader";
 import { MaterialIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -72,9 +74,14 @@ export default function AccountScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const router = useRouter();
 
   const handleRowPress = (key: string) => {
-    console.log("Account row pressed:", key);
+    if (key === "personal") {
+      router.push("./(profile)");
+    } else {
+      console.log("Account row pressed:", key);
+    }
   };
 
   type Row = {

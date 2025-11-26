@@ -53,6 +53,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(home)") &&
     segments.includes("userReviews");
+  const isProfileScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("(profile)");
  
   return (
     <Tabs
@@ -67,7 +71,7 @@ export default function DashboardLayout() {
               ? moderateHeightScale(110)
               : moderateHeightScale(80),
           },
-          isUserReviewsScreen && { display: "none" },
+          (isUserReviewsScreen || isProfileScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
@@ -151,9 +155,8 @@ export default function DashboardLayout() {
           // },
         }}
       />
-      
       <Tabs.Screen
-        name="account"
+        name="(account)"
         options={{
           title: "Account",
           tabBarIcon: ({ color, size, focused }) => (
