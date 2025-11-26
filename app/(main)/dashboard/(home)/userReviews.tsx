@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { StyleSheet, View, Text, ScrollView } from "react-native";
+import React, { useMemo, useState } from "react";
+import { StyleSheet, View, Text, ScrollView, Image } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -11,6 +11,7 @@ import {
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import { MaterialIcons } from "@expo/vector-icons";
+import { UserAvatarIcon } from "@/assets/icons";
 
 type Review = {
   id: string;
@@ -18,6 +19,7 @@ type Review = {
   date: string;
   rating: number;
   text: string;
+  image: string | null;
 };
 
 const createStyles = (theme: Theme) =>
@@ -103,7 +105,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.lightGreen2,
       marginBottom: moderateHeightScale(16),
-      marginHorizontal:moderateWidthScale(20),
+      marginHorizontal: moderateWidthScale(20),
     },
     cardHeaderRow: {
       flexDirection: "row",
@@ -114,15 +116,18 @@ const createStyles = (theme: Theme) =>
       width: widthScale(42),
       height: widthScale(42),
       borderRadius: moderateWidthScale(4),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(12),
-      backgroundColor: theme.lightGreen2,
     },
-    avatarIcon: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
+    avatarImage: {
+      width:"100%",
+      height:"100%",
+      overflow: "hidden",
+      borderRadius: moderateWidthScale(4),
     },
     nameText: {
       fontSize: fontSize.size15,
@@ -149,11 +154,11 @@ const createStyles = (theme: Theme) =>
       lineHeight: moderateHeightScale(20),
     },
     seeMoreText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
       color: theme.selectCard,
-      textDecorationLine:"underline",
-      textDecorationColor:theme.selectCard,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.selectCard,
       marginTop: moderateHeightScale(8),
     },
   });
@@ -164,7 +169,9 @@ const REVIEWS: Review[] = [
     name: "Ofir Kiran",
     date: "September 28, 2023",
     rating: 5,
-    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time.",
+    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth.",
+    image:
+      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
   },
   {
     id: "2",
@@ -172,6 +179,7 @@ const REVIEWS: Review[] = [
     date: "September 28, 2023",
     rating: 3.4,
     text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time.",
+    image: null,
   },
 ];
 
@@ -179,6 +187,9 @@ export default function UserReviewsScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const [expandedReviews, setExpandedReviews] = useState<
+    Record<string, boolean>
+  >({});
 
   const getStars = (rating: number) => {
     const stars: ("star" | "star-half" | "star-border")[] = [];
@@ -193,6 +204,8 @@ export default function UserReviewsScreen() {
     }
     return stars;
   };
+
+  const textWrapLength = 145;
 
   return (
     <View style={styles.container}>
@@ -256,8 +269,27 @@ export default function UserReviewsScreen() {
         {REVIEWS.map((review) => (
           <View key={review.id} style={styles.card}>
             <View style={styles.cardHeaderRow}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarIcon}>👤</Text>
+              <View
+                style={[
+                  styles.avatar,
+                  {
+                    backgroundColor: review.image
+                      ? theme.lightGreen5
+                      : theme.green,
+                  },
+                ]}
+              >
+                {review.image ? (
+                  <Image
+                    source={{ uri: review.image }}
+                    style={styles.avatarImage}
+                  />
+                ) : (
+                  <UserAvatarIcon
+                    width={widthScale(22)}
+                    height={widthScale(22)}
+                  />
+                )}
               </View>
               <View>
                 <Text style={styles.nameText}>{review.name}</Text>
@@ -276,8 +308,26 @@ export default function UserReviewsScreen() {
                 />
               ))}
             </View>
-            <Text style={styles.reviewText}>{review.text}</Text>
-            <Text style={styles.seeMoreText}>See more</Text>
+            <Text style={styles.reviewText}>
+              {expandedReviews[review.id] ||
+              review.text.length <= textWrapLength
+                ? review.text
+                : `${review.text.slice(0, textWrapLength).trim()}...`}
+            </Text>
+            {review.text.length > textWrapLength &&
+              !expandedReviews[review.id] && (
+                <Text
+                  style={styles.seeMoreText}
+                  onPress={() =>
+                    setExpandedReviews((prev) => ({
+                      ...prev,
+                      [review.id]: true,
+                    }))
+                  }
+                >
+                  See more
+                </Text>
+              )}
           </View>
         ))}
       </ScrollView>

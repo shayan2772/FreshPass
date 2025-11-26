@@ -609,6 +609,42 @@ export const StarIcon: React.FC<StarIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// User Avatar Icon SVG
+const userAvatarIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1279_1902)">
+<mask id="mask0_1279_1902" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<path d="M24 0H0V24H24V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1279_1902)">
+<path d="M21 24H19V18.957C18.9992 18.173 18.6874 17.4213 18.133 16.867C17.5787 16.3126 16.827 16.0008 16.043 16H7.957C7.173 16.0008 6.42134 16.3126 5.86696 16.867C5.31259 17.4213 5.0008 18.173 5 18.957V24H3V18.957C3.00159 17.6428 3.52435 16.3829 4.45363 15.4536C5.3829 14.5244 6.64281 14.0016 7.957 14H16.043C17.3572 14.0016 18.6171 14.5244 19.5464 15.4536C20.4756 16.3829 20.9984 17.6428 21 18.957V24Z" fill="#283618"/>
+<path d="M12 12C10.8133 12 9.65328 11.6481 8.66658 10.9889C7.67989 10.3296 6.91085 9.39246 6.45673 8.2961C6.0026 7.19975 5.88378 5.99335 6.11529 4.82946C6.3468 3.66557 6.91825 2.59648 7.75736 1.75736C8.59648 0.918247 9.66558 0.346802 10.8295 0.115291C11.9934 -0.11622 13.1998 0.00259957 14.2961 0.456725C15.3925 0.910851 16.3296 1.67989 16.9889 2.66658C17.6481 3.65327 18 4.81331 18 6C17.9984 7.59081 17.3658 9.11601 16.2409 10.2409C15.116 11.3658 13.5908 11.9985 12 12ZM12 2C11.2089 2 10.4356 2.2346 9.77772 2.67412C9.11993 3.11365 8.60724 3.73836 8.30449 4.46927C8.00174 5.20017 7.92252 6.00444 8.07686 6.78036C8.2312 7.55629 8.61217 8.26902 9.17158 8.82843C9.73099 9.38784 10.4437 9.7688 11.2197 9.92314C11.9956 10.0775 12.7999 9.99827 13.5308 9.69552C14.2617 9.39277 14.8864 8.88008 15.3259 8.22228C15.7654 7.56449 16 6.79113 16 6C16 4.93914 15.5786 3.92172 14.8285 3.17157C14.0783 2.42143 13.0609 2 12 2Z" fill="#283618"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1279_1902">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface UserAvatarIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const UserAvatarIcon: React.FC<UserAvatarIconProps> = ({
+  width = 24,
+  height = 24,
+}) => {
+  const svgXml = userAvatarIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -628,4 +664,5 @@ export default {
   AccountIcon,
   DollarCheckIcon,
   StarIcon,
+  UserAvatarIcon,
 };
