@@ -138,22 +138,25 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderTopWidth: 1,
       borderTopColor: theme.borderLight,
-    },
-    inputRow: {
       flexDirection: "row",
       alignItems: "center",
-      paddingHorizontal: moderateWidthScale(10),
-      paddingVertical: moderateHeightScale(6),
+      gap: moderateWidthScale(12),
+    },
+    inputRow: {
+      flex: 1,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(8),
       borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.lightGreen05,
+      backgroundColor: theme.lightGreen20,
     },
     textInput: {
-      flex: 1,
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-      paddingVertical: moderateHeightScale(6),
-      paddingHorizontal: moderateWidthScale(4),
+      height: heightScale(20),
+      paddingVertical: 0,
+      textAlignVertical: "center",
+      includeFontPadding: false,
     },
     sendButton: {
       width: widthScale(40),
@@ -162,7 +165,6 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.buttonBack,
       alignItems: "center",
       justifyContent: "center",
-      marginLeft: moderateWidthScale(8),
     },
   });
 
@@ -334,7 +336,6 @@ export default function ChatBoxScreen() {
           )}
           showsVerticalScrollIndicator={false}
         />
-
         <View style={styles.inputBarContainer}>
           <View style={styles.inputRow}>
             <TextInput
@@ -342,10 +343,10 @@ export default function ChatBoxScreen() {
               placeholder="Enter message"
               placeholderTextColor={theme.lightGreen4}
             />
-            <TouchableOpacity style={styles.sendButton} activeOpacity={0.8}>
-              <SendIcon width={20} height={20} color={theme.buttonText} />
-            </TouchableOpacity>
           </View>
+          <TouchableOpacity style={styles.sendButton} activeOpacity={0.8}>
+            <SendIcon width={18} height={18} color={theme.buttonText} />
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
