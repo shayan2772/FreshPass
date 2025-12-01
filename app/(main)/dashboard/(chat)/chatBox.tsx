@@ -87,10 +87,8 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.borderLight,
     },
     messagesContainer: {
-      flex: 1,
     },
     messagesContentContainer: {
-      flexGrow:1,
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
     },
@@ -210,54 +208,54 @@ export default function ChatBoxScreen() {
       isMe: false,
       timeLabel: "9:32 AM",
     },
-    {
-      id: "3",
-      text: "Hello! Morning, how are you doing?",
-      isMe: true,
-      timeLabel: "9:30 AM",
-    },
-    {
-      id: "4",
-      text: "Good mrng",
-      isMe: false,
-      timeLabel: "9:32 AM",
-    },
-    {
-      id: "5",
-      text: "Hello! Morning, how are you doing?",
-      isMe: true,
-      timeLabel: "9:30 AM",
-    },
-    {
-      id: "6",
-      text: "Good mrng",
-      isMe: false,
-      timeLabel: "9:32 AM",
-    },
-    {
-      id: "7",
-      text: "Hello! Morning, how are you doing?",
-      isMe: true,
-      timeLabel: "9:30 AM",
-    },
-    {
-      id: "8",
-      text: "Good mrng",
-      isMe: false,
-      timeLabel: "9:32 AM",
-    },
-    {
-      id: "9",
-      text: "Hello! Morning, how are you doing?",
-      isMe: true,
-      timeLabel: "9:30 AM",
-    },
-    {
-      id: "10",
-      text: "Good mrng",
-      isMe: false,
-      timeLabel: "9:32 AM",
-    },
+    // {
+    //   id: "3",
+    //   text: "Hello! Morning, how are you doing?",
+    //   isMe: true,
+    //   timeLabel: "9:30 AM",
+    // },
+    // {
+    //   id: "4",
+    //   text: "Good mrng",
+    //   isMe: false,
+    //   timeLabel: "9:32 AM",
+    // },
+    // {
+    //   id: "5",
+    //   text: "Hello! Morning, how are you doing?",
+    //   isMe: true,
+    //   timeLabel: "9:30 AM",
+    // },
+    // {
+    //   id: "6",
+    //   text: "Good mrng",
+    //   isMe: false,
+    //   timeLabel: "9:32 AM",
+    // },
+    // {
+    //   id: "7",
+    //   text: "Hello! Morning, how are you doing?",
+    //   isMe: true,
+    //   timeLabel: "9:30 AM",
+    // },
+    // {
+    //   id: "8",
+    //   text: "Good mrng",
+    //   isMe: false,
+    //   timeLabel: "9:32 AM",
+    // },
+    // {
+    //   id: "9",
+    //   text: "Hello! Morning, how are you doing?",
+    //   isMe: true,
+    //   timeLabel: "9:30 AM",
+    // },
+    // {
+    //   id: "10",
+    //   text: "Good mrng",
+    //   isMe: false,
+    //   timeLabel: "9:32 AM",
+    // },
   ];
 
   const renderInitials = (fullName: string) => {
@@ -337,7 +335,7 @@ export default function ChatBoxScreen() {
           )}
           showsVerticalScrollIndicator={false}
         />
-        <View style={[styles.inputBarContainer]}>
+        <View style={styles.inputBarContainer}>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.textInput}
