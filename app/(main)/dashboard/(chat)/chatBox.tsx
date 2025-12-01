@@ -86,8 +86,7 @@ const createStyles = (theme: Theme) =>
       height: 1,
       backgroundColor: theme.borderLight,
     },
-    messagesContainer: {
-    },
+    messagesContainer: {},
     messagesContentContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
