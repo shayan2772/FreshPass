@@ -87,6 +87,8 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("editBusinessProfile");
+  const isChatBoxScreen =
+    Array.isArray(segments) && segments.includes("chatBox");
  
   return (
     <Tabs
@@ -109,7 +111,8 @@ export default function DashboardLayout() {
             isNotificationSettingsScreen ||
             isBusinessProfileSettingsScreen ||
             isBusinessProfileScreen ||
-            isEditBusinessProfileScreen) && { display: "none" },
+            isEditBusinessProfileScreen ||
+            isChatBoxScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
@@ -171,7 +174,7 @@ export default function DashboardLayout() {
         }}
       />
       <Tabs.Screen
-        name="chat"
+        name="(chat)"
         options={{
           title: "Chat",
           tabBarIcon: ({ color, size, focused }) => (

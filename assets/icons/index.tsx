@@ -734,6 +734,44 @@ export const MessageBubbleOutlineIcon: React.FC<
   return <SvgXml xml={svgXml} />;
 };
 
+// Send Icon SVG
+const sendIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1237_2741)">
+<mask id="mask0_1237_2741" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="20" height="20">
+<path d="M20 0H0V20H20V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1237_2741)">
+<path d="M1.20341 5.55757C0.924374 5.6373 0.670988 5.7885 0.468331 5.99623C0.265675 6.20394 0.120768 6.46099 0.04795 6.7419C-0.0248682 7.02282 -0.0230741 7.31789 0.0531547 7.59789C0.129384 7.87791 0.277405 8.13316 0.482572 8.33837L3.32591 11.1784V16.6667H8.82006L11.6826 19.525C11.8362 19.68 12.019 19.8031 12.2203 19.8872C12.4217 19.9713 12.6377 20.0147 12.8559 20.015C12.9993 20.0148 13.1421 19.9963 13.2809 19.96C13.5617 19.8894 13.8189 19.7459 14.0266 19.5441C14.2344 19.3424 14.3853 19.0895 14.4642 18.8109L19.9926 0.0175781L1.20341 5.55757ZM1.66674 7.16007L15.8567 2.97674L4.99424 13.8217V10.4884L1.66674 7.16007ZM12.8667 18.3467L9.51089 15H6.17757L17.0384 4.14841L12.8667 18.3467Z" fill="{{COLOR}}"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1237_2741">
+<rect width="20" height="20" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface SendIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const SendIcon: React.FC<SendIconProps> = ({
+  width = 20,
+  height = 20,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = sendIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -757,4 +795,5 @@ export default {
   NotificationBellOutlineIcon,
   ProposalDocumentIcon,
   MessageBubbleOutlineIcon,
+  SendIcon,
 };

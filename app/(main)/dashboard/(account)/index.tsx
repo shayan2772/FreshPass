@@ -25,10 +25,10 @@ const createStyles = (theme: Theme) =>
     },
     content: {
       flex: 1,
-      paddingHorizontal: moderateWidthScale(20),
     },
     contentContainer: {
       paddingVertical: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
     },
     title: {
       fontSize: fontSize.size22,
