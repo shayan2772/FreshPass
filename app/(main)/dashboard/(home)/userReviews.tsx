@@ -274,7 +274,7 @@ export default function UserReviewsScreen() {
                   styles.avatar,
                   {
                     backgroundColor: review.image
-                      ? theme.lightGreen5
+                      ? theme.lightGreen07
                       : theme.green,
                   },
                 ]}

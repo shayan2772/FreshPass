@@ -60,7 +60,7 @@ const createStyles = (theme: Theme) =>
     serviceNameWrapper: {
       gap: moderateHeightScale(2),
       marginTop: moderateHeightScale(16),
-      backgroundColor: theme.lightGreen5,
+      backgroundColor: theme.lightGreen07,
       borderRadius: moderateWidthScale(8),
       borderWidth: 1,
       borderColor: theme.lightGreen2,

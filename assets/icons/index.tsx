@@ -645,6 +645,95 @@ export const UserAvatarIcon: React.FC<UserAvatarIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Notification Bell Outline Icon (for "Notification" title)
+const notificationBellOutlineSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.54102 11.6809C6.54102 11.5553 6.54102 11.4381 6.54102 11.3125" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M10.7637 19.041C10.7637 20.1126 11.5298 20.9833 12.4874 21.0001" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.60069 19.041H5" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.4609 3V4.61581" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.4878 19.0409H5.60156C6.22837 17.4586 6.63754 16.186 6.54178 11.6818C6.54178 11.5562 6.54178 11.4307 6.54178 11.3051C6.54178 7.62137 9.19703 4.64091 12.4704 4.60742H12.4965" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M18.4688 11.3047C18.4688 11.4303 18.4688 11.5558 18.4688 11.6731" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.5137 21.0001C13.4713 20.9833 14.2374 20.1126 14.2374 19.041" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19.9991 19.041H19.3984" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M12.4863 4.61523C15.7684 4.64035 18.4672 7.62918 18.4672 11.3129C18.4672 11.4385 18.4672 11.5641 18.4672 11.6813C18.3627 16.1855 18.7806 17.4664 19.4074 19.0403H12.5212" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface NotificationBellOutlineIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const NotificationBellOutlineIcon: React.FC<
+  NotificationBellOutlineIconProps
+> = ({ width = 24, height = 24, color = "#283618" }) => {
+  const svgXml = notificationBellOutlineSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Proposal / Document Icon (for "Proposal Alert" title)
+const proposalDocumentIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M18.5897 15.3801V20.2H3V4H18.5897V8.27491" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M13.2656 16.4242L21 8.85938" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.92773 8.32031H7.29066" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.12891 8.32031H15.7488" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.92773 12.0977H7.29066" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.12891 12.0977H12.9961" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M5.92773 15.8789H7.29066" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.12891 15.8789H11.8145" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface ProposalDocumentIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const ProposalDocumentIcon: React.FC<ProposalDocumentIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = proposalDocumentIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Message Bubble Icon (for "Message" title)
+const messageBubbleOutlineSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 4V15.26H11.9022L6.64059 20V15.26H4V4H20Z" stroke="{{COLOR}}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface MessageBubbleOutlineIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const MessageBubbleOutlineIcon: React.FC<
+  MessageBubbleOutlineIconProps
+> = ({ width = 24, height = 24, color = "#283618" }) => {
+  const svgXml = messageBubbleOutlineSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -665,4 +754,7 @@ export default {
   DollarCheckIcon,
   StarIcon,
   UserAvatarIcon,
+  NotificationBellOutlineIcon,
+  ProposalDocumentIcon,
+  MessageBubbleOutlineIcon,
 };
