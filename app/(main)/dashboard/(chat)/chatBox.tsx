@@ -120,14 +120,14 @@ const createStyles = (theme: Theme) =>
     },
     bubbleText: {
       fontSize: fontSize.size13,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     bubbleTextMe: {
-      color: theme.background,
+      color: theme.darkGreen,
     },
     senderLabel: {
-      fontSize: fontSize.size10,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen5,
       marginBottom: moderateHeightScale(4),
