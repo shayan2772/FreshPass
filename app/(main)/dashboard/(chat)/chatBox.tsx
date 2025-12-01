@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -90,6 +91,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     messagesContentContainer: {
+      flexGrow:1,
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
     },
@@ -270,8 +272,8 @@ export default function ChatBoxScreen() {
     <SafeAreaView style={styles.main}>
       <KeyboardAvoidingView
         style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={heightScale(20)}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? heightScale(20) : 0}
       >
         <View style={styles.header}>
           <TouchableOpacity
@@ -336,7 +338,7 @@ export default function ChatBoxScreen() {
           )}
           showsVerticalScrollIndicator={false}
         />
-        <View style={styles.inputBarContainer}>
+        <View style={[styles.inputBarContainer]}>
           <View style={styles.inputRow}>
             <TextInput
               style={styles.textInput}
