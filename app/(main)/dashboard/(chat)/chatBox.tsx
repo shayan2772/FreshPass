@@ -9,7 +9,6 @@ import {
   Platform,
   TouchableOpacity,
   Image,
-  Keyboard,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
