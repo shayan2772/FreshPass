@@ -9,6 +9,7 @@ import {
   Platform,
   TouchableOpacity,
   Image,
+  Keyboard,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -20,7 +21,10 @@ import {
   widthScale,
 } from "@/src/theme/dimensions";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { SendIcon } from "@/assets/icons";
 import { MaterialIcons } from "@expo/vector-icons";
 
@@ -86,7 +90,9 @@ const createStyles = (theme: Theme) =>
       height: 1,
       backgroundColor: theme.borderLight,
     },
-    messagesContainer: {},
+    messagesContainer: {
+      flex: 1,
+    },
     messagesContentContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
@@ -166,12 +172,92 @@ const createStyles = (theme: Theme) =>
     },
   });
 
+type ChatContentProps = {
+  messages: MessageItem[];
+  chatItem: {
+    id: string;
+    name: string;
+    image: string;
+    message?: string;
+    timeLabel?: string;
+  } | null;
+  styles: ReturnType<typeof createStyles>;
+  theme: Theme;
+  insets: { bottom: number };
+};
+
+const ChatContent = ({
+  messages,
+  chatItem,
+  styles,
+  theme,
+  insets,
+}: ChatContentProps) => {
+  return (
+    <>
+      <FlatList
+        style={styles.messagesContainer}
+        contentContainerStyle={styles.messagesContentContainer}
+        data={messages}
+        inverted={true}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <View
+            style={[
+              styles.messageRow,
+              item.isMe ? styles.messageRowMe : styles.messageRowOther,
+            ]}
+          >
+            <Text style={styles.senderLabel}>
+              {item.isMe ? "Brentley" : chatItem?.name}
+            </Text>
+            <View
+              style={[
+                styles.bubble,
+                item.isMe ? styles.bubbleMe : styles.bubbleOther,
+              ]}
+            >
+              <Text
+                style={[styles.bubbleText, item.isMe && styles.bubbleTextMe]}
+              >
+                {item.text}
+              </Text>
+            </View>
+          </View>
+        )}
+        showsVerticalScrollIndicator={false}
+      />
+      <View
+        style={[
+          styles.inputBarContainer,
+          {
+            marginBottom: Math.max(insets.bottom, moderateHeightScale(8)),
+          },
+        ]}
+      >
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.textInput}
+            placeholder="Enter message"
+            placeholderTextColor={theme.lightGreen4}
+          />
+        </View>
+        <TouchableOpacity style={styles.sendButton} activeOpacity={0.8}>
+          <SendIcon width={18} height={18} color={theme.buttonText} />
+        </TouchableOpacity>
+      </View>
+    </>
+  );
+};
+
 export default function ChatBoxScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const params = useLocalSearchParams<{ chatItem?: string }>();
+  const insets = useSafeAreaInsets();
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   // Parse chat item from params
   const chatItem = useMemo(() => {
@@ -193,6 +279,28 @@ export default function ChatBoxScreen() {
 
   const name = chatItem?.name || "Unknown";
   const image = chatItem?.image || "";
+
+  useEffect(() => {
+    if (Platform.OS === "android") {
+      const keyboardWillShowListener = Keyboard.addListener(
+        "keyboardDidShow",
+        (e) => {
+          setKeyboardHeight(e.endCoordinates.height);
+        }
+      );
+      const keyboardWillHideListener = Keyboard.addListener(
+        "keyboardDidHide",
+        () => {
+          setKeyboardHeight(0);
+        }
+      );
+
+      return () => {
+        keyboardWillShowListener.remove();
+        keyboardWillHideListener.remove();
+      };
+    }
+  }, []);
 
   const messages: MessageItem[] = [
     {
@@ -265,88 +373,65 @@ export default function ChatBoxScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.main}>
-      <KeyboardAvoidingView
-        style={styles.container}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? heightScale(20) : 0}
-      >
-        <View style={styles.header}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-            activeOpacity={0.7}
-          >
-            <MaterialIcons
-              name="keyboard-backspace"
-              size={moderateWidthScale(24)}
-              color={theme.darkGreen}
-            />
-          </TouchableOpacity>
-          <View style={styles.headerInfo}>
-            <View style={styles.headerAvatar}>
-              {image ? (
-                <Image
-                  style={styles.headerAvatarImage}
-                  source={{ uri: image }}
-                />
-              ) : (
-                <Text style={styles.headerInitials}>
-                  {renderInitials(name)}
-                </Text>
-              )}
-            </View>
-            <Text numberOfLines={1} style={styles.headerName}>
-              {name}
-            </Text>
+    <SafeAreaView style={styles.main} edges={["top"]}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => router.back()}
+          activeOpacity={0.7}
+        >
+          <MaterialIcons
+            name="keyboard-backspace"
+            size={moderateWidthScale(24)}
+            color={theme.darkGreen}
+          />
+        </TouchableOpacity>
+        <View style={styles.headerInfo}>
+          <View style={styles.headerAvatar}>
+            {image ? (
+              <Image style={styles.headerAvatarImage} source={{ uri: image }} />
+            ) : (
+              <Text style={styles.headerInitials}>{renderInitials(name)}</Text>
+            )}
           </View>
+          <Text numberOfLines={1} style={styles.headerName}>
+            {name}
+          </Text>
         </View>
-        <View style={styles.sepLine} />
-        <FlatList
-          style={styles.messagesContainer}
-          contentContainerStyle={styles.messagesContentContainer}
-          data={messages}
-          inverted={true}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View
-              style={[
-                styles.messageRow,
-                item.isMe ? styles.messageRowMe : styles.messageRowOther,
-              ]}
-            >
-              <Text style={styles.senderLabel}>
-                {item.isMe ? "Brentley" : chatItem?.name}
-              </Text>
-              <View
-                style={[
-                  styles.bubble,
-                  item.isMe ? styles.bubbleMe : styles.bubbleOther,
-                ]}
-              >
-                <Text
-                  style={[styles.bubbleText, item.isMe && styles.bubbleTextMe]}
-                >
-                  {item.text}
-                </Text>
-              </View>
-            </View>
-          )}
-          showsVerticalScrollIndicator={false}
-        />
-        <View style={styles.inputBarContainer}>
-          <View style={styles.inputRow}>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter message"
-              placeholderTextColor={theme.lightGreen4}
-            />
-          </View>
-          <TouchableOpacity style={styles.sendButton} activeOpacity={0.8}>
-            <SendIcon width={18} height={18} color={theme.buttonText} />
-          </TouchableOpacity>
+      </View>
+      <View style={styles.sepLine} />
+      {Platform.OS === "ios" ? (
+        <KeyboardAvoidingView
+          style={styles.container}
+          behavior="padding"
+          keyboardVerticalOffset={0}
+        >
+          <ChatContent
+            messages={messages}
+            chatItem={chatItem}
+            styles={styles}
+            theme={theme}
+            insets={insets}
+          />
+        </KeyboardAvoidingView>
+      ) : (
+        <View
+          style={[
+            styles.container,
+            {
+              paddingBottom: keyboardHeight,
+            },
+          ]}
+        >
+          <ChatContent
+            messages={messages}
+            chatItem={chatItem}
+            styles={styles}
+            theme={theme}
+            insets={insets}
+          />
         </View>
-      </KeyboardAvoidingView>
+      )}
     </SafeAreaView>
   );
 }
