@@ -7,7 +7,7 @@ import axios, {
 } from "axios";
 import { store } from "@/src/state/store";
 import { setTokens, resetUser } from "@/src/state/slices/userSlice";
-import { resetGeneral, setRole } from "../state/slices/generalSlice";
+import { resetGeneral } from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
 // Get base URL from environment
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
@@ -117,7 +117,6 @@ const refreshAccessToken = async (): Promise<string | null> => {
 const handleLogout = async () => {
   store.dispatch(resetUser());
   store.dispatch(resetCompleteProfile());
-  store.dispatch(setRole(null));
   store.dispatch(resetGeneral());
 };
 

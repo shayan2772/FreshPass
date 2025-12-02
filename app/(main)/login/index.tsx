@@ -156,7 +156,8 @@ export default function Login() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [pendingSocialLogin, setPendingSocialLogin] = useState<SocialProvider | null>(null);
+  const [pendingSocialLogin, setPendingSocialLogin] =
+    useState<SocialProvider | null>(null);
 
   // Validate email when it changes
   useEffect(() => {
@@ -206,13 +207,12 @@ export default function Login() {
           dispatch(
             setUser({
               id: user.id,
-              name: user.name || email.trim(),
+              name: user?.name || "",
               email: user.email || email.trim(),
               accessToken: token,
               userRole: user?.role?.toLowerCase() || null,
             })
           );
-
           dispatch(setRegisterEmail(user.email || email.trim()));
           if (savePassword) {
             dispatch(setSavedPassword(password));
@@ -220,7 +220,6 @@ export default function Login() {
             // Clear saved password if checkbox is unchecked
             dispatch(setSavedPassword(null));
           }
-
           // Navigate to dashboard
           router.push(`/${MAIN_ROUTES.DASHBOARD}`);
         } else {
@@ -243,14 +242,15 @@ export default function Login() {
     setShowRoleSheet(true);
   }, []);
 
-  const handleRoleSheetContinue = useCallback(() => {
-    // After role is selected, proceed with social login
-    if (pendingSocialLogin) {
-      // TODO: Handle social login with selected role
-      console.log("Social login:", pendingSocialLogin);
-      setPendingSocialLogin(null);
-    }
-  }, [pendingSocialLogin]);
+  const handleRoleSelect = useCallback(
+    (role: "business" | "client") => {
+      if (pendingSocialLogin) {
+        console.log("Social login:", pendingSocialLogin, "Role:", role);
+        setPendingSocialLogin(null);
+      }
+    },
+    [pendingSocialLogin]
+  );
 
   const handleRoleSheetClose = useCallback(() => {
     setShowRoleSheet(false);
@@ -386,7 +386,7 @@ export default function Login() {
       <RoleSelectionBottomSheet
         visible={showRoleSheet}
         onClose={handleRoleSheetClose}
-        onContinue={handleRoleSheetContinue}
+        onRoleSelect={handleRoleSelect}
       />
     </SafeAreaView>
   );

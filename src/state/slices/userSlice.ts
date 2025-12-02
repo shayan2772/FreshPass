@@ -1,5 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { UserRole } from "./generalSlice";
+
+export type UserRole = "business" | "client" | "staff" | null;
 
 export interface UserState {
   id: number | null;
@@ -73,6 +74,6 @@ const userSlice = createSlice({
   },
 });
 
-export const { setUser, setTokens, setUserRole, clearUser, resetUser } = userSlice.actions;
+export const { setUser, setTokens, setUserRole, clearUser, resetUser } =
+  userSlice.actions;
 export default userSlice.reducer;
-

@@ -1,16 +1,16 @@
 import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { View, StyleSheet } from "react-native";
-import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
+import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { moderateHeightScale } from "@/src/theme/dimensions";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import RadioOption from "@/src/components/radioOption";
-import { setRole, UserRole } from "@/src/state/slices/generalSlice";
+import { UserRole } from "@/src/state/slices/generalSlice";
 
 interface RoleSelectionBottomSheetProps {
   visible: boolean;
   onClose: () => void;
-  onContinue: () => void;
+  onRoleSelect: (role: "business" | "client") => void;
 }
 
 const createStyles = (theme: Theme) =>
@@ -19,57 +19,48 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.background,
     },
     content: {
-      paddingVertical: moderateHeightScale(5),
-      gap: moderateHeightScale(14),
+      paddingTop: moderateHeightScale(15),
+      gap: moderateHeightScale(15),
     },
   });
 
 export default function RoleSelectionBottomSheet({
   visible,
   onClose,
-  onContinue,
+  onRoleSelect,
 }: RoleSelectionBottomSheetProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
-  const dispatch = useAppDispatch();
 
-  // Get selected role from Redux
-  const selectedRoleFromRedux = useAppSelector((state) => state.general.role);
+  // Local state for role selection in the sheet - no default selection
+  const [selectedRole, setSelectedRole] = useState<UserRole>(null);
 
-  // Local state for role selection in the sheet
-  const [selectedRole, setSelectedRole] = useState<UserRole>(
-    selectedRoleFromRedux || "business" // Default to "business"
-  );
-
-  // Update local state when Redux role changes
+  // Reset selection when sheet opens
   useEffect(() => {
-    if (selectedRoleFromRedux) {
-      setSelectedRole(selectedRoleFromRedux);
+    if (visible) {
+      setSelectedRole(null);
     }
-  }, [selectedRoleFromRedux]);
+  }, [visible]);
 
-  const handleOptionSelect = useCallback((option: Exclude<UserRole, null>) => {
-    setSelectedRole(option);
-  }, []);
-
-  const handleContinue = useCallback(() => {
-    if (selectedRole) {
-      // Save selected role to Redux
-      dispatch(setRole(selectedRole));
-      // Call the onContinue callback
-      onContinue();
-      // Close the sheet
-      onClose();
-    }
-  }, [selectedRole, dispatch, onContinue, onClose]);
+  const handleOptionSelect = useCallback(
+    (option: Exclude<UserRole, null>) => {
+      // Only handle business and client roles
+      if (option === "business" || option === "client") {
+        setSelectedRole(option);
+        // Call onRoleSelect with selected role
+        onRoleSelect(option);
+        // Close the sheet
+        onClose();
+      }
+    },
+    [onRoleSelect, onClose]
+  );
 
   return (
     <ModalizeBottomSheet
       visible={visible}
       onClose={onClose}
       title="Select role"
-      footerButtonTitle="Continue"
-      onFooterButtonPress={handleContinue}
       sheetContainerStyle={styles.mainSheet}
     >
       <View style={styles.content}>

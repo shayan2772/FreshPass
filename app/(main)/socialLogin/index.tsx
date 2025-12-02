@@ -31,7 +31,9 @@ export default function SocialLogin() {
   const router = useRouter();
 
   const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [pendingSocialLogin, setPendingSocialLogin] = useState<SocialProvider | null>(null);
+  const [pendingSocialLogin, setPendingSocialLogin] =
+    useState<SocialProvider | null>(null);
+ 
 
   const handleSignInOrRegister = () => {
     // router.push(`/${MAIN_ROUTES.REGISTER}`);
@@ -57,14 +59,15 @@ export default function SocialLogin() {
     // Handle guest login
   };
 
-  const handleRoleSheetContinue = useCallback(() => {
-    // After role is selected, proceed with social login
-    if (pendingSocialLogin) {
-      // TODO: Handle social login with selected role
-      console.log("Social login:", pendingSocialLogin);
-      setPendingSocialLogin(null);
-    }
-  }, [pendingSocialLogin]);
+  const handleRoleSelect = useCallback(
+    (role: "business" | "client") => {
+      if (pendingSocialLogin) {
+        console.log("Social login:", pendingSocialLogin, "Role:", role);
+        setPendingSocialLogin(null);
+      }
+    },
+    [pendingSocialLogin]
+  );
 
   const handleRoleSheetClose = useCallback(() => {
     setShowRoleSheet(false);
@@ -150,7 +153,7 @@ export default function SocialLogin() {
       <RoleSelectionBottomSheet
         visible={showRoleSheet}
         onClose={handleRoleSheetClose}
-        onContinue={handleRoleSheetContinue}
+        onRoleSelect={handleRoleSelect}
       />
     </SafeAreaView>
   );

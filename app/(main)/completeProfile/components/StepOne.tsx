@@ -146,6 +146,7 @@ export default function StepOne() {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  // const accessToken = useAppSelector((state) => state.user.accessToken);
   const { searchTerm, businessCategory } = useAppSelector(
     (state) => state.completeProfile
   );
