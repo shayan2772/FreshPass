@@ -1,5 +1,5 @@
 import { useTheme } from "@/src/hooks/hooks";
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { View, Text, StatusBar, Platform } from "react-native";
 import { Image } from "expo-image";
 import {
@@ -19,6 +19,9 @@ import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
+import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
+
+type SocialProvider = "google" | "apple" | "facebook";
 
 export default function SocialLogin() {
   const { colors } = useTheme();
@@ -27,21 +30,48 @@ export default function SocialLogin() {
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
   const router = useRouter();
 
+  const [showRoleSheet, setShowRoleSheet] = useState(false);
+  const [pendingSocialLogin, setPendingSocialLogin] = useState<SocialProvider | null>(null);
+
   const handleSignInOrRegister = () => {
-    router.push(`/${MAIN_ROUTES.REGISTER}`);
+    // router.push(`/${MAIN_ROUTES.REGISTER}`);
+    router.push(`/${MAIN_ROUTES.LOGIN}`);
   };
 
-  const handleGoogleLogin = () => {
-    // Handle Google login
+  const handleGoogleLogin = useCallback(() => {
+    setPendingSocialLogin("google");
+    setShowRoleSheet(true);
+  }, []);
+
+  const handleAppleLogin = useCallback(() => {
+    setPendingSocialLogin("apple");
+    setShowRoleSheet(true);
+  }, []);
+
+  const handleFacebookLogin = useCallback(() => {
+    setPendingSocialLogin("facebook");
+    setShowRoleSheet(true);
+  }, []);
+
+  const handleGuestLogin = () => {
+    // Handle guest login
   };
 
-  const handleAppleLogin = () => {
-    // Handle Apple login
-  };
+  const handleRoleSheetContinue = useCallback(() => {
+    // After role is selected, proceed with social login
+    if (pendingSocialLogin) {
+      // TODO: Handle social login with selected role
+      console.log("Social login:", pendingSocialLogin);
+      setPendingSocialLogin(null);
+    }
+  }, [pendingSocialLogin]);
 
-  const handleFacebookLogin = () => {
-    // Handle Facebook login
-  };
+  const handleRoleSheetClose = useCallback(() => {
+    setShowRoleSheet(false);
+    setPendingSocialLogin(null);
+  }, []);
+
+  const isGuest = true; // Set to true to show guest login button
 
   return (
     <SafeAreaView style={styles.container}>
@@ -78,12 +108,12 @@ export default function SocialLogin() {
             </Text>
           </View>
 
-          <View style={styles.paginationDots}>
+          {/* <View style={styles.paginationDots}>
             <View style={styles.dotOuter} />
             <View style={styles.dotActive} />
             <View style={styles.dotOuter} />
             <View style={styles.dotOuter} />
-          </View>
+          </View> */}
         </View>
       </View>
 
@@ -105,6 +135,8 @@ export default function SocialLogin() {
           onGoogle={handleGoogleLogin}
           onApple={handleAppleLogin}
           onFacebook={handleFacebookLogin}
+          onGuest={handleGuestLogin}
+          isGuest={isGuest}
           containerStyle={styles.socialButtonsContainer}
         />
 
@@ -114,6 +146,12 @@ export default function SocialLogin() {
           <Text style={styles.legalLink}>Privacy Policy</Text>
         </Text>
       </View>
+
+      <RoleSelectionBottomSheet
+        visible={showRoleSheet}
+        onClose={handleRoleSheetClose}
+        onContinue={handleRoleSheetContinue}
+      />
     </SafeAreaView>
   );
 }

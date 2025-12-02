@@ -21,11 +21,10 @@ export default function Index() {
 
   // If access token exists, redirect to complete profile
   if (accessToken) {
-    return <Redirect href={`/${MAIN_ROUTES.COMPLETE_PROFILE}`} />;
+    return <Redirect href={`/${MAIN_ROUTES.DASHBOARD}`} />;
   }
 
   // Otherwise, redirect to role screen
-  // return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;
-  return <Redirect href={`/${MAIN_ROUTES.DASHBOARD}`} />;
+  return <Redirect href={`/${MAIN_ROUTES.SOCIAL_LOGIN}`} />;
+  // return <Redirect href={`/${MAIN_ROUTES.DASHBOARD}`} />;
 }
-

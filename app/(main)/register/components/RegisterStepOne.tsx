@@ -15,6 +15,9 @@ import RegisterHeader from "@/src/components/registerHeader";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
 import { validateEmail } from "@/src/services/validationService";
+import { useRouter } from "expo-router";
+import { MAIN_ROUTES } from "@/src/constant/routes";
+import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -98,15 +101,17 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(4),
     },
     socialList: {},
-    footer: {},
-    legalText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      textAlign: "center",
-      lineHeight: fontSize.size16,
+    footer: {
+      marginTop: moderateHeightScale(20),
+      alignItems: "center",
     },
-    legalHighlight: {
+    footerText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textAlign: "center",
+    },
+    loginLink: {
       fontFamily: fonts.fontMedium,
       color: theme.link,
       textDecorationLine: "underline",
@@ -130,6 +135,7 @@ export default function RegisterStepOne({
 }: RegisterStepOneProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const router = useRouter();
   
   // Get saved email from general state (if exists from previous registration)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
@@ -137,6 +143,8 @@ export default function RegisterStepOne({
   const [email, setEmail] = useState(savedEmail || DEFAULT_EMAIL);
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [emailError, setEmailError] = useState<string | null>(null);
+  const [showRoleSheet, setShowRoleSheet] = useState(false);
+  const [pendingSocialLogin, setPendingSocialLogin] = useState<SocialProvider | null>(null);
 
   // Validate email when it changes
   useEffect(() => {
@@ -169,7 +177,29 @@ export default function RegisterStepOne({
 
   const isFormValid = email.length > 0 && validateEmail(email).isValid;
 
-  
+  const handleLogin = useCallback(() => {
+    // router.push(`/${MAIN_ROUTES.LOGIN}`);
+    router.back();
+  }, [router]);
+
+  const handleSocialLoginClick = useCallback((provider: SocialProvider) => {
+    setPendingSocialLogin(provider);
+    setShowRoleSheet(true);
+  }, []);
+
+  const handleRoleSheetContinue = useCallback(() => {
+    // After role is selected, proceed with social login
+    if (pendingSocialLogin) {
+      onSocialLogin(pendingSocialLogin);
+      setPendingSocialLogin(null);
+    }
+  }, [pendingSocialLogin, onSocialLogin]);
+
+  const handleRoleSheetClose = useCallback(() => {
+    setShowRoleSheet(false);
+    setPendingSocialLogin(null);
+  }, []);
+
   return (
     <View style={styles.container}>
       <RegisterHeader onBack={onBack} />
@@ -231,23 +261,28 @@ export default function RegisterStepOne({
           <SectionSeparator />
 
           <SocialAuthOptions
-            onGoogle={() => onSocialLogin("google")}
-            onApple={() => onSocialLogin("apple")}
-            onFacebook={() => onSocialLogin("facebook")}
+            onGoogle={() => handleSocialLoginClick("google")}
+            onApple={() => handleSocialLoginClick("apple")}
+            onFacebook={() => handleSocialLoginClick("facebook")}
             containerStyle={styles.socialList}
           />
 
           <View style={styles.footer}>
-            <Text style={styles.legalText}>
-              By continuing to use FreshPass, you agree to our
-              <Text> </Text>
-              <Text style={styles.legalHighlight}>Terms of Services</Text>
-              <Text> &amp; </Text>
-              <Text style={styles.legalHighlight}>Privacy Policy</Text>
+            <Text style={styles.footerText}>
+              Already have an account?{" "}
+              <Text style={styles.loginLink} onPress={handleLogin}>
+                Login
+              </Text>
             </Text>
           </View>
         </View>
       </View>
+
+      <RoleSelectionBottomSheet
+        visible={showRoleSheet}
+        onClose={handleRoleSheetClose}
+        onContinue={handleRoleSheetContinue}
+      />
     </View>
   );
 }

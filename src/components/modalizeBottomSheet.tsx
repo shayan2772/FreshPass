@@ -29,6 +29,7 @@ interface ModalizeBottomSheetProps {
   footerButtonTitle?: string;
   onFooterButtonPress?: () => void;
   children: React.ReactNode;
+  sheetContainerStyle?: ViewStyle;
   contentStyle?: ViewStyle;
   scrollViewStyle?: ViewStyle;
 }
@@ -93,6 +94,7 @@ export default function ModalizeBottomSheet({
   footerButtonTitle,
   onFooterButtonPress,
   children,
+  sheetContainerStyle={},
   contentStyle,
   scrollViewStyle,
 }: ModalizeBottomSheetProps) {
@@ -126,7 +128,7 @@ export default function ModalizeBottomSheet({
         panGestureEnabled
         avoidKeyboardLikeIOS
         overlayStyle={styles.modalOverlay}
-        modalStyle={[styles.bottomSheet, { maxHeight: screenHeight * 0.9 }]}
+        modalStyle={[styles.bottomSheet,sheetContainerStyle, { maxHeight: screenHeight * 0.9 }]}
         HeaderComponent={
           <View style={styles.header}>
             <Text style={styles.headerTitle}>{title}</Text>

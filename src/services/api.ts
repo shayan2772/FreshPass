@@ -253,6 +253,75 @@ apiClient.interceptors.response.use(
 );
 
 /**
+ * Helper functions for API logging
+ */
+const getFullUrl = (route: string): string => {
+  // Remove trailing slash from BASE_URL and leading slash from route if needed
+  const baseUrl = BASE_URL.endsWith("/") ? BASE_URL.slice(0, -1) : BASE_URL;
+  const cleanRoute = route.startsWith("/") ? route : `/${route}`;
+  return `${baseUrl}${cleanRoute}`;
+};
+
+const logApiRequest = (
+  method: string,
+  route: string,
+  body?: any,
+  config?: AxiosRequestConfig
+) => {
+  if (__DEV__) {
+    const fullUrl = getFullUrl(route);
+    const logData: any = {
+      url: fullUrl,
+      route: route,
+      baseURL: BASE_URL,
+    };
+
+    if (body !== undefined) {
+      logData.body = body;
+    }
+    if (config) {
+      logData.config = config;
+    }
+
+    console.log(`🚀 API ${method} Request:`, logData);
+  }
+};
+
+const logApiResponse = (
+  method: string,
+  url: string,
+  route: string,
+  status: number,
+  data: any
+) => {
+  if (__DEV__) {
+    const fullUrl = getFullUrl(route);
+    console.log(`✅ API ${method} Response:`, {
+      url: fullUrl,
+      status: status,
+      data: data,
+    });
+  }
+};
+
+const logApiError = (
+  method: string,
+  url: string,
+  route: string,
+  error: any
+) => {
+  if (__DEV__) {
+    const fullUrl = getFullUrl(route);
+    console.error(`❌ API ${method} Error:`, {
+      url: fullUrl,
+      error: error.message,
+      status: error.response?.status,
+      data: error.response?.data,
+    });
+  }
+};
+
+/**
  * API Service Class
  * Provides unified methods for all API calls
  */
@@ -264,10 +333,14 @@ export class ApiService {
     url: string,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    logApiRequest("GET", url, undefined, config);
+
     try {
       const response = await apiClient.get<T>(url, config);
+      logApiResponse("GET", url, url, response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      logApiError("GET", url, url, error);
       throw error;
     }
   }
@@ -280,10 +353,14 @@ export class ApiService {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    logApiRequest("POST", url, data, config);
+
     try {
       const response = await apiClient.post<T>(url, data, config);
+      logApiResponse("POST", url, url, response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      logApiError("POST", url, url, error);
       throw error;
     }
   }
@@ -296,10 +373,14 @@ export class ApiService {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    logApiRequest("PUT", url, data, config);
+
     try {
       const response = await apiClient.put<T>(url, data, config);
+      logApiResponse("PUT", url, url, response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      logApiError("PUT", url, url, error);
       throw error;
     }
   }
@@ -312,10 +393,14 @@ export class ApiService {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    logApiRequest("PATCH", url, data, config);
+
     try {
       const response = await apiClient.patch<T>(url, data, config);
+      logApiResponse("PATCH", url, url, response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      logApiError("PATCH", url, url, error);
       throw error;
     }
   }
@@ -327,10 +412,14 @@ export class ApiService {
     url: string,
     config?: AxiosRequestConfig
   ): Promise<T> {
+    logApiRequest("DELETE", url, undefined, config);
+
     try {
       const response = await apiClient.delete<T>(url, config);
+      logApiResponse("DELETE", url, url, response.status, response.data);
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
+      logApiError("DELETE", url, url, error);
       throw error;
     }
   }

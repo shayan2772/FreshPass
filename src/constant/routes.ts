@@ -2,6 +2,7 @@ export const ROUTES = {
   MAIN: {
     ROLE: "role",
     SOCIAL_LOGIN: "socialLogin",
+    LOGIN: "login",
     REGISTER: "register",
     REGISTER_PASSWORD: "register/password",
     REGISTER_NEXT_STEPS: "register/nextSteps",

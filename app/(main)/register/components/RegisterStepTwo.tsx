@@ -1,4 +1,9 @@
-import React, { useMemo, useState, useCallback, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import { View, Text, Pressable, StyleSheet, Alert } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
@@ -26,6 +31,7 @@ import {
 } from "@/src/state/slices/generalSlice";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
+import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 interface RegisterStepTwoProps {
   onBack: () => void;
@@ -139,8 +145,8 @@ export default function RegisterStepTwo({
     null
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [showRoleSheet, setShowRoleSheet] = useState(false);
 
-  // Validate password length (min 8 characters)
   useEffect(() => {
     if (password.length > 0) {
       const validation = validatePassword(password);
@@ -150,7 +156,6 @@ export default function RegisterStepTwo({
     }
   }, [password]);
 
-  // Validate passwords match
   useEffect(() => {
     if (confirmPassword.length > 0) {
       const validation = validatePasswordMatch(password, confirmPassword);
@@ -187,6 +192,7 @@ export default function RegisterStepTwo({
     const passwordValidation = validatePassword(password);
     const matchValidation = validatePasswordMatch(password, confirmPassword);
 
+    // Validate passwords first
     if (!passwordValidation.isValid || !matchValidation.isValid) {
       if (!passwordValidation.isValid) {
         setPasswordLengthError(passwordValidation.error);
@@ -197,76 +203,19 @@ export default function RegisterStepTwo({
       return;
     }
 
-    // If role is "business", call registration API
-    if (role === "business") {
-      onContinue();
+    // After validation, show role selection sheet
+    setShowRoleSheet(true);
+  }, [password, confirmPassword]);
 
-      // setIsLoading(true);
-      // try {
-      //   const response = await ApiService.post(businessEndpoints.register, {
-      //     email: trimmedEmail,
-      //     password: password,
-      //     password_confirmation: confirmPassword,
-      //     role: role,
-      //     isSubscribed: isSubscribed,
-      //   });
+  const handleRoleSheetContinue = useCallback(() => {
+    // After role is selected, proceed with continue
+    setShowRoleSheet(false);
+    onContinue();
+  }, [onContinue]);
 
-      //   // Handle successful registration
-      //   if (response.success && response.data) {
-      //     const { user, token, refreshToken } = response.data;
-
-      //     // Set user data in Redux (email from API response)
-      //     if (user && token) {
-      //       dispatch(
-      //         setUser({
-      //           id: user.id,
-      //           name: user.name || trimmedEmail,
-      //           email: user.email || trimmedEmail, // Use email from API response
-      //           accessToken: token,
-      //           refreshToken: refreshToken || null,
-      //           userRole: user?.role?.toLowerCase() ||  null, // Set userRole from response or use current role
-      //         })
-      //       );
-
-      //       dispatch(setRegisterEmail(user.email || trimmedEmail));
-      //       if (savePassword) {
-      //         dispatch(setSavedPassword(password));
-      //       } else {
-      //         // Clear saved password if checkbox is unchecked
-      //         dispatch(setSavedPassword(null));
-      //       }
-
-      //       // Navigate to next steps
-      //       router.push(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
-      //     } else {
-      //       Alert.alert("Error", "Invalid response from server");
-      //     }
-      //   } else {
-      //     Alert.alert("Error", response.message || "Registration failed");
-      //   }
-      // } catch (error: any) {
-      //   // Error message is already formatted by ApiService
-      //   Alert.alert(
-      //     "Registration Failed",
-      //     error.message || "An error occurred"
-      //   );
-      // } finally {
-      //   setIsLoading(false);
-      // }
-    } else {
-      // For other roles, just continue to next step
-      onContinue();
-    }
-  }, [
-    password,
-    confirmPassword,
-    onContinue,
-    role,
-    email,
-    savePassword,
-    dispatch,
-    router,
-  ]);
+  const handleRoleSheetClose = useCallback(() => {
+    setShowRoleSheet(false);
+  }, []);
 
   // Form is valid only if both password and confirm password are valid
   const passwordValidation = validatePassword(password);
@@ -370,6 +319,12 @@ export default function RegisterStepTwo({
           containerStyle={styles.buttonWrapper}
         />
       </View>
+
+      <RoleSelectionBottomSheet
+        visible={showRoleSheet}
+        onClose={handleRoleSheetClose}
+        onContinue={handleRoleSheetContinue}
+      />
     </View>
   );
 }

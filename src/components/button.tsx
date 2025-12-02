@@ -3,12 +3,13 @@ import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { moderateWidthScale, moderateHeightScale } from "@/src/theme/dimensions";
 import React, { useMemo } from "react";
-import { Text, TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
+import { Text, TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator } from "react-native";
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
   disabled?: boolean;
+  loading?: boolean;
   containerStyle?: ViewStyle;
   textColor?: string;
   backgroundColor?: string;
@@ -22,6 +23,8 @@ const createStyles = (theme: Theme, textColor?: string, backgroundColor?: string
       paddingVertical: moderateHeightScale(14),
       alignItems: "center",
       justifyContent: "center",
+      flexDirection: "row",
+      gap: moderateWidthScale(8),
     },
     buttonDisabled: {
       opacity: 0.5,
@@ -37,6 +40,7 @@ export default function Button({
   title,
   onPress,
   disabled = false,
+  loading = false,
   containerStyle,
   textColor,
   backgroundColor,
@@ -44,18 +48,26 @@ export default function Button({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme, textColor, backgroundColor), [colors, textColor, backgroundColor]);
 
+  // If loading, disable button but don't apply disabled opacity
+  const isDisabled = disabled || loading;
+  const showDisabledStyle = disabled && !loading;
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        disabled && styles.buttonDisabled,
+        showDisabledStyle && styles.buttonDisabled,
         containerStyle,
       ]}
       onPress={onPress}
-      disabled={disabled}
+      disabled={isDisabled}
       activeOpacity={0.7}
     >
-      <Text style={styles.buttonText}>{title}</Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={textColor || (colors as Theme).buttonText} />
+      ) : (
+        <Text style={styles.buttonText}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 }

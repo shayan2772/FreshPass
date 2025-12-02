@@ -1,15 +1,14 @@
 /**
  * API Endpoints Configuration
  * Centralized endpoint definitions for all API routes
+ * Note: Endpoints are relative paths since axios instance has baseURL configured
  */
-
-const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
 
 /**
  * Staff endpoints
  */
 export const staffEndpoints = {
-  register: `${BASE_URL}/staff/auth/register`,
+  register: `/staff/auth/register`,
 };
 
 /**
@@ -17,13 +16,13 @@ export const staffEndpoints = {
  */
 export const customerEndpoints = {
   // Authentication
-
-  register: `${BASE_URL}/customer/auth/register`,
+  register: `/customer/auth/register`,
 };
 
 /**
  * Business endpoints
  */
 export const businessEndpoints = {
-  register: `${BASE_URL}/api/register`,
+  register: `/api/register`,
+  login: `/api/login`,
 };
