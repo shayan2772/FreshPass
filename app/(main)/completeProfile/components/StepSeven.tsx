@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -107,7 +107,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
-    dayHorsBreak:{
+    dayHorsBreak: {
       fontSize: fontSize.size9,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
@@ -129,19 +129,68 @@ export default function StepSeven() {
   const { businessHours } = useAppSelector((state) => state.completeProfile);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+  const hasInitializedWeekdays = useRef(false);
+
+  // Initialize Monday, Tuesday, Wednesday, Thursday, Friday with default hours and break time when component first mounts
+  useEffect(() => {
+    if (hasInitializedWeekdays.current) {
+      return; // Already initialized, don't run again
+    }
+
+    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+
+    weekdays.forEach((day) => {
+      const dayData = businessHours[day];
+
+      // Check if day is not already configured (isOpen is false and hours are all zeros)
+      const isDayNotConfigured =
+        !dayData?.isOpen &&
+        dayData?.fromHours === 0 &&
+        dayData?.fromMinutes === 0 &&
+        dayData?.tillHours === 0 &&
+        dayData?.tillMinutes === 0 &&
+        (!dayData?.breaks || dayData.breaks.length === 0);
+
+      if (isDayNotConfigured) {
+        // Set day with default hours (9 AM - 6 PM) and break time (1 PM - 2 PM)
+        dispatch(
+          setDayHours({
+            day,
+            fromHours: 9, // 9 AM
+            fromMinutes: 0,
+            tillHours: 18, // 6 PM
+            tillMinutes: 0,
+            breaks: [
+              {
+                fromHours: 13, // 1 PM
+                fromMinutes: 0,
+                tillHours: 14, // 2 PM
+                tillMinutes: 0,
+              },
+            ],
+          })
+        );
+
+        // Also set day as open
+        dispatch(setDayAvailability({ day, isOpen: true }));
+      }
+    });
+
+    hasInitializedWeekdays.current = true;
+  }, [businessHours, dispatch]);
 
   const handleToggleDay = (day: string, value: boolean) => {
     const dayData = businessHours[day];
     dispatch(setDayAvailability({ day, isOpen: value }));
-    
+
     // If turning day ON and no hours are set (all zeros), set default hours (9 AM - 6 PM)
     if (value && dayData) {
-      const hasNoHours = 
-        dayData.fromHours === 0 && 
-        dayData.fromMinutes === 0 && 
-        dayData.tillHours === 0 && 
+      const hasNoHours =
+        dayData.fromHours === 0 &&
+        dayData.fromMinutes === 0 &&
+        dayData.tillHours === 0 &&
         dayData.tillMinutes === 0;
-      
+
       if (hasNoHours) {
         dispatch(
           setDayHours({
@@ -177,11 +226,7 @@ export default function StepSeven() {
     }
 
     // If day is open but no valid hours are set, show "---" to indicate hours need to be set
-    if (
-      !dayData.fromHours &&
-      !dayData.tillHours 
-      
-    ) {
+    if (!dayData.fromHours && !dayData.tillHours) {
       return "---";
     }
 
@@ -213,8 +258,6 @@ export default function StepSeven() {
 
     return mainHours;
   };
-
- 
 
   return (
     <View style={styles.container}>
@@ -268,7 +311,7 @@ export default function StepSeven() {
       </View>
 
       <BusinessHoursBottomSheet
-        visible={bottomSheetVisible  }
+        visible={bottomSheetVisible}
         onClose={handleCloseBottomSheet}
         day={selectedDay || ""}
       />

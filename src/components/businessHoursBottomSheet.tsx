@@ -271,30 +271,76 @@ export default function BusinessHoursBottomSheet({
          dayData.tillHours === 0 && dayData.tillMinutes === 0) ||
         (!dayData.fromHours && !dayData.tillHours);
       
+      let currentFromHours = 0;
+      let currentFromMinutes = 0;
+      let currentTillHours = 0;
+      let currentTillMinutes = 0;
+      
       // If no hours are set, use default hours (9 AM - 6 PM)
       if (hasNoHours) {
-        setFromHours(9); // 9 AM
+        currentFromHours = 9; // 9 AM
+        currentFromMinutes = 0;
+        currentTillHours = 18; // 6 PM
+        currentTillMinutes = 0;
+        setFromHours(9);
         setFromMinutes(0);
-        setTillHours(18); // 6 PM
+        setTillHours(18);
         setTillMinutes(0);
       } else {
-        setFromHours(dayData.fromHours || 0);
-        setFromMinutes(dayData.fromMinutes || 0);
-        setTillHours(dayData.tillHours || 0);
-        setTillMinutes(dayData.tillMinutes || 0);
+        currentFromHours = dayData.fromHours || 0;
+        currentFromMinutes = dayData.fromMinutes || 0;
+        currentTillHours = dayData.tillHours || 0;
+        currentTillMinutes = dayData.tillMinutes || 0;
+        setFromHours(currentFromHours);
+        setFromMinutes(currentFromMinutes);
+        setTillHours(currentTillHours);
+        setTillMinutes(currentTillMinutes);
       }
       
       // Auto-add at least 1 break time field if no breaks exist
       const existingBreaks = dayData.breaks || [];
       if (existingBreaks.length === 0) {
-        setBreaks([
-          {
-            fromHours: 0,
-            fromMinutes: 0,
-            tillHours: 0,
-            tillMinutes: 0,
-          },
-        ]);
+        // Calculate default break time: 1 hour in the middle of business hours
+        const fromTotalMinutes = getTotalMinutes(currentFromHours, currentFromMinutes);
+        const tillTotalMinutes = getTotalMinutes(currentTillHours, currentTillMinutes);
+        const totalDuration = tillTotalMinutes - fromTotalMinutes;
+        
+        // Only set default break if business hours are at least 2 hours (need space for 1 hour break)
+        if (totalDuration >= 120) {
+          // Calculate middle point and set 1 hour break (60 minutes)
+          const middlePoint = fromTotalMinutes + Math.floor(totalDuration / 2);
+          const breakStartMinutes = middlePoint - 30; // Start 30 minutes before middle
+          const breakEndMinutes = middlePoint + 30; // End 30 minutes after middle (exactly 1 hour)
+          
+          // Ensure break is within business hours
+          const adjustedBreakStart = Math.max(fromTotalMinutes, breakStartMinutes);
+          const adjustedBreakEnd = Math.min(tillTotalMinutes, adjustedBreakStart + 60);
+          
+          // Convert back to hours and minutes
+          const breakFromHours = Math.floor(adjustedBreakStart / 60);
+          const breakFromMinutes = adjustedBreakStart % 60;
+          const breakTillHours = Math.floor(adjustedBreakEnd / 60);
+          const breakTillMinutes = adjustedBreakEnd % 60;
+          
+          setBreaks([
+            {
+              fromHours: breakFromHours,
+              fromMinutes: breakFromMinutes,
+              tillHours: breakTillHours,
+              tillMinutes: breakTillMinutes,
+            },
+          ]);
+        } else {
+          // If business hours are too short, set empty break (user can set manually)
+          setBreaks([
+            {
+              fromHours: 0,
+              fromMinutes: 0,
+              tillHours: 0,
+              tillMinutes: 0,
+            },
+          ]);
+        }
       } else {
         setBreaks(existingBreaks);
       }

@@ -89,6 +89,18 @@ export default function CompleteProfile() {
     router.back();
   }, [addressStage, currentStep, dispatch, router]);
 
+  // Helper function to format time to HH:MM
+  const formatTimeToHHMM = (hours: number, minutes: number): string => {
+    const h = hours.toString().padStart(2, "0");
+    const m = minutes.toString().padStart(2, "0");
+    return `${h}:${m}`;
+  };
+
+  // Helper function to convert day name to lowercase API format
+  const getDayApiFormat = (day: string): string => {
+    return day.toLowerCase();
+  };
+
   // Build request body based on current step
   const buildRequestBody = () => {
     let body = {};
@@ -136,7 +148,26 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 7) {
-      body = { ...body, };
+      // Transform businessHours to API format
+      const businessHoursArray = Object.keys(businessHours).map((day) => {
+        const dayData = businessHours[day];
+        
+        // Transform breaks array
+        const breakHours = (dayData.breaks || []).map((breakTime) => ({
+          start: formatTimeToHHMM(breakTime.fromHours, breakTime.fromMinutes),
+          end: formatTimeToHHMM(breakTime.tillHours, breakTime.tillMinutes),
+        }));
+
+        return {
+          day: getDayApiFormat(day),
+          closed: !dayData.isOpen,
+          opening_time: formatTimeToHHMM(dayData.fromHours, dayData.fromMinutes),
+          closing_time: formatTimeToHHMM(dayData.tillHours, dayData.tillMinutes),
+          break_hours: breakHours,
+        };
+      });
+
+      body = { ...body, business_hours: businessHoursArray };
     }
 
     return body;
