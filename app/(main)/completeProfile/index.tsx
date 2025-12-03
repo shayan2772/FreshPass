@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   BackHandler,
   KeyboardAvoidingView,
@@ -9,7 +9,7 @@ import {
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useFocusEffect, useRouter } from "expo-router";
+import { router, useFocusEffect, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { MAIN_ROUTES } from "@/src/constant/routes";
@@ -34,18 +34,24 @@ import {
   setSelectedLocation,
 } from "@/src/state/slices/completeProfileSlice";
 import PrivacyBanner from "@/src/components/privacyBanner";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 export default function CompleteProfile() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
+  const { showBanner } = useNotificationContext();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const {
     currentStep,
     totalSteps,
     businessCategory,
     businessName,
     fullName,
+    countryCode,
     phoneNumber,
     phoneIsValid,
     appointmentVolume,
@@ -82,7 +88,50 @@ export default function CompleteProfile() {
     router.back();
   }, [addressStage, currentStep, dispatch, router]);
 
-  const handleContinue = useCallback(() => {
+  // Build request body based on current step
+  const buildRequestBody = () => {
+    let body = {};
+
+    // Always include step
+    body = {
+      step: currentStep.toString(),
+    };
+
+    if (currentStep === 1) {
+      body = { ...body, category_id: businessCategory?.id.toString() ?? "" }; // step 1 k bad jb tk setp 2 na kr lo detail get ne hti
+    }
+
+    if (currentStep === 2) {
+      body = {
+        ...body,
+        business_name: businessName,
+        owner_name: fullName,
+        owner_phone: `${countryCode}${phoneNumber}`,
+        category_id: businessCategory?.id.toString() ?? "", // ye require ne hne chaie step 2 me
+      };
+    }
+
+    if (currentStep === 3) {
+      body = { ...body, weekly_appointment_range: appointmentVolume };
+    }
+
+    if (currentStep === 4) {
+      body = {
+        ...body,
+        street_address: streetAddress,
+        city: area,
+        state: "",
+        zip_code: zipCode,
+        // latitude: selectedLocation?.latitude ?? 0,
+        // longitude: selectedLocation?.longitude ?? 0,
+      };
+    }
+
+    return body;
+  };
+
+  const handleContinue = async () => {
+    // Handle step 4 address stage navigation
     if (currentStep === 4) {
       if (addressStage === "search") {
         return;
@@ -92,19 +141,46 @@ export default function CompleteProfile() {
         return;
       }
     }
-    if (currentStep < totalSteps) {
-      dispatch(goToNextStep());
-      return;
-    }
 
-    // Navigate to acceptTerms screen when step 11 is completed
-    if (currentStep === totalSteps) {
-      router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
-      return;
-    }
+    // Call API for onboarding
+    setIsSubmitting(true);
+    try {
+      const body = buildRequestBody();
 
-    router.back();
-  }, [addressStage, currentStep, dispatch, router, totalSteps]);
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(businessEndpoints.onboarding, body);
+
+      if (response.success) {
+        // Move to next step on success
+        if (currentStep < totalSteps) {
+          dispatch(goToNextStep());
+        } else if (currentStep === totalSteps) {
+          // Navigate to acceptTerms screen when step 11 is completed
+          router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
+        }
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to save step data",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to submit onboarding step:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to save step data. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -288,7 +364,8 @@ export default function CompleteProfile() {
           <Button
             title={continueLabel}
             onPress={handleContinue}
-            disabled={isContinueDisabled}
+            disabled={isContinueDisabled || isSubmitting}
+            loading={isSubmitting}
           />
         </View>
       </KeyboardAvoidingView>

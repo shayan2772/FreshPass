@@ -25,4 +25,6 @@ export const customerEndpoints = {
 export const businessEndpoints = {
   register: `/api/register`,
   login: `/api/login`,
+  categories: `/api/categories`,
+  onboarding: `/api/business/onboarding`,
 };

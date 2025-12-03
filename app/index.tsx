@@ -7,6 +7,8 @@ export default function Index() {
   const accessToken = useAppSelector((state) => state.user.accessToken);
   const [isReady, setIsReady] = useState(false);
 
+  console.log("accessToken", accessToken);
+
   useEffect(() => {
     // Small delay to ensure Redux state is hydrated
     const timer = setTimeout(() => {

@@ -6,10 +6,34 @@ import completeProfileReducer from "./slices/completeProfileSlice";
 import userReducer from "./slices/userSlice";
 
 // ✅ Custom SecureStore adapter for redux-persist
+// Note: redux-persist supports async storage, but we need to ensure promises are properly handled
 const SecureStorageAdapter = {
-  setItem: (key: string, value: string) => SecureStorageService.setItem(key, value),
-  getItem: (key: string) => SecureStorageService.getItem(key),
-  removeItem: (key: string) => SecureStorageService.removeItem(key),
+  setItem: async (key: string, value: string): Promise<void> => {
+    try {
+      await SecureStorageService.setItem(key, value);
+    } catch (error) {
+      console.error(`❌ Failed to persist ${key}:`, error);
+      // Don't throw - let redux-persist handle it gracefully
+    }
+  },
+  getItem: async (key: string): Promise<string | null> => {
+    try {
+      const value = await SecureStorageService.getItem(key);
+      return value;
+    } catch (error) {
+      console.error(`❌ Failed to retrieve ${key}:`, error);
+      // Return null on error so redux-persist can use initial state
+      return null;
+    }
+  },
+  removeItem: async (key: string): Promise<void> => {
+    try {
+      await SecureStorageService.removeItem(key);
+    } catch (error) {
+      console.error(`❌ Failed to remove ${key}:`, error);
+      // Don't throw - let redux-persist handle it gracefully
+    }
+  },
 };
 
 // ✅ Nested persist config for general slice - only persist specific fields

@@ -12,6 +12,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PortalProvider } from "@gorhom/portal";
+import { NotificationProvider } from "@/src/contexts/NotificationContext";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
 import { LogBox } from "react-native";
@@ -44,7 +45,10 @@ export default function RootLayout() {
         <PersistGate
           persistor={persistor}
           loading={null}
-          onBeforeLift={() => {
+          onBeforeLift={async () => {
+            // Wait for rehydration to complete
+            await persistor.flush();
+            
             // Sync i18n with Redux persisted language after rehydration
             // Ensure i18n is initialized before calling changeLanguage
             if (!i18n || !i18n.isInitialized) {
@@ -52,6 +56,17 @@ export default function RootLayout() {
             }
             
             const state = store.getState();
+            
+            // Debug: Log persisted user data
+            if (__DEV__) {
+              console.log("🔐 Rehydrated user state:", {
+                hasAccessToken: !!state?.user?.accessToken,
+                hasRefreshToken: !!state?.user?.refreshToken,
+                userId: state?.user?.id,
+                userName: state?.user?.name,
+              });
+            }
+            
             if (
               state?.general?.language &&
               i18n.language !== state.general.language
@@ -67,8 +82,10 @@ export default function RootLayout() {
         >
           <PortalProvider>
             <I18nextProvider i18n={i18n}>
-              <ThemedStatusBar />
-              <Slot />
+              <NotificationProvider>
+                <ThemedStatusBar />
+                <Slot />
+              </NotificationProvider>
             </I18nextProvider>
           </PortalProvider>
         </PersistGate>

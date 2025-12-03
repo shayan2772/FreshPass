@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useCallback, useState } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -13,32 +13,14 @@ import { IMAGES } from "@/src/constant/images";
 import {
   setBusinessCategory,
   setSearchTerm,
+  setCategories,
 } from "@/src/state/slices/completeProfileSlice";
 import FloatingInput from "@/src/components/floatingInput";
-
-const POPULAR_CATEGORIES = [
-  { id: "hair_salon", label: "Hair salon" },
-  { id: "barbershop", label: "Barbershop" },
-  { id: "nail_salon", label: "Nail salon" },
-  { id: "massage", label: "Massage" },
-  { id: "skin_care", label: "Skin care" },
-  { id: "hair_coloring", label: "Hair coloring" },
-];
-
-const OTHER_CATEGORIES = [
-  "Aesthetic clinic",
-  "Wellness center",
-  "Brows & lashes",
-  "Braids & locs",
-  "Makeup artist",
-  "Skin care",
-  "Spa",
-  "Hair removal",
-  "Beauty salon",
-  "Yoga studio",
-  "Tanning salon",
-  "Bridal services",
-];
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { Skeleton } from "@/src/components/skeletons";
+import RetryButton from "@/src/components/retryButton";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -48,7 +30,7 @@ const createStyles = (theme: Theme) =>
     },
     titleSec: {
       marginTop: moderateHeightScale(8),
-      gap: 5,
+      gap: moderateHeightScale(5),
       paddingHorizontal: moderateWidthScale(20),
     },
     title: {
@@ -85,7 +67,7 @@ const createStyles = (theme: Theme) =>
     },
     categoryCard: {
       width: "30%",
-      height: heightScale(115),
+      height: heightScale(116),
     },
     categoryImage: {
       width: "100%",
@@ -107,7 +89,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.background,
     },
     categoryLabel: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       textAlign: "center",
@@ -140,138 +122,219 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       flex: 1,
     },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
+    },
   });
 
 export default function StepOne() {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
-  // const accessToken = useAppSelector((state) => state.user.accessToken);
-  const { searchTerm, businessCategory } = useAppSelector(
+  const { showBanner } = useNotificationContext();
+  const { searchTerm, businessCategory, categories } = useAppSelector(
     (state) => state.completeProfile
   );
 
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setApiError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          imageUrl: string | null;
+        }>;
+      }>(businessEndpoints.categories);
+
+      if (response.success && response.data) {
+        dispatch(setCategories(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      setApiError(true);
+      showBanner("API Failed", "API failed to fetch categories", "error", 2500);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  // Split categories into popular (first 6) and other (rest)
+  const popularCategories = useMemo(() => {
+    return categories.slice(0, 6);
+  }, [categories]);
+
+  const otherCategories = useMemo(() => {
+    return categories.slice(6);
+  }, [categories]);
+
   const filteredPopular = useMemo(() => {
     if (!searchTerm.trim()) {
-      return POPULAR_CATEGORIES;
+      return popularCategories;
     }
     const term = searchTerm.toLowerCase();
-    return POPULAR_CATEGORIES.filter((category) =>
-      category.label.toLowerCase().includes(term)
+    return popularCategories.filter((category) =>
+      category.name.toLowerCase().includes(term)
     );
-  }, [searchTerm]);
+  }, [popularCategories, searchTerm]);
 
   const filteredOther = useMemo(() => {
     if (!searchTerm.trim()) {
-      return OTHER_CATEGORIES;
+      return otherCategories;
     }
     const term = searchTerm.toLowerCase();
-    return OTHER_CATEGORIES.filter((category) =>
-      category.toLowerCase().includes(term)
+    return otherCategories.filter((category) =>
+      category.name.toLowerCase().includes(term)
     );
-  }, [searchTerm]);
+  }, [otherCategories, searchTerm]);
 
   const handleSearchChange = (value: string) => {
     dispatch(setSearchTerm(value));
   };
 
-  const handleSelectCategory = (category: string) => {
-    dispatch(setBusinessCategory(category));
-  };
+  const handleSelectCategory = useCallback(
+    (categoryId: number, categoryName: string) => {
+      dispatch(setBusinessCategory({ id: categoryId, name: categoryName }));
+    },
+    [dispatch]
+  );
+
+  const hasNoData = !categoriesLoading && !apiError && categories.length === 0;
 
   return (
     <View style={styles.container}>
-      <View style={styles.titleSec}>
-        <Text style={styles.title}>What&apos;s your business?</Text>
-        <Text style={styles.subtitle}>
-          Select the category that best represents your salon or service. This
-          helps customers find you.
-        </Text>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <FloatingInput
-          label="Search"
-          value={searchTerm}
-          onChangeText={handleSearchChange}
-          placeholder="Search"
-          placeholderTextColor={(colors as Theme).lightGreen2}
-          onClear={() => dispatch(setSearchTerm(""))}
-          containerStyle={{
-            borderRadius: moderateWidthScale(999),
-          }}
-          inputStyle={{
-            height: heightScale(18),
-          }}
-          renderLeftAccessory={() => (
-            <Feather
-              name="search"
-              size={moderateWidthScale(18)}
-              color={(colors as Theme).darkGreen}
-            />
-          )}
-        />
-      </View>
-
-      <View style={styles.categoriesContainer}>
-        <View style={[styles.lineSeparator, { top: 0 }]} />
-        <View style={styles.categoriesGrid}>
-          {filteredPopular.map((item) => {
-            const isSelected = businessCategory === item.label;
-            return (
-              <Pressable
-                key={item.id}
-                onPress={() => handleSelectCategory(item.label)}
-                style={styles.categoryCard}
-              >
-                <Image
-                  source={IMAGES.socialBackgroud}
-                  style={[
-                    styles.categoryImage,
-                    isSelected && styles.categoryCardSelected,
-                  ]}
-                  resizeMode="cover"
-                />
-                <View style={styles.categoryLabelContainer}>
-                  <Text style={styles.categoryLabel}>{item.label}</Text>
-                </View>
-              </Pressable>
-            );
-          })}
+      {categoriesLoading ? (
+        <Skeleton screenType="StepOne" />
+      ) : apiError ? (
+        <View style={styles.emptyStateContainer}>
+          <RetryButton onPress={fetchCategories} loading={categoriesLoading} />
         </View>
-        <View style={[styles.lineSeparator, { bottom: 0 }]} />
-      </View>
+      ) : hasNoData ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>Data not exist</Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.titleSec}>
+            <Text style={styles.title}>What&apos;s your business?</Text>
+            <Text style={styles.subtitle}>
+              Select the category that best represents your salon or service.
+              This helps customers find you.
+            </Text>
+          </View>
 
-      <View style={styles.otherCategoriesContainer}>
-        <Text style={styles.otherCategoriesTitle}>Other categories</Text>
-
-        {filteredOther.map((category, index) => {
-          const isSelected = businessCategory === category;
-          return (
-            <View key={category} style={styles.otherCategoryContainer}>
-              <Pressable
-                onPress={() => handleSelectCategory(category)}
-                style={[
-                  styles.otherCategoryRow,
-                  isSelected && {
-                    backgroundColor: (colors as Theme).lightBeige,
-                  },
-                ]}
-              >
-                <Text style={styles.otherCategoryLabel}>{category}</Text>
+          <View style={styles.searchContainer}>
+            <FloatingInput
+              label="Search"
+              value={searchTerm}
+              onChangeText={handleSearchChange}
+              placeholder="Search"
+              placeholderTextColor={(colors as Theme).lightGreen2}
+              onClear={() => dispatch(setSearchTerm(""))}
+              containerStyle={{
+                borderRadius: moderateWidthScale(999),
+              }}
+              inputStyle={{
+                height: heightScale(18),
+              }}
+              renderLeftAccessory={() => (
                 <Feather
-                  name="chevron-right"
+                  name="search"
                   size={moderateWidthScale(18)}
                   color={(colors as Theme).darkGreen}
                 />
-              </Pressable>
-              {index < filteredOther.length - 1 && (
-                <View style={styles.catSeparator} />
               )}
+            />
+          </View>
+
+          <View style={styles.categoriesContainer}>
+            <View style={[styles.lineSeparator, { top: 0 }]} />
+            <View style={styles.categoriesGrid}>
+              {filteredPopular.map((item) => {
+                const isSelected = businessCategory?.id === item.id;
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => handleSelectCategory(item.id, item.name)}
+                    style={styles.categoryCard}
+                  >
+                    <Image
+                      source={
+                        item.imageUrl
+                          ? { uri: item.imageUrl }
+                          : IMAGES.socialBackgroud
+                      }
+                      style={[
+                        styles.categoryImage,
+                        isSelected && styles.categoryCardSelected,
+                      ]}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.categoryLabelContainer}>
+                      <Text numberOfLines={2} style={styles.categoryLabel}>
+                        {item.name}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
-          );
-        })}
-      </View>
+            <View style={[styles.lineSeparator, { bottom: 0 }]} />
+          </View>
+
+          <View style={styles.otherCategoriesContainer}>
+            <Text style={styles.otherCategoriesTitle}>Other categories</Text>
+
+            {filteredOther.map((category, index) => {
+              const isSelected = businessCategory?.id === category.id;
+              return (
+                <View key={category.id} style={styles.otherCategoryContainer}>
+                  <Pressable
+                    onPress={() => handleSelectCategory(category.id, category.name)}
+                    style={[
+                      styles.otherCategoryRow,
+                      isSelected && {
+                        backgroundColor: (colors as Theme).lightBeige,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.otherCategoryLabel}>
+                      {category.name}
+                    </Text>
+                    <Feather
+                      name="chevron-right"
+                      size={moderateWidthScale(18)}
+                      color={(colors as Theme).darkGreen}
+                    />
+                  </Pressable>
+                  {index < filteredOther.length - 1 && (
+                    <View style={styles.catSeparator} />
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        </>
+      )}
     </View>
   );
 }

@@ -6,7 +6,10 @@ export interface CompleteProfileState {
   currentStep: number;
   totalSteps: number;
   searchTerm: string;
-  businessCategory: string | null;
+  businessCategory: {
+    id: number;
+    name: string;
+  } | null;
   businessName: string;
   fullName: string;
   countryCode: string;
@@ -66,6 +69,11 @@ export interface CompleteProfileState {
   photos: Array<{
     id: string;
     uri: string;
+  }>;
+  categories: Array<{
+    id: number;
+    name: string;
+    imageUrl: string | null;
   }>;
 }
 
@@ -158,6 +166,7 @@ const initialState: CompleteProfileState = {
   instagramUrl: "",
   facebookUrl: "",
   photos: [],
+  categories: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -277,7 +286,10 @@ const completeProfileSlice = createSlice({
     setSearchTerm: (state, action: PayloadAction<string>) => {
       state.searchTerm = action.payload;
     },
-    setBusinessCategory: (state, action: PayloadAction<string | null>) => {
+    setBusinessCategory: (
+      state,
+      action: PayloadAction<{ id: number; name: string } | null>
+    ) => {
       state.businessCategory = action.payload;
     },
     setBusinessName: (state, action: PayloadAction<string>) => {
@@ -605,6 +617,18 @@ const completeProfileSlice = createSlice({
     ) => {
       state.photos = action.payload;
     },
+    setCategories: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: number;
+          name: string;
+          imageUrl: string | null;
+        }>
+      >
+    ) => {
+      state.categories = action.payload;
+    },
   },
 });
 
@@ -649,6 +673,7 @@ export const {
   addPhoto,
   removePhoto,
   setPhotos,
+  setCategories,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;
