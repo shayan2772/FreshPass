@@ -6,7 +6,7 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -21,94 +21,6 @@ interface ServicePickerBottomSheetProps {
   selectedServiceIds: string[];
   onSelectServices: (serviceIds: string[]) => void;
 }
-
-// Popular starting points suggestions (same as Step 8)
-const POPULAR_SUGGESTIONS = [
-  {
-    id: "haircut-blowdry",
-    name: "Haircut & blowdry",
-    hours: 1,
-    minutes: 0,
-    price: 50,
-    currency: "USD",
-  },
-  {
-    id: "classic-manicure",
-    name: "Classic manicure",
-    hours: 0,
-    minutes: 45,
-    price: 35,
-    currency: "USD",
-  },
-  {
-    id: "60-min-massage",
-    name: "60-minute massage",
-    hours: 1,
-    minutes: 0,
-    price: 80,
-    currency: "USD",
-  },
-];
-
-// More suggestions for bottom sheet (same as Step 8)
-const MORE_SUGGESTIONS = [
-  {
-    id: "all-over",
-    name: "All over",
-    hours: 2,
-    minutes: 0,
-    price: 100,
-    currency: "USD",
-  },
-  {
-    id: "female-haircut",
-    name: "Female haircut",
-    hours: 1,
-    minutes: 5,
-    price: 60,
-    currency: "USD",
-  },
-  {
-    id: "deep-conditioning",
-    name: "Deep conditioning treatment",
-    hours: 0,
-    minutes: 45,
-    price: 75,
-    currency: "USD",
-  },
-  {
-    id: "hair-styling",
-    name: "Hair styling",
-    hours: 1,
-    minutes: 30,
-    price: 90,
-    currency: "USD",
-  },
-  {
-    id: "silk-press",
-    name: "Silk press",
-    hours: 2,
-    minutes: 0,
-    price: 120,
-    currency: "USD",
-  },
-  {
-    id: "full-highlights",
-    name: "Full highlights",
-    hours: 3,
-    minutes: 0,
-    price: 200,
-    currency: "USD",
-  },
-  {
-    id: "balayage",
-    name: "Balayage",
-    hours: 3,
-    minutes: 30,
-    price: 250,
-    currency: "USD",
-  },
-];
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -168,11 +80,14 @@ export default function ServicePickerBottomSheet({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
+  const { services } = useAppSelector((state) => state.completeProfile);
   const [localSelectedIds, setLocalSelectedIds] =
     useState<string[]>(selectedServiceIds);
 
-  // Always show all suggestions - independent of Step 8 selections
-  const availableServices = [...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS];
+  // Only use services selected in Step 8
+  const availableServices = useMemo(() => {
+    return services;
+  }, [services]);
 
   React.useEffect(() => {
     if (visible) {
@@ -181,44 +96,14 @@ export default function ServicePickerBottomSheet({
   }, [visible, selectedServiceIds]);
 
   const handleToggleService = (serviceId: string) => {
-    // Get all service IDs except "all-over"
-    const otherServiceIds = availableServices
-      .filter((s) => s.id !== "all-over")
-      .map((s) => s.id);
-
-    // Handle "all-over" service - select/deselect all
-    if (serviceId === "all-over") {
-      const isAllOverSelected = localSelectedIds.includes("all-over");
-      if (isAllOverSelected) {
-        // Unselect "all-over" and all other services
-        setLocalSelectedIds([]);
-      } else {
-        // Select "all-over" and all other services
-        setLocalSelectedIds(["all-over", ...otherServiceIds]);
-      }
+    // Handle service toggle
+    const isSelected = localSelectedIds.includes(serviceId);
+    if (isSelected) {
+      // Remove this service
+      setLocalSelectedIds(localSelectedIds.filter((id) => id !== serviceId));
     } else {
-      // Handle regular service toggle
-      const isSelected = localSelectedIds.includes(serviceId);
-      let newSelectedIds: string[];
-
-      if (isSelected) {
-        // Remove this service and "all-over" if it was selected
-        newSelectedIds = localSelectedIds.filter(
-          (id) => id !== serviceId && id !== "all-over"
-        );
-      } else {
-        // Add this service
-        newSelectedIds = [...localSelectedIds, serviceId];
-        // Check if all other services are now selected, then also select "all-over"
-        const allOtherSelected = otherServiceIds.every((id) =>
-          newSelectedIds.includes(id)
-        );
-        if (allOtherSelected && availableServices.find((s) => s.id === "all-over")) {
-          newSelectedIds.push("all-over");
-        }
-      }
-
-      setLocalSelectedIds(newSelectedIds);
+      // Add this service
+      setLocalSelectedIds([...localSelectedIds, serviceId]);
     }
   };
 
@@ -266,21 +151,9 @@ export default function ServicePickerBottomSheet({
       footerButtonTitle="Select"
       onFooterButtonPress={handleSelect}
     >
-      {/* All over service at the top */}
-      {(() => {
-        const allOverService = availableServices.find((s) => s.id === "all-over");
-        if (!allOverService) return null;
-        return renderServiceItem(allOverService, false);
-      })()}
-
-      {/* Separator line */}
-      <View style={styles.separator} />
-
-      {/* Popular starting points section */}
-      <Text style={styles.sectionTitle}>Popular starting points:</Text>
-      {availableServices
-        .filter((service) => service.id !== "all-over")
-        .map((service) => renderServiceItem(service))}
+      {/* Services selected in Step 8 */}
+      <Text style={styles.sectionTitle}>Select services:</Text>
+      {availableServices.map((service) => renderServiceItem(service))}
     </ModalizeBottomSheet>
   );
 }

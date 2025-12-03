@@ -76,6 +76,17 @@ export interface CompleteProfileState {
     name: string;
     imageUrl: string | null;
   }>;
+  serviceTemplates: Array<{
+    id: number;
+    name: string;
+    category_id: number;
+    category: string;
+    base_price: number;
+    duration_hours: number;
+    duration_minutes: number;
+    active: boolean;
+    createdAt: string;
+  }>;
 }
 
 const initialState: CompleteProfileState = {
@@ -169,6 +180,7 @@ const initialState: CompleteProfileState = {
   facebookUrl: "",
   photos: [],
   categories: [],
+  serviceTemplates: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -641,6 +653,24 @@ const completeProfileSlice = createSlice({
     ) => {
       state.categories = action.payload;
     },
+    setServiceTemplates: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: number;
+          name: string;
+          category_id: number;
+          category: string;
+          base_price: number;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          createdAt: string;
+        }>
+      >
+    ) => {
+      state.serviceTemplates = action.payload;
+    },
   },
 });
 
@@ -687,6 +717,7 @@ export const {
   removePhoto,
   setPhotos,
   setCategories,
+  setServiceTemplates,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

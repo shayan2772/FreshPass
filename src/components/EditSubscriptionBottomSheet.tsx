@@ -429,35 +429,7 @@ export default function EditSubscriptionBottomSheet({
             // First try to find in Redux services
             let service = services.find((s) => s.id === serviceId);
 
-            // If not found in Redux, check suggestions
-            if (!service) {
-              const allSuggestions = [
-                { id: "haircut-blowdry", name: "Haircut & blowdry" },
-                { id: "classic-manicure", name: "Classic manicure" },
-                { id: "60-min-massage", name: "60-minute massage" },
-                { id: "all-over", name: "All over" },
-                { id: "female-haircut", name: "Female haircut" },
-                {
-                  id: "deep-conditioning",
-                  name: "Deep conditioning treatment",
-                },
-                { id: "hair-styling", name: "Hair styling" },
-                { id: "silk-press", name: "Silk press" },
-                { id: "full-highlights", name: "Full highlights" },
-                { id: "balayage", name: "Balayage" },
-              ];
-              const suggestion = allSuggestions.find((s) => s.id === serviceId);
-              if (suggestion) {
-                service = {
-                  id: suggestion.id,
-                  name: suggestion.name,
-                  hours: 0,
-                  minutes: 0,
-                  price: 0,
-                  currency: "USD",
-                };
-              }
-            }
+            // Only use services selected in Step 8
 
             if (!service) return null;
             return (

@@ -56,13 +56,40 @@ const createSkeletonStyles = (theme: Theme) =>
       width: moderateWidthScale(18),
       borderRadius: moderateWidthScale(9),
     },
+    emptyStateSkeleton: {
+      height: moderateHeightScale(20),
+      width: "60%",
+      borderRadius: moderateWidthScale(4),
+      alignSelf: "center",
+    },
+    serviceCardSkeleton: {
+      height: moderateHeightScale(60),
+      borderRadius: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(12),
+    },
+    popularTitleSkeleton: {
+      height: moderateHeightScale(20),
+      width: "50%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(12),
+    },
+    suggestionItemSkeleton: {
+      height: moderateHeightScale(50),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(8),
+    },
+    viewMoreButtonSkeleton: {
+      height: moderateHeightScale(44),
+      borderRadius: moderateWidthScale(12),
+      marginTop: moderateHeightScale(12),
+    },
   });
 
 export const Skeleton = ({
   screenType,
   styles,
 }: {
-  screenType: "" | "StepOne";
+  screenType: "" | "StepOne" | "StepEight";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -110,9 +137,32 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const stepEightSkeleton = styles ? (
+    <>
+      <View style={styles.titleSec}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={skeletonStyles.subtitleSkeleton} />
+      </View>
+
+      <View style={styles.emptyState}>
+        <View style={skeletonStyles.emptyStateSkeleton} />
+      </View>
+
+      <View style={styles.popularSection}>
+        <View style={skeletonStyles.popularTitleSkeleton} />
+        {[...Array(3)].map((_, index) => (
+          <View key={index} style={skeletonStyles.suggestionItemSkeleton} />
+        ))}
+      </View>
+
+      <View style={skeletonStyles.viewMoreButtonSkeleton} />
+    </>
+  ) : null;
+
   return (
     <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
       {screenType === "StepOne" && stepOneSkeleton}
+      {screenType === "StepEight" && stepEightSkeleton}
     </SkeletonPlaceholder>
   );
 };

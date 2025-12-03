@@ -1,10 +1,5 @@
-import React, { useMemo, useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import React, { useMemo, useState, useEffect } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -16,97 +11,15 @@ import {
 import {
   addService,
   removeService,
+  setServiceTemplates,
 } from "@/src/state/slices/completeProfileSlice";
 import ServiceListBottomSheet from "@/src/components/ServiceListBottomSheet";
 import EditServiceBottomSheet from "@/src/components/EditServiceBottomSheet";
-
-// Popular starting points suggestions
-const POPULAR_SUGGESTIONS = [
-  {
-    id: "haircut-blowdry",
-    name: "Haircut & blowdry",
-    hours: 1,
-    minutes: 0,
-    price: 50,
-    currency: "USD",
-  },
-  {
-    id: "classic-manicure",
-    name: "Classic manicure",
-    hours: 0,
-    minutes: 45,
-    price: 35,
-    currency: "USD",
-  },
-  {
-    id: "60-min-massage",
-    name: "60-minute massage",
-    hours: 1,
-    minutes: 0,
-    price: 80,
-    currency: "USD",
-  },
-];
-
-// More suggestions for bottom sheet
-const MORE_SUGGESTIONS = [
-  {
-    id: "all-over",
-    name: "All over",
-    hours: 2,
-    minutes: 0,
-    price: 100,
-    currency: "USD",
-  },
-  {
-    id: "female-haircut",
-    name: "Female haircut",
-    hours: 1,
-    minutes: 5,
-    price: 60,
-    currency: "USD",
-  },
-  {
-    id: "deep-conditioning",
-    name: "Deep conditioning treatment",
-    hours: 0,
-    minutes: 45,
-    price: 75,
-    currency: "USD",
-  },
-  {
-    id: "hair-styling",
-    name: "Hair styling",
-    hours: 1,
-    minutes: 30,
-    price: 90,
-    currency: "USD",
-  },
-  {
-    id: "silk-press",
-    name: "Silk press",
-    hours: 2,
-    minutes: 0,
-    price: 120,
-    currency: "USD",
-  },
-  {
-    id: "full-highlights",
-    name: "Full highlights",
-    hours: 3,
-    minutes: 0,
-    price: 200,
-    currency: "USD",
-  },
-  {
-    id: "balayage",
-    name: "Balayage",
-    hours: 3,
-    minutes: 30,
-    price: 250,
-    currency: "USD",
-  },
-];
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { Skeleton } from "@/src/components/skeletons";
+import RetryButton from "@/src/components/retryButton";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 const formatDuration = (hours: number, minutes: number): string => {
   if (hours > 0 && minutes > 0) {
@@ -153,6 +66,12 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen4,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(20),
     },
     popularSection: {
       // gap: moderateHeightScale(12),
@@ -275,14 +194,104 @@ export default function StepEight() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { services } = useAppSelector((state) => state.completeProfile);
+  const { showBanner } = useNotificationContext();
+  const { services, businessCategory, serviceTemplates } = useAppSelector(
+    (state) => state.completeProfile
+  );
   const [serviceListVisible, setServiceListVisible] = useState(false);
   const [editServiceVisible, setEditServiceVisible] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
+  const [serviceTemplatesLoading, setServiceTemplatesLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
 
-  const handleSelectSuggestion = (
-    suggestion: (typeof POPULAR_SUGGESTIONS)[0]
-  ) => {
+  useEffect(() => {
+    if (businessCategory?.id) {
+      fetchServiceTemplates();
+    } else {
+      setServiceTemplatesLoading(false);
+    }
+  }, [businessCategory?.id]);
+
+  const fetchServiceTemplates = async () => {
+    if (!businessCategory?.id) return;
+
+    try {
+      setServiceTemplatesLoading(true);
+      setApiError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          category_id: number;
+          category: string;
+          base_price: number;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.serviceTemplates(businessCategory.id));
+
+      if (response.success && response.data) {
+        dispatch(setServiceTemplates(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch service templates:", error);
+      setApiError(true);
+      showBanner(
+        "API Failed",
+        "API failed to fetch service templates",
+        "error",
+        2500
+      );
+    } finally {
+      setServiceTemplatesLoading(false);
+    }
+  };
+
+  // Convert API service template to Redux service format
+  const convertTemplateToService = (template: {
+    id: number;
+    name: string;
+    base_price: number;
+    duration_hours: number;
+    duration_minutes: number;
+  }) => {
+    return {
+      id: template.id.toString(),
+      name: template.name,
+      hours: template.duration_hours,
+      minutes: template.duration_minutes,
+      price: template.base_price,
+      currency: "USD",
+    };
+  };
+
+  // Get popular suggestions (first 3 active templates)
+  const popularSuggestions = useMemo(() => {
+    return serviceTemplates
+      .filter((template) => template.active)
+      .slice(0, 3)
+      .map(convertTemplateToService);
+  }, [serviceTemplates]);
+
+  // Get all suggestions (all active templates)
+  const allSuggestions = useMemo(() => {
+    return serviceTemplates
+      .filter((template) => template.active)
+      .map(convertTemplateToService);
+  }, [serviceTemplates]);
+
+  const handleSelectSuggestion = (suggestion: {
+    id: string;
+    name: string;
+    hours: number;
+    minutes: number;
+    price: number;
+    currency: string;
+  }) => {
     const isSelected = services.some((s) => s.id === suggestion.id);
     if (isSelected) {
       dispatch(removeService(suggestion.id));
@@ -309,109 +318,137 @@ export default function StepEight() {
     dispatch(removeService(serviceId));
   };
 
+  const hasNoData =
+    !serviceTemplatesLoading && !apiError && serviceTemplates.length === 0;
+
   return (
     <View style={styles.container}>
-      <View style={styles.titleSec}>
-        <Text style={styles.title}>Let's add your first service</Text>
-        <Text style={styles.subtitle}>
-          This is how clients will book and pay for your work. You can always
-          add more later.
-        </Text>
-      </View>
-
-      {services.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>
-            You haven't added any service yet
-          </Text>
+      {serviceTemplatesLoading ? (
+        <Skeleton screenType="StepEight" styles={styles} />
+      ) : apiError ? (
+        <View style={styles.emptyStateContainer}>
+          <RetryButton
+            onPress={fetchServiceTemplates}
+            loading={serviceTemplatesLoading}
+          />
+        </View>
+      ) : hasNoData ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>Data not exist</Text>
         </View>
       ) : (
-        <View style={styles.servicesList}>
-          {services.map((service, index) => (
-            <React.Fragment key={service.id}>
-              <View style={styles.serviceCard}>
-                <TouchableOpacity
-                  onPress={() => handleDeleteService(service.id)}
-                  style={styles.deleteButton}
-                >
-                  <MaterialIcons
-                    name="delete-outline"
-                    size={moderateWidthScale(19)}
-                    color={theme.red}
-                  />
-                </TouchableOpacity>
-                <View style={styles.serviceInfo}>
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceDetails}>
-                    {formatDuration(service.hours, service.minutes)}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  onPress={() => handleEditService(service.id)}
-                  style={styles.editButton}
-                >
-                  <Text style={styles.servicePrice}>
-                    {formatPrice(service.price, service.currency)} {"  >"}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-              {index < services.length - 1 && (
-                <View style={styles.serviceSeparator} />
-              )}
-            </React.Fragment>
-          ))}
-        </View>
-      )}
-
-      {(() => {
-        // Filter out selected services from popular suggestions
-        const unselectedSuggestions = POPULAR_SUGGESTIONS.filter(
-          (s) => !services.some((service) => service.id === s.id)
-        );
-
-        if (unselectedSuggestions.length === 0) return null;
-
-        return (
-          <View style={styles.popularSection}>
-            <Text style={styles.popularTitle}>Popular starting points:</Text>
-            {unselectedSuggestions.map((suggestion) => {
-              return (
-                <View key={suggestion.id}>
-                  <TouchableOpacity
-                    onPress={() => handleSelectSuggestion(suggestion)}
-                    activeOpacity={0.7}
-                    style={styles.suggestionItem}
-                  >
-                    <Text style={styles.suggestionText}>{suggestion.name}</Text>
-                    <View style={styles.selectButton}>
-                      <Text style={styles.selectButtonText}>Select</Text>
-                    </View>
-                  </TouchableOpacity>
-                  <View style={styles.suggestionSeparator} />
-                </View>
-              );
-            })}
+        <>
+          <View style={styles.titleSec}>
+            <Text style={styles.title}>Let's add your first service</Text>
+            <Text style={styles.subtitle}>
+              This is how clients will book and pay for your work. You can
+              always add more later.
+            </Text>
           </View>
-        );
-      })()}
 
-      <TouchableOpacity style={styles.viewMoreButton} onPress={handleViewMore}>
-        <Text style={styles.viewMoreButtonText}>+ View more suggestion</Text>
-      </TouchableOpacity>
+          {services.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyStateText}>
+                You haven't added any service yet against the category {businessCategory?.name}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.servicesList}>
+              {services.map((service, index) => (
+                <React.Fragment key={service.id}>
+                  <View style={styles.serviceCard}>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteService(service.id)}
+                      style={styles.deleteButton}
+                    >
+                      <MaterialIcons
+                        name="delete-outline"
+                        size={moderateWidthScale(19)}
+                        color={theme.red}
+                      />
+                    </TouchableOpacity>
+                    <View style={styles.serviceInfo}>
+                      <Text style={styles.serviceName}>{service.name}</Text>
+                      <Text style={styles.serviceDetails}>
+                        {formatDuration(service.hours, service.minutes)}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() => handleEditService(service.id)}
+                      style={styles.editButton}
+                    >
+                      <Text style={styles.servicePrice}>
+                        {formatPrice(service.price, service.currency)} {"  >"}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {index < services.length - 1 && (
+                    <View style={styles.serviceSeparator} />
+                  )}
+                </React.Fragment>
+              ))}
+            </View>
+          )}
 
-      <ServiceListBottomSheet
-        visible={serviceListVisible}
-        onClose={() => setServiceListVisible(false)}
-        suggestions={[...POPULAR_SUGGESTIONS, ...MORE_SUGGESTIONS]}
-        selectedServiceIds={services.map((s) => s.id)}
-      />
+          {(() => {
+            // Filter out selected services from popular suggestions
+            const unselectedSuggestions = popularSuggestions.filter(
+              (s) => !services.some((service) => service.id === s.id)
+            );
 
-      <EditServiceBottomSheet
-        visible={editServiceVisible}
-        onClose={handleCloseEditService}
-        serviceId={editingServiceId}
-      />
+            if (unselectedSuggestions.length === 0) return null;
+
+            return (
+              <View style={styles.popularSection}>
+                <Text style={styles.popularTitle}>
+                  Popular starting points:
+                </Text>
+                {unselectedSuggestions.map((suggestion) => {
+                  return (
+                    <View key={suggestion.id}>
+                      <TouchableOpacity
+                        onPress={() => handleSelectSuggestion(suggestion)}
+                        activeOpacity={0.7}
+                        style={styles.suggestionItem}
+                      >
+                        <Text style={styles.suggestionText}>
+                          {suggestion.name}
+                        </Text>
+                        <View style={styles.selectButton}>
+                          <Text style={styles.selectButtonText}>Select</Text>
+                        </View>
+                      </TouchableOpacity>
+                      <View style={styles.suggestionSeparator} />
+                    </View>
+                  );
+                })}
+              </View>
+            );
+          })()}
+
+          <TouchableOpacity
+            style={styles.viewMoreButton}
+            onPress={handleViewMore}
+          >
+            <Text style={styles.viewMoreButtonText}>
+              + View more suggestion
+            </Text>
+          </TouchableOpacity>
+
+          <ServiceListBottomSheet
+            visible={serviceListVisible}
+            onClose={() => setServiceListVisible(false)}
+            suggestions={allSuggestions}
+            selectedServiceIds={services.map((s) => s.id)}
+          />
+
+          <EditServiceBottomSheet
+            visible={editServiceVisible}
+            onClose={handleCloseEditService}
+            serviceId={editingServiceId}
+          />
+        </>
+      )}
     </View>
   );
 }
-

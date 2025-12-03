@@ -27,4 +27,5 @@ export const businessEndpoints = {
   login: `/api/login`,
   categories: `/api/categories`,
   onboarding: `/api/business/onboarding`,
+  serviceTemplates: (categoryId: number) => `/api/service-templates?category_id=${categoryId}`,
 };

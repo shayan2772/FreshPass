@@ -104,7 +104,6 @@ export default function CompleteProfile() {
   // Build request body based on current step
   const buildRequestBody = () => {
     let body = {};
-
     // Always include step
     body = {
       step: currentStep.toString(),
@@ -151,7 +150,7 @@ export default function CompleteProfile() {
       // Transform businessHours to API format
       const businessHoursArray = Object.keys(businessHours).map((day) => {
         const dayData = businessHours[day];
-        
+
         // Transform breaks array
         const breakHours = (dayData.breaks || []).map((breakTime) => ({
           start: formatTimeToHHMM(breakTime.fromHours, breakTime.fromMinutes),
@@ -161,13 +160,32 @@ export default function CompleteProfile() {
         return {
           day: getDayApiFormat(day),
           closed: !dayData.isOpen,
-          opening_time: formatTimeToHHMM(dayData.fromHours, dayData.fromMinutes),
-          closing_time: formatTimeToHHMM(dayData.tillHours, dayData.tillMinutes),
+          opening_time: formatTimeToHHMM(
+            dayData.fromHours,
+            dayData.fromMinutes
+          ),
+          closing_time: formatTimeToHHMM(
+            dayData.tillHours,
+            dayData.tillMinutes
+          ),
           break_hours: breakHours,
         };
       });
 
       body = { ...body, business_hours: businessHoursArray };
+    }
+
+    if (currentStep === 8) {
+      // Transform services to API format
+      const servicesArray = services.map((service) => ({
+        template_id: parseInt(service.id),
+        price: service.price,
+        description: service.name,
+        duration_hours: service.hours,
+        duration_minutes: service.minutes,
+      }));
+
+      body = { ...body, services: servicesArray };
     }
 
     return body;
@@ -186,6 +204,11 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 6) {
+      dispatch(goToNextStep());
+      return;
+    }
+
+    if (currentStep === 8 && services.length === 0) {
       dispatch(goToNextStep());
       return;
     }

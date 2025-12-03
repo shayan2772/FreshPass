@@ -50,39 +50,7 @@ const POPULAR_SUGGESTIONS = [
   },
 ];
 
-// More suggestions for bottom sheet
-const MORE_SUGGESTIONS = [
-  {
-    id: "premium-package",
-    packageName: "Premium Package",
-    servicesPerMonth: 5,
-    price: 299.99,
-    currency: "USD",
-    serviceIds: ["premium-haircut-5", "styling-service-5"],
-  },
-  {
-    id: "basic-package",
-    packageName: "Basic Package",
-    servicesPerMonth: 1,
-    price: 49.99,
-    currency: "USD",
-    serviceIds: ["premium-haircut-6", "styling-service-6"],
-  },
-];
-
-// Service suggestions (for displaying service names)
-const SERVICE_SUGGESTIONS = [
-  { id: "haircut-blowdry", name: "Haircut & blowdry" },
-  { id: "classic-manicure", name: "Classic manicure" },
-  { id: "60-min-massage", name: "60-minute massage" },
-  { id: "all-over", name: "All over" },
-  { id: "female-haircut", name: "Female haircut" },
-  { id: "deep-conditioning", name: "Deep conditioning treatment" },
-  { id: "hair-styling", name: "Hair styling" },
-  { id: "silk-press", name: "Silk press" },
-  { id: "full-highlights", name: "Full highlights" },
-  { id: "balayage", name: "Balayage" },
-];
+ 
 
 const formatPrice = (price: number, currency: string): string => {
   return `$${price.toFixed(2)} ${currency}`;
@@ -307,13 +275,9 @@ export default function StepNine() {
   const getServiceNames = (serviceIds: string[]): string[] => {
     return serviceIds
       .map((id) => {
-        // First try to find in Redux services
+        // Only use services selected in Step 8
         const service = services.find((s) => s.id === id);
-        if (service) return service.name;
-
-        // If not found, check service suggestions
-        const suggestion = SERVICE_SUGGESTIONS.find((s) => s.id === id);
-        return suggestion?.name;
+        return service?.name;
       })
       .filter(Boolean) as string[];
   };
