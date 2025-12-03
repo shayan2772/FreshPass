@@ -22,7 +22,7 @@ import { Skeleton } from "@/src/components/skeletons";
 import RetryButton from "@/src/components/retryButton";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
-const createStyles = (theme: Theme) =>
+export const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -223,7 +223,7 @@ export default function StepOne() {
   return (
     <View style={styles.container}>
       {categoriesLoading ? (
-        <Skeleton screenType="StepOne" />
+        <Skeleton screenType="StepOne" styles={styles} />
       ) : apiError ? (
         <View style={styles.emptyStateContainer}>
           <RetryButton onPress={fetchCategories} loading={categoriesLoading} />

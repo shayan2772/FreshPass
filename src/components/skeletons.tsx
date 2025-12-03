@@ -9,167 +9,106 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 
-const createStyles = (theme: Theme) => StyleSheet.create({});
+const createSkeletonStyles = (theme: Theme) =>
+  StyleSheet.create({
+    titleSkeleton: {
+      height: moderateHeightScale(28),
+      width: "60%",
+      borderRadius: moderateWidthScale(4),
+    },
+    subtitleSkeleton: {
+      height: moderateHeightScale(18),
+      width: "90%",
+      borderRadius: moderateWidthScale(4),
+      marginTop: moderateHeightScale(5),
+    },
+    searchSkeleton: {
+      height: heightScale(18),
+      borderRadius: moderateWidthScale(999),
+    },
+    categoryImageSkeleton: {
+      width: "100%",
+      height: heightScale(90),
+      borderRadius: moderateWidthScale(12),
+    },
+    categoryLabelSkeleton: {
+      marginTop: moderateHeightScale(5),
+      height: moderateHeightScale(16),
+      width: "80%",
+      alignSelf: "center",
+      borderRadius: moderateWidthScale(4),
+    },
+    otherCategoriesTitleSkeleton: {
+      height: moderateHeightScale(20),
+      width: "40%",
+      borderRadius: moderateWidthScale(4),
+    },
+    otherCategoryItem: {
+      gap: moderateHeightScale(12),
+    },
+    otherCategoryLabelSkeleton: {
+      height: moderateHeightScale(20),
+      width: "70%",
+      borderRadius: moderateWidthScale(4),
+    },
+    otherCategoryIconSkeleton: {
+      height: moderateWidthScale(18),
+      width: moderateWidthScale(18),
+      borderRadius: moderateWidthScale(9),
+    },
+  });
 
-export const Skeleton = ({ screenType }: { screenType: "" | "StepOne" }) => {
+export const Skeleton = ({
+  screenType,
+  styles,
+}: {
+  screenType: "" | "StepOne";
+  styles?: Record<string, any>;
+}) => {
   const { colors } = useTheme();
- 
-  const stepOneSkeleton = (
+  const skeletonStyles = useMemo(
+    () => createSkeletonStyles(colors as Theme),
+    [colors]
+  );
+
+  const stepOneSkeleton = styles ? (
     <>
-      <View
-        style={{
-          marginTop: moderateHeightScale(8),
-          gap: moderateHeightScale(5),
-          paddingHorizontal: moderateWidthScale(20),
-        }}
-      >
-        <View
-          style={{
-            height: moderateHeightScale(28),
-            width: "60%",
-            borderRadius: moderateWidthScale(4),
-          }}
-        />
-        <View
-          style={{
-            height: moderateHeightScale(18),
-            width: "90%",
-            borderRadius: moderateWidthScale(4),
-            marginTop: moderateHeightScale(5),
-          }}
-        />
+      <View style={styles.titleSec}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={skeletonStyles.subtitleSkeleton} />
       </View>
 
-      <View
-        style={{
-          marginTop: moderateHeightScale(5),
-          marginHorizontal: moderateWidthScale(20),
-          height: heightScale(18),
-          borderRadius: moderateWidthScale(999),
-        }}
-      />
+      <View style={styles.searchContainer}>
+        <View style={skeletonStyles.searchSkeleton} />
+      </View>
 
-      <View
-        style={{
-          paddingVertical: moderateHeightScale(20),
-          marginTop: moderateHeightScale(5),
-        }}
-      >
-        <View
-          style={{
-            width: "100%",
-            height: 1,
-            backgroundColor: (colors as Theme).borderLight,
-            position: "absolute",
-            top: 0,
-          }}
-        />
-        <View
-          style={{
-            flexDirection: "row",
-            flexWrap: "wrap",
-            alignItems: "center",
-            rowGap: moderateHeightScale(12),
-            paddingHorizontal: moderateWidthScale(20),
-            gap: "5%",
-          }}
-        >
+      <View style={styles.categoriesContainer}>
+        <View style={[styles.lineSeparator, { top: 0 }]} />
+        <View style={styles.categoriesGrid}>
           {[...Array(6)].map((_, index) => (
-            <View
-              key={index}
-              style={{
-                width: "30%",
-                height: heightScale(115),
-              }}
-            >
-              <View
-                style={{
-                  width: "100%",
-                  height: heightScale(90),
-                  borderRadius: moderateWidthScale(12),
-                }}
-              />
-              <View
-                style={{
-                  marginTop: moderateHeightScale(5),
-                  height: moderateHeightScale(16),
-                  width: "80%",
-                  alignSelf: "center",
-                  borderRadius: moderateWidthScale(4),
-                }}
-              />
+            <View key={index} style={styles.categoryCard}>
+              <View style={skeletonStyles.categoryImageSkeleton} />
+              <View style={skeletonStyles.categoryLabelSkeleton} />
             </View>
           ))}
         </View>
-        <View
-          style={{
-            width: "100%",
-            height: 1,
-            backgroundColor: (colors as Theme).borderLight,
-            marginTop: moderateHeightScale(20),
-          }}
-        />
+        <View style={[styles.lineSeparator, { bottom: 0 }]} />
       </View>
 
-      <View
-        style={{
-          gap: moderateHeightScale(15),
-          paddingHorizontal: moderateWidthScale(20),
-          marginTop: moderateHeightScale(10),
-        }}
-      >
-        <View
-          style={{
-            height: moderateHeightScale(20),
-            width: "40%",
-            borderRadius: moderateWidthScale(4),
-          }}
-        />
-        <View
-          style={{
-            gap: moderateHeightScale(15),
-            paddingHorizontal: moderateWidthScale(20),
-          }}
-        >
-          {[...Array(8)].map((_, index) => (
-            <View key={index} style={{ gap: moderateHeightScale(12) }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                }}
-              >
-                <View
-                  style={{
-                    height: moderateHeightScale(20),
-                    width: "70%",
-                    borderRadius: moderateWidthScale(4),
-                  }}
-                />
-                <View
-                  style={{
-                    height: moderateWidthScale(18),
-                    width: moderateWidthScale(18),
-                    borderRadius: moderateWidthScale(9),
-                  }}
-                />
-              </View>
-              {index < 7 && (
-                <View
-                  style={{
-                    width: "100%",
-                    height: 1,
-                    backgroundColor: (colors as Theme).borderLight,
-                  }}
-                />
-              )}
+      <View style={styles.otherCategoriesContainer}>
+        <View style={skeletonStyles.otherCategoriesTitleSkeleton} />
+        {[...Array(8)].map((_, index) => (
+          <View key={index} style={skeletonStyles.otherCategoryItem}>
+            <View style={styles.otherCategoryRow}>
+              <View style={skeletonStyles.otherCategoryLabelSkeleton} />
+              <View style={skeletonStyles.otherCategoryIconSkeleton} />
             </View>
-          ))}
-        </View>
+            {index < 7 && <View style={styles.catSeparator} />}
+          </View>
+        ))}
       </View>
     </>
-  );
+  ) : null;
 
   return (
     <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">

@@ -79,8 +79,8 @@ export interface CompleteProfileState {
 }
 
 const initialState: CompleteProfileState = {
-  // currentStep: 1,
-  currentStep: 7,
+  currentStep: 1,
+  // currentStep: 7,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
