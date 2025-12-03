@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -19,7 +19,7 @@ import {
   setDayAvailability,
 } from "@/src/state/slices/completeProfileSlice";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
-import TimePickerModal from "@/src/components/timePickerModal";
+import PickerDropdown from "@/src/components/PickerDropdown";
 
 interface BusinessHoursBottomSheetProps {
   visible: boolean;
@@ -262,6 +262,12 @@ export default function BusinessHoursBottomSheet({
   >(null);
   const [openingHoursError, setOpeningHoursError] = useState<string | null>(null);
   const [breakTimeError, setBreakTimeError] = useState<string | null>(null);
+
+  // Refs for dropdown positioning
+  const fromButtonRef = useRef<View>(null);
+  const tillButtonRef = useRef<View>(null);
+  const breakFromButtonRefs = useRef<{ [key: number]: View | null }>({});
+  const breakTillButtonRefs = useRef<{ [key: number]: View | null }>({});
 
   useEffect(() => {
     if (visible && day) {
@@ -589,6 +595,7 @@ export default function BusinessHoursBottomSheet({
               <View style={styles.inputWrapper}>
                 <Text style={styles.inputLabel}>From</Text>
                 <TouchableOpacity
+                  ref={fromButtonRef}
                   style={styles.dropdownButton}
                   onPress={() => setShowFromDropdown(true)}
                 >
@@ -609,6 +616,7 @@ export default function BusinessHoursBottomSheet({
               <View style={styles.inputWrapper}>
                 <Text style={styles.inputLabel}>Till</Text>
                 <TouchableOpacity
+                  ref={tillButtonRef}
                   style={styles.dropdownButton}
                   onPress={() => setShowTillDropdown(true)}
                 >
@@ -653,6 +661,11 @@ export default function BusinessHoursBottomSheet({
                 <View style={styles.inputWrapper}>
                   <Text style={styles.inputLabel}>From</Text>
                   <TouchableOpacity
+                    ref={(ref) => {
+                      if (ref) {
+                        breakFromButtonRefs.current[index] = ref;
+                      }
+                    }}
                     style={styles.dropdownButton}
                     onPress={() => setShowBreakFromDropdown(index)}
                   >
@@ -673,6 +686,11 @@ export default function BusinessHoursBottomSheet({
                 <View style={styles.inputWrapper}>
                   <Text style={styles.inputLabel}>Till</Text>
                   <TouchableOpacity
+                    ref={(ref) => {
+                      if (ref) {
+                        breakTillButtonRefs.current[index] = ref;
+                      }
+                    }}
                     style={styles.dropdownButton}
                     onPress={() => setShowBreakTillDropdown(index)}
                   >
@@ -787,44 +805,52 @@ export default function BusinessHoursBottomSheet({
           </View>
       </ModalizeBottomSheet>
 
-      <TimePickerModal
+      <PickerDropdown
         visible={showFromDropdown}
         currentHours={fromHours}
         currentMinutes={fromMinutes}
         onSelect={(hours, minutes) => handleTimeSelect(hours, minutes, "from")}
         onClose={() => setShowFromDropdown(false)}
+        buttonRef={fromButtonRef}
       />
 
-      <TimePickerModal
+      <PickerDropdown
         visible={showTillDropdown}
         currentHours={tillHours}
         currentMinutes={tillMinutes}
         onSelect={(hours, minutes) => handleTimeSelect(hours, minutes, "till")}
         onClose={() => setShowTillDropdown(false)}
+        buttonRef={tillButtonRef}
       />
 
-      {breaks.map((breakTime, index) => (
-        <React.Fragment key={index}>
-          <TimePickerModal
-            visible={showBreakFromDropdown === index}
-            currentHours={breakTime.fromHours}
-            currentMinutes={breakTime.fromMinutes}
-            onSelect={(hours, minutes) =>
-              handleTimeSelect(hours, minutes, "breakFrom", index)
-            }
-            onClose={() => setShowBreakFromDropdown(null)}
-          />
-          <TimePickerModal
-            visible={showBreakTillDropdown === index}
-            currentHours={breakTime.tillHours}
-            currentMinutes={breakTime.tillMinutes}
-            onSelect={(hours, minutes) =>
-              handleTimeSelect(hours, minutes, "breakTill", index)
-            }
-            onClose={() => setShowBreakTillDropdown(null)}
-          />
-        </React.Fragment>
-      ))}
+      {breaks.map((breakTime, index) => {
+        const breakFromRef = breakFromButtonRefs.current[index];
+        const breakTillRef = breakTillButtonRefs.current[index];
+        return (
+          <React.Fragment key={index}>
+            <PickerDropdown
+              visible={showBreakFromDropdown === index}
+              currentHours={breakTime.fromHours}
+              currentMinutes={breakTime.fromMinutes}
+              onSelect={(hours, minutes) =>
+                handleTimeSelect(hours, minutes, "breakFrom", index)
+              }
+              onClose={() => setShowBreakFromDropdown(null)}
+              buttonRef={breakFromRef ? { current: breakFromRef } : undefined}
+            />
+            <PickerDropdown
+              visible={showBreakTillDropdown === index}
+              currentHours={breakTime.tillHours}
+              currentMinutes={breakTime.tillMinutes}
+              onSelect={(hours, minutes) =>
+                handleTimeSelect(hours, minutes, "breakTill", index)
+              }
+              onClose={() => setShowBreakTillDropdown(null)}
+              buttonRef={breakTillRef ? { current: breakTillRef } : undefined}
+            />
+          </React.Fragment>
+        );
+      })}
     </>
   );
 }
