@@ -40,6 +40,7 @@ export type GoogleGeocodeResponse = {
 export interface ParsedAddress {
   street: string;
   areaName: string;
+  state: string;
   postal: string;
 }
 
@@ -48,6 +49,7 @@ export interface ResolvedLocationDetails {
   coordinates: Coordinates;
   street?: string;
   area?: string;
+  state?: string;
   postal?: string;
   formattedAddress?: string;
   notice?: string | null;

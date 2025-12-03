@@ -12,9 +12,11 @@ import FloatingInput from "@/src/components/floatingInput";
 interface StepFourConfirmSectionProps {
   streetAddress: string;
   area: string;
+  state: string;
   zipCode: string;
   onChangeStreet: (value: string) => void;
   onChangeArea: (value: string) => void;
+  onChangeState: (value: string) => void;
   onChangeZip: (value: string) => void;
   onEditAddress: () => void;
   isFetchingDetails: boolean;
@@ -57,9 +59,11 @@ const createStyles = (theme: Theme) =>
 export default function StepFourConfirmSection({
   streetAddress,
   area,
+  state,
   zipCode,
   onChangeStreet,
   onChangeArea,
+  onChangeState,
   onChangeZip,
   onEditAddress,
   isFetchingDetails,
@@ -76,6 +80,10 @@ export default function StepFourConfirmSection({
 
   const handleClearArea = () => {
     onChangeArea("");
+  };
+
+  const handleClearState = () => {
+    onChangeState("");
   };
 
   const handleClearZip = () => {
@@ -108,6 +116,15 @@ export default function StepFourConfirmSection({
           placeholder="Area / City"
           placeholderTextColor={placeholderColor}
           onClear={handleClearArea}
+        />
+
+        <FloatingInput
+          label="State"
+          value={state}
+          onChangeText={onChangeState}
+          placeholder="State"
+          placeholderTextColor={placeholderColor}
+          onClear={handleClearState}
         />
 
         <FloatingInput

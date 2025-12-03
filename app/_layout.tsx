@@ -13,6 +13,8 @@ import { PersistGate } from "redux-persist/integration/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { PortalProvider } from "@gorhom/portal";
 import { NotificationProvider } from "@/src/contexts/NotificationContext";
+import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
+import ActionLoader from "@/src/components/actionLoader";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
 import { LogBox } from "react-native";
@@ -83,8 +85,10 @@ export default function RootLayout() {
           <PortalProvider>
             <I18nextProvider i18n={i18n}>
               <NotificationProvider>
+                <SessionExpiredHandler />
                 <ThemedStatusBar />
                 <Slot />
+                <ActionLoader />
               </NotificationProvider>
             </I18nextProvider>
           </PortalProvider>

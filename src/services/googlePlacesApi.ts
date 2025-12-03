@@ -8,6 +8,7 @@ export interface PlaceDetails {
   formattedAddress: string;
   street: string;
   area: string;
+  state: string;
   postal: string;
   latitude?: number;
   longitude?: number;
@@ -128,6 +129,7 @@ export const fetchPlaceDetails = async (
       formattedAddress,
       street: parsed.street || formattedAddress,
       area: parsed.areaName,
+      state: parsed.state ?? "",
       postal: parsed.postal ?? "",
       latitude: geometry?.lat,
       longitude: geometry?.lng,

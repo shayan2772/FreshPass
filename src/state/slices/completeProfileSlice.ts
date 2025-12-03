@@ -17,11 +17,12 @@ export interface CompleteProfileState {
   phonePlaceholder: string;
   phoneNumber: string;
   phoneIsValid: boolean;
-  appointmentVolume: string | null;
+  appointmentVolume: { id: string; title: string } | null;
   addressSearch: string;
   selectedAddress: string | null;
   streetAddress: string;
   area: string;
+  state: string;
   zipCode: string;
   useCurrentLocation: boolean;
   addressStage: "search" | "confirm" | "map";
@@ -29,7 +30,7 @@ export interface CompleteProfileState {
     latitude: number;
     longitude: number;
   } | null;
-  teamSize: string | null;
+  teamSize: { id: string; title: string } | null;
   staffInvitationEmail: string;
   staffInvitations: Array<{ email: string; status: "sent" | "accepted" }>;
   businessHours: {
@@ -95,6 +96,7 @@ const initialState: CompleteProfileState = {
   selectedAddress: null,
   streetAddress: "",
   area: "",
+  state: "",
   zipCode: "",
   useCurrentLocation: false,
   addressStage: "search",
@@ -193,6 +195,7 @@ const completeProfileSlice = createSlice({
           state.selectedAddress = null;
           state.streetAddress = "";
           state.area = "";
+          state.state = "";
           state.zipCode = "";
           state.useCurrentLocation = false;
           state.addressStage = "search";
@@ -320,7 +323,10 @@ const completeProfileSlice = createSlice({
       state.phoneNumber = "";
       state.phoneIsValid = false;
     },
-    setAppointmentVolume: (state, action: PayloadAction<string | null>) => {
+    setAppointmentVolume: (
+      state,
+      action: PayloadAction<{ id: string; title: string } | null>
+    ) => {
       state.appointmentVolume = action.payload;
     },
     setAddressSearch: (state, action: PayloadAction<string>) => {
@@ -334,6 +340,9 @@ const completeProfileSlice = createSlice({
     },
     setArea: (state, action: PayloadAction<string>) => {
       state.area = action.payload;
+    },
+    setState: (state, action: PayloadAction<string>) => {
+      state.state = action.payload;
     },
     setZipCode: (state, action: PayloadAction<string>) => {
       state.zipCode = action.payload;
@@ -353,7 +362,10 @@ const completeProfileSlice = createSlice({
     ) => {
       state.selectedLocation = action.payload;
     },
-    setTeamSize: (state, action: PayloadAction<string | null>) => {
+    setTeamSize: (
+      state,
+      action: PayloadAction<{ id: string; title: string } | null>
+    ) => {
       state.teamSize = action.payload;
     },
     setStaffInvitationEmail: (state, action: PayloadAction<string>) => {
@@ -648,6 +660,7 @@ export const {
   setSelectedAddress,
   setStreetAddress,
   setArea,
+  setState,
   setZipCode,
   setUseCurrentLocation,
   setAddressStage,

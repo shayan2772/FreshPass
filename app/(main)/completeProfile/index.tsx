@@ -57,6 +57,7 @@ export default function CompleteProfile() {
     appointmentVolume,
     streetAddress,
     area,
+    state,
     zipCode,
     addressStage,
     selectedLocation,
@@ -112,7 +113,10 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 3) {
-      body = { ...body, weekly_appointment_range: appointmentVolume };
+      body = {
+        ...body,
+        weekly_appointment_range: appointmentVolume?.title ?? "",
+      };
     }
 
     if (currentStep === 4) {
@@ -120,11 +124,19 @@ export default function CompleteProfile() {
         ...body,
         street_address: streetAddress,
         city: area,
-        state: "",
-        zip_code: zipCode,
-        // latitude: selectedLocation?.latitude ?? 0,
-        // longitude: selectedLocation?.longitude ?? 0,
+        state: state,
+        zip_code: zipCode, //isko optional krna ha
+        latitude: selectedLocation?.latitude ?? 0, // add
+        longitude: selectedLocation?.longitude ?? 0, // add
       };
+    }
+
+    if (currentStep === 5) {
+      body = { ...body, team_member_range: teamSize?.title ?? "" };
+    }
+
+    if (currentStep === 7) {
+      body = { ...body, };
     }
 
     return body;
@@ -140,6 +152,11 @@ export default function CompleteProfile() {
         dispatch(setAddressStage("map"));
         return;
       }
+    }
+
+    if (currentStep === 6) {
+      dispatch(goToNextStep());
+      return;
     }
 
     // Call API for onboarding
@@ -236,7 +253,7 @@ export default function CompleteProfile() {
         return true;
       }
       if (addressStage === "confirm") {
-        return !streetAddress.trim() || !area.trim();
+        return !streetAddress.trim() || !area.trim() || !state.trim();
       }
       return !selectedLocation;
     }
@@ -279,6 +296,7 @@ export default function CompleteProfile() {
     fullName,
     phoneNumber,
     phoneIsValid,
+    state,
     streetAddress,
     zipCode,
     addressStage,

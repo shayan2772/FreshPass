@@ -29,6 +29,17 @@ let failedQueue: Array<{
   reject: (error?: any) => void;
 }> = [];
 
+// Callback for handling session expiration (401 errors)
+let onSessionExpired: (() => void) | null = null;
+
+/**
+ * Set callback to handle session expiration
+ * This will be called when a 401 error occurs
+ */
+export const setSessionExpiredHandler = (callback: () => void) => {
+  onSessionExpired = callback;
+};
+
 // Process queued requests after token refresh
 const processQueue = (
   error: AxiosError | null,
@@ -202,44 +213,61 @@ apiClient.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Handle 401 Unauthorized - Try to refresh token
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // If already refreshing, queue this request
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers && token) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return apiClient(originalRequest);
-          })
-          .catch((err) => {
-            return Promise.reject(err);
-          });
+    // Handle 401 Unauthorized - Session expired
+    if (error.response?.status === 401) {
+      // Clear user data and tokens
+      await handleLogout();
+
+      // Call session expired handler (for toast and navigation)
+      if (onSessionExpired) {
+        onSessionExpired();
       }
 
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const newToken = await refreshAccessToken();
-        processQueue(null, newToken);
-
-        if (originalRequest.headers && newToken) {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        }
-
-        return apiClient(originalRequest);
-      } catch (refreshError) {
-        processQueue(refreshError as AxiosError, null);
-        await handleLogout();
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
+      // Return error with session expired message
+      const sessionError = new Error("Session expired. Please login again.");
+      (sessionError as any).status = 401;
+      (sessionError as any).isSessionExpired = true;
+      return Promise.reject(sessionError);
     }
+
+    // Handle 401 Unauthorized - Try to refresh token (COMMENTED OUT)
+    // if (error.response?.status === 401 && !originalRequest._retry) {
+    //   if (isRefreshing) {
+    //     // If already refreshing, queue this request
+    //     return new Promise((resolve, reject) => {
+    //       failedQueue.push({ resolve, reject });
+    //     })
+    //       .then((token) => {
+    //         if (originalRequest.headers && token) {
+    //           originalRequest.headers.Authorization = `Bearer ${token}`;
+    //         }
+    //         return apiClient(originalRequest);
+    //       })
+    //       .catch((err) => {
+    //         return Promise.reject(err);
+    //       });
+    //   }
+
+    //   originalRequest._retry = true;
+    //   isRefreshing = true;
+
+    //   try {
+    //     const newToken = await refreshAccessToken();
+    //     processQueue(null, newToken);
+
+    //     if (originalRequest.headers && newToken) {
+    //       originalRequest.headers.Authorization = `Bearer ${newToken}`;
+    //     }
+
+    //     return apiClient(originalRequest);
+    //   } catch (refreshError) {
+    //     processQueue(refreshError as AxiosError, null);
+    //     await handleLogout();
+    //     return Promise.reject(refreshError);
+    //   } finally {
+    //     isRefreshing = false;
+    //   }
+    // }
 
     // For other errors, return readable error message
     const errorMessage = getErrorMessage(error);

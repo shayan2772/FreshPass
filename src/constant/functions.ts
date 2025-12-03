@@ -99,6 +99,7 @@ export const parseAddressComponents = (
   let route = "";
   let locality = "";
   let administrativeArea = "";
+  let state = "";
   let postalCode = "";
 
   components.forEach((component) => {
@@ -115,6 +116,10 @@ export const parseAddressComponents = (
       types.includes("postal_town")
     ) {
       locality = component.long_name ?? locality;
+    }
+    // administrative_area_level_1 is typically the state/province
+    if (types.includes("administrative_area_level_1")) {
+      state = component.long_name ?? state;
     }
     if (
       types.includes("administrative_area_level_2") ||
@@ -136,6 +141,7 @@ export const parseAddressComponents = (
   return {
     street: [streetNumber, route].filter(Boolean).join(" "),
     areaName: locality || administrativeArea,
+    state: state,
     postal: postalCode,
   };
 };
@@ -191,6 +197,7 @@ export const resolveAddressViaGoogle = async (
     return {
       street: parsedComponents.street,
       area: parsedComponents.areaName,
+      state: parsedComponents.state,
       postal: parsedComponents.postal,
       formatted: primaryResult.formatted_address,
     };
@@ -233,6 +240,7 @@ export const resolveCurrentLocation = async ({
     let googleParsed: {
       street?: string;
       area?: string;
+      state?: string;
       postal?: string;
       formatted?: string;
     } | null = null;
@@ -276,6 +284,7 @@ export const resolveCurrentLocation = async ({
 
     const street = derivedStreetFromReverse || googleParsed?.street || "";
     const area = derivedAreaFromReverse || googleParsed?.area || "";
+    const state = googleParsed?.state || reverseAddress?.region || "";
     const postal = derivedPostalFromReverse || googleParsed?.postal || "";
     const formattedAddress =
       googleParsed?.formatted ||
@@ -291,6 +300,7 @@ export const resolveCurrentLocation = async ({
         coordinates,
         street,
         area,
+        state,
         postal,
         formattedAddress,
         notice,

@@ -125,13 +125,15 @@ export default function StepFive() {
 
       <View style={styles.optionsContainer}>
         {TEAM_SIZE_OPTIONS.map((option, index) => {
-          const isSelected = teamSize === option.id;
+          const isSelected = teamSize?.id === option.id;
           const showDivider = index < TEAM_SIZE_OPTIONS.length - 1;
           return (
             <React.Fragment key={option.id}>
               <TouchableOpacity
                 style={styles.optionCard}
-                onPress={() => dispatch(setTeamSize(option.id))}
+                onPress={() =>
+                  dispatch(setTeamSize({ id: option.id, title: option.title }))
+                }
                 activeOpacity={0.7}
               >
                 <View style={styles.optionContent}>

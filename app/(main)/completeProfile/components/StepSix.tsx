@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,6 +17,11 @@ import {
   addStaffInvitation,
   setStaffInvitationEmail,
 } from "@/src/state/slices/completeProfileSlice";
+import { setActionLoader } from "@/src/state/slices/generalSlice";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { validateEmail } from "@/src/services/validationService";
 import { Feather } from "@expo/vector-icons";
 
 const createStyles = (theme: Theme) =>
@@ -40,10 +45,19 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
-    inputSection: {},
+    inputSection: {
+      gap: moderateHeightScale(4),
+    },
     inputRowContainer: {
       flexDirection: "row",
       gap: moderateWidthScale(12),
+    },
+    errorText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.link,
+      marginTop: moderateHeightScale(4),
+      paddingHorizontal: moderateWidthScale(4),
     },
     inviteButton: {
       backgroundColor: theme.orangeBrown,
@@ -52,6 +66,10 @@ const createStyles = (theme: Theme) =>
       // paddingVertical: moderateHeightScale(8),
       alignItems: "center",
       justifyContent: "center",
+    },
+    inviteButtonDisabled: {
+      backgroundColor: theme.lightGreen2,
+      opacity: 0.6,
     },
     inviteButtonText: {
       fontSize: fontSize.size14,
@@ -117,40 +135,105 @@ export default function StepSix() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
+  const { showBanner } = useNotificationContext();
   const { staffInvitationEmail, staffInvitations } = useAppSelector(
     (state) => state.completeProfile
   );
+  const [emailError, setEmailError] = useState<string | null>(null);
+
+  // Validate email when it changes
+  useEffect(() => {
+    if (staffInvitationEmail.length > 0) {
+      const validation = validateEmail(staffInvitationEmail);
+      setEmailError(validation.error);
+    } else {
+      setEmailError(null);
+    }
+  }, [staffInvitationEmail]);
 
   const handleClearEmail = () => {
     dispatch(setStaffInvitationEmail(""));
+    setEmailError(null);
   };
 
-  const handleInvite = () => {
-    if (staffInvitationEmail.trim()) {
-      dispatch(
-        addStaffInvitation({
-          email: staffInvitationEmail.trim(),
-          status: "sent",
-        })
+  const handleInvite = async () => {
+    if (!staffInvitationEmail.trim()) {
+      return;
+    }
+
+    const email = staffInvitationEmail.trim();
+
+    // Show loader
+    dispatch(setActionLoader(true));
+
+    try {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: {
+          invited_staff: Array<{
+            email: string;
+            name: string;
+            invitation_status: string;
+            invited_at: string;
+            active: boolean;
+          }>;
+        };
+      }>(businessEndpoints.onboarding, {
+        step: 6,
+        email: email,
+      });
+
+      if (response.success && response.data?.invited_staff) {
+        // Add all invited staff from response to the list
+        response.data.invited_staff.forEach((staff) => {
+          dispatch(
+            addStaffInvitation({
+              email: staff.email,
+              status: staff.invitation_status === "accepted" ? "accepted" : "sent",
+            })
+          );
+        });
+
+        // Clear email input
+        dispatch(setStaffInvitationEmail(""));
+
+        showBanner(
+          "Success",
+          response.message || "Invitation sent successfully",
+          "success",
+          3000
+        );
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to send invitation",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to send invitation:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to send invitation. Please try again.",
+        "error",
+        3000
       );
-      dispatch(setStaffInvitationEmail(""));
+    } finally {
+      // Hide loader
+      dispatch(setActionLoader(false));
     }
   };
 
-  const isValidEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-
-  const isValidPhone = (phone: string) => {
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-    return phoneRegex.test(phone) && phone.replace(/\D/g, "").length >= 10;
-  };
-
-  const canInvite =
-    staffInvitationEmail.trim() &&
-    (isValidEmail(staffInvitationEmail.trim()) ||
-      isValidPhone(staffInvitationEmail.trim()));
+  // Check if invite button should be enabled
+  const canInvite = useMemo(() => {
+    if (!staffInvitationEmail.trim()) {
+      return false;
+    }
+    const validation = validateEmail(staffInvitationEmail.trim());
+    return validation.isValid;
+  }, [staffInvitationEmail]);
 
   return (
     <View style={styles.container}>
@@ -165,10 +248,10 @@ export default function StepSix() {
       <View style={styles.inputSection}>
         <View style={styles.inputRowContainer}>
           <FloatingInput
-            label="Email or phone number"
+            label="Email"
             value={staffInvitationEmail}
             onChangeText={(value) => dispatch(setStaffInvitationEmail(value))}
-            placeholder="Enter email or phone"
+            placeholder="Enter email"
             placeholderTextColor={theme.lightGreen2}
             keyboardType="email-address"
             autoCapitalize="none"
@@ -180,13 +263,14 @@ export default function StepSix() {
             disabled={!canInvite}
             style={[
               styles.inviteButton,
-              !canInvite && { opacity: 0.8 },
+              !canInvite && styles.inviteButtonDisabled,
             ]}
-            activeOpacity={0.7}
+            activeOpacity={canInvite ? 0.7 : 1}
           >
             <Text style={styles.inviteButtonText}>Invite</Text>
           </TouchableOpacity>
         </View>
+        {emailError && <Text style={styles.errorText}>{emailError}</Text>}
       </View>
 
       {staffInvitations.length > 0 && (

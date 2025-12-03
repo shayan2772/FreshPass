@@ -6,6 +6,7 @@ export interface GeneralState {
   language: string;
   registerEmail: string | null; // Saved email after registration
   savedPassword: string | null; // Saved password if user checked "save password"
+  actionLoader: boolean; // Global action loader state
 }
 
 const initialState: GeneralState = {
@@ -14,6 +15,7 @@ const initialState: GeneralState = {
   language: "en",
   registerEmail: null,
   savedPassword: null,
+  actionLoader: false,
 };
 
 const generalSlice = createSlice({
@@ -36,6 +38,9 @@ const generalSlice = createSlice({
     setSavedPassword(state, action: PayloadAction<string | null>) {
       state.savedPassword = action.payload;
     },
+    setActionLoader(state, action: PayloadAction<boolean>) {
+      state.actionLoader = action.payload;
+    },
     resetGeneral(state) {
       // state.theme = initialState.theme;
       // state.themeType = initialState.themeType;
@@ -52,6 +57,7 @@ export const {
   setLanguage,
   setRegisterEmail,
   setSavedPassword,
+  setActionLoader,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

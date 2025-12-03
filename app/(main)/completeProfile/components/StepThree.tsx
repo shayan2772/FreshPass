@@ -133,13 +133,17 @@ export default function StepThree() {
 
       <View style={styles.optionsContainer}>
         {APPOINTMENT_OPTIONS.map((option, index) => {
-          const isSelected = appointmentVolume === option.id;
+          const isSelected = appointmentVolume?.id === option.id;
           const showDivider = index < APPOINTMENT_OPTIONS.length - 1;
           return (
             <React.Fragment key={option.id}>
               <TouchableOpacity
                 style={[styles.optionCard, isSelected && styles.optionSelected]}
-                onPress={() => dispatch(setAppointmentVolume(option.id))}
+                onPress={() =>
+                  dispatch(
+                    setAppointmentVolume({ id: option.id, title: option.title })
+                  )
+                }
                 activeOpacity={0.7}
               >
                 <View style={styles.optionContent}>

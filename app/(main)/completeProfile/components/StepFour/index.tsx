@@ -20,6 +20,7 @@ import {
   setArea,
   setSelectedAddress,
   setSelectedLocation,
+  setState,
   setStreetAddress,
   setUseCurrentLocation,
   setZipCode,
@@ -82,6 +83,7 @@ export default function StepFour() {
     selectedAddress,
     streetAddress,
     area,
+    state,
     zipCode,
     fullName,
     addressStage,
@@ -156,6 +158,7 @@ export default function StepFour() {
         dispatch(setSelectedAddress(details.formattedAddress));
         dispatch(setStreetAddress(details.street));
         dispatch(setArea(details.area));
+        dispatch(setState(details.state ?? ""));
         dispatch(setZipCode(details.postal));
         dispatch(setAddressStage("confirm"));
         dispatch(setUseCurrentLocation(false));
@@ -371,6 +374,7 @@ export default function StepFour() {
     dispatch(setSelectedAddress(selectedLabel));
     dispatch(setStreetAddress(details.street ?? ""));
     dispatch(setArea(details.area ?? ""));
+    dispatch(setState(details.state ?? ""));
     dispatch(setZipCode(details.postal ?? ""));
     dispatch(setAddressStage("confirm"));
     setMapRegion({
@@ -394,6 +398,13 @@ export default function StepFour() {
   const handleAreaChange = useCallback(
     (value: string) => {
       dispatch(setArea(value));
+    },
+    [dispatch]
+  );
+
+  const handleStateChange = useCallback(
+    (value: string) => {
+      dispatch(setState(value));
     },
     [dispatch]
   );
@@ -485,9 +496,11 @@ export default function StepFour() {
         <StepFourConfirmSection
           streetAddress={streetAddress}
           area={area}
+          state={state}
           zipCode={zipCode}
           onChangeStreet={handleStreetAddressChange}
           onChangeArea={handleAreaChange}
+          onChangeState={handleStateChange}
           onChangeZip={handleZipChange}
           onEditAddress={resetToSearch}
           isFetchingDetails={isFetchingDetails}
