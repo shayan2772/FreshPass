@@ -798,6 +798,58 @@ export const GuestIcon: React.FC<GuestIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Gallery Icon SVG
+const galleryIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M17.79 13V20H3.79004V6H8.81004C8.86004 5.29 9.03004 4.62 9.29004 4H3.79004C2.69004 4 1.79004 4.9 1.79004 6V20C1.79004 21.1 2.69004 22 3.79004 22H17.79C18.89 22 19.79 21.1 19.79 20V15L17.79 13ZM16.29 18H5.29004L8.04004 14.47L10 16.83L12.75 13.29L16.29 18ZM19.09 8.89C19.53 8.19 19.79 7.38 19.79 6.5C19.79 4.01 17.78 2 15.29 2C12.8 2 10.79 4.01 10.79 6.5C10.79 8.99 12.8 11 15.28 11C16.16 11 16.98 10.74 17.67 10.3L20.79 13.42L22.21 12L19.09 8.89ZM15.29 9C13.91 9 12.79 7.88 12.79 6.5C12.79 5.12 13.91 4 15.29 4C16.67 4 17.79 5.12 17.79 6.5C17.79 7.88 16.67 9 15.29 9Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface GalleryIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const GalleryIcon: React.FC<GalleryIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = galleryIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Camera Icon SVG
+const cameraIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M20 5H16.83L15 3H9L7.17 5H4C2.9 5 2 5.9 2 7V19C2 20.1 2.9 21 4 21H20C21.1 21 22 20.1 22 19V7C22 5.9 21.1 5 20 5ZM20 19H4V7H8.05L9.88 5H14.12L15.95 7H20V19ZM12 8C9.24 8 7 10.24 7 13C7 15.76 9.24 18 12 18C14.76 18 17 15.76 17 13C17 10.24 14.76 8 12 8ZM12 16C10.35 16 9 14.65 9 13C9 11.35 10.35 10 12 10C13.65 10 15 11.35 15 13C15 14.65 13.65 16 12 16Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface CameraIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const CameraIcon: React.FC<CameraIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = cameraIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -823,4 +875,6 @@ export default {
   MessageBubbleOutlineIcon,
   SendIcon,
   GuestIcon,
+  GalleryIcon,
+  CameraIcon,
 };

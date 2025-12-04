@@ -65,7 +65,13 @@ export default function CompleteProfile() {
     businessHours,
     services,
     subscriptions,
+    facebookUrl,
+    instagramUrl,
+    tiktokUrl,
+    photos,
   } = useAppSelector((state) => state.completeProfile);
+
+   
 
   const handleBack = useCallback(() => {
     if (currentStep === 4) {
@@ -202,6 +208,33 @@ export default function CompleteProfile() {
       body = { ...body, subscription_plans: subscriptionPlansArray };
     }
 
+    if (currentStep === 10) {
+      
+      const socialMediaLinks: {
+        facebook?: string;
+        instagram?: string;
+        tiktok?: string;
+      } = {};
+      
+      if (facebookUrl && facebookUrl.trim() !== "") {
+        socialMediaLinks.facebook = "https://" + facebookUrl.trim();
+      }
+      if (instagramUrl && instagramUrl.trim() !== "") {
+        socialMediaLinks.instagram = "https://" + instagramUrl.trim();
+      }
+      if (tiktokUrl && tiktokUrl.trim() !== "") {
+        socialMediaLinks.tiktok =  "https://" + tiktokUrl.trim();
+      }
+      
+      body = { ...body, social_media_links: socialMediaLinks };
+    }
+    
+    if (currentStep === 11) {
+      // Send portfolio_photos as array of photo URIs
+      const portfolioPhotos = photos.map((photo) => photo.uri);
+      body = { ...body, portfolio_photos: portfolioPhotos };
+    }
+
     return body;
   };
 
@@ -231,6 +264,8 @@ export default function CompleteProfile() {
       dispatch(goToNextStep());
       return;
     }
+
+ 
 
     // Call API for onboarding
     setIsSubmitting(true);
@@ -352,12 +387,30 @@ export default function CompleteProfile() {
       return false;
     }
     if (currentStep === 10) {
-      // Step 10 is optional - can continue without linking social media
-      return false;
+      // Step 10: Disable continue if all social media usernames are empty
+      // Enable if at least one username has value
+      // Extract usernames from full URLs (remove prefix)
+      const getUsername = (url: string, prefix: string) => {
+        if (!url) return "";
+        if (url.startsWith(prefix)) {
+          return url.substring(prefix.length).trim();
+        }
+        return url.trim();
+      };
+      
+      const tiktokUsername = getUsername(tiktokUrl, "www.tiktok.com/");
+      const instagramUsername = getUsername(instagramUrl, "www.instagram.com/");
+      const facebookUsername = getUsername(facebookUrl, "www.facebook.com/");
+      
+      const hasAnySocialMedia = 
+        tiktokUsername !== "" ||
+        instagramUsername !== "" ||
+        facebookUsername !== "";
+      return !hasAnySocialMedia;
     }
     if (currentStep === 11) {
-      // Step 11 is optional - can continue without adding photos
-      return false;
+      // Step 11: Disable continue if no photos are selected
+      return photos.length <= 0;
     }
     return false;
   }, [
@@ -377,6 +430,10 @@ export default function CompleteProfile() {
     teamSize,
     businessHours,
     services,
+    facebookUrl,
+    instagramUrl,
+    tiktokUrl,
+    photos,
   ]);
 
   const renderStep = useMemo(() => {
@@ -445,7 +502,10 @@ export default function CompleteProfile() {
 
               <TouchableOpacity
                 style={styles.skipButton}
-                onPress={handleContinue}
+                onPress={() => {
+                  // Skip button: go to next step without API call
+                  dispatch(goToNextStep());
+                }}
                 activeOpacity={0.7}
               >
                 <Text style={styles.skipButtonText}>Skip</Text>

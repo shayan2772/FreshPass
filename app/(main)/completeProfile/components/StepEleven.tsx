@@ -23,6 +23,7 @@ import {
   handleMediaLibraryPermission,
   handleCameraPermission,
 } from "@/src/services/mediaPermissionService";
+import { GalleryIcon, CameraIcon } from "@/assets/icons";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const PADDING = moderateWidthScale(20);
@@ -122,14 +123,15 @@ const createStyles = (theme: Theme) =>
       zIndex: 1,
     },
     emptyState: {
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: moderateHeightScale(60),
+      position: "absolute",
+      top: "60%",
+      alignSelf: "center",
     },
     emptyStateText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen4,
+      textAlign: "center",
     },
   });
 
@@ -247,11 +249,7 @@ export default function StepEleven() {
           >
             <View style={styles.actionButton}>
               <View style={styles.actionButtonContent}>
-                <MaterialIcons
-                  name="photo-library"
-                  size={moderateWidthScale(24)}
-                  color={theme.darkGreen}
-                />
+                <GalleryIcon color={theme.darkGreen} />
                 <Text style={styles.actionButtonText}>from gallery</Text>
               </View>
             </View>
@@ -268,11 +266,7 @@ export default function StepEleven() {
           >
             <View style={styles.actionButton}>
               <View style={styles.actionButtonContent}>
-                <MaterialIcons
-                  name="camera-alt"
-                  size={moderateWidthScale(24)}
-                  color={theme.darkGreen}
-                />
+                <CameraIcon color={theme.darkGreen} />
                 <Text style={styles.actionButtonText}>from camera</Text>
               </View>
             </View>
