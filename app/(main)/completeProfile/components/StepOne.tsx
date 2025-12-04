@@ -219,10 +219,11 @@ export default function StepOne() {
   );
 
   const hasNoData = !categoriesLoading && !apiError && categories.length === 0;
+  const showSkeleton = categoriesLoading && categories.length === 0;
 
   return (
     <View style={styles.container}>
-      {categoriesLoading ? (
+      {showSkeleton ? (
         <Skeleton screenType="StepOne" styles={styles} />
       ) : apiError ? (
         <View style={styles.emptyStateContainer}>
@@ -230,7 +231,7 @@ export default function StepOne() {
         </View>
       ) : hasNoData ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Data not exist</Text>
+          <Text style={styles.emptyStateText}>Business category data not found</Text>
         </View>
       ) : (
         <>

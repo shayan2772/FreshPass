@@ -320,10 +320,11 @@ export default function StepEight() {
 
   const hasNoData =
     !serviceTemplatesLoading && !apiError && serviceTemplates.length === 0;
+  const showSkeleton = serviceTemplatesLoading && serviceTemplates.length === 0;
 
   return (
     <View style={styles.container}>
-      {serviceTemplatesLoading ? (
+      {showSkeleton ? (
         <Skeleton screenType="StepEight" styles={styles} />
       ) : apiError ? (
         <View style={styles.emptyStateContainer}>
@@ -334,7 +335,7 @@ export default function StepEight() {
         </View>
       ) : hasNoData ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Data not exist</Text>
+          <Text style={styles.emptyStateText}>Service data not found aginst category {businessCategory?.name}</Text>
         </View>
       ) : (
         <>
@@ -349,7 +350,7 @@ export default function StepEight() {
           {services.length === 0 ? (
             <View style={styles.emptyState}>
               <Text style={styles.emptyStateText}>
-                You haven't added any service yet against the category {businessCategory?.name}
+                You haven't added any service yet
               </Text>
             </View>
           ) : (
