@@ -10,16 +10,15 @@ export default function Introduction() {
   const router = useRouter();
   const [currentScreen, setCurrentScreen] = useState(1);
 
-  // Disable back button on screen 2
+  // Disable back button on screen 2 - prevent going back to screen 1
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
         if (currentScreen === 2) {
-          // Prevent going back from screen 2
-          setCurrentScreen(1);
-          return true;
+          // Prevent going back from screen 2 to screen 1
+          return true; // Return true to prevent default back behavior
         }
-        return false;
+        return false; // Allow back on screen 1 (will exit app or go to previous screen)
       };
 
       const subscription = BackHandler.addEventListener(
@@ -35,19 +34,19 @@ export default function Introduction() {
     if (currentScreen === 1) {
       setCurrentScreen(2);
     } else {
-      // Navigate to dashboard
-      router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}`);
+      // Navigate to dashboard home
+      router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
     }
   };
 
   const handleSkip = () => {
-    // Navigate to screen 2
+    // Navigate to intro screen 2
     setCurrentScreen(2);
   };
 
   const handleTurnOnNotifications = async () => {
     const granted = await handleNotificationPermission();
-    
+
     // Navigate to screen 2 only if permission is granted
     if (granted) {
       setCurrentScreen(2);
@@ -55,14 +54,8 @@ export default function Introduction() {
   };
 
   if (currentScreen === 1) {
-    return (
-      <Screen1
-        onNext={handleTurnOnNotifications}
-        onSkip={handleSkip}
-      />
-    );
+    return <Screen1 onNext={handleTurnOnNotifications} onSkip={handleSkip} />;
   }
 
   return <Screen2 onNext={handleNext} />;
 }
-

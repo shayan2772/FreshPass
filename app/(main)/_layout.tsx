@@ -2,8 +2,7 @@ import { Stack } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useMemo } from "react";
 import { Platform, StyleSheet } from "react-native";
-import { MAIN_ROUTES } from "@/src/constant/routes";
-
+ 
 const createStyles = (theme: any) =>
   StyleSheet.create({
     contentStyle: {

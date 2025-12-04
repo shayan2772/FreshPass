@@ -16,6 +16,9 @@ import {
 import DashboardHeader from "@/src/components/DashboardHeader";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { performLogout } from "@/src/services/logoutService";
+import { MAIN_ROUTES } from "@/src/constant/routes";
+import { ApiService } from "@/src/services/api";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -75,7 +78,7 @@ export default function AccountScreen() {
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
 
-  const handleRowPress = (key: string) => {
+  const handleRowPress = async (key: string) => {
     if (key === "personal") {
       router.push("./(profile)");
     } else if (key === "rules") {
@@ -84,6 +87,9 @@ export default function AccountScreen() {
       router.push("./notificationSettings");
     } else if (key === "business") {
       router.push("./businessProfileSettings");
+    } else if (key === "logout") {
+      await ApiService.logout();
+      router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
     } else {
       console.log("Account row pressed:", key);
     }

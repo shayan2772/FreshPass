@@ -89,9 +89,10 @@ export default function DashboardLayout() {
     segments.includes("editBusinessProfile");
   const isChatBoxScreen =
     Array.isArray(segments) && segments.includes("chatBox");
- 
+
   return (
     <Tabs
+      initialRouteName="(home)"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
@@ -124,28 +125,33 @@ export default function DashboardLayout() {
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
             <View
-              style={[
-                styles.iconContainer,
-                focused && styles.iconBackground,
-              ]}
+              style={[styles.iconContainer, focused && styles.iconBackground]}
             >
-              <HomeIcon width={size} height={size} color={color} focused={focused} />
+              <HomeIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
             </View>
           ),
         }}
       />
+
       <Tabs.Screen
         name="calendar"
         options={{
           title: "Calendar",
           tabBarIcon: ({ color, size, focused }) => (
             <View
-              style={[
-                styles.iconContainer,
-                focused && styles.iconBackground,
-              ]}
+              style={[styles.iconContainer, focused && styles.iconBackground]}
             >
-              <CalendarIcon width={size} height={size} color={color} focused={focused} />
+              <CalendarIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
             </View>
           ),
         }}
@@ -156,12 +162,14 @@ export default function DashboardLayout() {
           title: "Notifications",
           tabBarIcon: ({ color, size, focused }) => (
             <View
-              style={[
-                styles.iconContainer,
-                focused && styles.iconBackground,
-              ]}
+              style={[styles.iconContainer, focused && styles.iconBackground]}
             >
-              <NotificationIcon width={size} height={size} color={color} focused={focused} />
+              <NotificationIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
             </View>
           ),
           // tabBarBadge: "9+",
@@ -179,12 +187,14 @@ export default function DashboardLayout() {
           title: "Chat",
           tabBarIcon: ({ color, size, focused }) => (
             <View
-              style={[
-                styles.iconContainer,
-                focused && styles.iconBackground,
-              ]}
+              style={[styles.iconContainer, focused && styles.iconBackground]}
             >
-              <ChatIcon width={size} height={size} color={color} focused={focused} />
+              <ChatIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
             </View>
           ),
           // tabBarBadge: 1,
@@ -202,12 +212,14 @@ export default function DashboardLayout() {
           title: "Account",
           tabBarIcon: ({ color, size, focused }) => (
             <View
-              style={[
-                styles.iconContainer,
-                focused && styles.iconBackground,
-              ]}
+              style={[styles.iconContainer, focused && styles.iconBackground]}
             >
-              <AccountIcon width={size} height={size} color={color} focused={focused} />
+              <AccountIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
             </View>
           ),
         }}

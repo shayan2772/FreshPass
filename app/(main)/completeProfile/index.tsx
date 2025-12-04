@@ -9,7 +9,7 @@ import {
   Text,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router, useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { MAIN_ROUTES } from "@/src/constant/routes";
@@ -37,6 +37,7 @@ import PrivacyBanner from "@/src/components/privacyBanner";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { validateName } from "@/src/services/validationService";
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -70,8 +71,6 @@ export default function CompleteProfile() {
     tiktokUrl,
     photos,
   } = useAppSelector((state) => state.completeProfile);
-
-   
 
   const handleBack = useCallback(() => {
     if (currentStep === 4) {
@@ -121,12 +120,15 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 2) {
+      // If phone is empty, send empty string
+      const ownerPhone =
+        phoneNumber.trim().length > 0 ? `${countryCode}${phoneNumber}` : "";
+
       body = {
         ...body,
-        business_name: businessName,
-        owner_name: fullName,
-        owner_phone: `${countryCode}${phoneNumber}`,
-        category_id: businessCategory?.id.toString() ?? "", // ye require ne hne chaie step 2 me
+        business_name: businessName.trim(),
+        owner_name: fullName.trim(),
+        owner_phone: ownerPhone,
       };
     }
 
@@ -209,13 +211,12 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 10) {
-      
       const socialMediaLinks: {
         facebook?: string;
         instagram?: string;
         tiktok?: string;
       } = {};
-      
+
       if (facebookUrl && facebookUrl.trim() !== "") {
         socialMediaLinks.facebook = "https://" + facebookUrl.trim();
       }
@@ -223,16 +224,10 @@ export default function CompleteProfile() {
         socialMediaLinks.instagram = "https://" + instagramUrl.trim();
       }
       if (tiktokUrl && tiktokUrl.trim() !== "") {
-        socialMediaLinks.tiktok =  "https://" + tiktokUrl.trim();
+        socialMediaLinks.tiktok = "https://" + tiktokUrl.trim();
       }
-      
+
       body = { ...body, social_media_links: socialMediaLinks };
-    }
-    
-    if (currentStep === 11) {
-      // Send portfolio_photos as array of photo URIs
-      const portfolioPhotos = photos.map((photo) => photo.uri);
-      body = { ...body, portfolio_photos: portfolioPhotos };
     }
 
     return body;
@@ -265,18 +260,48 @@ export default function CompleteProfile() {
       return;
     }
 
- 
-
     // Call API for onboarding
     setIsSubmitting(true);
     try {
-      const body = buildRequestBody();
+      let requestBody: any;
+      let config: any = undefined;
+
+      if (currentStep === 11) {
+        // For step 11, use FormData to send files
+        const formData = new FormData();
+
+        // Add step
+        formData.append("step", currentStep.toString());
+
+        // Add each photo as a file
+        photos.forEach((photo, index) => {
+          const fileExtension = photo.uri.split(".").pop() || "jpg";
+          const fileName = `portfolio_photo_${index}.${fileExtension}`;
+
+          formData.append(`portfolio_photos[${index}]`, {
+            uri: photo.uri,
+            type: `image/${fileExtension === "jpg" ? "jpeg" : fileExtension}`,
+            name: fileName,
+          } as any);
+        });
+
+        requestBody = formData;
+        // Set headers for FormData
+        config = {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        };
+      } else {
+        // For other steps, use regular JSON body
+        requestBody = buildRequestBody();
+      }
 
       const response = await ApiService.post<{
         success: boolean;
         message: string;
         data?: any;
-      }>(businessEndpoints.onboarding, body);
+      }>(businessEndpoints.onboarding, requestBody, config);
 
       if (response.success) {
         // Move to next step on success
@@ -346,11 +371,30 @@ export default function CompleteProfile() {
       return !businessCategory;
     }
     if (currentStep === 2) {
+      // Business name and full name are required
+      const businessNameValid = businessName.trim().length > 0;
+      const fullNameValid = fullName.trim().length > 0;
+
+      // Phone is optional, but if provided, it must be valid
+      const phoneProvided = phoneNumber.trim().length > 0;
+      const phoneValid = !phoneProvided || phoneIsValid;
+
+      // Validate names using validation service
+      const businessNameValidation = validateName(
+        businessName.trim(),
+        "Business name"
+      );
+      const fullNameValidation = validateName(fullName.trim(), "Full name");
+
+      // Enable continue if:
+      // 1. Business name and full name are filled and valid
+      // 2. Phone is either empty OR valid
       return (
-        !businessName.trim() ||
-        !fullName.trim() ||
-        !phoneNumber.trim() ||
-        !phoneIsValid
+        !businessNameValid ||
+        !fullNameValid ||
+        !businessNameValidation.isValid ||
+        !fullNameValidation.isValid ||
+        !phoneValid
       );
     }
     if (currentStep === 3) {
@@ -397,12 +441,12 @@ export default function CompleteProfile() {
         }
         return url.trim();
       };
-      
+
       const tiktokUsername = getUsername(tiktokUrl, "www.tiktok.com/");
       const instagramUsername = getUsername(instagramUrl, "www.instagram.com/");
       const facebookUsername = getUsername(facebookUrl, "www.facebook.com/");
-      
-      const hasAnySocialMedia = 
+
+      const hasAnySocialMedia =
         tiktokUsername !== "" ||
         instagramUsername !== "" ||
         facebookUsername !== "";
@@ -504,7 +548,7 @@ export default function CompleteProfile() {
                 style={styles.skipButton}
                 onPress={() => {
                   // Skip button: go to next step without API call
-                  dispatch(goToNextStep());
+                  router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
                 }}
                 activeOpacity={0.7}
               >

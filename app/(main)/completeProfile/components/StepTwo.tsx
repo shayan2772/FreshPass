@@ -43,6 +43,7 @@ import {
   setPhoneNumber,
   setCountryDetails,
 } from "@/src/state/slices/completeProfileSlice";
+import { validateName } from "@/src/services/validationService";
 
 const FALLBACK_PHONE_PLACEHOLDERS: Record<string, string> = {
   US: "2015550123",
@@ -235,7 +236,8 @@ const createStyles = (theme: Theme) =>
     errorText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.link,
+      color: theme.red,
+      marginTop: moderateHeightScale(4),
     },
   });
 
@@ -258,6 +260,8 @@ export default function StepTwo() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const previousDigitCountRef = useRef(0);
   const isSettingCursorRef = useRef(false);
+  const [businessNameError, setBusinessNameError] = useState<string | null>(null);
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
   const maxDigits = useMemo(
     () => phonePlaceholder.replace(/\s+/g, "").length,
     [phonePlaceholder]
@@ -492,6 +496,26 @@ export default function StepTwo() {
   );
   const isPhoneInvalid = phoneNumber.length > 0 && !phoneIsValid;
 
+  // Validate business name in real-time
+  useEffect(() => {
+    if (businessName.trim().length > 0) {
+      const validation = validateName(businessName.trim(), "Business name");
+      setBusinessNameError(validation.error);
+    } else {
+      setBusinessNameError(null);
+    }
+  }, [businessName]);
+
+  // Validate full name in real-time
+  useEffect(() => {
+    if (fullName.trim().length > 0) {
+      const validation = validateName(fullName.trim(), "Full name");
+      setFullNameError(validation.error);
+    } else {
+      setFullNameError(null);
+    }
+  }, [fullName]);
+
   return (
     <View style={styles.container}>
       <View style={styles.titleSec}>
@@ -508,8 +532,14 @@ export default function StepTwo() {
             value={businessName}
             onChangeText={(value) => dispatch(setBusinessName(value))}
             placeholder="Business name"
-            onClear={() => dispatch(setBusinessName(""))}
+            onClear={() => {
+              dispatch(setBusinessName(""));
+              setBusinessNameError(null);
+            }}
           />
+          {businessNameError && (
+            <Text style={styles.errorText}>{businessNameError}</Text>
+          )}
         </View>
 
         <View style={styles.field}>
@@ -518,8 +548,14 @@ export default function StepTwo() {
             value={fullName}
             onChangeText={(value) => dispatch(setFullName(value))}
             placeholder="Your full name"
-            onClear={() => dispatch(setFullName(""))}
+            onClear={() => {
+              dispatch(setFullName(""));
+              setFullNameError(null);
+            }}
           />
+          {fullNameError && (
+            <Text style={styles.errorText}>{fullNameError}</Text>
+          )}
         </View>
 
         <View style={[styles.field, styles.phoneField]}>
