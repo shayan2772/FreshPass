@@ -36,6 +36,9 @@ export const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
+    skipButtonDisabled: {
+      opacity: 0.5,
+    },
   });
 
 

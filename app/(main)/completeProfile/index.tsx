@@ -7,6 +7,7 @@ import {
   View,
   TouchableOpacity,
   Text,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
@@ -46,6 +47,7 @@ export default function CompleteProfile() {
   const { showBanner } = useNotificationContext();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSkipLoading, setIsSkipLoading] = useState(false);
   const {
     currentStep,
     totalSteps,
@@ -156,6 +158,10 @@ export default function CompleteProfile() {
       body = { ...body, team_member_range: teamSize?.title ?? "" };
     }
 
+    if (currentStep === 6) {
+      body = { ...body };
+    }
+
     if (currentStep === 7) {
       // Transform businessHours to API format
       const businessHoursArray = Object.keys(businessHours).map((day) => {
@@ -246,10 +252,10 @@ export default function CompleteProfile() {
       }
     }
 
-    if (currentStep === 6) {
-      dispatch(goToNextStep());
-      return;
-    }
+    // if (currentStep === 6) {
+    //   dispatch(goToNextStep());
+    //   return;
+    // }
 
     if (currentStep === 8 && services.length === 0) {
       dispatch(goToNextStep());
@@ -327,6 +333,71 @@ export default function CompleteProfile() {
       );
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    // Skip button: make API call with empty data for steps 10 and 11
+    setIsSkipLoading(true);
+    try {
+      let requestBody: any;
+      let config: any = undefined;
+
+      if (currentStep === 10) {
+        // Step 10: Send empty social_media_links object
+        requestBody = {
+          step: currentStep.toString(),
+          social_media_links: {},
+        };
+      } else if (currentStep === 11) {
+        // Step 11: Send empty portfolio_photos array
+        const formData = new FormData();
+        formData.append("step", currentStep.toString());
+        // Don't append any photos - backend will interpret as empty array []
+        requestBody = formData;
+        config = {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        };
+      } else {
+        // Should not reach here, but just in case
+        setIsSkipLoading(false);
+        return;
+      }
+
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(businessEndpoints.onboarding, requestBody, config);
+
+      if (response.success) {
+        // Navigate to acceptTerms screen after successful skip
+        if (currentStep === 10) {
+          dispatch(goToNextStep());
+        }else{
+          router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
+        }
+       
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to save step data",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to submit onboarding step:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to save step data. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsSkipLoading(false);
     }
   };
 
@@ -552,21 +623,29 @@ export default function CompleteProfile() {
               )}
 
               <TouchableOpacity
-                style={styles.skipButton}
-                onPress={() => {
-                  // Skip button: go to next step without API call
-                  router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
-                }}
+                style={[
+                  styles.skipButton,
+                  (isSubmitting || isSkipLoading) && styles.skipButtonDisabled,
+                ]}
+                onPress={handleSkip}
+                disabled={isSubmitting || isSkipLoading}
                 activeOpacity={0.7}
               >
-                <Text style={styles.skipButtonText}>Skip</Text>
+                {isSkipLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={(colors as Theme).darkGreen}
+                  />
+                ) : (
+                  <Text style={styles.skipButtonText}>Skip</Text>
+                )}
               </TouchableOpacity>
             </>
           )}
           <Button
             title={continueLabel}
             onPress={handleContinue}
-            disabled={isContinueDisabled || isSubmitting}
+            disabled={isContinueDisabled || isSubmitting || isSkipLoading}
             loading={isSubmitting}
           />
         </View>
