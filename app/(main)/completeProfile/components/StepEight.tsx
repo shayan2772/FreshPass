@@ -198,6 +198,8 @@ export default function StepEight() {
   const { services, businessCategory, serviceTemplates } = useAppSelector(
     (state) => state.completeProfile
   );
+
+ 
   const [serviceListVisible, setServiceListVisible] = useState(false);
   const [editServiceVisible, setEditServiceVisible] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);

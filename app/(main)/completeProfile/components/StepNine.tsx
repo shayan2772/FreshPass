@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -11,18 +11,26 @@ import {
 import {
   addSubscription,
   removeSubscription,
+  setBusinessServices,
 } from "@/src/state/slices/completeProfileSlice";
 import EditSubscriptionBottomSheet from "@/src/components/EditSubscriptionBottomSheet";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
 
-// Popular starting points suggestions
-const POPULAR_SUGGESTIONS = [
+// Popular starting points suggestions - will be populated with first 2 services from Step 8
+const getPopularSuggestions = (
+  services: Array<{ id: string; name: string }>
+) => {
+  const firstTwoServiceIds = services.slice(0, 2).map((s) => s.id);
+
+  return [
   {
     id: "vip-glam-package",
     packageName: "VIP Glam Package",
     servicesPerMonth: 2,
     price: 145.99,
     currency: "USD",
-    serviceIds: ["premium-haircut-1", "styling-service-1"],
+      serviceIds: firstTwoServiceIds,
   },
   {
     id: "gold-package",
@@ -30,7 +38,7 @@ const POPULAR_SUGGESTIONS = [
     servicesPerMonth: 3,
     price: 199.99,
     currency: "USD",
-    serviceIds: ["premium-haircut-2", "styling-service-2"],
+      serviceIds: firstTwoServiceIds,
   },
   {
     id: "platinum-package",
@@ -38,7 +46,7 @@ const POPULAR_SUGGESTIONS = [
     servicesPerMonth: 4,
     price: 249.99,
     currency: "USD",
-    serviceIds: ["premium-haircut-3", "styling-service-3"],
+      serviceIds: firstTwoServiceIds,
   },
   {
     id: "silver-package",
@@ -46,11 +54,10 @@ const POPULAR_SUGGESTIONS = [
     servicesPerMonth: 2,
     price: 99.99,
     currency: "USD",
-    serviceIds: ["premium-haircut-4", "styling-service-4"],
-  },
-];
-
- 
+      serviceIds: firstTwoServiceIds,
+    },
+  ];
+};
 
 const formatPrice = (price: number, currency: string): string => {
   return `$${price.toFixed(2)} ${currency}`;
@@ -201,7 +208,6 @@ const createStyles = (theme: Theme) =>
     },
     subscriptionCardContent: {
       marginTop: moderateHeightScale(12),
-     
     },
     subscriptionDetailSection: {
       flexDirection: "row",
@@ -239,22 +245,96 @@ export default function StepNine() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { subscriptions, services } = useAppSelector(
+  const { subscriptions, businessServices } = useAppSelector(
     (state) => state.completeProfile
   );
   const [editSubscriptionVisible, setEditSubscriptionVisible] = useState(false);
+  const [addSubscriptionVisible, setAddSubscriptionVisible] = useState(false);
   const [editingSubscriptionId, setEditingSubscriptionId] = useState<
     string | null
   >(null);
+  // Store custom suggestions added via "+" button (not in Redux subscriptions)
+  const [customSuggestions, setCustomSuggestions] = useState<
+    Array<{
+      id: string;
+      packageName: string;
+      servicesPerMonth: number;
+      price: number;
+      currency: string;
+      serviceIds: string[];
+    }>
+  >([]);
+
+  // Fetch business services on component mount
+  useEffect(() => {
+    fetchBusinessServices();
+  }, []);
+
+  const fetchBusinessServices = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          template_id: number;
+          price: string;
+          description: string;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          businessId: number;
+          business: string;
+          templateId: number;
+          name: string;
+          category: string;
+          created_at: string;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.services);
+
+      if (response.success && response.data) {
+        dispatch(setBusinessServices(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch business services:", error);
+      // Silent fail - no loader/error shown as per requirement
+    }
+  };
+
+  // Convert business services to service format for suggestions
+  // Use id (business service id) for API calls
+  const services = useMemo(() => {
+    return businessServices.map((service) => ({
+      id: service.id.toString(),
+      name: service.name,
+    }));
+  }, [businessServices]);
+
+  // Get popular suggestions with first 2 services from business services
+  const predefinedSuggestions = useMemo(
+    () => getPopularSuggestions(services),
+    [services]
+  );
+
+  // Combine predefined and custom suggestions
+  const popularSuggestions = useMemo(
+    () => [...predefinedSuggestions, ...customSuggestions],
+    [predefinedSuggestions, customSuggestions]
+  );
 
   const handleSelectSuggestion = (
-    suggestion: (typeof POPULAR_SUGGESTIONS)[0]
+    suggestion: (typeof popularSuggestions)[0]
   ) => {
     const isSelected = subscriptions.some((s) => s.id === suggestion.id);
     if (isSelected) {
       dispatch(removeSubscription(suggestion.id));
     } else {
       dispatch(addSubscription(suggestion));
+      // If it's a custom suggestion, remove it from customSuggestions
+      setCustomSuggestions((prev) =>
+        prev.filter((custom) => custom.id !== suggestion.id)
+      );
     }
   };
 
@@ -272,18 +352,39 @@ export default function StepNine() {
     setEditingSubscriptionId(null);
   };
 
+  const handleOpenAddSubscription = () => {
+    setAddSubscriptionVisible(true);
+  };
+
+  const handleCloseAddSubscription = () => {
+    setAddSubscriptionVisible(false);
+  };
+
+  const handleAddCustomSuggestion = (subscription: {
+    id: string;
+    packageName: string;
+    servicesPerMonth: number;
+    price: number;
+    currency: string;
+    serviceIds: string[];
+  }) => {
+    setCustomSuggestions((prev) => [...prev, subscription]);
+  };
+
   const getServiceNames = (serviceIds: string[]): string[] => {
     return serviceIds
       .map((id) => {
-        // Only use services selected in Step 8
-        const service = services.find((s) => s.id === id);
+        // Find service in businessServices by id (business service id)
+        const service = businessServices.find(
+          (s) => s.id.toString() === id
+        );
         return service?.name;
       })
       .filter(Boolean) as string[];
   };
 
   // Filter out selected subscriptions from popular suggestions
-  const unselectedSuggestions = POPULAR_SUGGESTIONS.filter(
+  const unselectedSuggestions = popularSuggestions.filter(
     (s) => !subscriptions.some((sub) => sub.id === s.id)
   );
 
@@ -368,10 +469,38 @@ export default function StepNine() {
         </View>
       )}
 
+      <View style={styles.popularSection}>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <Text style={styles.popularTitle}>Popular starting points:</Text>
+          <TouchableOpacity
+          activeOpacity={0.7}
+            onPress={handleOpenAddSubscription}
+            style={{
+              width: moderateWidthScale(20),
+              height: moderateWidthScale(20),
+              borderRadius: moderateWidthScale(20 / 2),
+              backgroundColor: theme.orangeBrown,
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+            }}
+          >
+            <Feather
+              name="plus"
+              size={moderateWidthScale(16)}
+              color={theme.white}
+            />
+          </TouchableOpacity>
+        </View>
+
       {unselectedSuggestions.length > 0 && (
         <>
-          <View style={styles.popularSection}>
-            <Text style={styles.popularTitle}>Popular starting points:</Text>
             {unselectedSuggestions.map((suggestion) => {
               const isSelected = subscriptions.some(
                 (s) => s.id === suggestion.id
@@ -408,14 +537,21 @@ export default function StepNine() {
                 </View>
               );
             })}
-          </View>
         </>
       )}
+      </View>
 
       <EditSubscriptionBottomSheet
         visible={editSubscriptionVisible}
         onClose={handleCloseEditSubscription}
         subscriptionId={editingSubscriptionId}
+      />
+
+      <EditSubscriptionBottomSheet
+        visible={addSubscriptionVisible}
+        onClose={handleCloseAddSubscription}
+        subscriptionId={null}
+        onAddCustomSuggestion={handleAddCustomSuggestion}
       />
     </View>
   );

@@ -101,45 +101,39 @@ export default function ServiceListBottomSheet({
     }
   }, [visible, selectedServiceIds]);
 
-  const handleToggleService = (serviceId: string) => {
-    // Get all service IDs except "all-over"
-    const otherServiceIds = suggestions
-      .filter((s) => s.id !== "all-over")
-      .map((s) => s.id);
+  // Get all service IDs (excluding "all-over" if it exists in suggestions)
+  const allServiceIds = useMemo(
+    () => suggestions.filter((s) => s.id !== "all-over").map((s) => s.id),
+    [suggestions]
+  );
 
-    // Handle "all-over" service - select/deselect all
-    if (serviceId === "all-over") {
-      const isAllOverSelected = localSelectedIds.includes("all-over");
-      if (isAllOverSelected) {
-        // Unselect "all-over" and all other services
+  // Check if all services are selected
+  const areAllServicesSelected = useMemo(() => {
+    return (
+      allServiceIds.length > 0 &&
+      allServiceIds.every((id) => localSelectedIds.includes(id))
+    );
+  }, [allServiceIds, localSelectedIds]);
+
+  const handleToggleAllOver = () => {
+      if (areAllServicesSelected) {
+        // Unselect all services
         setLocalSelectedIds([]);
       } else {
-        // Select "all-over" and all other services
-        setLocalSelectedIds(["all-over", ...otherServiceIds]);
+        // Select all services
+        setLocalSelectedIds([...allServiceIds]);
       }
-    } else {
+  };
+
+  const handleToggleService = (serviceId: string) => {
       // Handle regular service toggle
       const isSelected = localSelectedIds.includes(serviceId);
-      let newSelectedIds: string[];
-
       if (isSelected) {
-        // Remove this service and "all-over" if it was selected
-        newSelectedIds = localSelectedIds.filter(
-          (id) => id !== serviceId && id !== "all-over"
-        );
+        // Remove this service
+        setLocalSelectedIds(localSelectedIds.filter((id) => id !== serviceId));
       } else {
         // Add this service
-        newSelectedIds = [...localSelectedIds, serviceId];
-        // Check if all other services are now selected, then also select "all-over"
-        const allOtherSelected = otherServiceIds.every((id) =>
-          newSelectedIds.includes(id)
-        );
-        if (allOtherSelected && suggestions.find((s) => s.id === "all-over")) {
-          newSelectedIds.push("all-over");
-        }
-      }
-
-      setLocalSelectedIds(newSelectedIds);
+        setLocalSelectedIds([...localSelectedIds, serviceId]);
     }
   };
 
@@ -197,6 +191,9 @@ export default function ServiceListBottomSheet({
     );
   };
 
+  // Show "All over" only if there are services
+  const showAllOver = suggestions.length > 0;
+
   return (
     <ModalizeBottomSheet
       visible={visible}
@@ -205,15 +202,38 @@ export default function ServiceListBottomSheet({
       footerButtonTitle="Select"
       onFooterButtonPress={handleSelect}
     >
-      {/* All over service at the top */}
-      {(() => {
-        const allOverService = suggestions.find((s) => s.id === "all-over");
-        if (!allOverService) return null;
-        return renderServiceItem(allOverService, false);
-      })()}
+      {/* All over - always show at top if services exist */}
+      {showAllOver && (
+        <>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={[styles.serviceItem, { borderBottomWidth: 0 }]}
+            onPress={handleToggleAllOver}
+          >
+            <Text style={styles.serviceName}>All over</Text>
+            <View
+              style={[
+                styles.selectButton,
+                areAllServicesSelected && styles.selectedButton,
+              ]}
+            >
+              {areAllServicesSelected && (
+                <Feather
+                  name="check"
+                  size={moderateWidthScale(14)}
+                  color={theme.darkGreen}
+                />
+              )}
+              <Text style={[styles.selectButtonText]}>
+                {areAllServicesSelected ? "Selected" : "+  Select"}
+              </Text>
+            </View>
+          </TouchableOpacity>
 
       {/* Separator line */}
       <View style={styles.separator} />
+        </>
+      )}
 
       {/* Popular starting points section */}
       <Text style={styles.sectionTitle}>Popular starting points:</Text>

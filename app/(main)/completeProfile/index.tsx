@@ -64,6 +64,7 @@ export default function CompleteProfile() {
     teamSize,
     businessHours,
     services,
+    subscriptions,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
@@ -188,6 +189,19 @@ export default function CompleteProfile() {
       body = { ...body, services: servicesArray };
     }
 
+    if (currentStep === 9) {
+      // Transform subscriptions to API format
+      const subscriptionPlansArray = subscriptions.map((subscription) => ({
+        name: subscription.packageName,
+        description: subscription.packageName, // Using packageName as description
+        price: subscription.price,
+        visits: subscription.servicesPerMonth,
+        plan_services: subscription.serviceIds.map((id) => parseInt(id)), // Convert string IDs to numbers (template_id)
+      }));
+
+      body = { ...body, subscription_plans: subscriptionPlansArray };
+    }
+
     return body;
   };
 
@@ -209,6 +223,11 @@ export default function CompleteProfile() {
     }
 
     if (currentStep === 8 && services.length === 0) {
+      dispatch(goToNextStep());
+      return;
+    }
+
+    if (currentStep === 9 && subscriptions.length === 0) {
       dispatch(goToNextStep());
       return;
     }

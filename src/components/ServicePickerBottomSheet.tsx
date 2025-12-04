@@ -6,7 +6,10 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { setBusinessServices } from "@/src/state/slices/completeProfileSlice";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -77,32 +80,101 @@ export default function ServicePickerBottomSheet({
   selectedServiceIds,
   onSelectServices,
 }: ServicePickerBottomSheetProps) {
+  const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { services } = useAppSelector((state) => state.completeProfile);
+  const { businessServices } = useAppSelector(
+    (state) => state.completeProfile
+  );
   const [localSelectedIds, setLocalSelectedIds] =
     useState<string[]>(selectedServiceIds);
 
-  // Only use services selected in Step 8
+  // Convert business services to service format
+  // Use id (business service id) for API calls
   const availableServices = useMemo(() => {
-    return services;
-  }, [services]);
+    return businessServices.map((service) => ({
+      id: service.id.toString(),
+      name: service.name,
+      hours: service.duration_hours,
+      minutes: service.duration_minutes,
+      price: parseFloat(service.price),
+      currency: "USD",
+    }));
+  }, [businessServices]);
+
+  const fetchBusinessServices = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          template_id: number;
+          price: string;
+          description: string;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          businessId: number;
+          business: string;
+          templateId: number;
+          name: string;
+          category: string;
+          created_at: string;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.services);
+
+      if (response.success && response.data) {
+        dispatch(setBusinessServices(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch business services:", error);
+      // Silent fail - no loader/error shown
+    }
+  };
 
   React.useEffect(() => {
     if (visible) {
       setLocalSelectedIds(selectedServiceIds);
+      // Refetch business services when opening (silent, no loader)
+      fetchBusinessServices();
     }
   }, [visible, selectedServiceIds]);
 
+  // Get all service IDs
+  const allServiceIds = useMemo(
+    () => availableServices.map((s) => s.id),
+    [availableServices]
+  );
+
+  // Check if all services are selected
+  const areAllServicesSelected = useMemo(() => {
+    return (
+      allServiceIds.length > 0 &&
+      allServiceIds.every((id) => localSelectedIds.includes(id))
+    );
+  }, [allServiceIds, localSelectedIds]);
+
+  const handleToggleAllOver = () => {
+    if (areAllServicesSelected) {
+      // Unselect all services
+      setLocalSelectedIds([]);
+    } else {
+      // Select all services
+      setLocalSelectedIds([...allServiceIds]);
+    }
+  };
+
   const handleToggleService = (serviceId: string) => {
     // Handle service toggle
-    const isSelected = localSelectedIds.includes(serviceId);
-    if (isSelected) {
+      const isSelected = localSelectedIds.includes(serviceId);
+      if (isSelected) {
       // Remove this service
       setLocalSelectedIds(localSelectedIds.filter((id) => id !== serviceId));
-    } else {
-      // Add this service
+      } else {
+        // Add this service
       setLocalSelectedIds([...localSelectedIds, serviceId]);
     }
   };
@@ -143,6 +215,9 @@ export default function ServicePickerBottomSheet({
     );
   };
 
+  // Show "All over" only if there are services
+  const showAllOver = availableServices.length > 0;
+
   return (
     <ModalizeBottomSheet
       visible={visible}
@@ -151,8 +226,41 @@ export default function ServicePickerBottomSheet({
       footerButtonTitle="Select"
       onFooterButtonPress={handleSelect}
     >
-      {/* Services selected in Step 8 */}
-      <Text style={styles.sectionTitle}>Select services:</Text>
+      {/* All over - always show at top if services exist */}
+      {showAllOver && (
+        <>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={[styles.serviceItem, { borderBottomWidth: 0 }]}
+            onPress={handleToggleAllOver}
+          >
+            <Text style={styles.serviceName}>All over</Text>
+            <View
+              style={[
+                styles.selectButton,
+                areAllServicesSelected && styles.selectedButton,
+              ]}
+            >
+              {areAllServicesSelected && (
+                <Feather
+                  name="check"
+                  size={moderateWidthScale(14)}
+                  color={theme.darkGreen}
+                />
+              )}
+              <Text style={[styles.selectButtonText]}>
+                {areAllServicesSelected ? "Selected" : "+  Select"}
+              </Text>
+            </View>
+          </TouchableOpacity>
+
+      {/* Separator line */}
+      <View style={styles.separator} />
+        </>
+      )}
+
+      {/* Popular starting points section */}
+      <Text style={styles.sectionTitle}>Popular starting points:</Text>
       {availableServices.map((service) => renderServiceItem(service))}
     </ModalizeBottomSheet>
   );

@@ -87,11 +87,27 @@ export interface CompleteProfileState {
     active: boolean;
     createdAt: string;
   }>;
+  businessServices: Array<{
+    id: number;
+    template_id: number;
+    price: string;
+    description: string;
+    duration_hours: number;
+    duration_minutes: number;
+    active: boolean;
+    businessId: number;
+    business: string;
+    templateId: number;
+    name: string;
+    category: string;
+    created_at: string;
+    createdAt: string;
+  }>;
 }
 
 const initialState: CompleteProfileState = {
-  currentStep: 1,
-  // currentStep: 7,
+  // currentStep: 1,
+  currentStep: 10,
   totalSteps: TOTAL_STEPS,
   searchTerm: "",
   businessCategory: null,
@@ -181,6 +197,7 @@ const initialState: CompleteProfileState = {
   photos: [],
   categories: [],
   serviceTemplates: [],
+  businessServices: [],
 };
 
 const completeProfileSlice = createSlice({
@@ -671,6 +688,29 @@ const completeProfileSlice = createSlice({
     ) => {
       state.serviceTemplates = action.payload;
     },
+    setBusinessServices: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: number;
+          template_id: number;
+          price: string;
+          description: string;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          businessId: number;
+          business: string;
+          templateId: number;
+          name: string;
+          category: string;
+          created_at: string;
+          createdAt: string;
+        }>
+      >
+    ) => {
+      state.businessServices = action.payload;
+    },
   },
 });
 
@@ -718,6 +758,7 @@ export const {
   setPhotos,
   setCategories,
   setServiceTemplates,
+  setBusinessServices,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

@@ -16,7 +16,10 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import { updateSubscription } from "@/src/state/slices/completeProfileSlice";
+import {
+  updateSubscription,
+  addSubscription,
+} from "@/src/state/slices/completeProfileSlice";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import ServicePickerBottomSheet from "@/src/components/ServicePickerBottomSheet";
 
@@ -24,6 +27,14 @@ interface EditSubscriptionBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   subscriptionId: string | null;
+  onAddCustomSuggestion?: (subscription: {
+    id: string;
+    packageName: string;
+    servicesPerMonth: number;
+    price: number;
+    currency: string;
+    serviceIds: string[];
+  }) => void;
 }
 
 const createStyles = (theme: Theme) =>
@@ -182,14 +193,28 @@ export default function EditSubscriptionBottomSheet({
   visible,
   onClose,
   subscriptionId,
+  onAddCustomSuggestion,
 }: EditSubscriptionBottomSheetProps) {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { subscriptions, services } = useAppSelector(
+  const { subscriptions, businessServices } = useAppSelector(
     (state) => state.completeProfile
   );
+
+  // Convert business services to service format
+  // Use id (business service id) for API calls
+  const services = useMemo(() => {
+    return businessServices.map((service) => ({
+      id: service.id.toString(),
+      name: service.name,
+      hours: service.duration_hours,
+      minutes: service.duration_minutes,
+      price: parseFloat(service.price),
+      currency: "USD",
+    }));
+  }, [businessServices]);
 
   const subscription = subscriptionId
     ? subscriptions.find((s) => s.id === subscriptionId)
@@ -214,14 +239,25 @@ export default function EditSubscriptionBottomSheet({
   }>({});
 
   useEffect(() => {
-    if (visible && subscription) {
+    if (visible) {
+      if (subscription) {
+        // Edit mode
       setPackageName(subscription.packageName);
       setServicesPerMonth(subscription.servicesPerMonth);
       setPrice(subscription.price.toString());
       setSelectedServiceIds(subscription.serviceIds);
+      } else {
+        // Add mode - set defaults
+        setPackageName("");
+        setServicesPerMonth(1); // Default 1 service per month
+        setPrice("10.00"); // Default price
+        // Select first 2 services by default
+        const firstTwoServiceIds = services.slice(0, 2).map((s) => s.id);
+        setSelectedServiceIds(firstTwoServiceIds);
+      }
       setErrors({});
     }
-  }, [visible, subscription]);
+  }, [visible, subscription, services]);
 
   const handleServicesPerMonthChange = (text: string) => {
     const cleaned = text.replace(/[^0-9]/g, "");
@@ -265,11 +301,53 @@ export default function EditSubscriptionBottomSheet({
     setSelectedServiceIds(selectedServiceIds.filter((id) => id !== serviceId));
   };
 
+  const fetchBusinessServices = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          template_id: number;
+          price: string;
+          description: string;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          businessId: number;
+          business: string;
+          templateId: number;
+          name: string;
+          category: string;
+          created_at: string;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.services);
+
+      if (response.success && response.data) {
+        dispatch(setBusinessServices(response.data));
+      }
+    } catch (error) {
+      console.error("Failed to fetch business services:", error);
+      // Silent fail - no loader/error shown
+    }
+  };
+
   const handleSave = () => {
     const newErrors: typeof errors = {};
 
     if (!packageName.trim()) {
       newErrors.packageName = "Package name is required";
+    } else {
+      // Check if package name already exists (excluding current subscription if editing)
+      const existingSubscription = subscriptions.find(
+        (sub) =>
+          sub.packageName.toLowerCase().trim() ===
+            packageName.toLowerCase().trim() && sub.id !== subscriptionId
+      );
+      if (existingSubscription) {
+        newErrors.packageName = "A subscription with this name already exists";
+      }
     }
 
     const priceValue = parseFloat(price);
@@ -287,6 +365,7 @@ export default function EditSubscriptionBottomSheet({
     }
 
     if (subscriptionId && subscription) {
+      // Edit mode
       dispatch(
         updateSubscription({
           id: subscriptionId,
@@ -297,7 +376,27 @@ export default function EditSubscriptionBottomSheet({
           serviceIds: selectedServiceIds,
         })
       );
+    } else {
+      // Add mode - add to custom suggestions, not to Redux subscriptions
+      const newId = `subscription-${Date.now()}`;
+      const newSubscription = {
+        id: newId,
+        packageName: packageName.trim(),
+        servicesPerMonth,
+        price: priceValue,
+        currency,
+        serviceIds: selectedServiceIds,
+      };
+      
+      if (onAddCustomSuggestion) {
+        onAddCustomSuggestion(newSubscription);
+      } else {
+        // Fallback: if callback not provided, add to Redux (for backward compatibility)
+        dispatch(addSubscription(newSubscription));
+      }
     }
+
+    onClose();
 
     onClose();
   };
@@ -306,14 +405,20 @@ export default function EditSubscriptionBottomSheet({
     <ModalizeBottomSheet
       visible={visible}
       onClose={onClose}
-      title="Edit Subscription"
-      footerButtonTitle="Save"
+      title={subscriptionId ? "Edit Subscription" : "Add Subscription"}
+      footerButtonTitle={subscriptionId ? "Save" : "Add"}
       onFooterButtonPress={handleSave}
       contentStyle={styles.scrollContent}
     >
       <View style={styles.packageNameWrapper}>
         <Text style={styles.inputLabel}>Package Name</Text>
-        <Text style={styles.packageNameText}>{packageName}</Text>
+        <TextInput
+          style={styles.textInput}
+          value={packageName}
+          onChangeText={setPackageName}
+          placeholder="Enter package name"
+          placeholderTextColor={theme.lightGreen2}
+        />
         {errors.packageName && (
           <Text style={styles.errorText}>{errors.packageName}</Text>
         )}
@@ -411,7 +516,11 @@ export default function EditSubscriptionBottomSheet({
       <View style={styles.serviceDropdown}>
         <TouchableOpacity
           style={styles.serviceDropdownButton}
-          onPress={() => setServicePickerVisible(true)}
+          onPress={() => {
+            // Refetch business services when opening picker (silent, no loader)
+            fetchBusinessServices();
+            setServicePickerVisible(true);
+          }}
           activeOpacity={0.7}
         >
           <Text style={styles.serviceDropdownText}>Select to add service</Text>

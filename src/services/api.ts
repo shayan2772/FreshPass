@@ -310,7 +310,7 @@ const logApiRequest = (
       logData.config = config;
     }
 
-    console.log(`🚀 API ${method} Request:`, logData);
+    console.log(`🚀 API ${method} Request:`, JSON.stringify(logData));
   }
 };
 
