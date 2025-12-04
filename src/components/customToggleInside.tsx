@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback, useRef } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -62,12 +62,21 @@ export default function CustomToggleInside({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const lastValueRef = useRef(value);
 
-  const handlePress = () => {
+  // Update ref when value changes from external source
+  React.useEffect(() => {
+    lastValueRef.current = value;
+  }, [value]);
+
+  const handlePress = useCallback(() => {
     if (!disabled) {
-      onValueChange(!value);
+      // Toggle the value - this is only called on actual user press
+      const newValue = !lastValueRef.current;
+      lastValueRef.current = newValue;
+      onValueChange(newValue);
     }
-  };
+  }, [disabled, onValueChange]);
 
   return (
     <Pressable

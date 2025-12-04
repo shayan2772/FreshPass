@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useCallback } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -12,6 +12,7 @@ import {
 import { LeafLogo } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomToggleInside from "@/src/components/customToggleInside";
+import { setOnlineStatus } from "@/src/state/slices/userSlice";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -49,8 +50,17 @@ export default function DashboardHeader() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const [isOnline, setIsOnline] = useState(true);
+  const dispatch = useAppDispatch();
+  const isOnline = useAppSelector((state) => state.user.isOnline);
   const insets = useSafeAreaInsets();
+
+  const handleToggleChange = useCallback((value: boolean) => {
+    // Only dispatch if the value is actually different from current state
+    // This prevents accidental toggles when component re-renders
+    if (value !== isOnline) {
+      dispatch(setOnlineStatus(value));
+    }
+  }, [dispatch, isOnline]);
 
   return (
     <View>
@@ -71,7 +81,7 @@ export default function DashboardHeader() {
             <Text style={styles.logoText}>FRESHPASS</Text>
           </View>
           <View style={styles.toggleContainer}>
-            <CustomToggleInside value={isOnline} onValueChange={setIsOnline} />
+            <CustomToggleInside value={isOnline} onValueChange={handleToggleChange} />
           </View>
         </View>
       </View>

@@ -2,6 +2,16 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 export type UserRole = "business" | "client" | "staff" | null;
 
+export interface BusinessStatus {
+  onboarding_completed: boolean;
+  current_step: number | null;
+  next_step: number | null;
+  stripe_onboarding_status: string;
+  stripe_onboarding_link: string | null;
+  has_subscription: boolean;
+  subscription_status: string;
+}
+
 export interface UserState {
   id: number | null;
   name: string | null;
@@ -9,6 +19,8 @@ export interface UserState {
   accessToken: string | null;
   refreshToken: string | null;
   userRole: UserRole;
+  businessStatus: BusinessStatus | null;
+  isOnline: boolean;
 }
 
 const initialState: UserState = {
@@ -18,6 +30,8 @@ const initialState: UserState = {
   accessToken: null,
   refreshToken: null,
   userRole: null,
+  businessStatus: null,
+  isOnline: false,
 };
 
 const userSlice = createSlice({
@@ -55,6 +69,12 @@ const userSlice = createSlice({
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken || null;
     },
+    setBusinessStatus(state, action: PayloadAction<BusinessStatus>) {
+      state.businessStatus = action.payload;
+    },
+    setOnlineStatus(state, action: PayloadAction<boolean>) {
+      state.isOnline = action.payload;
+    },
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -62,6 +82,8 @@ const userSlice = createSlice({
       state.accessToken = initialState.accessToken;
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
+      state.businessStatus = initialState.businessStatus;
+      state.isOnline = initialState.isOnline;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -70,10 +92,12 @@ const userSlice = createSlice({
       state.accessToken = initialState.accessToken;
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
+      state.businessStatus = initialState.businessStatus;
+      state.isOnline = initialState.isOnline;
     },
   },
 });
 
-export const { setUser, setTokens, setUserRole, clearUser, resetUser } =
+export const { setUser, setTokens, setUserRole, setBusinessStatus, setOnlineStatus, clearUser, resetUser } =
   userSlice.actions;
 export default userSlice.reducer;

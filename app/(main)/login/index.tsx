@@ -221,7 +221,8 @@ export default function Login() {
             dispatch(setSavedPassword(null));
           }
           // Navigate to dashboard
-          router.push(`/${MAIN_ROUTES.DASHBOARD}`);
+          router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+          // router.push(`/${MAIN_ROUTES.DASHBOARD}`);
         } else {
           Alert.alert("Error", "Invalid response from server");
         }

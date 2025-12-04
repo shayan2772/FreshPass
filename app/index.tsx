@@ -23,8 +23,8 @@ export default function Index() {
 
   // If access token exists, redirect to dashboard home
   if (accessToken) {
-    // return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
-    return <Redirect href={`/${MAIN_ROUTES.COMPLETE_PROFILE}`} />;
+    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
+    // return <Redirect href={`/${MAIN_ROUTES.COMPLETE_PROFILE}`} />;
   }
 
   // Otherwise, redirect to role screen
