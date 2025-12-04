@@ -70,6 +70,7 @@ export default function CompleteProfile() {
     instagramUrl,
     tiktokUrl,
     photos,
+    serviceTemplates,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {
@@ -255,10 +256,7 @@ export default function CompleteProfile() {
       return;
     }
 
-    if (currentStep === 9 && subscriptions.length === 0) {
-      dispatch(goToNextStep());
-      return;
-    }
+   
 
     // Call API for onboarding
     setIsSubmitting(true);
@@ -422,9 +420,17 @@ export default function CompleteProfile() {
       return false;
     }
     if (currentStep === 8) {
-      // Step 8 is optional - can continue without adding services
-      // User can add services later
-      return false;
+      // Step 8: Disable continue if:
+      // 1. No service templates available (no services found for category)
+      // 2. Services are available but none selected (must select at least 1)
+      
+      // If no service templates available, disable continue
+      if (serviceTemplates.length === 0) {
+        return true;
+      }
+      
+      // If services are available, must have at least 1 selected
+      return services.length === 0;
     }
     if (currentStep === 9) {
       // Step 9 is optional - can continue without adding subscriptions
@@ -474,6 +480,7 @@ export default function CompleteProfile() {
     teamSize,
     businessHours,
     services,
+    serviceTemplates,
     facebookUrl,
     instagramUrl,
     tiktokUrl,

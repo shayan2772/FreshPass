@@ -326,7 +326,7 @@ const logApiResponse = (
     console.log(`✅ API ${method} Response:`, {
       url: fullUrl,
       status: status,
-      data: data,
+      data: JSON.stringify( data),
     });
   }
 };

@@ -66,12 +66,17 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen4,
+      textAlign: "center",
     },
     emptyStateContainer: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
       paddingHorizontal: moderateWidthScale(20),
+      gap: moderateHeightScale(20),
+    },
+    retryButtonContainer: {
+      marginTop: moderateHeightScale(10),
     },
     popularSection: {
       // gap: moderateHeightScale(12),
@@ -337,7 +342,15 @@ export default function StepEight() {
         </View>
       ) : hasNoData ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Service data not found aginst category {businessCategory?.name}</Text>
+          <Text style={styles.emptyStateText}>
+            Service data not found against category {businessCategory?.name}
+          </Text>
+          <View style={styles.retryButtonContainer}>
+            <RetryButton
+              onPress={fetchServiceTemplates}
+              loading={serviceTemplatesLoading}
+            />
+          </View>
         </View>
       ) : (
         <>
