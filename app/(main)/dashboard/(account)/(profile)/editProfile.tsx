@@ -12,8 +12,12 @@ import {
   Dimensions,
 } from "react-native";
 import { AntDesign } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
+import { ApiService } from "@/src/services/api";
+import { userEndpoints } from "@/src/services/endpoints";
+import { setUserDetails } from "@/src/state/slices/userSlice";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
@@ -48,7 +52,8 @@ import {
   CountryItem,
   Style as CountryPickerStyle,
 } from "react-native-country-codes-picker";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -138,7 +143,7 @@ const createStyles = (theme: Theme) =>
     },
     updateButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(34),
+      paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
     },
     errorText: {
@@ -309,33 +314,111 @@ const getPlaceholderForCountry = (countryIso: string, dialCode: string) => {
   return sanitizePlaceholder(sanitizedFallback);
 };
 
+// Helper function to get country ISO from dial code
+const getCountryIsoFromDialCode = (dialCode: string): string => {
+  const dialCodeMap: Record<string, string> = {
+    "+1": "US",
+    "+44": "GB",
+    "+234": "NG",
+    "+91": "IN",
+    "+61": "AU",
+    "+27": "ZA",
+    "+92": "PK",
+    "+33": "FR",
+    "+49": "DE",
+    "+86": "CN",
+    "+81": "JP",
+    "+7": "RU",
+    "+55": "BR",
+    "+52": "MX",
+    "+39": "IT",
+    "+34": "ES",
+    "+31": "NL",
+    "+32": "BE",
+    "+41": "CH",
+    "+46": "SE",
+    "+47": "NO",
+    "+45": "DK",
+    "+358": "FI",
+    "+353": "IE",
+    "+351": "PT",
+    "+30": "GR",
+    "+48": "PL",
+    "+420": "CZ",
+    "+36": "HU",
+    "+40": "RO",
+    "+359": "BG",
+    "+385": "HR",
+    "+386": "SI",
+    "+421": "SK",
+    "+370": "LT",
+    "+371": "LV",
+    "+372": "EE",
+  };
+  return dialCodeMap[dialCode] || "US";
+};
+
 export default function EditProfileScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
-  const [email, setEmail] = useState("Daniel1123@gmail.com");
-  const [fullName, setFullName] = useState("Jack");
-  const [profileImageUri, setProfileImageUri] = useState(
-    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg"
-  );
+  const router = useRouter();
+  const user = useAppSelector((state) => state.user);
+  const dispatch = useAppDispatch();
+  const { showBanner } = useNotificationContext();
+  
+  // Initialize state with user data from Redux
+  const initialCountryCode = user.country_code || "+1";
+  const initialCountryIso = getCountryIsoFromDialCode(initialCountryCode);
+  const initialPhoneNumber = user.phone || "";
+  const originalProfileImageUri = user.profile_image_url || "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  
+  const [email, setEmail] = useState(user.email || "");
+  const [fullName, setFullName] = useState(user.name || "");
+  const [profileImageUri, setProfileImageUri] = useState(originalProfileImageUri);
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [fullNameError, setFullNameError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
   
   // Phone number state
-  const [countryCode, setCountryCode] = useState("+1");
-  const [countryIso, setCountryIso] = useState("US");
+  const [countryCode, setCountryCode] = useState(initialCountryCode);
+  const [countryIso, setCountryIso] = useState(initialCountryIso);
   const [phonePlaceholder, setPhonePlaceholder] = useState(
-    getPlaceholderForCountry("US", "+1")
+    getPlaceholderForCountry(initialCountryIso, initialCountryCode)
   );
-  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState(initialPhoneNumber);
   const [phoneIsValid, setPhoneIsValid] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const phoneInputRef = useRef<TextInput>(null);
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const previousDigitCountRef = useRef(0);
   const isSettingCursorRef = useRef(false);
+  
+  // Validate phone number on mount if it exists
+  useEffect(() => {
+    if (phoneNumber && countryCode) {
+      try {
+        const dialDigits = countryCode.replace(/\D/g, "");
+        const parsed = parsePhoneNumberFromString(
+          `+${dialDigits}${phoneNumber}`,
+          countryIso as PhoneCountryCode
+        );
+        if (parsed?.isValid()) {
+          setPhoneIsValid(true);
+        } else {
+          setPhoneIsValid(false);
+        }
+      } catch (error) {
+        setPhoneIsValid(false);
+      }
+    } else {
+      setPhoneIsValid(false);
+    }
+    // Only run once on mount to validate initial phone from Redux
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Validate email when it changes
   useEffect(() => {
@@ -646,46 +729,148 @@ export default function EditProfileScreen() {
   };
 
   // Check if form is valid
+  // Button should be disabled if:
+  // - fullName is empty or invalid
+  // - phone is invalid (but phone is optional, so empty is OK)
   const isFormValid = useMemo(() => {
-    const emailValidation = validateEmail(email);
     const fullNameValidation = validateName(fullName, "Your full name");
+    
+    // Full name must be valid and not empty
+    const isFullNameValid = fullName.trim().length > 0 && fullNameValidation.isValid;
+    
+    // Phone is optional, but if provided, it must be valid
+    const isPhoneValid = phoneNumber.length === 0 || phoneIsValid;
 
-    return (
-      email.trim().length > 0 &&
-      fullName.trim().length > 0 &&
-      emailValidation.isValid &&
-      fullNameValidation.isValid &&
-      (phoneNumber.length === 0 || phoneIsValid)
-    );
-  }, [email, fullName, phoneNumber, phoneIsValid]);
+    return isFullNameValid && isPhoneValid;
+  }, [fullName, phoneNumber, phoneIsValid]);
 
-  const handleUpdateProfile = () => {
+  const handleUpdateProfile = async () => {
     // Validate all fields before submitting
-    const emailValidation = validateEmail(email);
     const fullNameValidation = validateName(fullName, "Your full name");
 
-    setEmailError(emailValidation.error);
     setFullNameError(fullNameValidation.error);
 
-    if (
-      emailValidation.isValid &&
-      fullNameValidation.isValid &&
-      (phoneNumber.length === 0 || phoneIsValid)
-    ) {
-      // TODO: Implement update profile logic
-      console.log("Update profile pressed", {
-        email: email.trim(),
-        fullName: fullName.trim(),
-        phoneNumber: phoneNumber ? `${countryCode} ${phoneNumber}` : "",
-        profileImageUri,
-      });
+    if (!fullNameValidation.isValid || !(phoneNumber.length === 0 || phoneIsValid)) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      const formData = new FormData();
+
+      // Add name
+      formData.append("name", fullName.trim());
+
+      // Add phone number and country code separately
+      if (phoneNumber && phoneIsValid) {
+        // Remove any spaces from phone number
+        const cleanPhoneNumber = phoneNumber.replace(/\s+/g, "");
+        formData.append("phone", cleanPhoneNumber);
+        formData.append("country_code", countryCode);
+      } else if (phoneNumber.length === 0) {
+        // If phone is empty, send empty string to clear it
+        formData.append("phone", "");
+        formData.append("country_code", countryCode);
+      }
+
+      // Add profile image if it has changed
+      const hasImageChanged = profileImageUri !== originalProfileImageUri;
+      if (hasImageChanged) {
+        // Check if it's a local file (starts with file://) or a remote URL
+        if (profileImageUri.startsWith("file://") || profileImageUri.startsWith("content://") || profileImageUri.startsWith("ph://")) {
+          // It's a local file, append it
+          const fileExtension = profileImageUri.split(".").pop()?.toLowerCase() || "jpg";
+          const fileName = `profile_image.${fileExtension}`;
+          const mimeType = fileExtension === "jpg" || fileExtension === "jpeg" 
+            ? "image/jpeg" 
+            : fileExtension === "png" 
+            ? "image/png" 
+            : fileExtension === "webp"
+            ? "image/webp"
+            : "image/jpeg";
+
+          formData.append("avatar", {
+            uri: profileImageUri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        } else if (profileImageUri === "") {
+          // User wants to remove avatar
+          formData.append("remove_avatar", "true");
+        }
+        // If it's a remote URL and hasn't changed, we don't need to send it
+      }
+
+      // API call with FormData
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: {
+          id: number;
+          name: string;
+          email: string;
+          phone: string | null;
+          country_code: string | null;
+          email_notifications: boolean | null;
+          profile_image_url: string | null;
+        };
+      }>(userEndpoints.update, formData, config);
+
+      if (response.success) {
+        // Update Redux state with new user data
+        if (response.data) {
+          dispatch(
+            setUserDetails({
+              name: response.data.name,
+              phone: response.data.phone,
+              country_code: response.data.country_code,
+              profile_image_url: response.data.profile_image_url,
+            })
+          );
+        }
+
+        showBanner(
+          "Success",
+          response.message || "Profile updated successfully",
+          "success",
+          3000
+        );
+
+      
+          router.back();
+         
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to update profile",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to update profile:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to update profile. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
  
   return (
-    <View style={styles.container}>
-      <StackHeader title="Edit Profile" />
+    <SafeAreaView  edges={["bottom"]} style={styles.container}>
+      <StackHeader title="Edit Profile"  />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -736,6 +921,8 @@ export default function EditProfileScreen() {
             autoCapitalize="none"
             autoCorrect={false}
             onClear={handleClearEmail}
+            editable={false}
+            showClearButton={false}
           />
           {emailError && <Text style={styles.errorText}>{emailError}</Text>}
         </View>
@@ -825,7 +1012,7 @@ export default function EditProfileScreen() {
         <Button
           title="Update"
           onPress={handleUpdateProfile}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isUpdating}
         />
       </View>
 
@@ -862,6 +1049,6 @@ export default function EditProfileScreen() {
           <Text style={styles.optionText}>From Camera</Text>
         </TouchableOpacity>
       </ModalizeBottomSheet>
-    </View>
+    </SafeAreaView>
   );
 }

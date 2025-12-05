@@ -21,6 +21,9 @@ import DashboardHeader from "../../DashboardHeader";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
+import { setUserDetails } from "@/src/state/slices/userSlice";
+import { ApiService } from "@/src/services/api";
+import { userEndpoints } from "@/src/services/endpoints";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -77,10 +80,45 @@ export default function HomeScreen() {
     }
   }, [dispatch, showBanner]);
 
+  const handleFetchUserDetails = useCallback(async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          id: number;
+          name: string;
+          email: string;
+          phone: string | null;
+          country_code: string | null;
+          email_notifications: boolean | null;
+          profile_image_url: string | null;
+        };
+      }>(userEndpoints.details);
+
+      if (response.success && response.data) {
+        dispatch(
+          setUserDetails({
+            name: response.data.name,
+            email: response.data.email,
+            phone: response.data.phone,
+            country_code: response.data.country_code,
+            email_notifications: response.data.email_notifications,
+            profile_image_url: response.data.profile_image_url,
+          })
+        );
+      }
+    } catch (error: any) {
+      // Silently fail - don't show error banner for user details
+      console.error("Failed to fetch user details:", error);
+    }
+  }, [dispatch]);
+
   useFocusEffect(
     useCallback(() => {
       handleFetchBusinessStatus();
-    }, [handleFetchBusinessStatus])
+      handleFetchUserDetails();
+    }, [handleFetchBusinessStatus, handleFetchUserDetails])
   );
 
   // Show loader only if businessStatus doesn't exist and is loading

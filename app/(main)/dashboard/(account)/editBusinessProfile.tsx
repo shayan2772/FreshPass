@@ -27,6 +27,7 @@ import {
   handleCameraPermission,
 } from "@/src/services/mediaPermissionService";
 import { validateName } from "@/src/services/validationService";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -116,7 +117,7 @@ const createStyles = (theme: Theme) =>
     },
     continueButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(34),
+      paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
     },
     errorText: {
@@ -240,7 +241,7 @@ export default function EditBusinessProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Edit business profile" />
       <ScrollView
         style={styles.content}
@@ -349,6 +350,6 @@ export default function EditBusinessProfileScreen() {
           <Text style={styles.optionText}>From Camera</Text>
         </TouchableOpacity>
       </ModalizeBottomSheet>
-    </View>
+    </SafeAreaView>
   );
 }

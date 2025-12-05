@@ -144,14 +144,15 @@ export default function CompleteProfile() {
 
     if (currentStep === 2) {
       // If phone is empty, send empty string
-      const ownerPhone =
-        phoneNumber.trim().length > 0 ? `${countryCode}${phoneNumber}` : "";
+      // const ownerPhone =
+      //   phoneNumber.trim().length > 0 ? `${countryCode}${phoneNumber}` : "";
 
       body = {
         ...body,
         business_name: businessName.trim(),
         owner_name: fullName.trim(),
-        owner_phone: ownerPhone,
+        owner_phone: phoneNumber,
+        country_code:countryCode
       };
     }
 

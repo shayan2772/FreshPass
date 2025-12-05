@@ -36,6 +36,15 @@ export const businessEndpoints = {
 };
 
 /**
+ * User endpoints
+ */
+export const userEndpoints = {
+  details: `/api/user/details`,
+  update: `/api/user`,
+  changePassword: `/api/user/change-password`,
+};
+
+/**
  * Stripe payment endpoints
  */
 export const stripeEndpoints = {

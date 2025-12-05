@@ -21,6 +21,11 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from "@/src/services/validationService";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { ApiService } from "@/src/services/api";
+import { userEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { router } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -51,7 +56,7 @@ const createStyles = (theme: Theme) =>
     },
     changePasswordButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(34),
+      paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
     },
   });
@@ -60,6 +65,7 @@ export default function ChangePasswordScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const { showBanner } = useNotificationContext();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [retryPassword, setRetryPassword] = useState("");
@@ -71,6 +77,7 @@ export default function ChangePasswordScreen() {
   const [retryPasswordError, setRetryPasswordError] = useState<string | null>(
     null
   );
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
 
   // Validate new password length (min 8 characters)
   useEffect(() => {
@@ -136,7 +143,7 @@ export default function ChangePasswordScreen() {
     );
   }, [oldPassword, newPassword, retryPassword]);
 
-  const handleChangePassword = () => {
+  const handleChangePassword = async () => {
     // Validate all fields before submitting
     const newPasswordValidation = validatePassword(newPassword);
     const retryPasswordValidation = validatePasswordMatch(
@@ -147,6 +154,7 @@ export default function ChangePasswordScreen() {
     // Check old password is not empty
     if (oldPassword.trim().length === 0) {
       setOldPasswordError("Old password is required");
+      return;
     } else {
       setOldPasswordError(null);
     }
@@ -155,21 +163,79 @@ export default function ChangePasswordScreen() {
     setRetryPasswordError(retryPasswordValidation.error);
 
     if (
-      oldPassword.trim().length > 0 &&
-      newPasswordValidation.isValid &&
-      retryPasswordValidation.isValid
+      !newPasswordValidation.isValid ||
+      !retryPasswordValidation.isValid
     ) {
-      // TODO: Implement change password logic
-      console.log("Change password pressed", {
-        oldPassword: oldPassword.trim(),
-        newPassword: newPassword.trim(),
-        retryPassword: retryPassword.trim(),
+      return;
+    }
+
+    setIsChangingPassword(true);
+
+    try {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+      }>(userEndpoints.changePassword, {
+        current_password: oldPassword.trim(),
+        password: newPassword.trim(),
+        password_confirmation: retryPassword.trim(),
       });
+
+      if (response.success) {
+        showBanner(
+          "Success",
+          response.message || "Password changed successfully",
+          "success",
+          3000
+        );
+
+        // Clear all fields after successful password change
+        setOldPassword("");
+        setNewPassword("");
+        setRetryPassword("");
+        setOldPasswordError(null);
+        setNewPasswordError(null);
+        setRetryPasswordError(null);
+
+        router.back();
+
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to change password",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to change password:", error);
+      
+      // Handle specific error cases
+      if (error.status === 400 || error.status === 422) {
+        // Validation error - might be wrong current password
+        const errorMessage = error.message || "Invalid password. Please check your current password.";
+        setOldPasswordError(errorMessage);
+        showBanner(
+          "Error",
+          errorMessage,
+          "error",
+          3000
+        );
+      } else {
+        showBanner(
+          "Error",
+          error.message || "Failed to change password. Please try again.",
+          "error",
+          3000
+        );
+      }
+    } finally {
+      setIsChangingPassword(false);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView  edges={["bottom"]} style={styles.container}>
       <StackHeader title="Change Password" />
       <ScrollView
         style={styles.content}
@@ -271,10 +337,10 @@ export default function ChangePasswordScreen() {
         <Button
           title="Change Password"
           onPress={handleChangePassword}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isChangingPassword}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }
 

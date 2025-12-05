@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Image,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -110,6 +110,7 @@ export default function ProfileScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
+  const user = useAppSelector((state) => state.user);
 
   const handleEditPress = () => {
     router.push("./editProfile");
@@ -118,6 +119,14 @@ export default function ProfileScreen() {
   const handleChangePasswordPress = () => {
     router.push("./changePassword");
   };
+
+  const profileImageUri = user.profile_image_url || "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  const userName = user.name || "";
+  const userPhone = user.phone || "";
+  const userCountryCode = user.country_code || "";
+  const userEmail = user.email || "";
+
+  console.log("user", user);
 
   return (
     <View style={styles.container}>
@@ -130,15 +139,15 @@ export default function ProfileScreen() {
         <View style={styles.profileImageContainer}>
           <Image
             source={{
-              uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+              uri: profileImageUri,
             }}
             style={styles.profileImage}
             resizeMode="cover"
           />
         </View>
 
-        <Text style={styles.nameText}>Marco Angelo M.</Text>
-        <Text style={styles.emailText}>marcoangelom@gmail.com</Text>
+        <Text style={styles.nameText}>{userName}</Text>
+        <Text style={styles.emailText}>{userEmail}</Text>
 
         <View style={styles.editButtonContainer}>
           <TouchableOpacity

@@ -48,7 +48,7 @@ const generalPersistConfig = {
 const userPersistConfig = {
   key: "user",
   storage: SecureStorageAdapter,
-  whitelist: ["id", "name", "email", "accessToken", "refreshToken", "userRole", "isOnline"], // Only persist these fields (businessStatus excluded)
+  whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "refreshToken", "userRole", "isOnline"], // Only persist these fields (businessStatus excluded)
 };
 
 // ✅ Persist the general reducer with field filtering
