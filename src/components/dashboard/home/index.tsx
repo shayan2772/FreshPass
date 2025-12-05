@@ -30,6 +30,7 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { setBusinessStatus } from "@/src/state/slices/userSlice";
 import WebViewModal from "@/src/components/webViewModal";
 import RetryButton from "@/src/components/retryButton";
+import BusinessPlansModal from "@/src/components/businessPlansModal";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -84,6 +85,7 @@ export default function HomeScreen() {
   const { showBanner } = useNotificationContext();
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const [webViewVisible, setWebViewVisible] = useState(false);
+  const [businessPlansModalVisible, setBusinessPlansModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
   const [isFetchingStripeLink, setIsFetchingStripeLink] = useState(false);
@@ -264,7 +266,9 @@ export default function HomeScreen() {
     }
   };
 
-  const handleBusinessSubscriptionPress = () => {};
+  const handleBusinessSubscriptionPress = () => {
+    setBusinessPlansModalVisible(true);
+  };
 
   const handleCloseWebView = () => {
     setWebViewVisible(false);
@@ -425,6 +429,10 @@ export default function HomeScreen() {
         url={businessStatus?.stripe_onboarding_link || ""}
         onClose={handleCloseWebView}
         title="Stripe Onboarding"
+      />
+      <BusinessPlansModal
+        visible={businessPlansModalVisible}
+        onClose={() => setBusinessPlansModalVisible(false)}
       />
     </View>
   );
