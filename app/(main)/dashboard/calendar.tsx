@@ -53,12 +53,54 @@ const STATIC_APPOINTMENTS = [
     status_label: "Upcoming",
     client_name: "Mike S...",
   },
+  {
+    id: "4",
+    title: "Haircut",
+    scheduled_at: dayjs().month(11).date(6).hour(1).minute(0).second(0).millisecond(0).toISOString(),
+    duration: "30 min",
+    price: 30,
+    status_label: "Upcoming",
+    client_name: "Client A...",
+  },
+  {
+    id: "5",
+    title: "Beard Styling",
+    scheduled_at: dayjs().month(11).date(6).hour(3).minute(0).second(0).millisecond(0).toISOString(),
+    duration: "20 min",
+    price: 20,
+    status_label: "Upcoming",
+    client_name: "Client B...",
+  },
+  {
+    id: "6",
+    title: "Full Service",
+    scheduled_at: dayjs().month(11).date(7).hour(15).minute(0).second(0).millisecond(0).toISOString(),
+    duration: "90 min",
+    price: 100,
+    status_label: "Upcoming",
+    client_name: "Client C...",
+  },
 ];
 
-const TIME_SLOTS = Array.from({ length: 12 }, (_, hour) => {
-  const hour24 = hour + 12; // Start from 12 (12 pm)
-  const suffix = "pm";
-  const formattedHour = hour24 === 12 ? 12 : hour24;
+const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
+  const hour24 = hour; // 0 to 23
+  let formattedHour: number;
+  let suffix: string;
+  
+  if (hour24 === 0) {
+    formattedHour = 12;
+    suffix = "am";
+  } else if (hour24 < 12) {
+    formattedHour = hour24;
+    suffix = "am";
+  } else if (hour24 === 12) {
+    formattedHour = 12;
+    suffix = "pm";
+  } else {
+    formattedHour = hour24 - 12;
+    suffix = "pm";
+  }
+  
   return `${formattedHour} ${suffix}`;
 });
 
@@ -69,7 +111,24 @@ const getWeekDays = (date: dayjs.Dayjs) => {
 
 const convertTo24Hour = (time12h: string) => {
   const [time, period] = time12h.split(" ");
-  const hour24 = period === "pm" && time !== "12" ? parseInt(time) + 12 : parseInt(time);
+  const hour = parseInt(time);
+  let hour24: number;
+  
+  if (period === "am") {
+    if (hour === 12) {
+      hour24 = 0; // 12 am = midnight (00:00)
+    } else {
+      hour24 = hour;
+    }
+  } else {
+    // pm
+    if (hour === 12) {
+      hour24 = 12; // 12 pm = noon (12:00)
+    } else {
+      hour24 = hour + 12;
+    }
+  }
+  
   return `${hour24.toString().padStart(2, "0")}:00`;
 };
 
@@ -88,6 +147,7 @@ const createStyles = (theme: Theme) =>
       paddingBottom: moderateHeightScale(12),
       borderBottomWidth: 1,
       borderBottomColor: theme.borderLight,
+      backgroundColor: theme.lightGreen1,
     },
     weekNavigation: {
       flexDirection: "row",
@@ -120,13 +180,14 @@ const createStyles = (theme: Theme) =>
     },
     dayNumberContainer: {
       width: widthScale(36),
-      height: heightScale(36),
-      borderRadius: moderateWidthScale(18),
+      height: widthScale(36),
+      borderRadius: widthScale(18),
       alignItems: "center",
       justifyContent: "center",
+      overflow: "hidden",
     },
     dayNumberSelected: {
-      backgroundColor: theme.orangeBrown30,
+      backgroundColor: theme.orangeBrown,
     },
     dayNumber: {
       fontSize: fontSize.size14,
@@ -135,6 +196,9 @@ const createStyles = (theme: Theme) =>
     },
     dayNumberSelectedText: {
       color: theme.text,
+    },
+    dayNumberTodayText: {
+      color:"#02627a",
     },
     agendaContainer: {
       flex: 1,
@@ -165,7 +229,7 @@ const createStyles = (theme: Theme) =>
     },
     todayText: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.text,
     },
     timeSlotRow: {
@@ -340,6 +404,9 @@ export default function CalendarScreen() {
             {week.map((day) => {
               const isSelected = day.isSame(selectedDate, "day");
               const isToday = day.isSame(today, "day");
+              // Show brown circle only if selected (not just for today)
+              const showBrownCircle = isSelected;
+              // Show red text only if today (and not selected, or if selected then both apply)
               return (
                 <TouchableOpacity
                   key={day.format("YYYY-MM-DD")}
@@ -352,13 +419,14 @@ export default function CalendarScreen() {
                   <View
                     style={[
                       styles.dayNumberContainer,
-                      (isSelected || isToday) && styles.dayNumberSelected,
+                      showBrownCircle && styles.dayNumberSelected,
                     ]}
                   >
                     <Text
                       style={[
                         styles.dayNumber,
-                        (isSelected || isToday) && styles.dayNumberSelectedText,
+                        isSelected && styles.dayNumberSelectedText,
+                        isToday && styles.dayNumberTodayText,
                       ]}
                     >
                       {day.format("D")}
