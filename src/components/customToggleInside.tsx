@@ -36,7 +36,9 @@ const createStyles = (theme: Theme) =>
       borderRadius: 999,
       overflow: "hidden",
     },
-    offlineSectionInactive: {},
+    offlineSectionInactive: {
+      
+    },
     offlineSectionActive: {
       backgroundColor: theme.toggleActive,
     },

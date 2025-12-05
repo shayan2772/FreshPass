@@ -25,6 +25,9 @@ export interface UserState {
   userRole: UserRole;
   businessStatus: BusinessStatus | null;
   isOnline: boolean;
+  // Business status loading/error states (NOT persisted)
+  businessStatusLoading: boolean;
+  businessStatusError: boolean;
 }
 
 const initialState: UserState = {
@@ -36,6 +39,8 @@ const initialState: UserState = {
   userRole: null,
   businessStatus: null,
   isOnline: false,
+  businessStatusLoading: false,
+  businessStatusError: false,
 };
 
 const userSlice = createSlice({
@@ -75,6 +80,13 @@ const userSlice = createSlice({
     },
     setBusinessStatus(state, action: PayloadAction<BusinessStatus>) {
       state.businessStatus = action.payload;
+      state.businessStatusError = false;
+    },
+    setBusinessStatusLoading(state, action: PayloadAction<boolean>) {
+      state.businessStatusLoading = action.payload;
+    },
+    setBusinessStatusError(state, action: PayloadAction<boolean>) {
+      state.businessStatusError = action.payload;
     },
     setOnlineStatus(state, action: PayloadAction<boolean>) {
       state.isOnline = action.payload;
@@ -88,6 +100,8 @@ const userSlice = createSlice({
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
       state.isOnline = initialState.isOnline;
+      state.businessStatusLoading = initialState.businessStatusLoading;
+      state.businessStatusError = initialState.businessStatusError;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -98,10 +112,21 @@ const userSlice = createSlice({
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
       state.isOnline = initialState.isOnline;
+      state.businessStatusLoading = initialState.businessStatusLoading;
+      state.businessStatusError = initialState.businessStatusError;
     },
   },
 });
 
-export const { setUser, setTokens, setUserRole, setBusinessStatus, setOnlineStatus, clearUser, resetUser } =
-  userSlice.actions;
+export const {
+  setUser,
+  setTokens,
+  setUserRole,
+  setBusinessStatus,
+  setBusinessStatusLoading,
+  setBusinessStatusError,
+  setOnlineStatus,
+  clearUser,
+  resetUser,
+} = userSlice.actions;
 export default userSlice.reducer;

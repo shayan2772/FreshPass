@@ -1,5 +1,15 @@
-import React, { useMemo, useCallback } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import React, { useMemo, useCallback, useState, useRef, useEffect } from "react";
+import {
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  ActivityIndicator,
+  Animated,
+  Linking,
+  AppState,
+} from "react-native";
+import { useFocusEffect } from "expo-router";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -13,6 +23,10 @@ import { LeafLogo } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomToggleInside from "@/src/components/customToggleInside";
 import { setOnlineStatus } from "@/src/state/slices/userSlice";
+import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
+import { checkInternetConnection } from "@/src/services/api";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import BusinessPlansModal from "@/src/components/businessPlansModal";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -44,6 +58,19 @@ const createStyles = (theme: Theme) =>
       height: 1.1,
       backgroundColor: theme.borderLight,
     },
+    stripeBanner: {
+      backgroundColor: theme.darkGreen,
+      paddingHorizontal: moderateWidthScale(15),
+      paddingVertical: moderateHeightScale(10),
+    },
+    stripeBannerText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+      textAlign: "center",
+      textDecorationLine: "underline",
+      textDecorationColor: theme.white,
+    },
   });
 
 interface DashboardHeaderProps {
@@ -59,8 +86,143 @@ export default function DashboardHeader({
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const dispatch = useAppDispatch();
+  const { showBanner } = useNotificationContext();
   const isOnline = useAppSelector((state) => state.user.isOnline);
+  const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const insets = useSafeAreaInsets();
+
+  const [businessPlansModalVisible, setBusinessPlansModalVisible] = useState(false);
+  const [isFetchingStripeLink, setIsFetchingStripeLink] = useState(false);
+  const bannerAnimation = useRef(new Animated.Value(0)).current;
+
+  const handleFetchBusinessStatus = useCallback(async () => {
+    await dispatch(fetchBusinessStatus({ showError: true }));
+  }, [dispatch]);
+
+  useFocusEffect(
+    useCallback(() => {
+      handleFetchBusinessStatus();
+    }, [handleFetchBusinessStatus])
+  );
+
+  // Listen for app state changes to refresh when returning from browser
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        // App has come to the foreground, refresh business status
+        handleFetchBusinessStatus();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [handleFetchBusinessStatus]);
+
+  const handleStripeOnboardingPress = async () => {
+    // First check internet connection
+    const hasInternet = await checkInternetConnection();
+    if (!hasInternet) {
+      showBanner(
+        "No Internet Connection",
+        "Please check your internet connection and try again",
+        "error",
+        2500
+      );
+      return;
+    }
+
+    // Fetch latest Stripe onboarding link
+    setIsFetchingStripeLink(true);
+    try {
+      const businessData = await dispatch(
+        fetchBusinessStatus({ showError: false })
+      ).unwrap();
+
+      // Open the link in browser after successful fetch
+      if (businessData?.stripe_onboarding_link) {
+        try {
+          const canOpen = await Linking.canOpenURL(
+            businessData.stripe_onboarding_link
+          );
+          if (canOpen) {
+            await Linking.openURL(businessData.stripe_onboarding_link);
+          } else {
+            showBanner("Error", "Cannot open the link", "error", 2500);
+          }
+        } catch (error: any) {
+          showBanner(
+            "Error",
+            error.message || "Failed to open link",
+            "error",
+            2500
+          );
+        }
+      } else {
+        showBanner(
+          "Stripe Connect",
+          "Stripe onboarding link is not available",
+          "error",
+          2500
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch Stripe onboarding link:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to fetch Stripe onboarding link",
+        "error",
+        2500
+      );
+    } finally {
+      setIsFetchingStripeLink(false);
+    }
+  };
+
+  const handleBusinessSubscriptionPress = () => {
+    setBusinessPlansModalVisible(true);
+  };
+
+  
+  const showStripeBanner =
+    businessStatus?.onboarding_completed === true &&
+    businessStatus?.stripe_onboarding_status === "pending";
+  const showBusinessSubscriptipn =
+    businessStatus?.onboarding_completed === true &&
+    businessStatus?.stripe_onboarding_status === "completed" &&
+    businessStatus?.has_subscription === false;
+  const actualCanGoOnline = !showStripeBanner && !showBusinessSubscriptipn;
+
+  const animateBanner = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(bannerAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [bannerAnimation]);
+
+  const handleToggleAttempt = useCallback(() => {
+    if (!actualCanGoOnline && (showStripeBanner || showBusinessSubscriptipn)) {
+      animateBanner();
+    }
+  }, [actualCanGoOnline, showStripeBanner, showBusinessSubscriptipn, animateBanner]);
 
   const handleToggleChange = useCallback(
     (value: boolean) => {
@@ -68,15 +230,15 @@ export default function DashboardHeader({
       // This prevents accidental toggles when component re-renders
       if (value !== isOnline) {
         // If trying to go online and canGoOnline is false, trigger animation
-        if (value === true && !canGoOnline) {
-          onToggleAttempt?.();
+        if (value === true && !actualCanGoOnline) {
+          handleToggleAttempt();
           return; // Don't allow toggle
         }
         // Allow going offline or going online when canGoOnline is true
         dispatch(setOnlineStatus(value));
       }
     },
-    [dispatch, isOnline, canGoOnline, onToggleAttempt]
+    [dispatch, isOnline, actualCanGoOnline, handleToggleAttempt]
   );
 
   return (
@@ -103,6 +265,53 @@ export default function DashboardHeader({
         </View>
       </View>
       <View style={styles.line} />
+      {(showStripeBanner || showBusinessSubscriptipn) && (
+          <TouchableOpacity
+          onPress={
+            showStripeBanner
+              ? handleStripeOnboardingPress
+              : handleBusinessSubscriptionPress
+          }
+          activeOpacity={0.8}
+          disabled={isFetchingStripeLink}
+        >
+        <Animated.View
+          style={[
+            styles.stripeBanner,
+            {
+              transform: [{ translateX: bannerAnimation }],
+            },
+          ]}
+        >
+        
+            {isFetchingStripeLink ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: moderateWidthScale(8),
+                }}
+              >
+                <ActivityIndicator size="small" color={theme.white} />
+                <Text style={styles.stripeBannerText}>Loading...</Text>
+              </View>
+            ) : (
+              <Text style={styles.stripeBannerText}>
+                {showStripeBanner
+                  ? "Please complete your business stripe connect onboarding"
+                  : "Please buy business plan"}
+              </Text>
+            )}
+        
+        </Animated.View>
+        </TouchableOpacity>
+      )}
+     
+      <BusinessPlansModal
+        visible={businessPlansModalVisible}
+        onClose={() => setBusinessPlansModalVisible(false)}
+      />
     </View>
   );
 }
