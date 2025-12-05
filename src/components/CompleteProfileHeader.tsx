@@ -14,6 +14,7 @@ interface CompleteProfileHeaderProps {
   currentStep: number;
   totalSteps: number;
   onBack: () => void;
+  disableBack?: boolean;
 }
 
 const createStyles = (theme: Theme) =>
@@ -65,6 +66,7 @@ export default function CompleteProfileHeader({
   currentStep,
   totalSteps,
   onBack,
+  disableBack = false,
 }: CompleteProfileHeaderProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
@@ -77,17 +79,21 @@ export default function CompleteProfileHeader({
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Pressable
-          onPress={onBack}
-          hitSlop={moderateWidthScale(8)}
-          style={styles.backButton}
-        >
-          <Feather
-            name="arrow-left"
-            size={moderateWidthScale(22)}
-            color={(colors as Theme).darkGreen}
-          />
-        </Pressable>
+        {disableBack ? (
+          <View style={styles.spacer} />
+        ) : (
+          <Pressable
+            onPress={onBack}
+            hitSlop={moderateWidthScale(8)}
+            style={styles.backButton}
+          >
+            <Feather
+              name="arrow-left"
+              size={moderateWidthScale(22)}
+              color={(colors as Theme).darkGreen}
+            />
+          </Pressable>
+        )}
 
         <Text style={styles.stepLabel}>
           Step {currentStep} out of {totalSteps}

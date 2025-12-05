@@ -16,6 +16,7 @@ import FloatingInput from "@/src/components/floatingInput";
 import {
   addStaffInvitation,
   setStaffInvitationEmail,
+  setStaffInvitations,
 } from "@/src/state/slices/completeProfileSlice";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { ApiService } from "@/src/services/api";
@@ -185,15 +186,14 @@ export default function StepSix() {
       });
 
       if (response.success && response.data?.invited_staff) {
-        // Add all invited staff from response to the list
-        response.data.invited_staff.forEach((staff) => {
-          dispatch(
-            addStaffInvitation({
-              email: staff.email,
-              status: staff.invitation_status === "accepted" ? "accepted" : "sent",
-            })
-          );
-        });
+        // Map API response to Redux format and set all invitations
+        const mappedInvitations = response.data.invited_staff.map((staff) => ({
+          email: staff.email,
+          status: staff.invitation_status === "accepted" ? "accepted" : "sent" as "sent" | "accepted",
+        }));
+
+        // Set all invitations from API response (this updates existing ones and adds new ones)
+        dispatch(setStaffInvitations(mappedInvitations));
 
         // Clear email input
         dispatch(setStaffInvitationEmail(""));

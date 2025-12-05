@@ -412,6 +412,12 @@ const completeProfileSlice = createSlice({
         state.staffInvitations.push(action.payload);
       }
     },
+    setStaffInvitations: (
+      state,
+      action: PayloadAction<Array<{ email: string; status: "sent" | "accepted" }>>
+    ) => {
+      state.staffInvitations = action.payload;
+    },
     removeStaffInvitation: (state, action: PayloadAction<number>) => {
       state.staffInvitations.splice(action.payload, 1);
     },
@@ -738,6 +744,7 @@ export const {
   setTeamSize,
   setStaffInvitationEmail,
   addStaffInvitation,
+  setStaffInvitations,
   removeStaffInvitation,
   setDayAvailability,
   setDayHours,

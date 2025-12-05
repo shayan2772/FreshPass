@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
@@ -177,9 +179,10 @@ export default function RegisterPassword() {
     setPasswordError(null);
   }, []);
 
-  const handleContinue = () => {
+  const handleContinue = useCallback(() => {
+    Keyboard.dismiss();
     setShowRoleSheet(true);
-  };
+  }, []);
 
   const handleRoleSelect = useCallback(
     async (role: "business" | "client") => {
@@ -271,9 +274,10 @@ export default function RegisterPassword() {
         barStyle={"dark-content"}
       />
 
-      <View style={styles.container}>
-        <RegisterHeader onBack={handleBack} />
-        <View style={styles.mainContent}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <RegisterHeader onBack={handleBack} />
+          <View style={styles.mainContent}>
           <View style={styles.content}>
             <View style={styles.titleSection}>
               <Text style={styles.title}>Create your password</Text>
@@ -365,12 +369,13 @@ export default function RegisterPassword() {
           />
         </View>
 
-        <RoleSelectionBottomSheet
-          visible={showRoleSheet}
-          onClose={handleRoleSheetClose}
-          onRoleSelect={handleRoleSelect}
-        />
-      </View>
+          <RoleSelectionBottomSheet
+            visible={showRoleSheet}
+            onClose={handleRoleSheetClose}
+            onRoleSelect={handleRoleSelect}
+          />
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }

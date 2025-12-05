@@ -6,6 +6,10 @@ export interface BusinessStatus {
   onboarding_completed: boolean;
   current_step: number | null;
   next_step: number | null;
+  business_category: {
+    id: number;
+    name: string;
+  } | null;
   stripe_onboarding_status: string;
   stripe_onboarding_link: string | null;
   has_subscription: boolean;

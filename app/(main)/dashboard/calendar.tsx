@@ -1,20 +1,77 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect, useRef } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
-  StatusBar,
+  TouchableOpacity,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
+  widthScale,
+  heightScale,
 } from "@/src/theme/dimensions";
 import DashboardHeader from "@/src/components/DashboardHeader";
+import { MaterialIcons } from "@expo/vector-icons";
+import dayjs from "dayjs";
+import weekOfYear from "dayjs/plugin/weekOfYear";
+import isoWeek from "dayjs/plugin/isoWeek";
+
+dayjs.extend(weekOfYear);
+dayjs.extend(isoWeek);
+
+// Static appointment data
+const STATIC_APPOINTMENTS = [
+  {
+    id: "1",
+    title: "Haircut + Beard Trim",
+    scheduled_at: dayjs().hour(12).minute(30).second(0).millisecond(0).toISOString(),
+    duration: "45 min",
+    price: 50,
+    status_label: "On-going apt.",
+    client_name: "Sanna H...",
+  },
+  {
+    id: "2",
+    title: "Hair Styling",
+    scheduled_at: dayjs().add(1, "day").hour(14).minute(0).second(0).millisecond(0).toISOString(),
+    duration: "60 min",
+    price: 75,
+    status_label: "Upcoming",
+    client_name: "John D...",
+  },
+  {
+    id: "3",
+    title: "Beard Trim",
+    scheduled_at: dayjs().add(2, "day").hour(10).minute(30).second(0).millisecond(0).toISOString(),
+    duration: "30 min",
+    price: 25,
+    status_label: "Upcoming",
+    client_name: "Mike S...",
+  },
+];
+
+const TIME_SLOTS = Array.from({ length: 12 }, (_, hour) => {
+  const hour24 = hour + 12; // Start from 12 (12 pm)
+  const suffix = "pm";
+  const formattedHour = hour24 === 12 ? 12 : hour24;
+  return `${formattedHour} ${suffix}`;
+});
+
+const getWeekDays = (date: dayjs.Dayjs) => {
+  const startOfWeek = date.startOf("week");
+  return Array.from({ length: 7 }).map((_, i) => startOfWeek.add(i, "day"));
+};
+
+const convertTo24Hour = (time12h: string) => {
+  const [time, period] = time12h.split(" ");
+  const hour24 = period === "pm" && time !== "12" ? parseInt(time) + 12 : parseInt(time);
+  return `${hour24.toString().padStart(2, "0")}:00`;
+};
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -24,40 +81,386 @@ const createStyles = (theme: Theme) =>
     },
     content: {
       flex: 1,
+    },
+    calendarHeader: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
+      paddingTop: moderateHeightScale(16),
+      paddingBottom: moderateHeightScale(12),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
     },
-    title: {
-      fontSize: fontSize.size24,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(20),
+    weekNavigation: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: moderateHeightScale(16),
     },
-    placeholderText: {
-      fontSize: fontSize.size16,
+    weekText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+    },
+    arrowButton: {
+      padding: moderateWidthScale(8),
+    },
+    daysRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: moderateWidthScale(4),
+    },
+    dayContainer: {
+      alignItems: "center",
+      flex: 1,
+    },
+    dayName: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+      marginBottom: moderateHeightScale(8),
+    },
+    dayNumberContainer: {
+      width: widthScale(36),
+      height: heightScale(36),
+      borderRadius: moderateWidthScale(18),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    dayNumberSelected: {
+      backgroundColor: theme.orangeBrown30,
+    },
+    dayNumber: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+    },
+    dayNumberSelectedText: {
+      color: theme.text,
+    },
+    agendaContainer: {
+      flex: 1,
+    },
+    agendaHeader: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    allDayLabel: {
+      width: widthScale(80),
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      borderRightWidth: 1,
+      borderRightColor: theme.borderLight,
+      justifyContent: "center",
+    },
+    allDayText: {
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-      textAlign: "center",
-      marginTop: moderateHeightScale(40),
+    },
+    todayLabel: {
+      flex: 1,
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      justifyContent: "center",
+    },
+    todayText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.text,
+    },
+    timeSlotRow: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+      minHeight: heightScale(80),
+    },
+    timeSlot: {
+      width: widthScale(80),
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      borderRightWidth: 1,
+      borderRightColor: theme.borderLight,
+      justifyContent: "flex-start",
+    },
+    timeSlotText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+    },
+    appointmentsContainer: {
+      flex: 1,
+      paddingVertical: moderateHeightScale(8),
+      paddingHorizontal: moderateWidthScale(12),
+    },
+    appointmentWrapper: {
+      marginBottom: moderateHeightScale(12),
+    },
+    clientNameContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(4),
+    },
+    clientNameText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+      marginLeft: moderateWidthScale(4),
+    },
+    appointmentCard: {
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(8),
+      padding: moderateWidthScale(12),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+    },
+    appointmentHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: moderateHeightScale(8),
+    },
+    appointmentTitle: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.text,
+      flex: 1,
+    },
+    appointmentStatus: {
+      backgroundColor: theme.orangeBrown30,
+      paddingHorizontal: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(4),
+      borderRadius: moderateWidthScale(4),
+      marginLeft: moderateWidthScale(8),
+    },
+    appointmentStatusText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+    },
+    appointmentMeta: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    emptyState: {
+      paddingVertical: moderateHeightScale(20),
+      alignItems: "center",
+    },
+    emptyStateText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
     },
   });
 
 export default function CalendarScreen() {
   const { colors } = useTheme();
-  const theme=(colors) as Theme
-  const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const theme = colors as Theme;
+  const styles = useMemo(() => createStyles(theme), [colors]);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  const today = dayjs();
+  const [selectedDate, setSelectedDate] = useState(today);
+  const [week, setWeek] = useState(getWeekDays(today));
+
+  // Set to current week on mount
+  useEffect(() => {
+    const currentWeek = getWeekDays(today);
+    setWeek(currentWeek);
+    setSelectedDate(today);
+  }, []);
+
+  const currentDate = selectedDate.format("YYYY-MM-DD");
+
+  const nextWeek = () => {
+    const next = selectedDate.add(7, "day");
+    const nextWeekDays = getWeekDays(next);
+    setSelectedDate(nextWeekDays[0]);
+    setWeek(nextWeekDays);
+  };
+
+  const prevWeek = () => {
+    const prev = selectedDate.subtract(7, "day");
+    const prevWeekDays = getWeekDays(prev);
+    setSelectedDate(prevWeekDays[6]);
+    setWeek(prevWeekDays);
+  };
+
+  const formatDate = (date: dayjs.Dayjs) => {
+    if (date.isSame(today, "day")) {
+      return "(Today)";
+    } else if (date.isSame(today.add(1, "day"), "day")) {
+      return "(Tomorrow)";
+    } else if (date.isSame(today.subtract(1, "day"), "day")) {
+      return "(Yesterday)";
+    } else {
+      return `(${date.format("MMM D, YYYY")})`;
+    }
+  };
+
+  const formatAppointmentDate = (dateString: string) => {
+    const date = dayjs(dateString);
+    return `${date.format("M/D/YYYY")} - ${date.format("h:mm a")}`;
+  };
 
   return (
-    <View style={styles.container}  >
-     <DashboardHeader />
-      <ScrollView
-        style={styles.content}
-        contentContainerStyle={{ paddingBottom: moderateHeightScale(20) }}
-        showsVerticalScrollIndicator={false}
-      >
-        
-       
-      </ScrollView>
+    <View style={styles.container}>
+      <DashboardHeader />
+      <View style={styles.content}>
+        {/* Calendar Header */}
+        <View style={styles.calendarHeader}>
+          <View style={styles.weekNavigation}>
+            <TouchableOpacity
+              style={styles.arrowButton}
+              onPress={prevWeek}
+            >
+              <MaterialIcons
+                name="keyboard-arrow-left"
+                size={moderateWidthScale(24)}
+                color={theme.text}
+              />
+            </TouchableOpacity>
+            <Text style={styles.weekText}>
+              {week[0].format("MMM D")} - {week[6].format("MMM D, YYYY")}
+            </Text>
+            <TouchableOpacity
+              style={styles.arrowButton}
+              onPress={nextWeek}
+            >
+              <MaterialIcons
+                name="keyboard-arrow-right"
+                size={moderateWidthScale(24)}
+                color={theme.text}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Days Row */}
+          <View style={styles.daysRow}>
+            {week.map((day) => {
+              const isSelected = day.isSame(selectedDate, "day");
+              const isToday = day.isSame(today, "day");
+              return (
+                <TouchableOpacity
+                  key={day.format("YYYY-MM-DD")}
+                  style={styles.dayContainer}
+                  onPress={() => setSelectedDate(day)}
+                >
+                  <Text style={styles.dayName}>
+                    {day.format("ddd")}
+                  </Text>
+                  <View
+                    style={[
+                      styles.dayNumberContainer,
+                      (isSelected || isToday) && styles.dayNumberSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.dayNumber,
+                        (isSelected || isToday) && styles.dayNumberSelectedText,
+                      ]}
+                    >
+                      {day.format("D")}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Agenda View */}
+        <View style={styles.agendaContainer}>
+          <View style={styles.agendaHeader}>
+            <View style={styles.allDayLabel}>
+              <Text style={styles.allDayText}>All Day</Text>
+            </View>
+            <View style={styles.todayLabel}>
+              <Text style={styles.todayText}>{formatDate(selectedDate)}</Text>
+            </View>
+          </View>
+
+          <ScrollView
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: moderateHeightScale(20) }}
+          >
+            {TIME_SLOTS.map((time) => {
+              const timeSlot24h = convertTo24Hour(time);
+              const appointments = STATIC_APPOINTMENTS.filter((appointment) => {
+                if (!appointment.scheduled_at) return false;
+
+                const scheduledDate = dayjs(appointment.scheduled_at).format("YYYY-MM-DD");
+                const scheduledTime = dayjs(appointment.scheduled_at).format("HH:mm");
+
+                if (scheduledDate !== currentDate) return false;
+
+                const [scheduledHour, scheduledMinute] = scheduledTime
+                  .split(":")
+                  .map(Number);
+                const scheduledMinutes = scheduledHour * 60 + scheduledMinute;
+
+                const [slotHour] = timeSlot24h.split(":").map(Number);
+                const slotMinutes = slotHour * 60;
+
+                return (
+                  scheduledMinutes >= slotMinutes &&
+                  scheduledMinutes < slotMinutes + 60
+                );
+              });
+
+              return (
+                <View key={time} style={styles.timeSlotRow}>
+                  <View style={styles.timeSlot}>
+                    <Text style={styles.timeSlotText}>{time}</Text>
+                  </View>
+                  <View style={styles.appointmentsContainer}>
+                    {appointments.length > 0 ? (
+                      appointments.map((appointment) => (
+                        <View key={appointment.id} style={styles.appointmentWrapper}>
+                          <View style={styles.clientNameContainer}>
+                            <MaterialIcons
+                              name="person"
+                              size={moderateWidthScale(14)}
+                              color={theme.text}
+                            />
+                            <Text style={styles.clientNameText}>
+                              {appointment.client_name}
+                            </Text>
+                          </View>
+                          <TouchableOpacity
+                            style={styles.appointmentCard}
+                            activeOpacity={0.7}
+                          >
+                            <View style={styles.appointmentHeader}>
+                              <Text style={styles.appointmentTitle}>
+                                {appointment.title}
+                              </Text>
+                              <View style={styles.appointmentStatus}>
+                                <Text style={styles.appointmentStatusText}>
+                                  {appointment.status_label}
+                                </Text>
+                              </View>
+                            </View>
+                            <Text style={styles.appointmentMeta}>
+                              {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))
+                    ) : (
+                      <View style={styles.emptyState}>
+                        <Text style={styles.emptyStateText}></Text>
+                      </View>
+                    )}
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      </View>
     </View>
   );
 }

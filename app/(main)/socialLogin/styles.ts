@@ -14,7 +14,7 @@ export const createStyles = (theme: Theme) =>
     },
     backgroundImageContainer: {
       width: "100%",
-      height: Dimensions.get("window").height / 1.5,
+      height: Dimensions.get("window").height / 1.8,
       alignItems: "center",
       justifyContent: "center",
       backgroundColor:theme.darkGreen
@@ -83,7 +83,7 @@ export const createStyles = (theme: Theme) =>
       borderTopLeftRadius: moderateWidthScale(24),
       borderTopRightRadius: moderateWidthScale(24),
       padding: moderateWidthScale(25),
-      gap: moderateHeightScale(16),
+      gap: moderateHeightScale(12),
       position: "absolute",
       bottom: 0,
     },

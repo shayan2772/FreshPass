@@ -15,6 +15,7 @@ import { PortalProvider } from "@gorhom/portal";
 import { NotificationProvider } from "@/src/contexts/NotificationContext";
 import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
 import ActionLoader from "@/src/components/actionLoader";
+import OnboardingHandler from "@/src/components/OnboardingHandler";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
 import { LogBox } from "react-native";
@@ -50,15 +51,15 @@ export default function RootLayout() {
           onBeforeLift={async () => {
             // Wait for rehydration to complete
             await persistor.flush();
-            
+
             // Sync i18n with Redux persisted language after rehydration
             // Ensure i18n is initialized before calling changeLanguage
             if (!i18n || !i18n.isInitialized) {
               return;
             }
-            
+
             const state = store.getState();
-            
+
             // Debug: Log persisted user data
             if (__DEV__) {
               console.log("🔐 Rehydrated user state:", {
@@ -68,7 +69,7 @@ export default function RootLayout() {
                 userName: state?.user?.name,
               });
             }
-            
+
             if (
               state?.general?.language &&
               i18n.language !== state.general.language
@@ -85,10 +86,11 @@ export default function RootLayout() {
           <PortalProvider>
             <I18nextProvider i18n={i18n}>
               <NotificationProvider>
-                <SessionExpiredHandler />
                 <ThemedStatusBar />
                 <Slot />
                 <ActionLoader />
+                <OnboardingHandler />
+                <SessionExpiredHandler />
               </NotificationProvider>
             </I18nextProvider>
           </PortalProvider>

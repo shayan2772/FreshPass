@@ -12,6 +12,30 @@ import {
   addService,
   removeService,
   setServiceTemplates,
+  setCurrentStep,
+  setBusinessName,
+  setFullName,
+  setPhoneNumber,
+  setCountryDetails,
+  setAppointmentVolume,
+  setAddressSearch,
+  setSelectedAddress,
+  setStreetAddress,
+  setArea,
+  setState,
+  setZipCode,
+  setUseCurrentLocation,
+  setAddressStage,
+  setSelectedLocation,
+  setTeamSize,
+  setStaffInvitationEmail,
+  setStaffInvitations,
+  setDayHours,
+  removeSubscription,
+  setTiktokUrl,
+  setInstagramUrl,
+  setFacebookUrl,
+  setPhotos,
 } from "@/src/state/slices/completeProfileSlice";
 import ServiceListBottomSheet from "@/src/components/ServiceListBottomSheet";
 import EditServiceBottomSheet from "@/src/components/EditServiceBottomSheet";
@@ -192,6 +216,13 @@ const createStyles = (theme: Theme) =>
     editButton: {
       marginLeft: moderateWidthScale(8),
     },
+    changeCategoryText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textDecorationLine: "underline",
+      marginTop: moderateHeightScale(10),
+    },
   });
 
 export default function StepEight() {
@@ -200,27 +231,31 @@ export default function StepEight() {
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
   const { showBanner } = useNotificationContext();
-  const { services, businessCategory, serviceTemplates } = useAppSelector(
-    (state) => state.completeProfile
-  );
+  const {
+    services,
+    businessCategory,
+    serviceTemplates,
+  } = useAppSelector((state) => state.completeProfile);
+  const businessStatus = useAppSelector((state) => state.user.businessStatus);
 
- 
   const [serviceListVisible, setServiceListVisible] = useState(false);
   const [editServiceVisible, setEditServiceVisible] = useState(false);
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null);
   const [serviceTemplatesLoading, setServiceTemplatesLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
 
+  const businessCatId = businessCategory?.id || businessStatus?.business_category?.id;
+
   useEffect(() => {
-    if (businessCategory?.id) {
+    if (businessCatId) {
       fetchServiceTemplates();
     } else {
       setServiceTemplatesLoading(false);
     }
-  }, [businessCategory?.id]);
+  }, [businessCatId]);
 
   const fetchServiceTemplates = async () => {
-    if (!businessCategory?.id) return;
+    if (!businessCatId) return;
 
     try {
       setServiceTemplatesLoading(true);
@@ -239,7 +274,7 @@ export default function StepEight() {
           active: boolean;
           createdAt: string;
         }>;
-      }>(businessEndpoints.serviceTemplates(businessCategory.id));
+      }>(businessEndpoints.serviceTemplates(businessCatId));
 
       if (response.success && response.data) {
         dispatch(setServiceTemplates(response.data));
@@ -325,6 +360,66 @@ export default function StepEight() {
     dispatch(removeService(serviceId));
   };
 
+  const handleChangeBusinessCategory = () => {
+    // Clear Step 2 fields (Business Name, Full Name, Phone)
+    dispatch(setBusinessName(""));
+    dispatch(setFullName(""));
+    dispatch(setPhoneNumber({ value: "", isValid: false }));
+    dispatch(setCountryDetails({ countryCode: "+1", countryIso: "US" }));
+
+    // Clear Step 3 fields (Appointment Volume)
+    dispatch(setAppointmentVolume(null));
+
+    // Clear Step 4 fields (Address)
+    dispatch(setAddressSearch(""));
+    dispatch(setSelectedAddress(null));
+    dispatch(setStreetAddress(""));
+    dispatch(setArea(""));
+    dispatch(setState(""));
+    dispatch(setZipCode(""));
+    dispatch(setUseCurrentLocation(false));
+    dispatch(setAddressStage("search"));
+    dispatch(setSelectedLocation(null));
+
+    // Clear Step 5 fields (Team Size)
+    dispatch(setTeamSize(null));
+
+    // Clear Step 6 fields (Staff Invitations)
+    dispatch(setStaffInvitationEmail(""));
+    dispatch(setStaffInvitations([]));
+
+    // Clear Step 7 fields (Business Hours) - Reset all days
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    days.forEach((day) => {
+      dispatch(
+        setDayHours({
+          day,
+          fromHours: 0,
+          fromMinutes: 0,
+          tillHours: 0,
+          tillMinutes: 0,
+          breaks: [],
+        })
+      );
+    });
+
+    // Clear Step 8 fields (Services)
+    services.forEach((service) => {
+      dispatch(removeService(service.id));
+    });
+
+    // Set current step to 1
+    dispatch(setCurrentStep(1));
+  };
+
   const hasNoData =
     !serviceTemplatesLoading && !apiError && serviceTemplates.length === 0;
   const showSkeleton = serviceTemplatesLoading && serviceTemplates.length === 0;
@@ -345,6 +440,12 @@ export default function StepEight() {
           <Text style={styles.emptyStateText}>
             Service data not found against category {businessCategory?.name}
           </Text>
+
+          <TouchableOpacity onPress={handleChangeBusinessCategory}>
+            <Text style={styles.changeCategoryText}>
+              Change business category
+            </Text>
+          </TouchableOpacity>
           <View style={styles.retryButtonContainer}>
             <RetryButton
               onPress={fetchServiceTemplates}

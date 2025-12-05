@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useCallback, useState } from "react";
-import { StyleSheet, View, ScrollView, StatusBar, TouchableOpacity, Text } from "react-native";
+import { StyleSheet, View, ScrollView, StatusBar, TouchableOpacity, Text, ActivityIndicator } from "react-native";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -44,17 +44,22 @@ const createStyles = (theme: Theme) =>
     },
     stripeBanner: {
       backgroundColor: theme.orangeBrown,
-      paddingHorizontal: moderateWidthScale(20),
-      paddingVertical: moderateHeightScale(12),
-      marginHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(12),
-      borderRadius: moderateWidthScale(8),
+      paddingHorizontal: moderateWidthScale(15),
+      paddingVertical: moderateHeightScale(8),
     },
     stripeBannerText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontMedium,
-      color: theme.white,
+      color: theme.darkGreen,
       textAlign: "center",
+      textDecorationLine:"underline",
+      textDecorationColor: theme.darkGreen,
+    },
+    loaderContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: theme.background,
     },
   });
 
@@ -67,8 +72,10 @@ export default function HomeScreen() {
   const accessToken = useAppSelector((state) => state.user.accessToken);
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const [webViewVisible, setWebViewVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetchBusinessStatus = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -77,6 +84,10 @@ export default function HomeScreen() {
           onboarding_completed: boolean;
           current_step: number | null;
           next_step: number | null;
+          business_category: {
+            id: number;
+            name: string;
+          } | null;
           stripe_onboarding_status: string;
           stripe_onboarding_link: string | null;
           has_subscription: boolean;
@@ -86,6 +97,7 @@ export default function HomeScreen() {
 
       if (response.success && response.data) {
         dispatch(setBusinessStatus(response.data));
+       
       }
     } catch (error: any) {
       console.error("Failed to fetch business status:", error);
@@ -95,6 +107,8 @@ export default function HomeScreen() {
         "error",
         2500
       );
+    } finally {
+      setIsLoading(false);
     }
   }, [dispatch, showBanner]);
 
@@ -113,8 +127,26 @@ export default function HomeScreen() {
   const handleCloseWebView = () => {
     setWebViewVisible(false);
   };
+  
+  const showStripeBanner = 
+    businessStatus?.onboarding_completed === true &&
+    businessStatus?.stripe_onboarding_status === "not_started";
 
-  const showStripeBanner = businessStatus?.stripe_onboarding_status === "pending" && businessStatus?.stripe_onboarding_link;
+    console.log("businessStatus", businessStatus);
+    console.log("showStripeBanner", showStripeBanner);
+
+  // Show loader until businessStatus is fetched and set
+  if (isLoading || !businessStatus) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <DashboardHeader />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

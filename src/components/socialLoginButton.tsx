@@ -30,7 +30,8 @@ const createStyles = (theme: Theme) =>
       width: moderateWidthScale(200),
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "flex-start",
+      justifyContent:"center",
+      // justifyContent: "flex-start",
       gap: moderateWidthScale(10),
     },
     buttonText: {

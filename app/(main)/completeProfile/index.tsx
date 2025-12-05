@@ -33,6 +33,7 @@ import {
   goToPreviousStep,
   setAddressStage,
   setSelectedLocation,
+  setCurrentStep,
 } from "@/src/state/slices/completeProfileSlice";
 import PrivacyBanner from "@/src/components/privacyBanner";
 import { ApiService } from "@/src/services/api";
@@ -74,8 +75,27 @@ export default function CompleteProfile() {
     photos,
     serviceTemplates,
   } = useAppSelector((state) => state.completeProfile);
+  const businessStatus = useAppSelector((state) => state.user.businessStatus);
+  
+  // Check if onboarding is not completed - prevent back navigation
+  const isOnboardingIncomplete = Boolean(
+    businessStatus && !businessStatus.onboarding_completed
+  );
+
+  // Check if user is on the step they landed on from home
+  // Only disable back on the initial step they landed on, not on subsequent steps
+  const isOnInitialStepFromHome = Boolean(
+    isOnboardingIncomplete &&
+    businessStatus?.next_step &&
+    currentStep === businessStatus.next_step
+  );
 
   const handleBack = useCallback(() => {
+    // Prevent back navigation only if user is on the initial step they landed on from home
+    if (isOnInitialStepFromHome) {
+      return;
+    }
+
     if (currentStep === 4) {
       if (addressStage === "map") {
         // Clear map stage fields (selectedLocation) when going back to confirm
@@ -96,7 +116,7 @@ export default function CompleteProfile() {
     }
 
     router.back();
-  }, [addressStage, currentStep, dispatch, router]);
+  }, [addressStage, currentStep, dispatch, router, isOnInitialStepFromHome]);
 
   // Helper function to format time to HH:MM
   const formatTimeToHHMM = (hours: number, minutes: number): string => {
@@ -404,6 +424,11 @@ export default function CompleteProfile() {
   useFocusEffect(
     useCallback(() => {
       const onHardwareBackPress = () => {
+        // Prevent back navigation only if user is on the initial step they landed on from home
+        if (isOnInitialStepFromHome) {
+          return true; // Prevent back navigation
+        }
+
         if (currentStep > 1) {
           if (currentStep === 4) {
             if (addressStage === "map") {
@@ -432,7 +457,7 @@ export default function CompleteProfile() {
       );
 
       return () => subscription.remove();
-    }, [addressStage, currentStep, dispatch])
+    }, [addressStage, currentStep, dispatch, isOnInitialStepFromHome])
   );
 
   const isContinueDisabled = useMemo(() => {
@@ -603,6 +628,7 @@ export default function CompleteProfile() {
         currentStep={currentStep}
         totalSteps={totalSteps}
         onBack={handleBack}
+        disableBack={isOnInitialStepFromHome}
       />
       <KeyboardAvoidingView
         style={styles.contentContainer}

@@ -5,17 +5,19 @@ import axios, {
   AxiosError,
   InternalAxiosRequestConfig,
 } from "axios";
+import NetInfo from "@react-native-community/netinfo";
 import { store } from "@/src/state/store";
 import { setTokens, resetUser } from "@/src/state/slices/userSlice";
 import { resetGeneral } from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
+import { Platform } from "react-native";
 // Get base URL from environment
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000, // 30 seconds
+  timeout: 60000, // 1 minute (60 seconds)
   headers: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -38,6 +40,46 @@ let onSessionExpired: (() => void) | null = null;
  */
 export const setSessionExpiredHandler = (callback: () => void) => {
   onSessionExpired = callback;
+};
+
+// Callback for showing toast notifications
+let onShowToast: ((title: string, message: string, type: "success" | "error" | "warning" | "info") => void) | null = null;
+
+/**
+ * Set callback to handle toast notifications
+ * This will be called when we need to show toast messages
+ */
+export const setToastHandler = (callback: (title: string, message: string, type: "success" | "error" | "warning" | "info") => void) => {
+  onShowToast = callback;
+};
+
+/**
+ * Check internet connectivity using NetInfo
+ * Returns true if internet is available, false otherwise
+ */
+const checkInternetConnection = async (): Promise<boolean> => {
+  try {
+    if (Platform.OS === 'web') {
+      // For web, check navigator.onLine
+      return navigator.onLine;
+    }
+    
+    // Fetch network state
+    const state = await NetInfo.fetch();
+    
+    // If connected, check internet reachability
+    // isInternetReachable can be null initially, so we treat null as reachable if connected
+    if (state.isConnected === true) {
+      // If isInternetReachable is null (not yet determined), assume it's reachable if connected
+      // If it's explicitly false, then return false
+      return state.isInternetReachable !== false;
+    }
+    
+    return false;
+  } catch (error) {
+    console.error('Error checking internet connection:', error);
+    return false;
+  }
 };
 
 // Process queued requests after token refresh
@@ -269,6 +311,18 @@ apiClient.interceptors.response.use(
     //   }
     // }
 
+    // Handle timeout errors
+    if (
+      error.code === "ECONNABORTED" ||
+      error.message?.toLowerCase().includes("timeout") ||
+      (error.config && error.config.timeout && !error.response)
+    ) {
+      // Show timeout toast
+      if (onShowToast) {
+        onShowToast("Request Timeout", "The request took too long to complete. Please try again.", "error");
+      }
+    }
+
     // For other errors, return readable error message
     const errorMessage = getErrorMessage(error);
     const customError = new Error(errorMessage);
@@ -381,6 +435,21 @@ export class ApiService {
     config?: AxiosRequestConfig
   ): Promise<T> {
     logApiRequest("POST", url, data, config);
+
+    // Check internet connection before making POST request
+    const hasInternet = await checkInternetConnection();
+    if (!hasInternet) {
+      const error = new Error("No internet connection");
+      (error as any).isNoInternet = true;
+      
+      // Show toast for no internet connection
+      if (onShowToast) {
+        onShowToast("No Internet Connection", "Please check your internet connection and try again.", "error");
+      }
+      
+      logApiError("POST", url, url, error);
+      throw error;
+    }
 
     try {
       const response = await apiClient.post<T>(url, data, config);

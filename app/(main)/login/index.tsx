@@ -6,6 +6,8 @@ import {
   StyleSheet,
   Pressable,
   Alert,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
@@ -191,6 +193,7 @@ export default function Login() {
   }, []);
 
   const handleLogin = useCallback(async () => {
+    Keyboard.dismiss();
     setIsLoading(true);
     try {
       const response = await ApiService.post(businessEndpoints.login, {
@@ -279,11 +282,12 @@ export default function Login() {
         barStyle={"dark-content"}
       />
 
-      <View style={styles.container}>
-        <RegisterHeader onBack={handleBack} />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          <RegisterHeader onBack={handleBack} />
 
-        <View style={styles.mainContent}>
-          <View style={styles.content}>
+          <View style={styles.mainContent}>
+            <View style={styles.content}>
             <View style={styles.titleSection}>
               <Text style={styles.title}>Login to your business account</Text>
             </View>
@@ -382,7 +386,8 @@ export default function Login() {
             </View>
           </View>
         </View>
-      </View>
+        </View>
+      </TouchableWithoutFeedback>
 
       <RoleSelectionBottomSheet
         visible={showRoleSheet}

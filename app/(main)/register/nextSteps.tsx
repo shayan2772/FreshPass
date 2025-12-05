@@ -162,12 +162,7 @@ export default function RegisterNextSteps() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar
-        animated
-        translucent
-        backgroundColor={(colors as Theme).background}
-        barStyle={"dark-content"}
-      />
+      <StatusBar barStyle={"dark-content"} />
 
       <View style={styles.container}>
         <RegisterHeader onBack={handleBack} />
@@ -196,7 +191,9 @@ export default function RegisterNextSteps() {
               {steps.map((step, index) => {
                 const isCompleted = step.status === "completed";
                 const isActive = step.status === "active";
-                const isOptional = step.label.toLowerCase().includes("(if any)");
+                const isOptional = step.label
+                  .toLowerCase()
+                  .includes("(if any)");
                 const stepStatusStyle = isCompleted
                   ? styles.stepTextCompleted
                   : isActive
@@ -244,5 +241,3 @@ export default function RegisterNextSteps() {
     </SafeAreaView>
   );
 }
-
-

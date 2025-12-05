@@ -60,6 +60,7 @@ export default function SocialAuthOptions({
           onPress={onFacebook}
         />
       </View>
+
       {isGuest && onGuest && (
         <View style={styles.buttonWrapper}>
           <SocialLoginButton
