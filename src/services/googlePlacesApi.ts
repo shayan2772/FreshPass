@@ -12,6 +12,7 @@ export interface PlaceDetails {
   postal: string;
   latitude?: number;
   longitude?: number;
+  countryCode?: string;
 }
 
 export interface FetchSuggestionsResponse {
@@ -43,7 +44,8 @@ export const fetchSuggestions = async (
   }
 
   const encodedQuery = encodeURIComponent(query);
-  const fullUrl = `${searchUrl}${encodedQuery}&key=${apiKey}&sessiontoken=${sessionToken}`;
+  // Restrict to US only
+  const fullUrl = `${searchUrl}${encodedQuery}&components=country:us&key=${apiKey}&sessiontoken=${sessionToken}`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {
@@ -125,6 +127,15 @@ export const fetchPlaceDetails = async (
 
     const parsed: ParsedAddress = parseAddressComponents(components);
 
+    // Extract country code from address components
+    let countryCode: string | undefined;
+    for (const component of components) {
+      if (component.types?.includes("country")) {
+        countryCode = component.short_name ?? component.long_name;
+        break;
+      }
+    }
+
     return {
       formattedAddress,
       street: parsed.street || formattedAddress,
@@ -133,6 +144,7 @@ export const fetchPlaceDetails = async (
       postal: parsed.postal ?? "",
       latitude: geometry?.lat,
       longitude: geometry?.lng,
+      countryCode,
     };
   } catch (error: any) {
     clearTimeout(timeoutId);

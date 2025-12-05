@@ -1,6 +1,6 @@
 import { useTheme } from "@/src/hooks/hooks";
 import React, { useMemo, useState, useCallback } from "react";
-import { View, Text, StatusBar, Platform } from "react-native";
+import { View, Text, StatusBar, Platform, Linking, Alert } from "react-native";
 import { Image } from "expo-image";
 import {
   SafeAreaView,
@@ -22,6 +22,10 @@ import SectionSeparator from "@/src/components/sectionSeparator";
 import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 type SocialProvider = "google" | "apple" | "facebook";
+
+// Links from environment
+const TERMS_AND_CONDITIONS_URL = process.env.EXPO_PUBLIC_TERMS_URL || "";
+const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_URL || "";
 
 export default function SocialLogin() {
   const { colors } = useTheme();
@@ -73,6 +77,33 @@ export default function SocialLogin() {
     setShowRoleSheet(false);
     setPendingSocialLogin(null);
   }, []);
+
+  const handleOpenLink = useCallback(async (url: string, title: string) => {
+    if (!url) {
+      Alert.alert("Error", `${title} URL is not configured`);
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (supported) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert("Error", `Cannot open ${title}`);
+      }
+    } catch (error) {
+      console.error("Error opening link:", error);
+      Alert.alert("Error", `Failed to open ${title}`);
+    }
+  }, []);
+
+  const handleTermsPress = useCallback(() => {
+    handleOpenLink(TERMS_AND_CONDITIONS_URL, "Terms of Services");
+  }, [handleOpenLink]);
+
+  const handlePrivacyPress = useCallback(() => {
+    handleOpenLink(PRIVACY_POLICY_URL, "Privacy Policy");
+  }, [handleOpenLink]);
 
   const isGuest = true; // Set to true to show guest login button
 
@@ -145,8 +176,13 @@ export default function SocialLogin() {
 
         <Text style={styles.legalText}>
           By continuing to use FreshPass, you agree to our{" "}
-          <Text style={styles.legalLink}>Terms of Services</Text> &{" "}
-          <Text style={styles.legalLink}>Privacy Policy</Text>
+          <Text style={styles.legalLink} onPress={handleTermsPress}>
+            Terms of Services
+          </Text>{" "}
+          &{" "}
+          <Text style={styles.legalLink} onPress={handlePrivacyPress}>
+            Privacy Policy
+          </Text>
         </Text>
       </View>
 

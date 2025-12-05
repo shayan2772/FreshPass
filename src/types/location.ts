@@ -53,6 +53,7 @@ export interface ResolvedLocationDetails {
   postal?: string;
   formattedAddress?: string;
   notice?: string | null;
+  countryCode?: string;
 }
 
 export interface ResolveCurrentLocationArgs {

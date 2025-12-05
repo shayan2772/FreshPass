@@ -99,7 +99,7 @@ const createStyles = (theme: Theme) =>
     },
     socialList: {},
     footer: {
-      marginTop: moderateHeightScale(20),
+      // marginTop: moderateHeightScale(20),
       alignItems: "center",
     },
     footerText: {

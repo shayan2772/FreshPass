@@ -46,7 +46,7 @@ export default function SocialAuthOptions({
           onPress={onGoogle}
         />
       </View>
-      {Platform.OS === "ios" && (
+      {/* {Platform.OS === "ios" && ( */}
         <View style={styles.buttonWrapper}>
           <SocialLoginButton
             icon={<AppleIcon width={30} height={30} />}
@@ -54,7 +54,7 @@ export default function SocialAuthOptions({
             onPress={onApple}
           />
         </View>
-      )}
+      
       <View style={styles.buttonWrapper}>
         <SocialLoginButton
           icon={<FacebookIcon width={30} height={30} />}

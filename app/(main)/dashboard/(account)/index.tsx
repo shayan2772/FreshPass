@@ -16,7 +16,6 @@ import {
 import DashboardHeader from "@/src/components/DashboardHeader";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { performLogout } from "@/src/services/logoutService";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import { ApiService } from "@/src/services/api";
 
@@ -99,7 +98,6 @@ export default function AccountScreen() {
     key:
       | "personal"
       | "business"
-      | "phone"
       | "language"
       | "notifications"
       | "rules"
@@ -112,11 +110,6 @@ export default function AccountScreen() {
   const rows: Row[] = [
     { key: "personal", title: "Personal information" },
     { key: "business", title: "Business profile settings" },
-    {
-      key: "phone",
-      title: "Phone number",
-      subtitle: "Add phone number",
-    },
     {
       key: "language",
       title: "Language",

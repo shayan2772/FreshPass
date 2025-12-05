@@ -336,80 +336,66 @@ function BusinessPlansModalContent({
   return (
     <View style={[styles.modalOverlay, { paddingTop: insets.top }]}>
       <View style={styles.modalContainer}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Business Plans</Text>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.closeButton}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name="x"
-                size={moderateWidthScale(24)}
-                color={theme.darkGreen}
-              />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Business Plans</Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeButton}
+            activeOpacity={0.7}
+          >
+            <Feather
+              name="x"
+              size={moderateWidthScale(24)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
+        </View>
 
-          {loading ? (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-          ) : error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
-              <Button title="Retry" onPress={fetchPlans} />
-            </View>
-          ) : plans.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                No subscription plans available
-              </Text>
-            </View>
-          ) : (
-            <ScrollView
-              style={styles.content}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={styles.plansContainer}
-            >
-              {plans.map((plan) => (
-                <View key={plan.id} style={styles.planCard}>
-                  <View style={styles.planHeader}>
-                    <Text style={styles.planName}>{plan.name}</Text>
-                    <Text style={styles.planPrice}>${plan.price}</Text>
-                  </View>
-                  {plan.description && (
-                    <Text style={styles.planDescription}>
-                      {plan.description}
-                    </Text>
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : error ? (
+          <View style={styles.errorContainer}>
+            <Text style={styles.errorText}>{error}</Text>
+            <Button title="Retry" onPress={fetchPlans} />
+          </View>
+        ) : plans.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>
+              No subscription plans available
+            </Text>
+          </View>
+        ) : (
+          <ScrollView
+            style={styles.content}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.plansContainer}
+          >
+            {plans.map((plan) => (
+              <View key={plan.id} style={styles.planCard}>
+                <View style={styles.planHeader}>
+                  <Text style={styles.planName}>{plan.name}</Text>
+                  <Text style={styles.planPrice}>${plan.price}</Text>
+                </View>
+                {plan.description && (
+                  <Text style={styles.planDescription}>{plan.description}</Text>
+                )}
+                <View style={styles.planDetails}>
+                  {plan.visits !== null && (
+                    <View style={styles.detailRow}>
+                      <Feather
+                        name="calendar"
+                        size={moderateWidthScale(16)}
+                        color={theme.darkGreen}
+                        style={styles.detailIcon}
+                      />
+                      <Text style={styles.detailText}>
+                        {plan.visits} visits included
+                      </Text>
+                    </View>
                   )}
-                  <View style={styles.planDetails}>
-                    {plan.visits !== null && (
-                      <View style={styles.detailRow}>
-                        <Feather
-                          name="calendar"
-                          size={moderateWidthScale(16)}
-                          color={theme.darkGreen}
-                          style={styles.detailIcon}
-                        />
-                        <Text style={styles.detailText}>
-                          {plan.visits} visits included
-                        </Text>
-                      </View>
-                    )}
-                    {plan.services && plan.services.length > 0 && (
-                      <View style={styles.detailRow}>
-                        <Feather
-                          name="check-circle"
-                          size={moderateWidthScale(16)}
-                          color={theme.darkGreen}
-                          style={styles.detailIcon}
-                        />
-                        <Text style={styles.detailText}>
-                          {plan.services.length} services included
-                        </Text>
-                      </View>
-                    )}
+                  {plan.services && plan.services.length > 0 && (
                     <View style={styles.detailRow}>
                       <Feather
                         name="check-circle"
@@ -418,20 +404,32 @@ function BusinessPlansModalContent({
                         style={styles.detailIcon}
                       />
                       <Text style={styles.detailText}>
-                        Active plan - Ready to use
+                        {plan.services.length} services included
                       </Text>
                     </View>
+                  )}
+                  <View style={styles.detailRow}>
+                    <Feather
+                      name="check-circle"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                      style={styles.detailIcon}
+                    />
+                    <Text style={styles.detailText}>
+                      Active plan - Ready to use
+                    </Text>
                   </View>
-                  <Button
-                    title="Subscribe Now"
-                    onPress={() => handleSubscribe(plan.id)}
-                    loading={subscribingPlanId === plan.id}
-                    containerStyle={styles.subscribeButton}
-                  />
                 </View>
-              ))}
-            </ScrollView>
-          )}
+                <Button
+                  title="Subscribe Now"
+                  onPress={() => handleSubscribe(plan.id)}
+                  loading={subscribingPlanId === plan.id}
+                  containerStyle={styles.subscribeButton}
+                />
+              </View>
+            ))}
+          </ScrollView>
+        )}
       </View>
     </View>
   );
@@ -460,4 +458,3 @@ export default function BusinessPlansModal({
     </Modal>
   );
 }
-

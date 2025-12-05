@@ -194,12 +194,23 @@ export const resolveAddressViaGoogle = async (
       primaryResult.address_components ?? []
     );
 
+    // Extract country code from address components
+    let countryCode: string | undefined;
+    const components = primaryResult.address_components ?? [];
+    for (const component of components) {
+      if (component.types?.includes("country")) {
+        countryCode = component.short_name ?? component.long_name;
+        break;
+      }
+    }
+
     return {
       street: parsedComponents.street,
       area: parsedComponents.areaName,
       state: parsedComponents.state,
       postal: parsedComponents.postal,
       formatted: primaryResult.formatted_address,
+      countryCode,
     };
   } catch (error) {
     console.warn("Google geocode request failed", error);
@@ -243,6 +254,7 @@ export const resolveCurrentLocation = async ({
       state?: string;
       postal?: string;
       formatted?: string;
+      countryCode?: string;
     } | null = null;
     let notice: string | null = null;
 
@@ -293,6 +305,9 @@ export const resolveCurrentLocation = async ({
             .filter(Boolean)
             .join(", ")
         : undefined);
+    
+    // Get country code from Google geocode (reverse geocode doesn't provide country code in type)
+    const countryCode = googleParsed?.countryCode;
 
     return {
       status: "success",
@@ -304,6 +319,7 @@ export const resolveCurrentLocation = async ({
         postal,
         formattedAddress,
         notice,
+        countryCode,
       },
     };
   } catch (error) {
