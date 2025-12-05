@@ -57,7 +57,7 @@ export const setToastHandler = (callback: (title: string, message: string, type:
  * Check internet connectivity using NetInfo
  * Returns true if internet is available, false otherwise
  */
-const checkInternetConnection = async (): Promise<boolean> => {
+export const checkInternetConnection = async (): Promise<boolean> => {
   try {
     if (Platform.OS === 'web') {
       // For web, check navigator.onLine
