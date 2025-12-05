@@ -18,7 +18,9 @@ export default function Introduction() {
           // Prevent going back from screen 2 to screen 1
           return true; // Return true to prevent default back behavior
         }
-        return false; // Allow back on screen 1 (will exit app or go to previous screen)
+
+        return true;
+        // return false; // Allow back on screen 1 (will exit app or go to previous screen)
       };
 
       const subscription = BackHandler.addEventListener(

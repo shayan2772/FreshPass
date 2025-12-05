@@ -46,7 +46,15 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function DashboardHeader() {
+interface DashboardHeaderProps {
+  canGoOnline?: boolean;
+  onToggleAttempt?: () => void;
+}
+
+export default function DashboardHeader({
+  canGoOnline = true,
+  onToggleAttempt,
+}: DashboardHeaderProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
@@ -54,13 +62,22 @@ export default function DashboardHeader() {
   const isOnline = useAppSelector((state) => state.user.isOnline);
   const insets = useSafeAreaInsets();
 
-  const handleToggleChange = useCallback((value: boolean) => {
-    // Only dispatch if the value is actually different from current state
-    // This prevents accidental toggles when component re-renders
-    if (value !== isOnline) {
-      dispatch(setOnlineStatus(value));
-    }
-  }, [dispatch, isOnline]);
+  const handleToggleChange = useCallback(
+    (value: boolean) => {
+      // Only dispatch if the value is actually different from current state
+      // This prevents accidental toggles when component re-renders
+      if (value !== isOnline) {
+        // If trying to go online and canGoOnline is false, trigger animation
+        if (value === true && !canGoOnline) {
+          onToggleAttempt?.();
+          return; // Don't allow toggle
+        }
+        // Allow going offline or going online when canGoOnline is true
+        dispatch(setOnlineStatus(value));
+      }
+    },
+    [dispatch, isOnline, canGoOnline, onToggleAttempt]
+  );
 
   return (
     <View>

@@ -224,7 +224,7 @@ export default function RegisterPassword() {
               dispatch(setSavedPassword(null));
             }
             // Navigate to next steps
-            router.push(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
+            router.replace(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
           } else {
             Alert.alert("Error", "Invalid response from server");
           }

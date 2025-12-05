@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import { Platform, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { Theme } from "@/src/theme/colors";
 import { useTheme } from "@/src/hooks/hooks";
 import { moderateHeightScale } from "@/src/theme/dimensions";
@@ -46,13 +46,15 @@ export default function SocialAuthOptions({
           onPress={onGoogle}
         />
       </View>
-      <View style={styles.buttonWrapper}>
-        <SocialLoginButton
-          icon={<AppleIcon width={30} height={30} />}
-          title="Continue with Apple"
-          onPress={onApple}
-        />
-      </View>
+      {Platform.OS === "ios" && (
+        <View style={styles.buttonWrapper}>
+          <SocialLoginButton
+            icon={<AppleIcon width={30} height={30} />}
+            title="Continue with Apple"
+            onPress={onApple}
+          />
+        </View>
+      )}
       <View style={styles.buttonWrapper}>
         <SocialLoginButton
           icon={<FacebookIcon width={30} height={30} />}

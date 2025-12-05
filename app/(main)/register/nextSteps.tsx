@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { View, Text, StatusBar, StyleSheet } from "react-native";
+import { View, Text, StatusBar, StyleSheet, BackHandler } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { FontAwesome6 } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
@@ -12,7 +12,7 @@ import {
 import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
 import RegisterHeader from "@/src/components/registerHeader";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 
 type StepStatus = "completed" | "active" | "pending";
@@ -153,20 +153,35 @@ export default function RegisterNextSteps() {
   const router = useRouter();
 
   const handleBack = useCallback(() => {
-    router.back();
-  }, [router]);
+    // Prevent back navigation - do nothing
+  }, []);
 
   const handleLetsGo = useCallback(() => {
     router.push(`/${MAIN_ROUTES.COMPLETE_PROFILE}`);
   }, [router]);
+
+  // Prevent hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        // Prevent back navigation
+        return true;
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [])
+  );
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle={"dark-content"} />
 
       <View style={styles.container}>
-        <RegisterHeader onBack={handleBack} />
-
         <View style={styles.content}>
           <View style={styles.introSection}>
             <View style={styles.logoWrapper}>
@@ -222,9 +237,6 @@ export default function RegisterNextSteps() {
                         <View style={styles.indicatorActive}>
                           <Text style={styles.indicatorNumber}>{step.id}</Text>
                         </View>
-                      )}
-                      {!isCompleted && !isActive && (
-                        <View style={styles.indicatorPending} />
                       )}
                     </View>
                     <Text style={[styles.stepText, stepStatusStyle]}>

@@ -1,5 +1,15 @@
-import React, { useMemo, useEffect, useCallback, useState } from "react";
-import { StyleSheet, View, ScrollView, StatusBar, TouchableOpacity, Text, ActivityIndicator } from "react-native";
+import React, { useMemo, useCallback, useState, useRef } from "react";
+import { useFocusEffect } from "expo-router";
+import {
+  StyleSheet,
+  View,
+  ScrollView,
+  StatusBar,
+  TouchableOpacity,
+  Text,
+  ActivityIndicator,
+  Animated,
+} from "react-native";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -17,6 +27,7 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { setBusinessStatus } from "@/src/state/slices/userSlice";
 import WebViewModal from "@/src/components/webViewModal";
+import RetryButton from "@/src/components/retryButton";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -43,17 +54,17 @@ const createStyles = (theme: Theme) =>
       paddingTop: moderateHeightScale(15),
     },
     stripeBanner: {
-      backgroundColor: theme.orangeBrown,
+      backgroundColor: theme.darkGreen,
       paddingHorizontal: moderateWidthScale(15),
       paddingVertical: moderateHeightScale(8),
     },
     stripeBannerText: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
+      color: theme.white,
       textAlign: "center",
-      textDecorationLine:"underline",
-      textDecorationColor: theme.darkGreen,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.white,
     },
     loaderContainer: {
       flex: 1,
@@ -69,13 +80,15 @@ export default function HomeScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const dispatch = useAppDispatch();
   const { showBanner } = useNotificationContext();
-  const accessToken = useAppSelector((state) => state.user.accessToken);
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const [webViewVisible, setWebViewVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+  const bannerAnimation = useRef(new Animated.Value(0)).current;
 
   const fetchBusinessStatus = useCallback(async () => {
     setIsLoading(true);
+    setApiError(false);
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -97,10 +110,11 @@ export default function HomeScreen() {
 
       if (response.success && response.data) {
         dispatch(setBusinessStatus(response.data));
-       
+        setApiError(false);
       }
     } catch (error: any) {
       console.error("Failed to fetch business status:", error);
+      setApiError(true);
       showBanner(
         "API Failed",
         error.message || "Failed to fetch business status",
@@ -112,35 +126,100 @@ export default function HomeScreen() {
     }
   }, [dispatch, showBanner]);
 
-  useEffect(() => {
-    if (accessToken) {
+  useFocusEffect(
+    useCallback(() => {
       fetchBusinessStatus();
-    }
-  }, [accessToken, fetchBusinessStatus]);
+    }, [fetchBusinessStatus])
+  );
 
   const handleStripeOnboardingPress = () => {
     if (businessStatus?.stripe_onboarding_link) {
       setWebViewVisible(true);
+    } else {
+      showBanner(
+        "Stripe Connect",
+        "Stripe onboarding link is not available",
+        "error",
+        2500
+      );
     }
   };
+
+  const handleBusinessSubscriptionPress = () => {};
 
   const handleCloseWebView = () => {
     setWebViewVisible(false);
   };
-  
-  const showStripeBanner = 
+
+  const showStripeBanner =
     businessStatus?.onboarding_completed === true &&
-    businessStatus?.stripe_onboarding_status === "not_started";
+    businessStatus?.stripe_onboarding_status === "pending";
+  const showBusinessSubscriptipn =
+    businessStatus?.onboarding_completed === true &&
+    businessStatus?.stripe_onboarding_status === "completed" &&
+    businessStatus?.has_subscription === false;
+  const canGoOnline = !showStripeBanner && !showBusinessSubscriptipn;
 
-    console.log("businessStatus", businessStatus);
-    console.log("showStripeBanner", showStripeBanner);
+  const animateBanner = useCallback(() => {
+    Animated.sequence([
+      Animated.timing(bannerAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(bannerAnimation, {
+        toValue: 0,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [bannerAnimation]);
 
-  // Show loader until businessStatus is fetched and set
-  if (isLoading || !businessStatus) {
+  const handleToggleAttempt = useCallback(() => {
+    if (!canGoOnline && (showStripeBanner || showBusinessSubscriptipn)) {
+      animateBanner();
+    }
+  }, [canGoOnline, showStripeBanner, showBusinessSubscriptipn, animateBanner]);
+
+  if (isLoading && !apiError) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="dark-content" />
-        <DashboardHeader />
+        <DashboardHeader canGoOnline={true} />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      </View>
+    );
+  }
+
+  if (apiError && !isLoading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <DashboardHeader canGoOnline={true} />
+        <View style={styles.loaderContainer}>
+          <RetryButton onPress={fetchBusinessStatus} loading={isLoading} />
+        </View>
+      </View>
+    );
+  }
+
+  if (!businessStatus) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <DashboardHeader canGoOnline={true} />
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -151,17 +230,34 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <DashboardHeader />
-      {showStripeBanner && (
-        <TouchableOpacity
-          style={styles.stripeBanner}
-          onPress={handleStripeOnboardingPress}
-          activeOpacity={0.8}
+      <DashboardHeader
+        canGoOnline={canGoOnline}
+        onToggleAttempt={handleToggleAttempt}
+      />
+      {(showStripeBanner || showBusinessSubscriptipn) && (
+        <Animated.View
+          style={[
+            styles.stripeBanner,
+            {
+              transform: [{ translateX: bannerAnimation }],
+            },
+          ]}
         >
-          <Text style={styles.stripeBannerText}>
-            Please complete your Stripe onboarding
-          </Text>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={
+              showStripeBanner
+                ? handleStripeOnboardingPress
+                : handleBusinessSubscriptionPress
+            }
+            activeOpacity={0.8}
+          >
+            <Text style={styles.stripeBannerText}>
+              {showStripeBanner
+                ? "Please complete your business stripe connect onboarding"
+                : "Please buy business plan"}
+            </Text>
+          </TouchableOpacity>
+        </Animated.View>
       )}
       <ScrollView
         showsVerticalScrollIndicator={false}
