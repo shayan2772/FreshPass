@@ -17,9 +17,9 @@ interface RetryButtonProps {
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     button: {
-      backgroundColor: theme.lightBeige,
+      backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(8),
-      paddingVertical: moderateHeightScale(8),
+     height:moderateHeightScale(40),
       paddingHorizontal: moderateWidthScale(16),
       alignItems: "center",
       justifyContent: "center",
@@ -33,7 +33,7 @@ const createStyles = (theme: Theme) =>
     buttonText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
+      color: theme.buttonText,
     },
   });
 

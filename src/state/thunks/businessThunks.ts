@@ -33,9 +33,14 @@ export const fetchBusinessStatus = createAsyncThunk<
       }>(businessEndpoints.status);
 
       if (response.success && response.data) {
-        dispatch(setBusinessStatus(response.data));
+        // Ensure active field exists, default to false if not provided
+        const businessStatusData = {
+          ...response.data,
+          active: response.data.active ?? false,
+        };
+        dispatch(setBusinessStatus(businessStatusData));
         dispatch(setBusinessStatusError(false));
-        return response.data;
+        return businessStatusData;
       }
       return null;
     } catch (error: any) {
@@ -50,6 +55,51 @@ export const fetchBusinessStatus = createAsyncThunk<
       throw error;
     } finally {
       dispatch(setBusinessStatusLoading(false));
+    }
+  }
+);
+
+export const updateBusinessActiveStatus = createAsyncThunk<
+  boolean,
+  { active: boolean },
+  { dispatch: AppDispatch; state: RootState }
+>(
+  "business/updateActiveStatus",
+  async ({ active }, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data: {
+          id: number;
+          updated_at: string;
+          active: boolean;
+        };
+      }>(businessEndpoints.profile, {
+        active,
+      });
+
+      if (response.success && response.data) {
+        // Only update active field in existing businessStatus, keep rest same
+        const currentBusinessStatus = getState().user.businessStatus;
+        if (currentBusinessStatus) {
+          dispatch(
+            setBusinessStatus({
+              ...currentBusinessStatus,
+              active: response.data.active ?? false,
+            })
+          );
+        }
+        return response.data.active ?? false;
+      }
+      return rejectWithValue("Failed to update active status");
+    } catch (error: any) {
+      console.error("Failed to update business active status:", error);
+      // Pass through isNoInternet flag so component can handle it differently
+      return rejectWithValue({
+        message: error.message || "Failed to update active status",
+        isNoInternet: error?.isNoInternet || false,
+      });
     }
   }
 );

@@ -44,11 +44,11 @@ const generalPersistConfig = {
   whitelist: ["theme", "themeType", "language", "savedPassword","registerEmail"], // Only persist these fields
 };
 
-// ✅ Nested persist config for user slice - only persist name, id, email, tokens, userRole, and isOnline (businessStatus is NOT persisted)
+// ✅ Nested persist config for user slice - only persist name, id, email, tokens, userRole (businessStatus is NOT persisted)
 const userPersistConfig = {
   key: "user",
   storage: SecureStorageAdapter,
-  whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "refreshToken", "userRole", "isOnline"], // Only persist these fields (businessStatus excluded)
+  whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "refreshToken", "userRole"], // Only persist these fields (businessStatus excluded)
 };
 
 // ✅ Persist the general reducer with field filtering

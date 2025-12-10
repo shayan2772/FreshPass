@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -83,13 +83,53 @@ const createSkeletonStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(12),
       marginTop: moderateHeightScale(12),
     },
+    planCardSkeleton: {
+      height: moderateHeightScale(200),
+      borderRadius: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(20),
+    },
+    planHeaderSkeleton: {
+      height: moderateHeightScale(28),
+      width: "60%",
+      borderRadius: moderateWidthScale(4),
+      flex: 1,
+    },
+    planPriceSkeleton: {
+      height: moderateHeightScale(28),
+      width: "30%",
+      borderRadius: moderateWidthScale(4),
+    },
+    planDescriptionSkeleton: {
+      height: moderateHeightScale(16),
+      width: "100%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(4),
+    },
+    planDetailSkeleton: {
+      height: moderateHeightScale(16),
+      width: "80%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(8),
+    },
+    planButtonSkeleton: {
+      height: moderateHeightScale(44),
+      borderRadius: moderateWidthScale(12),
+      marginTop: moderateHeightScale(8),
+    },
+    planCard:{
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(16),
+      padding: moderateWidthScale(20),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+    }
   });
 
 export const Skeleton = ({
   screenType,
   styles,
 }: {
-  screenType: "" | "StepOne" | "StepEight";
+  screenType: "" | "StepOne" | "StepEight" | "BusinessPlans";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -159,10 +199,51 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const businessPlansSkeleton = styles ? (
+    <ScrollView
+      style={styles.content}
+      contentContainerStyle={[
+        styles.plansContainer,
+        { paddingBottom: moderateHeightScale(30) },
+      ]}
+      showsVerticalScrollIndicator={false}
+    >
+      <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+        <View style={{ gap: moderateHeightScale(20) }}>
+          {[...Array(3)].map((_, index) => (
+            <View key={index} style={skeletonStyles.planCard}>
+              <View style={styles.planHeader}>
+                <View style={skeletonStyles.planHeaderSkeleton} />
+                <View style={skeletonStyles.planPriceSkeleton} />
+              </View>
+              <View style={skeletonStyles.planDescriptionSkeleton} />
+              <View style={skeletonStyles.planDescriptionSkeleton} />
+              <View style={styles.planDetails}>
+                <View style={skeletonStyles.planDetailSkeleton} />
+                <View style={skeletonStyles.planDetailSkeleton} />
+                <View style={skeletonStyles.planDetailSkeleton} />
+              </View>
+              <View style={skeletonStyles.planButtonSkeleton} />
+            </View>
+          ))}
+        </View>
+      </SkeletonPlaceholder>
+    </ScrollView>
+  ) : null;
+
   return (
-    <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
-      {screenType === "StepOne" && stepOneSkeleton}
-      {screenType === "StepEight" && stepEightSkeleton}
-    </SkeletonPlaceholder>
+    <>
+      {screenType === "StepOne" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {stepOneSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "StepEight" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {stepEightSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "BusinessPlans" && businessPlansSkeleton}
+    </>
   );
 };

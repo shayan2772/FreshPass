@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback, useRef } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, ActivityIndicator } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -12,6 +12,7 @@ interface CustomToggleInsideProps {
   value: boolean;
   onValueChange: (value: boolean) => void;
   disabled?: boolean;
+  loading?: boolean;
 }
 
 const createStyles = (theme: Theme) =>
@@ -60,6 +61,7 @@ export default function CustomToggleInside({
   value,
   onValueChange,
   disabled = false,
+  loading = false,
 }: CustomToggleInsideProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -83,7 +85,7 @@ export default function CustomToggleInside({
   return (
     <Pressable
       onPress={handlePress}
-      disabled={disabled}
+      disabled={disabled || loading}
       style={styles.container}
     >
       <View
@@ -92,7 +94,13 @@ export default function CustomToggleInside({
           !value ? styles.offlineSectionActive : styles.offlineSectionInactive,
         ]}
       >
-        <Text style={[styles.text,value &&styles.textInactive]}>Go offline</Text>
+        {loading && !value ? (
+          <ActivityIndicator size="small" color={theme.darkGreen} />
+        ) : (
+          <Text style={[styles.text, value && styles.textInactive]}>
+            Go offline
+          </Text>
+        )}
       </View>
       <View
         style={[
@@ -100,7 +108,13 @@ export default function CustomToggleInside({
           value ? styles.onlineSectionActive : styles.onlineSectionInactive,
         ]}
       >
-        <Text style={[styles.text,!value &&styles.textInactive]}>Online</Text>
+        {loading && value ? (
+          <ActivityIndicator size="small" color={theme.darkGreen} />
+        ) : (
+          <Text style={[styles.text, !value && styles.textInactive]}>
+            Online
+          </Text>
+        )}
       </View>
     </Pressable>
   );

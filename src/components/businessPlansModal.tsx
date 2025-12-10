@@ -6,10 +6,9 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
-  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -22,12 +21,12 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
-import {
-  fetchPaymentSheetParams,
-  initializePaymentSheet,
-  presentPaymentSheetHelper,
-} from "@/src/services/stripeService";
+import { fetchPaymentSheetParams } from "@/src/services/stripeService";
 import { useAppSelector } from "@/src/hooks/hooks";
+import NotificationBanner from "@/src/components/notificationBanner";
+import { Skeleton } from "@/src/components/skeletons";
+import RetryButton from "@/src/components/retryButton";
+import { fetchBusinessStatus } from "../state/thunks/businessThunks";
 
 interface SubscriptionPlan {
   id: number;
@@ -80,11 +79,6 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       paddingHorizontal: moderateWidthScale(20),
       paddingTop: moderateHeightScale(20),
-    },
-    loadingContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
     },
     errorContainer: {
       flex: 1,
@@ -190,14 +184,28 @@ function BusinessPlansModalContent({
   const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState(false);
   const [subscribingPlanId, setSubscribingPlanId] = useState<number | null>(
     null
   );
-  const [paymentSheetReady, setPaymentSheetReady] = useState(false);
+  const dispatch = useAppDispatch();
+
+  const [localBanner, setLocalBanner] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
 
   const fetchPlans = async () => {
     setLoading(true);
     setError(null);
+    setApiError(false);
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -211,10 +219,12 @@ function BusinessPlansModalContent({
         setPlans(response.data.data);
       } else {
         setError("Failed to load subscription plans");
+        setApiError(true);
       }
     } catch (err: any) {
       console.error("Failed to fetch subscription plans:", err);
       setError(err.message || "Failed to load subscription plans");
+      setApiError(true);
       showBanner(
         "Error",
         err.message || "Failed to load subscription plans",
@@ -234,100 +244,120 @@ function BusinessPlansModalContent({
 
   const handleSubscribe = async (planId: number) => {
     setSubscribingPlanId(planId);
-    setPaymentSheetReady(false);
 
     try {
       // Step 1: Fetch payment sheet parameters from backend
-      const { paymentIntent, ephemeralKey, customer } =
-        await fetchPaymentSheetParams(planId);
+      const {
+        paymentIntent,
+        customerSessionClientSecret,
+        ephemeralKey,
+        customer,
+        setupIntent,
+      } = await fetchPaymentSheetParams(planId);
 
-      // Step 2: Initialize payment sheet
-      const { error: initError } = await initializePaymentSheet(
-        initPaymentSheet,
-        {
-          paymentIntent,
-          ephemeralKey,
-          customer,
-          merchantDisplayName: "Fresh Pass",
-          defaultBillingDetails: {
-            name: user.name || undefined,
-            email: user.email || undefined,
-          },
-          allowsDelayedPaymentMethods: true,
-        }
-      );
+      // Step 2: Initialize payment sheet directly
+      const paymentConfig: any = {
+        merchantDisplayName: "Fresh Pass",
+        customerId: customer,
+        allowsDelayedPaymentMethods: true,
+        defaultBillingDetails: {
+          name: user.name || undefined,
+          email: user.email || undefined,
+        },
+        // Explicitly set customFlow to false to prevent native SDK crash
+        customFlow: false,
+      };
+
+      // Use CustomerSession (newer approach) if available, otherwise fall back to EphemeralKey
+      if (customerSessionClientSecret) {
+        paymentConfig.customerSessionClientSecret = customerSessionClientSecret;
+      } else if (ephemeralKey) {
+        paymentConfig.customerEphemeralKeySecret = ephemeralKey;
+      } else {
+        throw new Error(
+          "Either customerSessionClientSecret or ephemeralKey must be provided"
+        );
+      }
+
+      // Use setupIntent for subscriptions if available, otherwise use paymentIntent
+      if (setupIntent && setupIntent.includes("_secret_")) {
+        // SetupIntent is in correct client secret format
+        paymentConfig.setupIntentClientSecret = setupIntent;
+      } else if (paymentIntent && paymentIntent.trim() !== "") {
+        // Use paymentIntent if setupIntent is not available or not in correct format
+        paymentConfig.paymentIntentClientSecret = paymentIntent;
+      } else if (setupIntent) {
+        // SetupIntent exists but is not in client secret format
+        throw new Error(
+          "SetupIntent must be in client secret format (seti_xxxxx_secret_xxxxx). " +
+            "The backend returned just the setup intent ID. Please update the backend to return the full client secret."
+        );
+      } else {
+        throw new Error("Either setupIntent or paymentIntent must be provided");
+      }
+
+      const { error: initError } = await initPaymentSheet(paymentConfig);
 
       if (initError) {
         throw new Error(initError.message || "Failed to initialize payment");
       }
 
-      setPaymentSheetReady(true);
-
       // Step 3: Present payment sheet to user
-      const result = await presentPaymentSheetHelper(presentPaymentSheet);
+      const { error: presentError } = await presentPaymentSheet();
 
-      if (result.success) {
-        // Step 4: Payment successful - confirm subscription with backend
-        try {
-          const response = await ApiService.post<{
-            success: boolean;
-            message: string;
-            data?: any;
-          }>(businessEndpoints.subscribe(planId), {
-            plan_id: planId,
+      if (presentError) {
+        // Payment was cancelled or failed
+        if (!presentError.code?.includes("Canceled")) {
+          setLocalBanner({
+            visible: true,
+            title: "Payment Failed",
+            message: presentError.message || "Payment could not be completed",
+            type: "error",
           });
 
-          if (response.success) {
-            showBanner(
-              "Success",
-              response.message || "Subscription successful!",
-              "success",
-              3000
-            );
-            // Close modal after successful subscription
-            setTimeout(() => {
-              onClose();
-            }, 1500);
-          } else {
-            showBanner(
-              "Error",
-              response.message || "Payment successful but subscription failed",
-              "error",
-              2500
-            );
-          }
-        } catch (confirmErr: any) {
-          console.error("Failed to confirm subscription:", confirmErr);
-          showBanner(
-            "Error",
-            "Payment successful but failed to confirm subscription. Please contact support.",
-            "error",
-            3000
-          );
-        }
-      } else {
-        // Payment was cancelled or failed
-        if (result.error && !result.error.includes("canceled")) {
-          showBanner(
-            "Payment Failed",
-            result.error || "Payment could not be completed",
-            "error",
-            2500
-          );
+          setTimeout(() => {
+            setLocalBanner((prev) => ({ ...prev, visible: false }));
+          }, 2500);
         }
         // If user canceled, don't show error (silent cancel)
+        return;
       }
-    } catch (err: any) {
-      console.error("Failed to process payment:", err);
+
       showBanner(
-        "Error",
-        err.message || "Failed to process payment",
-        "error",
-        2500
+        "Success",
+        "Payment successful! Your subscription will be activated shortly.",
+        "success",
+        4000
       );
+      onClose();
+      dispatch(fetchBusinessStatus({ showError: true })).unwrap();
+    } catch (err: any) {
+      // Extract clean error message
+      let errorMessage = "Failed to process payment";
+
+      // Check error response data first (from API)
+      if (err.data?.message) {
+        errorMessage = err.data.message;
+      } else if (err.data?.error) {
+        errorMessage = err.data.error;
+      } else if (err.message) {
+        // Use error message directly (API service already extracts clean message)
+        errorMessage = err.message;
+      }
+
+      // Show banner inside modal (Modal covers external banners)
+      setLocalBanner({
+        visible: true,
+        title: "Error",
+        message: errorMessage,
+        type: "error",
+      });
+      // Auto-hide banner after 3 seconds
+      setTimeout(() => {
+        setLocalBanner((prev) => ({ ...prev, visible: false }));
+      }, 2500);
     } finally {
       setSubscribingPlanId(null);
-      setPaymentSheetReady(false);
     }
   };
 
@@ -351,14 +381,12 @@ function BusinessPlansModalContent({
           </TouchableOpacity>
         </View>
 
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        ) : error ? (
+        {loading && plans.length === 0 ? (
+          <Skeleton screenType="BusinessPlans" styles={styles} />
+        ) : apiError ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>{error}</Text>
-            <Button title="Retry" onPress={fetchPlans} />
+            <RetryButton onPress={fetchPlans} loading={loading} />
           </View>
         ) : plans.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -424,6 +452,7 @@ function BusinessPlansModalContent({
                   title="Subscribe Now"
                   onPress={() => handleSubscribe(plan.id)}
                   loading={subscribingPlanId === plan.id}
+                  disabled={subscribingPlanId !== null}
                   containerStyle={styles.subscribeButton}
                 />
               </View>
@@ -431,6 +460,17 @@ function BusinessPlansModalContent({
           </ScrollView>
         )}
       </View>
+
+      <NotificationBanner
+        visible={localBanner.visible}
+        title={localBanner.title}
+        message={localBanner.message}
+        type={localBanner.type}
+        duration={3000}
+        onDismiss={() =>
+          setLocalBanner((prev) => ({ ...prev, visible: false }))
+        }
+      />
     </View>
   );
 }
@@ -439,9 +479,6 @@ export default function BusinessPlansModal({
   visible,
   onClose,
 }: BusinessPlansModalProps) {
-  const STRIPE_PUBLISHABLE_KEY =
-    process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "";
-
   if (!visible) return null;
 
   return (
@@ -450,9 +487,10 @@ export default function BusinessPlansModal({
       transparent
       animationType="slide"
       onRequestClose={onClose}
-      statusBarTranslucent
     >
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+      <StripeProvider
+        publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+      >
         <BusinessPlansModalContent visible={visible} onClose={onClose} />
       </StripeProvider>
     </Modal>

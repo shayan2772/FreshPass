@@ -56,6 +56,7 @@ export const setToastHandler = (callback: (title: string, message: string, type:
 /**
  * Check internet connectivity using NetInfo
  * Returns true if internet is available, false otherwise
+ * Note: This is a best-effort check. For local network requests, we're more lenient.
  */
 export const checkInternetConnection = async (): Promise<boolean> => {
   try {
@@ -67,18 +68,21 @@ export const checkInternetConnection = async (): Promise<boolean> => {
     // Fetch network state
     const state = await NetInfo.fetch();
     
-    // If connected, check internet reachability
-    // isInternetReachable can be null initially, so we treat null as reachable if connected
+    // If connected to any network (WiFi, cellular, etc.), allow the request
+    // NetInfo's isInternetReachable can be unreliable, especially for local networks
+    // Let axios handle actual network errors instead of blocking upfront
     if (state.isConnected === true) {
-      // If isInternetReachable is null (not yet determined), assume it's reachable if connected
-      // If it's explicitly false, then return false
-      return state.isInternetReachable !== false;
+      // If connected, allow the request to proceed
+      // The actual network error will be caught by axios if the request fails
+      return true;
     }
     
+    // Only block if explicitly not connected to any network
     return false;
   } catch (error) {
     console.error('Error checking internet connection:', error);
-    return false;
+    // On error, allow the request to proceed - let axios handle network errors
+    return true;
   }
 };
 

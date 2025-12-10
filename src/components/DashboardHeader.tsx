@@ -1,4 +1,10 @@
-import React, { useMemo, useCallback, useState, useRef, useEffect } from "react";
+import React, {
+  useMemo,
+  useCallback,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -11,6 +17,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
+import { setToggleLoading } from "@/src/state/slices/generalSlice";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -22,8 +29,10 @@ import {
 import { LeafLogo } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomToggleInside from "@/src/components/customToggleInside";
-import { setOnlineStatus } from "@/src/state/slices/userSlice";
-import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
+import {
+  fetchBusinessStatus,
+  updateBusinessActiveStatus,
+} from "@/src/state/thunks/businessThunks";
 import { checkInternetConnection } from "@/src/services/api";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import BusinessPlansModal from "@/src/components/businessPlansModal";
@@ -87,12 +96,14 @@ export default function DashboardHeader({
   const styles = useMemo(() => createStyles(theme), [colors]);
   const dispatch = useAppDispatch();
   const { showBanner } = useNotificationContext();
-  const isOnline = useAppSelector((state) => state.user.isOnline);
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
+  const isOnline = businessStatus?.active ?? false;
   const insets = useSafeAreaInsets();
 
-  const [businessPlansModalVisible, setBusinessPlansModalVisible] = useState(false);
+  const [businessPlansModalVisible, setBusinessPlansModalVisible] =
+    useState(false);
   const [isFetchingStripeLink, setIsFetchingStripeLink] = useState(false);
+  const toggleLoading = useAppSelector((state) => state.general.toggleLoading);
   const bannerAnimation = useRef(new Animated.Value(0)).current;
 
   const handleFetchBusinessStatus = useCallback(async () => {
@@ -183,7 +194,6 @@ export default function DashboardHeader({
     setBusinessPlansModalVisible(true);
   };
 
-  
   const showStripeBanner =
     businessStatus?.onboarding_completed === true &&
     businessStatus?.stripe_onboarding_status === "pending";
@@ -222,10 +232,15 @@ export default function DashboardHeader({
     if (!actualCanGoOnline && (showStripeBanner || showBusinessSubscriptipn)) {
       animateBanner();
     }
-  }, [actualCanGoOnline, showStripeBanner, showBusinessSubscriptipn, animateBanner]);
+  }, [
+    actualCanGoOnline,
+    showStripeBanner,
+    showBusinessSubscriptipn,
+    animateBanner,
+  ]);
 
   const handleToggleChange = useCallback(
-    (value: boolean) => {
+    async (value: boolean) => {
       // Only dispatch if the value is actually different from current state
       // This prevents accidental toggles when component re-renders
       if (value !== isOnline) {
@@ -234,11 +249,38 @@ export default function DashboardHeader({
           handleToggleAttempt();
           return; // Don't allow toggle
         }
-        // Allow going offline or going online when canGoOnline is true
-        dispatch(setOnlineStatus(value));
+
+        // Show loader in toggle
+        dispatch(setToggleLoading(true));
+
+        // Call API to update active status
+        try {
+          await dispatch(updateBusinessActiveStatus({ active: value })).unwrap();
+          // Success - status already updated in Redux via thunk
+        } catch (error: any) {
+          // Check if it's a no internet error - don't show banner (toast already shown)
+          if (error?.isNoInternet) {
+            // Toast already shown by API service, no need to show banner
+            return;
+          }
+          // API failed - show error banner
+          const errorMessage =
+            error?.message || error || "Failed to update online status";
+          showBanner("Error", errorMessage, "error", 2500);
+          // Revert toggle to previous state on error
+          // The toggle will automatically revert since businessStatus wasn't updated
+        } finally {
+          dispatch(setToggleLoading(false));
+        }
       }
     },
-    [dispatch, isOnline, actualCanGoOnline, handleToggleAttempt]
+    [
+      dispatch,
+      isOnline,
+      actualCanGoOnline,
+      handleToggleAttempt,
+      showBanner,
+    ]
   );
 
   return (
@@ -260,13 +302,17 @@ export default function DashboardHeader({
             <Text style={styles.logoText}>FRESHPASS</Text>
           </View>
           <View style={styles.toggleContainer}>
-            <CustomToggleInside value={isOnline} onValueChange={handleToggleChange} />
+            <CustomToggleInside
+              value={isOnline}
+              onValueChange={handleToggleChange}
+              loading={toggleLoading}
+            />
           </View>
         </View>
       </View>
       <View style={styles.line} />
       {(showStripeBanner || showBusinessSubscriptipn) && (
-          <TouchableOpacity
+        <TouchableOpacity
           onPress={
             showStripeBanner
               ? handleStripeOnboardingPress
@@ -275,15 +321,14 @@ export default function DashboardHeader({
           activeOpacity={0.8}
           disabled={isFetchingStripeLink}
         >
-        <Animated.View
-          style={[
-            styles.stripeBanner,
-            {
-              transform: [{ translateX: bannerAnimation }],
-            },
-          ]}
-        >
-        
+          <Animated.View
+            style={[
+              styles.stripeBanner,
+              {
+                transform: [{ translateX: bannerAnimation }],
+              },
+            ]}
+          >
             {isFetchingStripeLink ? (
               <View
                 style={{
@@ -303,11 +348,10 @@ export default function DashboardHeader({
                   : "Please buy business plan"}
               </Text>
             )}
-        
-        </Animated.View>
+          </Animated.View>
         </TouchableOpacity>
       )}
-     
+
       <BusinessPlansModal
         visible={businessPlansModalVisible}
         onClose={() => setBusinessPlansModalVisible(false)}

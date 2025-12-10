@@ -14,6 +14,7 @@ export interface BusinessStatus {
   stripe_onboarding_link: string | null;
   has_subscription: boolean;
   subscription_status: string;
+  active: boolean;
 }
 
 export interface UserState {
@@ -28,7 +29,6 @@ export interface UserState {
   refreshToken: string | null;
   userRole: UserRole;
   businessStatus: BusinessStatus | null;
-  isOnline: boolean;
   // Business status loading/error states (NOT persisted)
   businessStatusLoading: boolean;
   businessStatusError: boolean;
@@ -46,7 +46,6 @@ const initialState: UserState = {
   refreshToken: null,
   userRole: null,
   businessStatus: null,
-  isOnline: false,
   businessStatusLoading: false,
   businessStatusError: false,
 };
@@ -96,9 +95,6 @@ const userSlice = createSlice({
     setBusinessStatusError(state, action: PayloadAction<boolean>) {
       state.businessStatusError = action.payload;
     },
-    setOnlineStatus(state, action: PayloadAction<boolean>) {
-      state.isOnline = action.payload;
-    },
     setUserDetails(
       state,
       action: PayloadAction<{
@@ -141,7 +137,6 @@ const userSlice = createSlice({
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
-      state.isOnline = initialState.isOnline;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
     },
@@ -157,7 +152,6 @@ const userSlice = createSlice({
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
-      state.isOnline = initialState.isOnline;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
     },
@@ -171,7 +165,6 @@ export const {
   setBusinessStatus,
   setBusinessStatusLoading,
   setBusinessStatusError,
-  setOnlineStatus,
   setUserDetails,
   clearUser,
   resetUser,
