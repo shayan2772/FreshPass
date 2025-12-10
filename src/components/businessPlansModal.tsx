@@ -103,6 +103,8 @@ const createStyles = (theme: Theme) =>
       padding: moderateWidthScale(20),
       borderWidth: 1,
       borderColor: theme.borderLight,
+    },
+    shadow: {
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
@@ -222,7 +224,6 @@ function BusinessPlansModalContent({
         setApiError(true);
       }
     } catch (err: any) {
-      console.error("Failed to fetch subscription plans:", err);
       setError(err.message || "Failed to load subscription plans");
       setApiError(true);
       showBanner(
@@ -401,7 +402,7 @@ function BusinessPlansModalContent({
             contentContainerStyle={styles.plansContainer}
           >
             {plans.map((plan) => (
-              <View key={plan.id} style={styles.planCard}>
+              <View key={plan.id} style={[styles.planCard, styles.shadow]}>
                 <View style={styles.planHeader}>
                   <Text style={styles.planName}>{plan.name}</Text>
                   <Text style={styles.planPrice}>${plan.price}</Text>

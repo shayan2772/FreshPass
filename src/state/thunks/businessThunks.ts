@@ -17,47 +17,45 @@ export const fetchBusinessStatus = createAsyncThunk<
   BusinessStatus | null,
   FetchBusinessStatusOptions | undefined,
   { dispatch: AppDispatch; state: RootState }
->(
-  "business/fetchStatus",
-  async (options, { dispatch, rejectWithValue }) => {
-    const { showError = true } = options || {};
+>("business/fetchStatus", async (options, { dispatch, rejectWithValue }) => {
+  const { showError = true } = options || {};
 
-    dispatch(setBusinessStatusLoading(true));
-    dispatch(setBusinessStatusError(false));
+  dispatch(setBusinessStatusLoading(true));
+  dispatch(setBusinessStatusError(false));
 
-    try {
-      const response = await ApiService.get<{
-        success: boolean;
-        message: string;
-        data: BusinessStatus;
-      }>(businessEndpoints.status);
+  try {
+    const response = await ApiService.get<{
+      success: boolean;
+      message: string;
+      data: BusinessStatus;
+    }>(businessEndpoints.status);
 
-      if (response.success && response.data) {
-        // Ensure active field exists, default to false if not provided
-        const businessStatusData = {
-          ...response.data,
-          active: response.data.active ?? false,
-        };
-        dispatch(setBusinessStatus(businessStatusData));
-        dispatch(setBusinessStatusError(false));
-        return businessStatusData;
-      }
-      return null;
-    } catch (error: any) {
-      console.error("Failed to fetch business status:", error);
-      dispatch(setBusinessStatusError(true));
-      dispatch(setBusinessStatusLoading(false));
-      
-      if (showError) {
-        // Error will be handled by the component using the thunk
-        return rejectWithValue(error.message || "Failed to fetch business status");
-      }
-      throw error;
-    } finally {
-      dispatch(setBusinessStatusLoading(false));
+    if (response.success && response.data) {
+      // Ensure active field exists, default to false if not provided
+      const businessStatusData = {
+        ...response.data,
+        active: response.data.active ?? false,
+      };
+      dispatch(setBusinessStatus(businessStatusData));
+      dispatch(setBusinessStatusError(false));
+      return businessStatusData;
     }
+    return null;
+  } catch (error: any) {
+    dispatch(setBusinessStatusError(true));
+    dispatch(setBusinessStatusLoading(false));
+
+    if (showError) {
+      // Error will be handled by the component using the thunk
+      return rejectWithValue(
+        error.message || "Failed to fetch business status"
+      );
+    }
+    throw error;
+  } finally {
+    dispatch(setBusinessStatusLoading(false));
   }
-);
+});
 
 export const updateBusinessActiveStatus = createAsyncThunk<
   boolean,
@@ -94,8 +92,6 @@ export const updateBusinessActiveStatus = createAsyncThunk<
       }
       return rejectWithValue("Failed to update active status");
     } catch (error: any) {
-      console.error("Failed to update business active status:", error);
-      // Pass through isNoInternet flag so component can handle it differently
       return rejectWithValue({
         message: error.message || "Failed to update active status",
         isNoInternet: error?.isNoInternet || false,
@@ -103,4 +99,3 @@ export const updateBusinessActiveStatus = createAsyncThunk<
     }
   }
 );
-

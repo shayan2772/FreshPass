@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { useFocusEffect } from "expo-router";
 import {
   StyleSheet,
@@ -18,12 +18,12 @@ import StaffOnDuty from "./components/StaffOnDuty";
 import AppointmentsSection from "./components/AppointmentsSection";
 import WorkHistory from "./components/WorkHistory";
 import DashboardHeader from "../../DashboardHeader";
-import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
 import { setUserDetails } from "@/src/state/slices/userSlice";
 import { ApiService } from "@/src/services/api";
-import { userEndpoints } from "@/src/services/endpoints";
+import { userEndpoints, dashboardEndpoints } from "@/src/services/endpoints";
+import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -57,6 +57,18 @@ const createStyles = (theme: Theme) =>
     },
   });
 
+interface DashboardStatsData {
+  monthly_revenue: number;
+  appointments: {
+    completed: number;
+    upcoming: number;
+    cancelled: number;
+  };
+  rating: {
+    overall_rating: number;
+  };
+}
+
 export default function HomeScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -67,7 +79,11 @@ export default function HomeScreen() {
   const isLoading = useAppSelector((state) => state.user.businessStatusLoading);
   const apiError = useAppSelector((state) => state.user.businessStatusError);
 
-  const handleFetchBusinessStatus = useCallback(async () => {
+  // Dashboard stats state
+  const [dashboardStats, setDashboardStats] =
+    useState<DashboardStatsData | null>(null);
+
+  const handleFetchBusinessStatus = async () => {
     try {
       await dispatch(fetchBusinessStatus({ showError: true })).unwrap();
     } catch (error: any) {
@@ -78,9 +94,9 @@ export default function HomeScreen() {
         2500
       );
     }
-  }, [dispatch, showBanner]);
+  };
 
-  const handleFetchUserDetails = useCallback(async () => {
+  const handleFetchUserDetails = async () => {
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -109,16 +125,35 @@ export default function HomeScreen() {
         );
       }
     } catch (error: any) {
-      // Silently fail - don't show error banner for user details
-      console.error("Failed to fetch user details:", error);
+      
     }
-  }, [dispatch]);
+  };
+
+  const handleFetchDashboardStats = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: DashboardStatsData;
+      }>(dashboardEndpoints.stats());
+
+      if (response.success && response.data) {
+        setDashboardStats(response.data);
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to fetch dashboard stats",
+        "error",
+        2500
+      );
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
-      handleFetchBusinessStatus();
       handleFetchUserDetails();
-    }, [handleFetchBusinessStatus, handleFetchUserDetails])
+    }, [])
   );
 
   // Show loader only if businessStatus doesn't exist and is loading
@@ -173,7 +208,10 @@ export default function HomeScreen() {
       >
         {/* Summary Statistics */}
         <View style={styles.statsContainer}>
-          <SummaryStats />
+          <SummaryStats
+            callApi={handleFetchDashboardStats}
+            data={dashboardStats}
+          />
         </View>
 
         {/* Staff on Duty - Full Width */}

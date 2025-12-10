@@ -51,3 +51,15 @@ export const userEndpoints = {
 export const stripeEndpoints = {
   paymentSheet: `/api/payment-sheet`,
 };
+
+/**
+ * Dashboard endpoints
+ */
+export const dashboardEndpoints = {
+  stats: (month?: string) => {
+    if (month) {
+      return `/api/dashboard/stats?month=${month}`;
+    }
+    return `/api/dashboard/stats`;
+  },
+};

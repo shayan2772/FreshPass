@@ -1,7 +1,7 @@
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { ApiService } from "./api";
 import { stripeEndpoints } from "./endpoints";
- 
+
 export interface PaymentSheetParams {
   paymentIntent: string; // Payment Intent client secret
   customerSessionClientSecret?: string; // Customer Session client secret (newer approach)
@@ -27,7 +27,6 @@ interface PaymentSheetApiResponse {
 export const fetchPaymentSheetParams = async (
   planId: number
 ): Promise<PaymentSheetParams> => {
- 
   try {
     const response = await ApiService.post<PaymentSheetApiResponse>(
       stripeEndpoints.paymentSheet,
@@ -52,8 +51,6 @@ export const fetchPaymentSheetParams = async (
       response.message || "Failed to fetch payment sheet parameters"
     );
   } catch (error) {
-    console.error("❌ Failed to fetch payment sheet params:", error);
-
     throw error;
   }
 };

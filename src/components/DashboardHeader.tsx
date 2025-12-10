@@ -120,7 +120,6 @@ export default function DashboardHeader({
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
-        // App has come to the foreground, refresh business status
         handleFetchBusinessStatus();
       }
     });
@@ -178,7 +177,6 @@ export default function DashboardHeader({
         );
       }
     } catch (error: any) {
-      console.error("Failed to fetch Stripe onboarding link:", error);
       showBanner(
         "Error",
         error.message || "Failed to fetch Stripe onboarding link",
@@ -255,7 +253,9 @@ export default function DashboardHeader({
 
         // Call API to update active status
         try {
-          await dispatch(updateBusinessActiveStatus({ active: value })).unwrap();
+          await dispatch(
+            updateBusinessActiveStatus({ active: value })
+          ).unwrap();
           // Success - status already updated in Redux via thunk
         } catch (error: any) {
           // Check if it's a no internet error - don't show banner (toast already shown)
@@ -274,13 +274,7 @@ export default function DashboardHeader({
         }
       }
     },
-    [
-      dispatch,
-      isOnline,
-      actualCanGoOnline,
-      handleToggleAttempt,
-      showBanner,
-    ]
+    [dispatch, isOnline, actualCanGoOnline, handleToggleAttempt, showBanner]
   );
 
   return (

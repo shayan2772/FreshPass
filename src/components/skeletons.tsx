@@ -116,20 +116,13 @@ const createSkeletonStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(12),
       marginTop: moderateHeightScale(8),
     },
-    planCard:{
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(16),
-      padding: moderateWidthScale(20),
-      borderWidth: 1,
-      borderColor: theme.borderLight,
-    }
   });
 
 export const Skeleton = ({
   screenType,
   styles,
 }: {
-  screenType: "" | "StepOne" | "StepEight" | "BusinessPlans";
+  screenType: "" | "StepOne" | "StepEight" | "BusinessPlans" | "SummaryStats";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -211,7 +204,7 @@ export const Skeleton = ({
       <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
         <View style={{ gap: moderateHeightScale(20) }}>
           {[...Array(3)].map((_, index) => (
-            <View key={index} style={skeletonStyles.planCard}>
+            <View key={index} style={styles.planCard}>
               <View style={styles.planHeader}>
                 <View style={skeletonStyles.planHeaderSkeleton} />
                 <View style={skeletonStyles.planPriceSkeleton} />
@@ -231,6 +224,21 @@ export const Skeleton = ({
     </ScrollView>
   ) : null;
 
+  const summaryStatsSkeleton = styles ? (
+    <>
+      <View style={styles.statsRow}>
+        <View style={styles.revenueCardSkeleotn} />
+        <View style={styles.revenueCardSkeleotn} />
+      </View>
+
+      <View style={styles.appointmentStatsRow}>
+        {[...Array(3)].map((_, index) => (
+          <View key={index} style={styles.appointmentStatCardSkeleton} />
+        ))}
+      </View>
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -244,6 +252,11 @@ export const Skeleton = ({
         </SkeletonPlaceholder>
       )}
       {screenType === "BusinessPlans" && businessPlansSkeleton}
+      {screenType === "SummaryStats" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {summaryStatsSkeleton}
+        </SkeletonPlaceholder>
+      )}
     </>
   );
 };
