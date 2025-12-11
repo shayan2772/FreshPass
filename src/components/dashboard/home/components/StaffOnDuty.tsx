@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,7 +15,8 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import { Entypo, Ionicons } from "@expo/vector-icons";
+import { Entypo } from "@expo/vector-icons";
+import { Skeleton } from "@/src/components/skeletons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -46,7 +47,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
-    staffScrollView: {},
+    staffScrollView: { flex: 1 },
     staffScrollContent: {
       paddingHorizontal: moderateWidthScale(20),
     },
@@ -76,80 +77,114 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       textAlign: "center",
-    
+    },
+    emptyStateText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textAlign: "center",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(8),
     },
   });
 
-// Static data
-const staffData = [
-  {
-    id: "1",
-    name: "Md Shariful Isl...",
-    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-  },
-  {
-    id: "2",
-    name: "Md Shariful Isl...",
-    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-  },
-  {
-    id: "3",
-    name: "Md Shariful Isl...",
-    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-  },
-  {
-    id: "4",
-    name: "Md Shariful Isl...",
-    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-  },
-  {
-    id: "5",
-    name: "Md Shari",
-    avatar: "https://www.w3schools.com/howto/img_avatar2.png",
-  },
-];
+interface StaffData {
+  id: number;
+  user_id: number;
+  name: string;
+  email: string;
+  business_id: number;
+  active: number;
+  description: string | null;
+  invitation_token: string;
+  completed_appointments_count: number;
+  business: {
+    id: number;
+    title: string;
+  };
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    email_notifications: boolean | null;
+    profile_image_url: string | null;
+    working_hours: any[];
+  };
+  created_at: string;
+  createdAt: string;
+}
 
-export default function StaffOnDuty() {
+interface StaffOnDutyProps {
+  data: StaffData[] | null;
+  callApi: () => Promise<void>;
+}
+
+export default function StaffOnDuty({ data, callApi }: StaffOnDutyProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+
+  useEffect(() => {
+    callApi();
+  }, []);
 
   return (
     <View style={styles.staffContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Staff on duty</Text>
-        <TouchableOpacity activeOpacity={0.7}>
-          <View style={styles.sectionRight}>
-            <Text style={styles.sectionLinkText}>12/14</Text>
-            <Entypo
-              name="chevron-small-right"
-              size={moderateWidthScale(20)}
-              color={theme.darkGreen}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.staffScrollView}
-        contentContainerStyle={styles.staffScrollContent}
-      >
-        {staffData.map((staff, index) => (
-          <View
-            key={staff.id}
-            style={[styles.staffItem, index === 0 && styles.staffItemFirst]}
-          >
-            <View style={styles.staffAvatar}>
-              <Image
-                source={{ uri: staff.avatar }}
-                style={styles.staffAvatarImage}
+        {data && data.length > 0 && (
+          <TouchableOpacity activeOpacity={0.7}>
+            <View style={styles.sectionRight}>
+              <Text style={styles.sectionLinkText}>
+                {data.length > 8 ? `8/${data.length}` : `${data.length}`}
+              </Text>
+              <Entypo
+                name="chevron-small-right"
+                size={moderateWidthScale(20)}
+                color={theme.darkGreen}
               />
             </View>
-            <Text numberOfLines={1} style={styles.staffName}>{staff?.name ?? ""}</Text>
-          </View>
-        ))}
-      </ScrollView>
+          </TouchableOpacity>
+        )}
+      </View>
+      {!data ? (
+        <Skeleton screenType="StaffOnDuty" styles={styles} />
+      ) : data.length === 0 ? (
+        <Text style={styles.emptyStateText}>No staff</Text>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.staffScrollView}
+          contentContainerStyle={styles.staffScrollContent}
+        >
+          {data.slice(0, 8).map((staff, index) => (
+            <View
+              key={staff.id}
+              style={[styles.staffItem, index === 0 && styles.staffItemFirst]}
+            >
+              <View style={styles.staffAvatar}>
+                {staff.user?.profile_image_url ? (
+                  <Image
+                    source={{ uri: staff.user.profile_image_url }}
+                    style={styles.staffAvatarImage}
+                  />
+                ) : (
+                  <Image
+                    source={{
+                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                    }}
+                    style={styles.staffAvatarImage}
+                  />
+                )}
+              </View>
+              <Text numberOfLines={1} style={styles.staffName}>
+                {staff?.name ?? ""}
+              </Text>
+            </View>
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }

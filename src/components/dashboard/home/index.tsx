@@ -22,7 +22,7 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
 import { setUserDetails } from "@/src/state/slices/userSlice";
 import { ApiService } from "@/src/services/api";
-import { userEndpoints, dashboardEndpoints } from "@/src/services/endpoints";
+import { userEndpoints, dashboardEndpoints, staffEndpoints } from "@/src/services/endpoints";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 
 const createStyles = (theme: Theme) =>
@@ -83,6 +83,9 @@ export default function HomeScreen() {
   const [dashboardStats, setDashboardStats] =
     useState<DashboardStatsData | null>(null);
 
+  // Staff state
+  const [staffData, setStaffData] = useState<any[] | null>(null);
+ 
   const handleFetchBusinessStatus = async () => {
     try {
       await dispatch(fetchBusinessStatus({ showError: true })).unwrap();
@@ -150,9 +153,56 @@ export default function HomeScreen() {
     }
   };
 
+  const handleFetchStaff = async () => {
+    
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          user_id: number;
+          name: string;
+          email: string;
+          business_id: number;
+          active: number;
+          description: string | null;
+          invitation_token: string;
+          completed_appointments_count: number;
+          business: {
+            id: number;
+            title: string;
+          };
+          user: {
+            id: number;
+            name: string;
+            email: string;
+            email_notifications: boolean | null;
+            profile_image_url: string | null;
+            working_hours: any[];
+          };
+          created_at: string;
+          createdAt: string;
+        }>;
+      }>(staffEndpoints.list);
+
+      if (response.success && response.data) {
+        setStaffData(response.data);
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to fetch staff details",
+        "error",
+        2500
+      );
+    }  
+  };
+
   useFocusEffect(
     useCallback(() => {
       handleFetchUserDetails();
+      handleFetchStaff();
     }, [])
   );
 
@@ -215,7 +265,10 @@ export default function HomeScreen() {
         </View>
 
         {/* Staff on Duty - Full Width */}
-        <StaffOnDuty />
+        <StaffOnDuty
+          data={staffData}   
+          callApi={handleFetchStaff}
+        />
 
         {/* Appointments */}
         <View style={styles.appointmentsContainer}>

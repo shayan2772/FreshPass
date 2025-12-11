@@ -9,6 +9,7 @@
  */
 export const staffEndpoints = {
   register: `/staff/auth/register`,
+  list: `/api/staff`,
 };
 
 /**

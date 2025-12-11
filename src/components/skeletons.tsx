@@ -7,6 +7,7 @@ import {
   heightScale,
   moderateHeightScale,
   moderateWidthScale,
+  widthScale,
 } from "@/src/theme/dimensions";
 
 const createSkeletonStyles = (theme: Theme) =>
@@ -116,13 +117,40 @@ const createSkeletonStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(12),
       marginTop: moderateHeightScale(8),
     },
+    staffOnDutyHeaderTitle: {
+      height: moderateHeightScale(18),
+      width: "40%",
+      borderRadius: moderateWidthScale(4),
+    },
+    staffOnDutyHeaderCount: {
+      height: moderateHeightScale(16),
+      width: moderateWidthScale(40),
+      borderRadius: moderateWidthScale(4),
+    },
+    staffOnDutyAvatar: {
+      width: widthScale(52),
+      height: widthScale(52),
+      borderRadius: widthScale(52 / 2),
+    },
+    staffOnDutyName: {
+      height: moderateHeightScale(14),
+      width: moderateWidthScale(60),
+      borderRadius: moderateWidthScale(4),
+      marginTop: moderateHeightScale(5),
+    },
   });
 
 export const Skeleton = ({
   screenType,
   styles,
 }: {
-  screenType: "" | "StepOne" | "StepEight" | "BusinessPlans" | "SummaryStats";
+  screenType:
+    | ""
+    | "StepOne"
+    | "StepEight"
+    | "BusinessPlans"
+    | "SummaryStats"
+    | "StaffOnDuty";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -239,6 +267,25 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const staffOnDutySkeleton = styles ? (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.staffScrollView}
+      contentContainerStyle={styles.staffScrollContent}
+    >
+      {[...Array(5)].map((_, index) => (
+        <View
+          key={index}
+          style={[styles.staffItem, index === 0 && styles.staffItemFirst]}
+        >
+          <View style={skeletonStyles.staffOnDutyAvatar} />
+          <View style={skeletonStyles.staffOnDutyName} />
+        </View>
+      ))}
+    </ScrollView>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -255,6 +302,11 @@ export const Skeleton = ({
       {screenType === "SummaryStats" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {summaryStatsSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "StaffOnDuty" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {staffOnDutySkeleton}
         </SkeletonPlaceholder>
       )}
     </>
