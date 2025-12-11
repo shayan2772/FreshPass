@@ -37,18 +37,14 @@ const createStyles = (theme: Theme) =>
       shadowRadius: 1.41,
       elevation: 2,
     },
-    revenueCardSkeleotn: {
-      width: "48.5%",
-      backgroundColor: theme.darkGreen,
-      borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(16),
-      height:80
-    },
+
     revenueCard: {
       width: "48.5%",
       backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(16),
+      paddingHorizontal: moderateWidthScale(16),
+      height: moderateHeightScale(81),
+      justifyContent: "center",
     },
     revenueAmount: {
       fontSize: fontSize.size16,
@@ -86,16 +82,10 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(16),
+      paddingHorizontal: moderateWidthScale(16),
       alignItems: "center",
-    },
-    appointmentStatCardSkeleton: {
-      flex: 1,
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(16),
-      alignItems: "center",
-      height:80
+      justifyContent: "center",
+      height: moderateHeightScale(81),
     },
     appointmentStatNumber: {
       fontSize: fontSize.size18,

@@ -23,14 +23,16 @@ const createStyles = (theme: Theme) =>
     staffContainer: {
       marginBottom: moderateHeightScale(18),
       backgroundColor: theme.lightGreen1,
-      paddingVertical: moderateHeightScale(12),
+      height: moderateHeightScale(140),
       gap: moderateHeightScale(12),
+      paddingVertical: 15,
     },
     sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingHorizontal: moderateWidthScale(15),
+      width: "100%",
     },
     sectionTitle: {
       fontSize: fontSize.size15,
@@ -78,13 +80,17 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       textAlign: "center",
     },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     emptyStateText: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
+      color: theme.lightGreen,
       textAlign: "center",
       paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(8),
     },
   });
 
@@ -150,7 +156,9 @@ export default function StaffOnDuty({ data, callApi }: StaffOnDutyProps) {
       {!data ? (
         <Skeleton screenType="StaffOnDuty" styles={styles} />
       ) : data.length === 0 ? (
-        <Text style={styles.emptyStateText}>No staff</Text>
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>No staff on duty</Text>
+        </View>
       ) : (
         <ScrollView
           horizontal
@@ -166,7 +174,11 @@ export default function StaffOnDuty({ data, callApi }: StaffOnDutyProps) {
               <View style={styles.staffAvatar}>
                 {staff.user?.profile_image_url ? (
                   <Image
-                    source={{ uri: staff.user.profile_image_url }}
+                    source={{
+                      uri:
+                        process.env.EXPO_PUBLIC_API_BASE_URL +
+                        staff.user.profile_image_url,
+                    }}
                     style={styles.staffAvatarImage}
                   />
                 ) : (

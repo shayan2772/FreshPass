@@ -117,15 +117,10 @@ const createSkeletonStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(12),
       marginTop: moderateHeightScale(8),
     },
-    staffOnDutyHeaderTitle: {
-      height: moderateHeightScale(18),
-      width: "40%",
-      borderRadius: moderateWidthScale(4),
-    },
-    staffOnDutyHeaderCount: {
-      height: moderateHeightScale(16),
-      width: moderateWidthScale(40),
-      borderRadius: moderateWidthScale(4),
+    staffCon: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
     },
     staffOnDutyAvatar: {
       width: widthScale(52),
@@ -254,30 +249,20 @@ export const Skeleton = ({
   const summaryStatsSkeleton = styles ? (
     <>
       <View style={styles.statsRow}>
-        <View style={styles.revenueCardSkeleotn} />
-        <View style={styles.revenueCardSkeleotn} />
+        <View style={styles.revenueCard} />
+        <View style={styles.revenueCard} />
       </View>
 
       <View style={styles.appointmentStatsRow}>
         {[...Array(3)].map((_, index) => (
-          <View key={index} style={styles.appointmentStatCardSkeleton} />
+          <View key={index} style={styles.appointmentStatCard} />
         ))}
       </View>
     </>
   ) : null;
 
   const staffOnDutySkeleton = styles ? (
-    <View
-      style={[
-        styles.staffScrollView,
-        {
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: moderateWidthScale(20),
-          paddingTop:45
-        },
-      ]}
-    >
+    <View style={skeletonStyles.staffCon}>
       {[...Array(5)].map((_, index) => (
         <View
           key={index}
