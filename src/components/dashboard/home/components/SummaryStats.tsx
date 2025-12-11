@@ -42,7 +42,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(8),
       padding: moderateWidthScale(16),
-      height:60
+      height:80
     },
     revenueCard: {
       width: "48.5%",
@@ -95,7 +95,7 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(8),
       padding: moderateWidthScale(16),
       alignItems: "center",
-      height:60
+      height:80
     },
     appointmentStatNumber: {
       fontSize: fontSize.size18,

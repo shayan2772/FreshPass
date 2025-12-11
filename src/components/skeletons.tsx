@@ -136,7 +136,6 @@ const createSkeletonStyles = (theme: Theme) =>
       height: moderateHeightScale(14),
       width: moderateWidthScale(60),
       borderRadius: moderateWidthScale(4),
-      marginTop: moderateHeightScale(5),
     },
   });
 
@@ -268,11 +267,16 @@ export const Skeleton = ({
   ) : null;
 
   const staffOnDutySkeleton = styles ? (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      style={styles.staffScrollView}
-      contentContainerStyle={styles.staffScrollContent}
+    <View
+      style={[
+        styles.staffScrollView,
+        {
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: moderateWidthScale(20),
+          paddingTop:45
+        },
+      ]}
     >
       {[...Array(5)].map((_, index) => (
         <View
@@ -283,7 +287,7 @@ export const Skeleton = ({
           <View style={skeletonStyles.staffOnDutyName} />
         </View>
       ))}
-    </ScrollView>
+    </View>
   ) : null;
 
   return (
