@@ -18,7 +18,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     button: {
       borderRadius: moderateWidthScale(12),
-      paddingVertical: moderateHeightScale(7),
+      height:moderateHeightScale(48),
       paddingHorizontal: moderateWidthScale(14),
       alignItems: "center",
       justifyContent: "center",

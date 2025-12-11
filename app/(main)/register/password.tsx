@@ -26,9 +26,8 @@ import {
   validatePassword,
   validatePasswordMatch,
 } from "@/src/services/validationService";
-import { useRouter, useLocalSearchParams, router } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
-import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 import {
   setRegisterEmail,
   setSavedPassword,
@@ -36,7 +35,7 @@ import {
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { setUser } from "@/src/state/slices/userSlice";
-
+ 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     safeArea: {
@@ -132,7 +131,8 @@ export default function RegisterPassword() {
     null
   );
   const [isLoading, setIsLoading] = useState(false);
-  const [showRoleSheet, setShowRoleSheet] = useState(false);
+
+  const selectedRole = useAppSelector((state) => state.general.role);
 
   useEffect(() => {
     if (password.length > 0) {
@@ -179,82 +179,58 @@ export default function RegisterPassword() {
     setPasswordError(null);
   }, []);
 
-  const handleContinue = useCallback(() => {
+  const handleContinue =  async () => {
     Keyboard.dismiss();
-    setShowRoleSheet(true);
-  }, []);
 
-  const handleRoleSelect = useCallback(
-    async (role: "business" | "client") => {
-      console.log("Selected role in RegisterPassword:", role);
-      setShowRoleSheet(false);
-      // router.push(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
-      setIsLoading(true);
-      try {
-        const response = await ApiService.post(businessEndpoints.register, {
-          email: email.trim(),
-          password: password,
-          password_confirmation: confirmPassword,
-          role: role,
-          isSubscribed: isSubscribed,
-          name:"",
-        });
+    setIsLoading(true);
+    try {
+      const response = await ApiService.post(businessEndpoints.register, {
+        email: email.trim(),
+        password: password,
+        password_confirmation: confirmPassword,
+        role: selectedRole?.toLowerCase() || "",
+        isSubscribed: isSubscribed,
+        name: "",
+      });
 
-        // Handle successful registration
-        if (response.success && response.data) {
-          const { user, token, refreshToken } = response.data;
+      // Handle successful registration
+      if (response.success && response.data) {
+        const { user, token, refreshToken } = response.data;
 
-          // Set user data in Redux (email from API response)
-          if (user && token) {
-            dispatch(
-              setUser({
-                id: user.id,
-                name: user?.name || "",
-                email: user.email || email.trim(), // Use email from API response
-                accessToken: token,
-                refreshToken: refreshToken || null,
-                userRole: user?.role?.toLowerCase() || null, // Set userRole from response or use current role
-              })
-            );
-            dispatch(setRegisterEmail(user.email || email.trim()));
-            if (savePassword) {
-              dispatch(setSavedPassword(password));
-            } else {
-              // Clear saved password if checkbox is unchecked
-              dispatch(setSavedPassword(null));
-            }
-            // Navigate to next steps
-            router.replace(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
+        // Set user data in Redux (email from API response)
+        if (user && token) {
+          dispatch(
+            setUser({
+              id: user.id,
+              name: user?.name || "",
+              email: user.email || email.trim(), // Use email from API response
+              accessToken: token,
+              refreshToken: refreshToken || null,
+              userRole: user?.role?.toLowerCase() || null, // Set userRole from response or use current role
+            })
+          );
+          dispatch(setRegisterEmail(user.email || email.trim()));
+          if (savePassword) {
+            dispatch(setSavedPassword(password));
           } else {
-            Alert.alert("Error", "Invalid response from server");
+            // Clear saved password if checkbox is unchecked
+            dispatch(setSavedPassword(null));
           }
+          // Navigate to next steps
+          router.replace(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
         } else {
-          Alert.alert("Error", response.message || "Registration failed");
+          Alert.alert("Error", "Invalid response from server");
         }
-      } catch (error: any) {
-        // Error message is already formatted by ApiService
-        Alert.alert(
-          "Registration Failed",
-          error.message || "An error occurred"
-        );
-      } finally {
-        setIsLoading(false);
+      } else {
+        Alert.alert("Error", response.message || "Registration failed");
       }
-    },
-    [
-      router,
-      email,
-      password,
-      confirmPassword,
-      savePassword,
-      isSubscribed,
-      dispatch,
-    ]
-  );
-
-  const handleRoleSheetClose = useCallback(() => {
-    setShowRoleSheet(false);
-  }, []);
+    } catch (error: any) {
+      // Error message is already formatted by ApiService
+      Alert.alert("Registration Failed", error.message || "An error occurred");
+    } finally {
+      setIsLoading(false);
+    }
+  } 
 
   // Form is valid only if both password and confirm password are valid
   const passwordValidation = validatePassword(password);
@@ -278,102 +254,96 @@ export default function RegisterPassword() {
         <View style={styles.container}>
           <RegisterHeader onBack={handleBack} />
           <View style={styles.mainContent}>
-          <View style={styles.content}>
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>Create your password</Text>
-            </View>
-
-            <FloatingInput
-              label="Type password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!isPasswordVisible}
-              placeholder="Type your password"
-              autoCapitalize="none"
-              onClear={handleClear}
-              renderRightAccessory={() =>
-                password.length > 0 ? (
-                  <Pressable
-                    onPress={handleToggleVisibility}
-                    style={styles.toggleButton}
-                    hitSlop={moderateWidthScale(8)}
-                  >
-                    <Feather
-                      name={isPasswordVisible ? "eye-off" : "eye"}
-                      size={moderateWidthScale(20)}
-                      color={(colors as Theme).darkGreen}
-                    />
-                  </Pressable>
-                ) : null
-              }
-            />
-
-            {passwordLengthError && (
-              <Text style={styles.errorText}>{passwordLengthError}</Text>
-            )}
-
-            <FloatingInput
-              label="Confirm password"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!isConfirmPasswordVisible}
-              placeholder="Confirm your password"
-              autoCapitalize="none"
-              onClear={handleClearConfirmPassword}
-              renderRightAccessory={() =>
-                confirmPassword.length > 0 ? (
-                  <Pressable
-                    onPress={handleToggleConfirmPasswordVisibility}
-                    style={styles.toggleButton}
-                    hitSlop={moderateWidthScale(8)}
-                  >
-                    <Feather
-                      name={isConfirmPasswordVisible ? "eye-off" : "eye"}
-                      size={moderateWidthScale(20)}
-                      color={(colors as Theme).darkGreen}
-                    />
-                  </Pressable>
-                ) : null
-              }
-            />
-
-            {passwordError && (
-              <Text style={styles.errorText}>{passwordError}</Text>
-            )}
-
-            <Pressable
-              onPress={handleToggleSavePassword}
-              style={styles.saveRow}
-              hitSlop={moderateWidthScale(8)}
-            >
-              <View style={styles.saveIconWrapper}>
-                <View style={styles.checkbox}>
-                  {savePassword && (
-                    <FontAwesome5
-                      name="check"
-                      size={moderateWidthScale(14)}
-                      color={(colors as Theme).orangeBrown}
-                    />
-                  )}
-                </View>
+            <View style={styles.content}>
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>Create your password</Text>
               </View>
-              <Text style={styles.saveText}>Save password</Text>
-            </Pressable>
-          </View>
-          <Button
-            title="Continue"
-            onPress={handleContinue}
-            disabled={!isFormValid}
-            loading={isLoading}
-            containerStyle={styles.buttonWrapper}
-          />
-        </View>
 
-          <RoleSelectionBottomSheet
-            visible={showRoleSheet}
-            onClose={handleRoleSheetClose}
-            onRoleSelect={handleRoleSelect}
-          />
+              <FloatingInput
+                label="Type password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!isPasswordVisible}
+                placeholder="Type your password"
+                autoCapitalize="none"
+                onClear={handleClear}
+                renderRightAccessory={() =>
+                  password.length > 0 ? (
+                    <Pressable
+                      onPress={handleToggleVisibility}
+                      style={styles.toggleButton}
+                      hitSlop={moderateWidthScale(8)}
+                    >
+                      <Feather
+                        name={isPasswordVisible ? "eye-off" : "eye"}
+                        size={moderateWidthScale(20)}
+                        color={(colors as Theme).darkGreen}
+                      />
+                    </Pressable>
+                  ) : null
+                }
+              />
+
+              {passwordLengthError && (
+                <Text style={styles.errorText}>{passwordLengthError}</Text>
+              )}
+
+              <FloatingInput
+                label="Confirm password"
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry={!isConfirmPasswordVisible}
+                placeholder="Confirm your password"
+                autoCapitalize="none"
+                onClear={handleClearConfirmPassword}
+                renderRightAccessory={() =>
+                  confirmPassword.length > 0 ? (
+                    <Pressable
+                      onPress={handleToggleConfirmPasswordVisibility}
+                      style={styles.toggleButton}
+                      hitSlop={moderateWidthScale(8)}
+                    >
+                      <Feather
+                        name={isConfirmPasswordVisible ? "eye-off" : "eye"}
+                        size={moderateWidthScale(20)}
+                        color={(colors as Theme).darkGreen}
+                      />
+                    </Pressable>
+                  ) : null
+                }
+              />
+
+              {passwordError && (
+                <Text style={styles.errorText}>{passwordError}</Text>
+              )}
+
+              <Pressable
+                onPress={handleToggleSavePassword}
+                style={styles.saveRow}
+                hitSlop={moderateWidthScale(8)}
+              >
+                <View style={styles.saveIconWrapper}>
+                  <View style={styles.checkbox}>
+                    {savePassword && (
+                      <FontAwesome5
+                        name="check"
+                        size={moderateWidthScale(14)}
+                        color={(colors as Theme).orangeBrown}
+                      />
+                    )}
+                  </View>
+                </View>
+                <Text style={styles.saveText}>Save password</Text>
+              </Pressable>
+            </View>
+            <Button
+              title="Continue"
+              onPress={handleContinue}
+              disabled={!isFormValid}
+              loading={isLoading}
+              containerStyle={styles.buttonWrapper}
+            />
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </SafeAreaView>

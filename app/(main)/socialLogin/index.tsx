@@ -1,5 +1,5 @@
-import { useTheme } from "@/src/hooks/hooks";
-import React, { useMemo, useState, useCallback } from "react";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
+import React, { useMemo, useCallback } from "react";
 import { View, Text, StatusBar, Platform, Linking, Alert } from "react-native";
 import { Image } from "expo-image";
 import {
@@ -19,7 +19,6 @@ import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
-import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -33,50 +32,16 @@ export default function SocialLogin() {
   const insets = useSafeAreaInsets();
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
   const router = useRouter();
-
-  const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [pendingSocialLogin, setPendingSocialLogin] =
-    useState<SocialProvider | null>(null);
- 
+  // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
+  const selectedRole = useAppSelector((state) => state.general.role);
 
   const handleSignInOrRegister = () => {
-    // router.push(`/${MAIN_ROUTES.REGISTER}`);
     router.push(`/${MAIN_ROUTES.LOGIN}`);
   };
 
-  const handleGoogleLogin = useCallback(() => {
-    setPendingSocialLogin("google");
-    setShowRoleSheet(true);
-  }, []);
+  const handleSocialLogin = useCallback((provider: SocialProvider) => {}, []);
 
-  const handleAppleLogin = useCallback(() => {
-    setPendingSocialLogin("apple");
-    setShowRoleSheet(true);
-  }, []);
-
-  const handleFacebookLogin = useCallback(() => {
-    setPendingSocialLogin("facebook");
-    setShowRoleSheet(true);
-  }, []);
-
-  const handleGuestLogin = () => {
-    // Handle guest login
-  };
-
-  const handleRoleSelect = useCallback(
-    (role: "business" | "client") => {
-      if (pendingSocialLogin) {
-        console.log("Social login:", pendingSocialLogin, "Role:", role);
-        setPendingSocialLogin(null);
-      }
-    },
-    [pendingSocialLogin]
-  );
-
-  const handleRoleSheetClose = useCallback(() => {
-    setShowRoleSheet(false);
-    setPendingSocialLogin(null);
-  }, []);
+  const handleGuestLogin = () => {};
 
   const handleOpenLink = useCallback(async (url: string, title: string) => {
     if (!url) {
@@ -105,7 +70,7 @@ export default function SocialLogin() {
     handleOpenLink(PRIVACY_POLICY_URL, "Privacy Policy");
   }, [handleOpenLink]);
 
-  const isGuest = true; // Set to true to show guest login button
+  const isGuest = selectedRole === "client" ? true : false; // Set to true to show guest login button
 
   return (
     <SafeAreaView style={styles.container}>
@@ -159,6 +124,7 @@ export default function SocialLogin() {
               ? insets.bottom + 12
               : moderateHeightScale(25),
           },
+           !isGuest && { gap: moderateHeightScale(18) },
         ]}
       >
         <Button title="Sign in or Register" onPress={handleSignInOrRegister} />
@@ -166,12 +132,19 @@ export default function SocialLogin() {
         <SectionSeparator />
 
         <SocialAuthOptions
-          onGoogle={handleGoogleLogin}
-          onApple={handleAppleLogin}
-          onFacebook={handleFacebookLogin}
+          onGoogle={() => handleSocialLogin("google")}
+          onApple={() => handleSocialLogin("apple")}
+          onFacebook={() => handleSocialLogin("facebook")}
           onGuest={handleGuestLogin}
           isGuest={isGuest}
-          containerStyle={styles.socialButtonsContainer}
+          containerStyle={
+            // !isGuest
+            //   ? {
+            //       gap: moderateHeightScale(18),
+            //     }
+            //   : 
+              {}
+          }
         />
 
         <Text style={styles.legalText}>
@@ -185,12 +158,6 @@ export default function SocialLogin() {
           </Text>
         </Text>
       </View>
-
-      <RoleSelectionBottomSheet
-        visible={showRoleSheet}
-        onClose={handleRoleSheetClose}
-        onRoleSelect={handleRoleSelect}
-      />
     </SafeAreaView>
   );
 }

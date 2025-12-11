@@ -87,9 +87,6 @@ export const createStyles = (theme: Theme) =>
       position: "absolute",
       bottom: 0,
     },
-    socialButtonsContainer: {
-   
-    },
     legalText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,

@@ -1,5 +1,7 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+export type UserRole = "business" | "client" | "staff" | null;
+
 export interface GeneralState {
   theme: "light" | "dark" | "blue";
   themeType: "default" | "system";
@@ -8,6 +10,7 @@ export interface GeneralState {
   savedPassword: string | null; // Saved password if user checked "save password"
   actionLoader: boolean; // Global action loader state
   toggleLoading: boolean; // Toggle loading state (not persisted)
+  role: UserRole; // Selected user role
 }
 
 const initialState: GeneralState = {
@@ -18,6 +21,7 @@ const initialState: GeneralState = {
   savedPassword: null,
   actionLoader: false,
   toggleLoading: false,
+  role: null,
 };
 
 const generalSlice = createSlice({
@@ -46,6 +50,9 @@ const generalSlice = createSlice({
     setToggleLoading(state, action: PayloadAction<boolean>) {
       state.toggleLoading = action.payload;
     },
+    setRole(state, action: PayloadAction<UserRole>) {
+      state.role = action.payload;
+    },
     resetGeneral(state) {
       // state.theme = initialState.theme;
       // state.themeType = initialState.themeType;
@@ -64,6 +71,7 @@ export const {
   setSavedPassword,
   setActionLoader,
   setToggleLoading,
+  setRole,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

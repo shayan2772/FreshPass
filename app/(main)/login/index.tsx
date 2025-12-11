@@ -34,7 +34,6 @@ import {
   setRegisterEmail,
   setSavedPassword,
 } from "@/src/state/slices/generalSlice";
-import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -146,6 +145,8 @@ export default function Login() {
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
   const dispatch = useAppDispatch();
+  // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
+  const selectedRole = useAppSelector((state) => state.general.role);
 
   // Get saved email from general state (if exists)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
@@ -157,9 +158,6 @@ export default function Login() {
   const [savePassword, setSavePassword] = useState(!!savedPassword);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [pendingSocialLogin, setPendingSocialLogin] =
-    useState<SocialProvider | null>(null);
 
   // Validate email when it changes
   useEffect(() => {
@@ -240,26 +238,9 @@ export default function Login() {
     }
   }, [email, password, savePassword, dispatch, router]);
 
-  const handleSocialLogin = useCallback((provider: SocialProvider) => {
-    // Show role selection sheet first
-    setPendingSocialLogin(provider);
-    setShowRoleSheet(true);
-  }, []);
-
-  const handleRoleSelect = useCallback(
-    (role: "business" | "client") => {
-      if (pendingSocialLogin) {
-        console.log("Social login:", pendingSocialLogin, "Role:", role);
-        setPendingSocialLogin(null);
-      }
-    },
-    [pendingSocialLogin]
-  );
-
-  const handleRoleSheetClose = useCallback(() => {
-    setShowRoleSheet(false);
-    setPendingSocialLogin(null);
-  }, []);
+  const handleSocialLogin = useCallback((provider: SocialProvider) => {}, [
+    
+  ]);
 
   const handleForgetPassword = useCallback(() => {
     // TODO: Navigate to forget password screen
@@ -288,112 +269,106 @@ export default function Login() {
 
           <View style={styles.mainContent}>
             <View style={styles.content}>
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>Login to your business account</Text>
-            </View>
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>Login to your business account</Text>
+              </View>
 
-            <FloatingInput
-              label="Email"
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Enter your email"
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoCorrect={false}
-              onClear={handleEmailClear}
-            />
+              <FloatingInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Enter your email"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+                onClear={handleEmailClear}
+              />
 
-            {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+              {emailError && <Text style={styles.errorText}>{emailError}</Text>}
 
-            <FloatingInput
-              label="Password"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!isPasswordVisible}
-              placeholder="Enter your password"
-              autoCapitalize="none"
-              onClear={handlePasswordClear}
-              renderRightAccessory={() =>
-                password.length > 0 ? (
-                  <Pressable
-                    onPress={handleToggleVisibility}
-                    style={styles.toggleButton}
-                    hitSlop={moderateWidthScale(8)}
-                  >
-                    <Feather
-                      name={isPasswordVisible ? "eye-off" : "eye"}
-                      size={moderateWidthScale(20)}
-                      color={(colors as Theme).darkGreen}
-                    />
-                  </Pressable>
-                ) : null
-              }
-            />
-
-            <View style={styles.savePasswordRow}>
-              <Pressable
-                onPress={handleToggleSavePassword}
-                style={styles.savePasswordLeft}
-                hitSlop={moderateWidthScale(8)}
-              >
-                <View style={styles.saveIconWrapper}>
-                  <View style={styles.checkbox}>
-                    {savePassword && (
-                      <FontAwesome5
-                        name="check"
-                        size={moderateWidthScale(14)}
-                        color={(colors as Theme).orangeBrown}
+              <FloatingInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!isPasswordVisible}
+                placeholder="Enter your password"
+                autoCapitalize="none"
+                onClear={handlePasswordClear}
+                renderRightAccessory={() =>
+                  password.length > 0 ? (
+                    <Pressable
+                      onPress={handleToggleVisibility}
+                      style={styles.toggleButton}
+                      hitSlop={moderateWidthScale(8)}
+                    >
+                      <Feather
+                        name={isPasswordVisible ? "eye-off" : "eye"}
+                        size={moderateWidthScale(20)}
+                        color={(colors as Theme).darkGreen}
                       />
-                    )}
+                    </Pressable>
+                  ) : null
+                }
+              />
+
+              <View style={styles.savePasswordRow}>
+                <Pressable
+                  onPress={handleToggleSavePassword}
+                  style={styles.savePasswordLeft}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <View style={styles.saveIconWrapper}>
+                    <View style={styles.checkbox}>
+                      {savePassword && (
+                        <FontAwesome5
+                          name="check"
+                          size={moderateWidthScale(14)}
+                          color={(colors as Theme).orangeBrown}
+                        />
+                      )}
+                    </View>
                   </View>
-                </View>
-                <Text style={styles.saveText}>Save password</Text>
-              </Pressable>
-              <Pressable
-                onPress={handleForgetPassword}
-                hitSlop={moderateWidthScale(8)}
-              >
-                <Text style={[styles.saveText, styles.forgetPasswordLink]}>
-                  Forget password?
+                  <Text style={styles.saveText}>Save password</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleForgetPassword}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <Text style={[styles.saveText, styles.forgetPasswordLink]}>
+                    Forget password?
+                  </Text>
+                </Pressable>
+              </View>
+
+              <Button
+                title="Continue"
+                onPress={handleLogin}
+                disabled={!isFormValid}
+                loading={isLoading}
+                containerStyle={styles.primaryButtonWrapper}
+              />
+
+              <SectionSeparator />
+
+              <SocialAuthOptions
+                onGoogle={() => handleSocialLogin("google")}
+                onApple={() => handleSocialLogin("apple")}
+                onFacebook={() => handleSocialLogin("facebook")}
+                containerStyle={styles.socialList}
+              />
+
+              <View style={styles.footer}>
+                <Text style={styles.footerText}>
+                  Doesn't have an account?{" "}
+                  <Text style={styles.signupLink} onPress={handleSignup}>
+                    Signup
+                  </Text>
                 </Text>
-              </Pressable>
-            </View>
-
-            <Button
-              title="Continue"
-              onPress={handleLogin}
-              disabled={!isFormValid}
-              loading={isLoading}
-              containerStyle={styles.primaryButtonWrapper}
-            />
-
-            <SectionSeparator />
-
-            <SocialAuthOptions
-              onGoogle={() => handleSocialLogin("google")}
-              onApple={() => handleSocialLogin("apple")}
-              onFacebook={() => handleSocialLogin("facebook")}
-              containerStyle={styles.socialList}
-            />
-
-            <View style={styles.footer}>
-              <Text style={styles.footerText}>
-                Doesn't have an account?{" "}
-                <Text style={styles.signupLink} onPress={handleSignup}>
-                  Signup
-                </Text>
-              </Text>
+              </View>
             </View>
           </View>
         </View>
-        </View>
       </TouchableWithoutFeedback>
-
-      <RoleSelectionBottomSheet
-        visible={showRoleSheet}
-        onClose={handleRoleSheetClose}
-        onRoleSelect={handleRoleSelect}
-      />
     </SafeAreaView>
   );
 }

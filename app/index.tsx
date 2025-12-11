@@ -28,6 +28,6 @@ export default function Index() {
   }
 
   // Otherwise, redirect to role screen
-  return <Redirect href={`/${MAIN_ROUTES.SOCIAL_LOGIN}`} />;
+  return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;
   // return <Redirect href={`/${MAIN_ROUTES.DASHBOARD}`} />;
 }

@@ -26,7 +26,6 @@ import SectionSeparator from "@/src/components/sectionSeparator";
 import { validateEmail } from "@/src/services/validationService";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
-import RoleSelectionBottomSheet from "@/src/components/roleSelectionBottomSheet";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -136,9 +135,6 @@ export default function Register() {
   const [email, setEmail] = useState(savedEmail || DEFAULT_EMAIL);
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [emailError, setEmailError] = useState<string | null>(null);
-  const [showRoleSheet, setShowRoleSheet] = useState(false);
-  const [pendingSocialLogin, setPendingSocialLogin] =
-    useState<SocialProvider | null>(null);
 
   // Validate email when it changes
   useEffect(() => {
@@ -175,26 +171,8 @@ export default function Register() {
     router.back();
   }, [router]);
 
-  const handleSocialLoginClick = useCallback((provider: SocialProvider) => {
-    setPendingSocialLogin(provider);
-    setShowRoleSheet(true);
-  }, []);
-
-  const handleRoleSelect = useCallback(
-    (role: "business" | "client") => {
-      if (pendingSocialLogin) {
-        console.log("Social login:", pendingSocialLogin, "Role:", role);
-        // TODO: Handle social login with selected role
-        setPendingSocialLogin(null);
-      }
-    },
-    [pendingSocialLogin]
-  );
-
-  const handleRoleSheetClose = useCallback(() => {
-    setShowRoleSheet(false);
-    setPendingSocialLogin(null);
-  }, []);
+  const handleSocialLoginClick = useCallback((provider: SocialProvider) => {},
+  []);
 
   const isFormValid = email.length > 0 && validateEmail(email).isValid;
 
@@ -284,12 +262,6 @@ export default function Register() {
           </View>
         </View>
       </TouchableWithoutFeedback>
-
-      <RoleSelectionBottomSheet
-        visible={showRoleSheet}
-        onClose={handleRoleSheetClose}
-        onRoleSelect={handleRoleSelect}
-      />
     </SafeAreaView>
   );
 }

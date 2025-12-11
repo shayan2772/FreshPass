@@ -20,7 +20,6 @@ const createStyles = (theme: Theme, textColor?: string, backgroundColor?: string
     button: {
       backgroundColor: backgroundColor || theme.buttonBack,
       borderRadius: moderateWidthScale(12),
-      // paddingVertical: moderateHeightScale(14),
       height:moderateHeightScale(48),
       alignItems: "center",
       justifyContent: "center",
