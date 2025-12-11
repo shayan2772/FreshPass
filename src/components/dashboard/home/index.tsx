@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import { useFocusEffect } from "expo-router";
 import {
   StyleSheet,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   StatusBar,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -21,8 +22,12 @@ import DashboardHeader from "../../DashboardHeader";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
 import { setUserDetails } from "@/src/state/slices/userSlice";
-import { ApiService } from "@/src/services/api";
-import { userEndpoints, dashboardEndpoints, staffEndpoints } from "@/src/services/endpoints";
+import { ApiService, checkInternetConnection } from "@/src/services/api";
+import {
+  userEndpoints,
+  dashboardEndpoints,
+  staffEndpoints,
+} from "@/src/services/endpoints";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 
 const createStyles = (theme: Theme) =>
@@ -85,7 +90,10 @@ export default function HomeScreen() {
 
   // Staff state
   const [staffData, setStaffData] = useState<any[] | null>(null);
- 
+
+  // Refresh state
+  const [refreshing, setRefreshing] = useState(false);
+
   const handleFetchBusinessStatus = async () => {
     try {
       await dispatch(fetchBusinessStatus({ showError: true })).unwrap();
@@ -127,9 +135,7 @@ export default function HomeScreen() {
           })
         );
       }
-    } catch (error: any) {
-      
-    }
+    } catch (error: any) {}
   };
 
   const handleFetchDashboardStats = async () => {
@@ -153,8 +159,7 @@ export default function HomeScreen() {
     }
   };
 
-  const handleFetchStaff = async () => {
-    
+  const handleFetchStaff = async (active?: string) => {
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -184,7 +189,7 @@ export default function HomeScreen() {
           created_at: string;
           createdAt: string;
         }>;
-      }>(staffEndpoints.list);
+      }>(staffEndpoints.list(active));
 
       if (response.success && response.data) {
         setStaffData(response.data);
@@ -196,15 +201,47 @@ export default function HomeScreen() {
         "error",
         2500
       );
-    }  
+    }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      handleFetchUserDetails();
-      handleFetchStaff();
-    }, [])
-  );
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    
+    try {
+      // Check internet connection first
+      const hasInternet = await checkInternetConnection();
+      
+      if (!hasInternet) {
+        showBanner(
+          "No Internet Connection",
+          "Please check your internet connection and try again.",
+          "error",
+          2500
+        );
+        setRefreshing(false);
+        return;
+      }
+
+      // Call all APIs in parallel
+      await Promise.all([
+        handleFetchBusinessStatus(),
+        handleFetchUserDetails(),
+        handleFetchDashboardStats(),
+        handleFetchStaff("active"),
+      ]);
+    } catch (error: any) {
+      // Error handling is done in individual functions
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
+ 
+  useEffect(() => {
+    handleFetchUserDetails();
+  }, []);
+
+  
 
   // Show loader only if businessStatus doesn't exist and is loading
   if (isLoading && !businessStatus && !apiError) {
@@ -255,6 +292,14 @@ export default function HomeScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={theme.primary}
+            colors={[theme.primary]}
+          />
+        }
       >
         {/* Summary Statistics */}
         <View style={styles.statsContainer}>
@@ -266,8 +311,8 @@ export default function HomeScreen() {
 
         {/* Staff on Duty - Full Width */}
         <StaffOnDuty
-          data={staffData}   
-          callApi={handleFetchStaff}
+          data={staffData}
+          callApi={() => handleFetchStaff("active")}
         />
 
         {/* Appointments */}

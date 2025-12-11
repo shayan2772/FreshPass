@@ -4,6 +4,7 @@ import React, {
   useState,
   useRef,
   useEffect,
+  memo,
 } from "react";
 import {
   StyleSheet,
@@ -87,7 +88,7 @@ interface DashboardHeaderProps {
   onToggleAttempt?: () => void;
 }
 
-export default function DashboardHeader({
+function DashboardHeader({
   canGoOnline = true,
   onToggleAttempt,
 }: DashboardHeaderProps) {
@@ -106,18 +107,14 @@ export default function DashboardHeader({
   const toggleLoading = useAppSelector((state) => state.general.toggleLoading);
   const bannerAnimation = useRef(new Animated.Value(0)).current;
 
-  const handleFetchBusinessStatus = useCallback(async () => {
+  const handleFetchBusinessStatus = async () => {
     await dispatch(fetchBusinessStatus({ showError: true }));
-  }, [dispatch]);
-
-  useFocusEffect(
-    useCallback(() => {
-      handleFetchBusinessStatus();
-    }, [handleFetchBusinessStatus])
-  );
+  };
 
   // Listen for app state changes to refresh when returning from browser
   useEffect(() => {
+    handleFetchBusinessStatus();
+
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
         handleFetchBusinessStatus();
@@ -127,7 +124,7 @@ export default function DashboardHeader({
     return () => {
       subscription.remove();
     };
-  }, [handleFetchBusinessStatus]);
+  }, []);
 
   const handleStripeOnboardingPress = async () => {
     // First check internet connection
@@ -353,3 +350,5 @@ export default function DashboardHeader({
     </View>
   );
 }
+
+export default memo(DashboardHeader);

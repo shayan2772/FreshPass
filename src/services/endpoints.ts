@@ -9,7 +9,12 @@
  */
 export const staffEndpoints = {
   register: `/staff/auth/register`,
-  list: `/api/staff`,
+  list: (active?: string) => {
+    if (active) {
+      return `/api/staff?active=${active}`;
+    }
+    return `/api/staff`;
+  },
 };
 
 /**
