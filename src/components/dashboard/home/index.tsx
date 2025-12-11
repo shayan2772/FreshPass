@@ -7,6 +7,7 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
+  AppState,
 } from "react-native";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -84,14 +85,9 @@ export default function HomeScreen() {
   const isLoading = useAppSelector((state) => state.user.businessStatusLoading);
   const apiError = useAppSelector((state) => state.user.businessStatusError);
 
-  // Dashboard stats state
   const [dashboardStats, setDashboardStats] =
     useState<DashboardStatsData | null>(null);
-
-  // Staff state
   const [staffData, setStaffData] = useState<any[] | null>(null);
-
-  // Refresh state
   const [refreshing, setRefreshing] = useState(false);
 
   const handleFetchBusinessStatus = async () => {
@@ -206,11 +202,11 @@ export default function HomeScreen() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    
+
     try {
       // Check internet connection first
       const hasInternet = await checkInternetConnection();
-      
+
       if (!hasInternet) {
         showBanner(
           "No Internet Connection",
@@ -236,10 +232,25 @@ export default function HomeScreen() {
     }
   }, []);
 
- 
   useEffect(() => {
+    handleFetchBusinessStatus();
     handleFetchUserDetails();
   }, []);
+
+  // Listen for app state changes and refresh data when app becomes active
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (nextAppState) => {
+      if (nextAppState === "active") {
+        handleFetchBusinessStatus();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  
 
   
 

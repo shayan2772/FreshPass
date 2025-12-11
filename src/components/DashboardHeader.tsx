@@ -3,7 +3,6 @@ import React, {
   useCallback,
   useState,
   useRef,
-  useEffect,
   memo,
 } from "react";
 import {
@@ -14,9 +13,7 @@ import {
   ActivityIndicator,
   Animated,
   Linking,
-  AppState,
 } from "react-native";
-import { useFocusEffect } from "expo-router";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { setToggleLoading } from "@/src/state/slices/generalSlice";
 import { Theme } from "@/src/theme/colors";
@@ -38,6 +35,7 @@ import { checkInternetConnection } from "@/src/services/api";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import BusinessPlansModal from "@/src/components/businessPlansModal";
 
+ 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     headerContainer: {
@@ -107,25 +105,8 @@ function DashboardHeader({
   const toggleLoading = useAppSelector((state) => state.general.toggleLoading);
   const bannerAnimation = useRef(new Animated.Value(0)).current;
 
-  const handleFetchBusinessStatus = async () => {
-    await dispatch(fetchBusinessStatus({ showError: true }));
-  };
-
-  // Listen for app state changes to refresh when returning from browser
-  useEffect(() => {
-    handleFetchBusinessStatus();
-
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        handleFetchBusinessStatus();
-      }
-    });
-
-    return () => {
-      subscription.remove();
-    };
-  }, []);
-
+  
+ 
   const handleStripeOnboardingPress = async () => {
     // First check internet connection
     const hasInternet = await checkInternetConnection();
