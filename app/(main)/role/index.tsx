@@ -1,6 +1,6 @@
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import React, { useMemo } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
@@ -28,6 +28,11 @@ export default function Role() {
   const handleContinue = () => {
     // Only continue if role is selected and saved in Redux
     if (selectedRole) {
+      // Show alert if client role is selected
+      if (selectedRole === "client") {
+        Alert.alert("Customer Side", "Customer side working in progress");
+        return;
+      }
       router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
     }
   };
