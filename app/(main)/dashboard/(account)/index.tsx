@@ -1,10 +1,12 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   ScrollView,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -18,6 +20,8 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import { ApiService } from "@/src/services/api";
+import { userEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -76,6 +80,77 @@ export default function AccountScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
+  const { showBanner } = useNotificationContext();
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to logout?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          onPress: async () => {
+            await ApiService.logout();
+            router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleDeleteAccount = async () => {
+    Alert.alert(
+      "Delete Account",
+      "Are you sure you want to delete your account? This action cannot be undone.",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            setDeleteLoading(true);
+            try {
+              const response = await ApiService.delete<{
+                success: boolean;
+                message: string;
+              }>(userEndpoints.deleteAccount);
+
+              if (response.success) {
+                showBanner(
+                  "Success",
+                  "Account deleted successfully",
+                  "success",
+                  2500
+                );
+                // Logout after successful deletion
+                await ApiService.logout();
+                router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
+              }
+            } catch (error: any) {
+              showBanner(
+                "Error",
+                error?.message || "Failed to delete account",
+                "error",
+                2500
+              );
+            } finally {
+              setDeleteLoading(false);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const handleRowPress = async (key: string) => {
     if (key === "personal") {
@@ -87,8 +162,9 @@ export default function AccountScreen() {
     } else if (key === "business") {
       router.push("./businessProfileSettings");
     } else if (key === "logout") {
-      await ApiService.logout();
-      router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+      handleLogout();
+    } else if (key === "delete") {
+      handleDeleteAccount();
     } else {
       console.log("Account row pressed:", key);
     }
@@ -145,6 +221,7 @@ export default function AccountScreen() {
                   activeOpacity={0.7}
                   onPress={() => handleRowPress(row.key)}
                   style={styles.row}
+                  disabled={isDelete && deleteLoading}
                 >
                   <View style={styles.rowHeader}>
                     <View>
@@ -160,13 +237,15 @@ export default function AccountScreen() {
                         <Text style={styles.rowSubtitle}>{row.subtitle}</Text>
                       ) : null}
                     </View>
-                    {!isDelete && !isLogout && (
+                    {isDelete && deleteLoading ? (
+                      <ActivityIndicator size="small" color={theme.red} />
+                    ) : !isDelete && !isLogout ? (
                       <MaterialIcons
                         name="keyboard-arrow-right"
                         size={moderateWidthScale(18)}
                         color={theme.darkGreen}
                       />
-                    )}
+                    ) : null}
                   </View>
                 </TouchableOpacity>
                 {index !== rows.length - 1 && (

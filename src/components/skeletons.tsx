@@ -208,6 +208,45 @@ const createSkeletonStyles = (theme: Theme) =>
       width: "70%",
       borderRadius: moderateWidthScale(4),
     },
+    notificationSectionHeaderSkeleton: {
+      height: moderateHeightScale(16),
+      width: moderateWidthScale(80),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(12),
+    },
+    notificationRowSkeleton: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      paddingVertical: moderateHeightScale(14),
+      gap: moderateWidthScale(12),
+    },
+    notificationIconSkeleton: {
+      width: moderateWidthScale(40),
+      height: moderateWidthScale(40),
+      borderRadius: moderateWidthScale(40 / 2),
+    },
+    notificationTitleSkeleton: {
+      height: moderateHeightScale(16),
+      width: "60%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(4),
+    },
+    notificationTimeSkeleton: {
+      height: moderateHeightScale(12),
+      width: moderateWidthScale(60),
+      borderRadius: moderateWidthScale(4),
+    },
+    notificationMessageSkeleton: {
+      height: moderateHeightScale(14),
+      width: "100%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(2),
+    },
+    notificationMessageSkeletonShort: {
+      height: moderateHeightScale(14),
+      width: "70%",
+      borderRadius: moderateWidthScale(4),
+    },
   });
 
 export const Skeleton = ({
@@ -223,7 +262,8 @@ export const Skeleton = ({
     | "StaffOnDuty"
     | "AppointmentsSection"
     | "WorkHistory"
-    | "Reviews";
+    | "Reviews"
+    | "Notifications";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -402,6 +442,36 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const notificationsSkeleton = styles ? (
+    <>
+      {[...Array(2)].map((_, sectionIndex) => (
+        <View key={sectionIndex} style={styles.sectionContainer}>
+          <View style={skeletonStyles.notificationSectionHeaderSkeleton} />
+          {[...Array(3)].map((_, index) => (
+            <View key={index} style={skeletonStyles.notificationRowSkeleton}>
+              <View style={skeletonStyles.notificationIconSkeleton} />
+              <View style={{ flex: 1 }}>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: moderateHeightScale(4),
+                  }}
+                >
+                  <View style={skeletonStyles.notificationTitleSkeleton} />
+                  <View style={skeletonStyles.notificationTimeSkeleton} />
+                </View>
+                <View style={skeletonStyles.notificationMessageSkeleton} />
+                <View style={skeletonStyles.notificationMessageSkeletonShort} />
+              </View>
+            </View>
+          ))}
+        </View>
+      ))}
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -438,6 +508,11 @@ export const Skeleton = ({
       {screenType === "Reviews" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {reviewsSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "Notifications" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {notificationsSkeleton}
         </SkeletonPlaceholder>
       )}
     </>

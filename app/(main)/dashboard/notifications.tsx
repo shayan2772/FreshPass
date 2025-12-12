@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { StyleSheet, Text, View, SectionList } from "react-native";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import { StyleSheet, Text, View, SectionList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -13,6 +13,14 @@ import {
   ProposalDocumentIcon,
   MessageBubbleOutlineIcon,
 } from "@/assets/icons";
+import { ApiService } from "@/src/services/api";
+import { notificationsEndpoints } from "@/src/services/endpoints";
+import { Skeleton } from "@/src/components/skeletons";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 type NotificationIconType = "notification" | "proposal" | "message";
 
@@ -25,6 +33,7 @@ type NotificationItem = {
   isRead: boolean;
   highlight?: string;
   createdAt: string; // full ISO datetime e.g. "2024-01-17T09:30:00Z"
+  apiId: number; // API notification ID for marking as read
 };
 
 type NotificationSection = {
@@ -120,57 +129,173 @@ const createStyles = (theme: Theme) =>
     messageHighlight: {
       fontFamily: fonts.fontMedium,
     },
+    loadingFooter: {
+      paddingVertical: moderateHeightScale(20),
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
+
+type ApiNotification = {
+  id: number;
+  user_id: number;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+  updated_at: string;
+};
 
 export default function NotificationsScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const { showBanner } = useNotificationContext();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Determine icon type from title
+  const getIconType = (title: string): NotificationIconType => {
+    const lowerTitle = title.toLowerCase();
+    if (lowerTitle.includes("proposal")) {
+      return "proposal";
+    }
+    if (lowerTitle.includes("message")) {
+      return "message";
+    }
+    return "notification";
+  };
+
+  // Format time label
+  const formatTimeLabel = (createdAt: string): string => {
+    const now = dayjs();
+    const created = dayjs(createdAt);
+    const diffInMinutes = now.diff(created, "minute");
+    const diffInHours = now.diff(created, "hour");
+    const diffInDays = now.diff(created, "day");
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} min ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hr ago`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays > 1 ? "s" : ""} ago`;
+    } else {
+      // Format as date: DD/MM/YYYY
+      const day = `${created.date()}`.padStart(2, "0");
+      const month = `${created.month() + 1}`.padStart(2, "0");
+      const year = created.year();
+      return `${day}/${month}/${year}`;
+    }
+  };
+
+  // Map API notification to NotificationItem
+  const mapApiNotification = (apiNotif: ApiNotification): NotificationItem => {
+    return {
+      id: apiNotif.id.toString(),
+      apiId: apiNotif.id,
+      title: apiNotif.title,
+      description: apiNotif.message,
+      timeLabel: formatTimeLabel(apiNotif.created_at),
+      icon: getIconType(apiNotif.title),
+      isRead: apiNotif.is_read,
+      createdAt: apiNotif.created_at,
+    };
+  };
+
+  // Fetch notifications from API
+  const fetchNotifications = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        const response = await ApiService.get<{
+          success: boolean;
+          message: string;
+          data: {
+            data: ApiNotification[];
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        }>(notificationsEndpoints.list({ page, per_page: 8 }));
+
+        if (response.success && response.data) {
+          const mappedNotifications = response.data.data.map(mapApiNotification);
+          if (append) {
+            setNotifications((prev) => [...prev, ...mappedNotifications]);
+          } else {
+            setNotifications(mappedNotifications);
+          }
+          setCurrentPage(response.data.current_page);
+          setTotalPages(response.data.last_page);
+        }
+      } catch (error: any) {
+        showBanner(
+          "API Failed",
+          error?.message || "Failed to fetch notifications",
+          "error",
+          2500
+        );
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [showBanner]
+  );
+
+  // Mark notification as read
+  const handleMarkAsRead = useCallback(
+    async (notificationId: number, itemId: string) => {
+      try {
+        const response = await ApiService.post<{
+          success: boolean;
+          message: string;
+        }>(notificationsEndpoints.markAsRead(notificationId));
+
+        if (response.success) {
+          // Update local state
+          setNotifications((prev) =>
+            prev.map((notif) =>
+              notif.id === itemId ? { ...notif, isRead: true } : notif
+            )
+          );
+        }
+      } catch (error: any) {
+        showBanner(
+          "API Failed",
+          error?.message || "Failed to mark notification as read",
+          "error",
+          2500
+        );
+      }
+    },
+    [showBanner]
+  );
+
+  useEffect(() => {
+    fetchNotifications(1, false);
+  }, [ ]);
+
+  const loadMore = useCallback(() => {
+    if (!loadingMore && currentPage < totalPages) {
+      fetchNotifications(currentPage + 1, true);
+    }
+  }, [loadingMore, currentPage, totalPages, fetchNotifications]);
+
   const sections = useMemo<NotificationSection[]>(() => {
-    // TODO: Replace this static array with API data
-    const notifications: NotificationItem[] = [
-      {
-        id: "1",
-        title: "Notification",
-        description:
-          "Booking confirmed! Can’t wait to give you the Freshpass experience.",
-        timeLabel: "15 min ago",
-        icon: "notification",
-        isRead: false,
-        createdAt: "2025-12-01T09:30:00Z",
-      },
-      {
-        id: "2",
-        title: "Proposal Alert",
-        description:
-          "Thank you for reaching out and securing your booking with ",
-        highlight: "Brentley Robinson.",
-        timeLabel: "4 hr ago",
-        icon: "proposal",
-        isRead: false,
-        createdAt: "2025-12-01T08:30:00Z",
-      },
-      {
-        id: "3",
-        title: "Message",
-        description: "You’ve received a new from ",
-        highlight: "Henry Benyamin.",
-        timeLabel: "16/01/2024",
-        icon: "message",
-        isRead: true,
-        createdAt: "2025-11-30T09:30:00Z",
-      },
-      {
-        id: "4",
-        title: "Message",
-        description: "You’ve received a new from ",
-        highlight: "Brentley Robinson.",
-        timeLabel: "13/01/2024",
-        icon: "message",
-        isRead: true,
-        createdAt: "2025-11-30T08:30:00Z",
-      },
-    ];
+    if (notifications.length === 0) {
+      return [];
+    }
 
     const today = new Date();
 
@@ -229,7 +354,7 @@ export default function NotificationsScreen() {
         data: items,
       };
     });
-  }, []);
+  }, [notifications]);
 
   const renderIcon = (icon: NotificationIconType) => {
     switch (icon) {
@@ -252,51 +377,77 @@ export default function NotificationsScreen() {
     }
   };
 
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={theme.primary} />
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <DashboardHeader />
-      <SectionList
-        style={styles.content}
-        contentContainerStyle={styles.listContent}
-        sections={sections}
-        showsVerticalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionHeader}>{section.title}</Text>
-        )}
-        renderItem={({ item }) => (
-          <View style={styles.notificationRow}>
-            <View style={styles.iconRow}>
-              <View style={styles.leftTimelineDotContainer}>
-                {!item.isRead && <View style={styles.timelineOuterDot} />}
+      {loading ? (
+        <View style={styles.content}>
+          <Skeleton screenType="Notifications" styles={styles} />
+        </View>
+      ) : (
+        <SectionList
+          style={styles.content}
+          contentContainerStyle={styles.listContent}
+          sections={sections}
+          showsVerticalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          renderSectionHeader={({ section }) => (
+            <Text style={styles.sectionHeader}>{section.title}</Text>
+          )}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.notificationRow}
+              onPress={() => {
+                if (!item.isRead) {
+                  handleMarkAsRead(item.apiId, item.id);
+                }
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={styles.iconRow}>
+                <View style={styles.leftTimelineDotContainer}>
+                  {!item.isRead && <View style={styles.timelineOuterDot} />}
+                </View>
+                <View
+                  style={[
+                    styles.iconContainer,
+                    item.isRead
+                      ? styles.readIconContainer
+                      : styles.unreadIconContainer,
+                  ]}
+                >
+                  {renderIcon(item.icon)}
+                </View>
               </View>
-              <View
-                style={[
-                  styles.iconContainer,
-                  item.isRead
-                    ? styles.readIconContainer
-                    : styles.unreadIconContainer,
-                ]}
-              >
-                {renderIcon(item.icon)}
+              <View style={styles.contentContainer}>
+                <View style={styles.rowHeader}>
+                  <Text style={styles.notificationTitle}>{item.title}</Text>
+                  <Text style={styles.timeText}>{item.timeLabel}</Text>
+                </View>
+                <Text style={styles.messageText}>
+                  {item.description}
+                  {item.highlight && (
+                    <Text style={styles.messageHighlight}>{item.highlight}</Text>
+                  )}
+                </Text>
               </View>
-            </View>
-            <View style={styles.contentContainer}>
-              <View style={styles.rowHeader}>
-                <Text style={styles.notificationTitle}>{item.title}</Text>
-                <Text style={styles.timeText}>{item.timeLabel}</Text>
-              </View>
-              <Text style={styles.messageText}>
-                {item.description}
-                {item.highlight && (
-                  <Text style={styles.messageHighlight}>{item.highlight}</Text>
-                )}
-              </Text>
-            </View>
-          </View>
-        )}
-        stickySectionHeadersEnabled={false}
-      />
+            </TouchableOpacity>
+          )}
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          stickySectionHeadersEnabled={false}
+        />
+      )}
     </View>
   );
 }

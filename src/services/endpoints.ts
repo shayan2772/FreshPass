@@ -49,6 +49,7 @@ export const userEndpoints = {
   details: `/api/user/details`,
   update: `/api/user`,
   changePassword: `/api/user/change-password`,
+  deleteAccount: `/api/user/account`,
 };
 
 /**
@@ -118,4 +119,23 @@ export const reviewsEndpoints = {
     const queryString = queryParams.toString();
     return `/api/reviews${queryString ? `?${queryString}` : ''}`;
   },
+};
+
+/**
+ * Notifications endpoints
+ */
+export const notificationsEndpoints = {
+  list: (params?: {
+    page?: number;
+    per_page?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    
+    const queryString = queryParams.toString();
+    return `/api/notifications${queryString ? `?${queryString}` : ''}`;
+  },
+  markAsRead: (notificationId: number) => `/api/notifications/${notificationId}/read`,
 };
