@@ -24,6 +24,7 @@ import isoWeek from "dayjs/plugin/isoWeek";
 import { ApiService } from "@/src/services/api";
 import { appointmentsEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { useRouter } from "expo-router";
 
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
@@ -46,7 +47,7 @@ interface Appointment {
       hours: number;
       minutes: number;
     };
-  }>;
+  }> | {};
   subscriptionVisits: {
     used: number;
     total: number;
@@ -60,12 +61,16 @@ interface Appointment {
       hours: number;
       minutes: number;
     };
-  }>;
-  totalPrice: number;
+  }> | {};
+  totalPrice: number | {};
   paidAmount: string;
   staffName: string;
   staffEmail: string;
   notes: string | null;
+  businessTitle: string;
+  businessAddress: string;
+  businessLogoUrl: string | null;
+  createdAt: string;
 }
 
 interface CalendarAppointment {
@@ -76,6 +81,7 @@ interface CalendarAppointment {
   price: number;
   status_label: string;
   client_name: string;
+  originalAppointment: Appointment;
 }
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
@@ -344,6 +350,7 @@ export default function CalendarScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const scrollViewRef = useRef<ScrollView>(null);
   const { showBanner } = useNotificationContext();
+  const router = useRouter();
 
   const today = dayjs();
   const [selectedDate, setSelectedDate] = useState(today);
@@ -416,11 +423,13 @@ export default function CalendarScreen() {
       const getServiceTitles = () => {
         if (
           appointment.appointmentType === "subscription" &&
+          Array.isArray(appointment.subscriptionServices) &&
           appointment.subscriptionServices.length > 0
         ) {
           return appointment.subscriptionServices.map((s) => s.name).join(", ");
         } else if (
           appointment.appointmentType === "service" &&
+          Array.isArray(appointment.services) &&
           appointment.services.length > 0
         ) {
           return appointment.services.map((s) => s.name).join(", ");
@@ -430,9 +439,9 @@ export default function CalendarScreen() {
 
       // Calculate total duration
       const calculateTotalDuration = (
-        services: Array<{ duration: { hours: number; minutes: number } }>
+        services: Array<{ duration: { hours: number; minutes: number } }> | {}
       ) => {
-        if (!services || services.length === 0) return 0;
+        if (!services || !Array.isArray(services) || services.length === 0) return 0;
         const totalMinutes = services.reduce((total, service) => {
           return total + service.duration.hours * 60 + service.duration.minutes;
         }, 0);
@@ -444,7 +453,9 @@ export default function CalendarScreen() {
           ? appointment.subscriptionServices
           : appointment.services;
 
-      const totalMinutes = calculateTotalDuration(services);
+      const totalMinutes = calculateTotalDuration(
+        Array.isArray(services) ? services : []
+      );
       const hours = Math.floor(totalMinutes / 60);
       const minutes = totalMinutes % 60;
 
@@ -484,6 +495,7 @@ export default function CalendarScreen() {
         price: parseFloat(appointment.paidAmount),
         status_label: statusLabel,
         client_name: clientName,
+        originalAppointment: appointment,
       };
     });
   };
@@ -660,6 +672,14 @@ export default function CalendarScreen() {
                             <TouchableOpacity
                               style={[styles.appointmentCard, styles.shadow]}
                               activeOpacity={0.7}
+                              onPress={() => {
+                                router.push({
+                                  pathname: "/(main)/dashboard/(calendar)/appointmentDetail",
+                                  params: {
+                                    appointment: JSON.stringify(appointment.originalAppointment),
+                                  },
+                                });
+                              }}
                             >
                               <View style={styles.appointmentHeader}>
                                 <View style={styles.appointmentLeftSection}>

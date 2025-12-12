@@ -57,6 +57,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(home)") &&
     segments.includes("appointmentDetail");
+  const isCalendarAppointmentDetailScreen =
+    Array.isArray(segments) &&
+    segments.includes("(calendar)") &&
+    segments.includes("appointmentDetail");
   const isProfileScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
@@ -118,6 +122,7 @@ export default function DashboardLayout() {
           },
           (isUserReviewsScreen ||
             isAppointmentDetailScreen ||
+            isCalendarAppointmentDetailScreen ||
             isProfileScreen ||
             isRulesAndTermsScreen ||
             isChangePasswordScreen ||

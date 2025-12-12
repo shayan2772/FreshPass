@@ -17,3 +17,4 @@ export default function AppointmentDetailScreen() {
 
   return <AppointmentDetail appointment={appointment} />;
 }
+

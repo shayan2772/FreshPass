@@ -305,89 +305,89 @@ export default function AppointmentsSection({
                 });
               }}
             >
-              <View style={[styles.currentAppointmentCard, styles.shadow]}>
-                <View
-                  style={{
-                    gap: moderateHeightScale(7),
-                    width: "58%",
-                  }}
-                >
-                  <Text numberOfLines={1} style={styles.appointmentService}>
-                    {getServiceTitles(firstAppointment)}
-                  </Text>
-                  <View style={styles.appointmentInfoContainer}>
-                    <View style={styles.appointmentInfoRow}>
-                      <SubscriptionTicketIcon
-                        width={moderateWidthScale(15)}
-                        height={moderateWidthScale(15)}
-                      />
-                      <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                        {firstAppointment.appointmentType === "subscription"
-                          ? firstAppointment.subscription
-                          : "Service Base"}
-                      </Text>
-                    </View>
-                    <View style={styles.appointmentInfoRow}>
-                      <PersonIcon
-                        width={moderateWidthScale(15)}
-                        height={moderateWidthScale(15)}
-                      />
-                      <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                        {firstAppointment.user}
-                      </Text>
-                    </View>
-                  </View>
-                  <View
-                    style={[
-                      styles.appointmentInfoRow,
-                      { alignItems: "baseline", width: "90%" },
-                    ]}
-                  >
-                    <Ionicons
-                      name="time-outline"
-                      size={moderateWidthScale(15)}
-                      color={theme.darkGreen}
+            <View style={[styles.currentAppointmentCard, styles.shadow]}>
+              <View
+                style={{
+                  gap: moderateHeightScale(7),
+                  width: "58%",
+                }}
+              >
+                <Text numberOfLines={1} style={styles.appointmentService}>
+                  {getServiceTitles(firstAppointment)}
+                </Text>
+                <View style={styles.appointmentInfoContainer}>
+                  <View style={styles.appointmentInfoRow}>
+                    <SubscriptionTicketIcon
+                      width={moderateWidthScale(15)}
+                      height={moderateWidthScale(15)}
                     />
-                    <Text style={styles.appointmentInfoText}>
-                      {formatDateTime(
-                        firstAppointment.appointmentDate,
-                        firstAppointment.appointmentTime,
-                        firstAppointment.appointmentType === "subscription"
-                          ? calculateTotalDuration(
-                              firstAppointment.subscriptionServices
-                            )
-                          : calculateTotalDuration(firstAppointment.services)
-                      )}
+                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                      {firstAppointment.appointmentType === "subscription"
+                        ? firstAppointment.subscription
+                        : "Service Base"}
+                    </Text>
+                  </View>
+                  <View style={styles.appointmentInfoRow}>
+                    <PersonIcon
+                      width={moderateWidthScale(15)}
+                      height={moderateWidthScale(15)}
+                    />
+                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                      {firstAppointment.user}
                     </Text>
                   </View>
                 </View>
-
                 <View
-                  style={{
-                    gap: moderateHeightScale(10),
-                    alignItems: "flex-end",
-                    width: "40%",
-                  }}
+                  style={[
+                    styles.appointmentInfoRow,
+                    { alignItems: "baseline", width: "90%" },
+                  ]}
                 >
-                  <Text style={styles.appointmentPrice}>
-                    {formatPrice(firstAppointment.paidAmount)}
+                  <Ionicons
+                    name="time-outline"
+                    size={moderateWidthScale(15)}
+                    color={theme.darkGreen}
+                  />
+                  <Text style={styles.appointmentInfoText}>
+                    {formatDateTime(
+                      firstAppointment.appointmentDate,
+                      firstAppointment.appointmentTime,
+                      firstAppointment.appointmentType === "subscription"
+                        ? calculateTotalDuration(
+                            firstAppointment.subscriptionServices
+                          )
+                        : calculateTotalDuration(firstAppointment.services)
+                    )}
                   </Text>
-                  <View style={styles.appointmentStatusRow}>
-                    <View style={[styles.appointmentStatus]}>
-                      <Text style={styles.appointmentStatusText}>
-                        {firstAppointment.status === "scheduled"
-                          ? "On-going apt."
-                          : firstAppointment.status}
-                      </Text>
-                    </View>
-                    <Entypo
-                      name="chevron-small-right"
-                      size={moderateWidthScale(22)}
-                      color={theme.darkGreen}
-                    />
-                  </View>
                 </View>
               </View>
+
+              <View
+                style={{
+                  gap: moderateHeightScale(10),
+                  alignItems: "flex-end",
+                  width: "40%",
+                }}
+              >
+                <Text style={styles.appointmentPrice}>
+                  {formatPrice(firstAppointment.paidAmount)}
+                </Text>
+                <View style={styles.appointmentStatusRow}>
+                  <View style={[styles.appointmentStatus]}>
+                    <Text style={styles.appointmentStatusText}>
+                      {firstAppointment.status === "scheduled"
+                        ? "On-going apt."
+                        : firstAppointment.status}
+                    </Text>
+                  </View>
+                  <Entypo
+                    name="chevron-small-right"
+                    size={moderateWidthScale(22)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+              </View>
+            </View>
             </TouchableOpacity>
           ) : (
             <View style={styles.emptyStateContainer}>
