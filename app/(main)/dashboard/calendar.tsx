@@ -57,7 +57,7 @@ const STATIC_APPOINTMENTS = [
   {
     id: "4",
     title: "Haircut",
-    scheduled_at: dayjs().month(11).date(6).hour(1).minute(0).second(0).millisecond(0).toISOString(),
+    scheduled_at: dayjs().hour(1).minute(0).second(0).millisecond(0).toISOString(),
     duration: "30 min",
     price: 30,
     status_label: "Upcoming",
@@ -65,12 +65,12 @@ const STATIC_APPOINTMENTS = [
   },
   {
     id: "4b",
-    title: "Hair Color Treatment",
-    scheduled_at: dayjs().month(11).date(6).hour(1).minute(0).second(0).millisecond(0).toISOString(),
+    title: "Hair Treatment as",
+    scheduled_at: dayjs().hour(1).minute(0).second(0).millisecond(0).toISOString(),
     duration: "60 min",
     price: 120,
-    status_label: "Upcoming",
-    client_name: "Emma W...",
+    status_label: "On-going apt.",
+    client_name: "Emma Wasasasas",
   },
   {
     id: "5",
@@ -297,9 +297,11 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(8),
+      width:"100%"
     },
     appointmentLeftSection: {
-      flex: 1,
+      width:"70%",
+
     },
     appointmentTitle: {
       fontSize: fontSize.size16,
@@ -310,6 +312,7 @@ const createStyles = (theme: Theme) =>
     appointmentRightSection: {
       alignItems: "flex-end",
       gap: moderateHeightScale(8),
+      width:"29%",
     },
     clientNameContainer: {
       flexDirection: "row",
@@ -320,15 +323,16 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
+      width:"70%",
     },
     appointmentStatus: {
       backgroundColor: theme.orangeBrown30,
-      paddingHorizontal: moderateWidthScale(8),
+      paddingHorizontal: moderateWidthScale(4),
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
     },
     appointmentStatusText: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontMedium,
       color: theme.selectCard,
     },
@@ -540,7 +544,7 @@ export default function CalendarScreen() {
                             >
                               <View style={styles.appointmentHeader}>
                                 <View style={styles.appointmentLeftSection}>
-                                  <Text style={styles.appointmentTitle}>
+                                  <Text numberOfLines={1} style={styles.appointmentTitle}>
                                     {appointment.title}
                                   </Text>
                                   <Text style={styles.appointmentMeta}>
@@ -554,7 +558,7 @@ export default function CalendarScreen() {
                                       height={moderateWidthScale(14)}
                                       color={theme.darkGreen}
                                     />
-                                    <Text style={styles.clientNameText}>
+                                    <Text numberOfLines={1} style={styles.clientNameText}>
                                       {appointment.client_name}
                                     </Text>
                                   </View>
