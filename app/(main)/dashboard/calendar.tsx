@@ -263,7 +263,8 @@ const createStyles = (theme: Theme) =>
     appointmentCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
       borderWidth: 1,
       borderColor: theme.borderLight,
     },
