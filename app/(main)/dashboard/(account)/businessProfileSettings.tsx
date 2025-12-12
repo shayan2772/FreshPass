@@ -77,7 +77,7 @@ export default function BusinessProfileSettingsScreen() {
     { key: "team", title: "Manage team" },
     { key: "socialMedia", title: "Your social media" },
     { key: "portfolio", title: "Manage portfolio photos" },
-    { key: "verification", title: "Manage salon verification" },
+    // { key: "verification", title: "Manage salon verification" },
   ];
 
   return (

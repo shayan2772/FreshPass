@@ -28,6 +28,10 @@ import {
 } from "@/src/services/mediaPermissionService";
 import { validateName } from "@/src/services/validationService";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -133,15 +137,19 @@ export default function EditBusinessProfileScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
+  const { showBanner } = useNotificationContext();
+  
+  const originalLogoImageUri = "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  
   const [businessName, setBusinessName] = useState("Ra Benjamin Styles LLC");
   const [slogan, setSlogan] = useState("");
-  const [logoImageUri, setLogoImageUri] = useState(
-    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg"
-  );
+  const [logoImageUri, setLogoImageUri] = useState(originalLogoImageUri);
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [businessNameError, setBusinessNameError] = useState<string | null>(
     null
   );
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Validate business name when it changes
   useEffect(() => {
@@ -224,19 +232,99 @@ export default function EditBusinessProfileScreen() {
     return businessName.trim().length > 0 && businessNameValidation.isValid;
   }, [businessName]);
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     // Validate all fields before submitting
     const businessNameValidation = validateName(businessName, "Business name");
 
     setBusinessNameError(businessNameValidation.error);
 
-    if (businessNameValidation.isValid) {
-      // TODO: Implement update business profile logic
-      console.log("Continue pressed", {
-        businessName: businessName.trim(),
-        slogan: slogan.trim(),
-        logoImageUri,
-      });
+    if (!businessNameValidation.isValid) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      const formData = new FormData();
+
+      // Add title (business name)
+      formData.append("title", businessName.trim());
+
+      // Add slogan if provided
+      if (slogan.trim()) {
+        formData.append("slogan", slogan.trim());
+      }
+
+      // Add image if it has changed and is a local file
+      const hasImageChanged = logoImageUri !== originalLogoImageUri;
+      if (hasImageChanged) {
+        // Check if it's a local file (starts with file://, content://, or ph://)
+        if (
+          logoImageUri.startsWith("file://") ||
+          logoImageUri.startsWith("content://") ||
+          logoImageUri.startsWith("ph://")
+        ) {
+          // It's a local file, append it
+          const fileExtension = logoImageUri.split(".").pop()?.toLowerCase() || "jpg";
+          const fileName = `business_logo.${fileExtension}`;
+          const mimeType =
+            fileExtension === "jpg" || fileExtension === "jpeg"
+              ? "image/jpeg"
+              : fileExtension === "png"
+              ? "image/png"
+              : fileExtension === "webp"
+              ? "image/webp"
+              : "image/jpeg";
+
+          formData.append("image", {
+            uri: logoImageUri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        }
+        // If it's a remote URL and hasn't changed, we don't need to send it
+      }
+
+      // API call with FormData
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
+
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(businessEndpoints.profile, formData, config);
+
+      if (response.success) {
+        showBanner(
+          "Success",
+          response.message || "Business profile updated successfully",
+          "success",
+          3000
+        );
+
+        router.back();
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to update business profile",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to update business profile:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to update business profile. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsUpdating(false);
     }
   };
 
@@ -273,11 +361,12 @@ export default function EditBusinessProfileScreen() {
               <Text style={styles.uploadButtonText}>Upload photo</Text>
             </TouchableOpacity>
             <TouchableOpacity
+            disabled
               activeOpacity={0.7}
               onPress={handleImportFromGoogleDrive}
             >
               <Text style={styles.googleDriveLink}>
-                Import from google drive
+                {/* Import from google drive */}
               </Text>
             </TouchableOpacity>
           </View>
@@ -313,7 +402,7 @@ export default function EditBusinessProfileScreen() {
         <Button
           title="Update"
           onPress={handleContinue}
-          disabled={!isFormValid}
+          disabled={!isFormValid || isUpdating}
         />
       </View>
 
