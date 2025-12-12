@@ -64,6 +64,15 @@ const STATIC_APPOINTMENTS = [
     client_name: "Client A...",
   },
   {
+    id: "4b",
+    title: "Hair Color Treatment",
+    scheduled_at: dayjs().month(11).date(6).hour(1).minute(0).second(0).millisecond(0).toISOString(),
+    duration: "60 min",
+    price: 120,
+    status_label: "Upcoming",
+    client_name: "Emma W...",
+  },
+  {
     id: "5",
     title: "Beard Styling",
     scheduled_at: dayjs().month(11).date(6).hour(3).minute(0).second(0).millisecond(0).toISOString(),
@@ -199,7 +208,7 @@ const createStyles = (theme: Theme) =>
       color: theme.text,
     },
     dayNumberTodayText: {
-      color:"#02627a",
+      color: theme.primary,
     },
     agendaContainer: {
       flex: 1,
@@ -239,6 +248,9 @@ const createStyles = (theme: Theme) =>
       borderBottomColor: theme.borderLight,
       minHeight: heightScale(80),
     },
+    timeSlotRowWithMultiple: {
+      minHeight: heightScale(120),
+    },
     timeSlot: {
       width: widthScale(80),
       paddingVertical: moderateHeightScale(12),
@@ -258,7 +270,10 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(12),
     },
     appointmentWrapper: {
-      marginBottom: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(8),
+    },
+    appointmentWrapperLast: {
+      marginBottom: 0,
     },
     appointmentCard: {
       backgroundColor: theme.white,
@@ -494,49 +509,66 @@ export default function CalendarScreen() {
                 );
               });
 
+              const hasMultipleAppointments = appointments.length > 1;
+
               return (
-                <View key={time} style={styles.timeSlotRow}>
+                <View 
+                  key={time} 
+                  style={[
+                    styles.timeSlotRow,
+                    hasMultipleAppointments && styles.timeSlotRowWithMultiple,
+                  ]}
+                >
                   <View style={styles.timeSlot}>
                     <Text style={styles.timeSlotText}>{time}</Text>
                   </View>
                   <View style={styles.appointmentsContainer}>
                     {appointments.length > 0 ? (
-                      appointments.map((appointment) => (
-                        <View key={appointment.id} style={styles.appointmentWrapper}>
-                          <TouchableOpacity
-                            style={[styles.appointmentCard, styles.shadow]}
-                            activeOpacity={0.7}
+                      appointments.map((appointment, index) => {
+                        const isLast = index === appointments.length - 1;
+                        return (
+                          <View 
+                            key={appointment.id} 
+                            style={[
+                              styles.appointmentWrapper,
+                              isLast && styles.appointmentWrapperLast,
+                            ]}
                           >
-                            <View style={styles.appointmentHeader}>
-                              <View style={styles.appointmentLeftSection}>
-                                <Text style={styles.appointmentTitle}>
-                                  {appointment.title}
-                                </Text>
-                                <Text style={styles.appointmentMeta}>
-                                  {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
-                                </Text>
-                              </View>
-                              <View style={styles.appointmentRightSection}>
-                                <View style={styles.clientNameContainer}>
-                                  <PersonIcon
-                                    width={moderateWidthScale(14)}
-                                    height={moderateWidthScale(14)}
-                                    color={theme.darkGreen}
-                                  />
-                                  <Text style={styles.clientNameText}>
-                                    {appointment.client_name}
+                            <TouchableOpacity
+                              style={[styles.appointmentCard, styles.shadow]}
+                              activeOpacity={0.7}
+                            >
+                              <View style={styles.appointmentHeader}>
+                                <View style={styles.appointmentLeftSection}>
+                                  <Text style={styles.appointmentTitle}>
+                                    {appointment.title}
+                                  </Text>
+                                  <Text style={styles.appointmentMeta}>
+                                    {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
                                   </Text>
                                 </View>
-                                <View style={styles.appointmentStatus}>
-                                  <Text style={styles.appointmentStatusText}>
-                                    {appointment.status_label}
-                                  </Text>
+                                <View style={styles.appointmentRightSection}>
+                                  <View style={styles.clientNameContainer}>
+                                    <PersonIcon
+                                      width={moderateWidthScale(14)}
+                                      height={moderateWidthScale(14)}
+                                      color={theme.darkGreen}
+                                    />
+                                    <Text style={styles.clientNameText}>
+                                      {appointment.client_name}
+                                    </Text>
+                                  </View>
+                                  <View style={styles.appointmentStatus}>
+                                    <Text style={styles.appointmentStatusText}>
+                                      {appointment.status_label}
+                                    </Text>
+                                  </View>
                                 </View>
                               </View>
-                            </View>
-                          </TouchableOpacity>
-                        </View>
-                      ))
+                            </TouchableOpacity>
+                          </View>
+                        );
+                      })
                     ) : (
                       <View style={styles.emptyState}>
                         <Text style={styles.emptyStateText}></Text>
