@@ -317,6 +317,7 @@ export default function HomeScreen() {
         {/* Staff on Duty - Full Width */}
         <StaffOnDuty
           data={staffData}
+          // callApi={() => handleFetchStaff()}
           callApi={() => handleFetchStaff("active")}
         />
 
