@@ -27,6 +27,7 @@ import {
   userEndpoints,
   dashboardEndpoints,
   staffEndpoints,
+  appointmentsEndpoints,
 } from "@/src/services/endpoints";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 
@@ -74,6 +75,46 @@ interface DashboardStatsData {
   };
 }
 
+interface Appointment {
+  id: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  appointmentType: "subscription" | "service";
+  status: string;
+  user: string;
+  userEmail: string;
+  subscription: string | null;
+  subscriptionServices: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  subscriptionVisits: {
+    used: number;
+    total: number;
+  } | null;
+  services: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  totalPrice: number;
+  paidAmount: string;
+  staffName: string;
+  staffEmail: string;
+  notes: string | null;
+}
+
 export default function HomeScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -87,6 +128,8 @@ export default function HomeScreen() {
   const [dashboardStats, setDashboardStats] =
     useState<DashboardStatsData | null>(null);
   const [staffData, setStaffData] = useState<any[] | null>(null);
+  const [appointmentsData, setAppointmentsData] = useState<Appointment[] | null>(null);
+  const [appointmentsTotalCount, setAppointmentsTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleFetchBusinessStatus = async () => {
@@ -199,6 +242,41 @@ export default function HomeScreen() {
     }
   };
 
+  const handleFetchAppointments = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          data: Appointment[];
+          meta: {
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        };
+      }>(
+        appointmentsEndpoints.list({
+          status: "scheduled",
+          per_page: 7,
+        })
+      );
+
+      if (response.success && response.data) {
+        setAppointmentsData(response.data.data);
+        setAppointmentsTotalCount(response.data.meta.total);
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to fetch appointments",
+        "error",
+        2500
+      );
+    }
+  };
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
 
@@ -223,6 +301,7 @@ export default function HomeScreen() {
         handleFetchUserDetails(),
         handleFetchDashboardStats(),
         handleFetchStaff("active"),
+        handleFetchAppointments(),
       ]);
     } catch (error: any) {
       // Error handling is done in individual functions
@@ -323,7 +402,11 @@ export default function HomeScreen() {
 
         {/* Appointments */}
         <View style={styles.appointmentsContainer}>
-          <AppointmentsSection />
+          <AppointmentsSection
+            data={appointmentsData}
+            totalCount={appointmentsTotalCount}
+            callApi={handleFetchAppointments}
+          />
         </View>
 
         <View style={styles.line} />

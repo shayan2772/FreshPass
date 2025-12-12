@@ -132,6 +132,16 @@ const createSkeletonStyles = (theme: Theme) =>
       width: moderateWidthScale(60),
       borderRadius: moderateWidthScale(4),
     },
+    appointmentsSectionUpcomingCard: {
+      height: moderateHeightScale(42),
+      borderRadius: moderateWidthScale(6),
+      marginBottom: moderateHeightScale(12),
+    },
+    appointmentsSectionCard: {
+      height: moderateHeightScale(100),
+      borderRadius: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(12),
+    },
   });
 
 export const Skeleton = ({
@@ -144,7 +154,8 @@ export const Skeleton = ({
     | "StepEight"
     | "BusinessPlans"
     | "SummaryStats"
-    | "StaffOnDuty";
+    | "StaffOnDuty"
+    | "AppointmentsSection";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -275,6 +286,13 @@ export const Skeleton = ({
     </View>
   ) : null;
 
+  const appointmentsSectionSkeleton = styles ? (
+    <>
+      <View style={skeletonStyles.appointmentsSectionUpcomingCard} />
+      <View style={skeletonStyles.appointmentsSectionCard} />
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -296,6 +314,11 @@ export const Skeleton = ({
       {screenType === "StaffOnDuty" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {staffOnDutySkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "AppointmentsSection" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {appointmentsSectionSkeleton}
         </SkeletonPlaceholder>
       )}
     </>

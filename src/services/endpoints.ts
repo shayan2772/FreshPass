@@ -69,3 +69,35 @@ export const dashboardEndpoints = {
     return `/api/dashboard/stats`;
   },
 };
+
+/**
+ * Appointments endpoints
+ */
+export const appointmentsEndpoints = {
+  list: (params?: {
+    status?: string;
+    search?: string;
+    sort?: string;
+    direction?: string;
+    per_page?: number;
+    from_date?: string;
+    to_date?: string;
+    staff_id?: number;
+    appointment_type?: string;
+  }) => {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.status) queryParams.append('status', params.status);
+    if (params?.search) queryParams.append('search', params.search);
+    if (params?.sort) queryParams.append('sort', params.sort);
+    if (params?.direction) queryParams.append('direction', params.direction);
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.from_date) queryParams.append('from_date', params.from_date);
+    if (params?.to_date) queryParams.append('to_date', params.to_date);
+    if (params?.staff_id) queryParams.append('staff_id', params.staff_id.toString());
+    if (params?.appointment_type) queryParams.append('appointment_type', params.appointment_type);
+    
+    const queryString = queryParams.toString();
+    return `/api/appointments${queryString ? `?${queryString}` : ''}`;
+  },
+};

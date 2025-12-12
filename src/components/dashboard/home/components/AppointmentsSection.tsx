@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -8,7 +8,9 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { Entypo, Ionicons } from "@expo/vector-icons";
-import { s } from "react-native-size-matters";
+import { Skeleton } from "@/src/components/skeletons";
+import dayjs from "dayjs";
+import { SubscriptionTicketIcon, PersonIcon } from "@/assets/icons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -51,9 +53,14 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(8),
       paddingHorizontal: moderateWidthScale(16),
-      height: moderateHeightScale(100),
+      height: moderateHeightScale(112),
       marginBottom: moderateHeightScale(12),
       shadowColor: theme.shadow,
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: moderateHeightScale(10),
+    },
+    shadow: {
       shadowOffset: {
         width: 0,
         height: 1,
@@ -61,15 +68,11 @@ const createStyles = (theme: Theme) =>
       shadowOpacity: 0.2,
       shadowRadius: 1.41,
       elevation: 2,
-      flexDirection: "row",
-      justifyContent: "space-between",
-      paddingVertical: 15,
     },
     appointmentService: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      flex: 1,
+      color: theme.black,
     },
     appointmentPrice: {
       fontSize: fontSize.size16,
@@ -77,27 +80,24 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     appointmentServiceRow: {
-      // flexDirection: "row",
-      // alignItems: "center",
-      // justifyContent: "space-between",
       marginBottom: moderateHeightScale(12),
     },
     appointmentInfoContainer: {
       flexDirection: "row",
       alignItems: "center",
-      flexWrap: "wrap",
+      justifyContent: "space-between",
+      width: "100%",
     },
     appointmentInfoRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginRight: moderateWidthScale(16),
-      marginBottom: moderateHeightScale(8),
+      width: "45%",
     },
     appointmentInfoText: {
       fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
-      marginLeft: 2,
+      marginLeft: moderateWidthScale(2),
     },
     appointmentStatusRow: {
       flexDirection: "row",
@@ -111,86 +111,268 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(4),
       flexDirection: "row",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
     appointmentStatusText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
       color: theme.selectCard,
     },
+    emptyStateContainer: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: moderateHeightScale(20),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
+    },
   });
 
-export default function AppointmentsSection() {
+interface Appointment {
+  id: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  appointmentType: "subscription" | "service";
+  status: string;
+  user: string;
+  userEmail: string;
+  subscription: string | null;
+  subscriptionServices: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  subscriptionVisits: {
+    used: number;
+    total: number;
+  } | null;
+  services: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  totalPrice: number;
+  paidAmount: string;
+  staffName: string;
+  staffEmail: string;
+  notes: string | null;
+}
+
+interface AppointmentsSectionProps {
+  data: Appointment[] | null;
+  totalCount: number;
+  callApi: () => Promise<void>;
+}
+
+export default function AppointmentsSection({
+  data,
+  totalCount,
+  callApi,
+}: AppointmentsSectionProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+
+  useEffect(() => {
+    callApi();
+  }, []);
+
+  // Format date and time with duration
+  const formatDateTime = (
+    date: string,
+    time: string,
+    totalMinutes?: number
+  ) => {
+    const formattedDate = date; // Already formatted as "12/12/2025"
+    const timeObj = dayjs(`2025-01-01 ${time}`, "YYYY-MM-DD HH:mm");
+    const formattedTime = timeObj.format("h:mm a");
+
+    let durationText = "";
+    if (totalMinutes) {
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      if (hours > 0 && minutes > 0) {
+        durationText = ` • ${hours} hour${hours > 1 ? "s" : ""} ${minutes} min`;
+      } else if (hours > 0) {
+        durationText = ` • ${hours} hour${hours > 1 ? "s" : ""}`;
+      } else {
+        durationText = ` • ${minutes} min`;
+      }
+    }
+
+    return `${formattedDate} - ${formattedTime}${durationText}`;
+  };
+
+  // Format price
+  const formatPrice = (amount: string) => {
+    return `$${parseFloat(amount).toFixed(2)} USD`;
+  };
+
+  // Calculate total duration from services
+  const calculateTotalDuration = (
+    services: Array<{ duration: { hours: number; minutes: number } }>
+  ) => {
+    if (!services || services.length === 0) return 0;
+    const totalMinutes = services.reduce((total, service) => {
+      return total + service.duration.hours * 60 + service.duration.minutes;
+    }, 0);
+    return totalMinutes;
+  };
+
+  // Get service titles
+  const getServiceTitles = (appointment: Appointment) => {
+    if (
+      appointment.appointmentType === "subscription" &&
+      appointment.subscriptionServices.length > 0
+    ) {
+      return appointment.subscriptionServices.map((s) => s.name).join(", ");
+    } else if (
+      appointment.appointmentType === "service" &&
+      appointment.services.length > 0
+    ) {
+      return appointment.services.map((s) => s.name).join(", ");
+    }
+    return "Service";
+  };
+
+  const firstAppointment = data && data.length > 0 ? data[0] : null;
 
   return (
     <View style={styles.appointmentsContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Appointments</Text>
       </View>
-      <View style={styles.upcomingCard}>
-        <Text style={styles.upcomingText}>3 upcoming appointments</Text>
-        <TouchableOpacity>
-          <View style={styles.sectionLink}>
-            <Text style={styles.sectionLink}>View calendar</Text>
-            <Entypo
-              name="chevron-small-right"
-              size={moderateWidthScale(18)}
-              color={theme.selectCard}
-            />
+
+      {!data ? (
+        <Skeleton screenType="AppointmentsSection" styles={styles} />
+      ) : (
+        <>
+          <View style={styles.upcomingCard}>
+            <Text style={styles.upcomingText}>
+              {totalCount === 0
+                ? "No upcoming appointments"
+                : totalCount === 1
+                ? "1 upcoming appointment"
+                : `${totalCount} upcoming appointments`}
+            </Text>
+            <TouchableOpacity>
+              <View style={styles.sectionLink}>
+                <Text style={styles.sectionLink}>View calendar</Text>
+                <Entypo
+                  name="chevron-small-right"
+                  size={moderateWidthScale(18)}
+                  color={theme.selectCard}
+                />
+              </View>
+            </TouchableOpacity>
           </View>
-        </TouchableOpacity>
-      </View>
-      <View style={styles.currentAppointmentCard}>
-        <View style={{ gap: 7, flex: 1 }}>
-          <Text numberOfLines={1} style={styles.appointmentService}>
-            Haircut & beard trim - Hot tow
-          </Text>
-          <View style={styles.appointmentInfoContainer}>
-            <View style={styles.appointmentInfoRow}>
-              <Ionicons
-                name="bookmark-outline"
-                size={moderateWidthScale(15)}
-                color={theme.darkGreen}
-              />
-              <Text style={styles.appointmentInfoText}>Golder member</Text>
+
+          {firstAppointment ? (
+            <View style={[styles.currentAppointmentCard, styles.shadow]}>
+              <View
+                style={{
+                  gap: moderateHeightScale(7),
+                  width: "58%",
+                }}
+              >
+                <Text numberOfLines={1} style={styles.appointmentService}>
+                  {getServiceTitles(firstAppointment)}
+                </Text>
+                <View style={styles.appointmentInfoContainer}>
+                  <View style={styles.appointmentInfoRow}>
+                    <SubscriptionTicketIcon
+                      width={moderateWidthScale(15)}
+                      height={moderateWidthScale(15)}
+                    />
+                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                      {firstAppointment.subscription}
+                    </Text>
+                  </View>
+                  <View style={styles.appointmentInfoRow}>
+                    <PersonIcon
+                      width={moderateWidthScale(15)}
+                      height={moderateWidthScale(15)}
+                    />
+                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                      {firstAppointment.user}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={[
+                    styles.appointmentInfoRow,
+                    { alignItems: "baseline", width: "90%" },
+                  ]}
+                >
+                  <Ionicons
+                    name="time-outline"
+                    size={moderateWidthScale(15)}
+                    color={theme.darkGreen}
+                  />
+                  <Text style={styles.appointmentInfoText}>
+                    {formatDateTime(
+                      firstAppointment.appointmentDate,
+                      firstAppointment.appointmentTime,
+                      firstAppointment.appointmentType === "subscription"
+                        ? calculateTotalDuration(
+                            firstAppointment.subscriptionServices
+                          )
+                        : calculateTotalDuration(firstAppointment.services)
+                    )}
+                  </Text>
+                </View>
+              </View>
+
+              <View
+                style={{
+                  gap: moderateHeightScale(10),
+                  alignItems: "flex-end",
+                  width: "40%",
+                }}
+              >
+                <Text style={styles.appointmentPrice}>
+                  {formatPrice(firstAppointment.paidAmount)}
+                </Text>
+                <View style={styles.appointmentStatusRow}>
+                  <View style={[styles.appointmentStatus]}>
+                    <Text style={styles.appointmentStatusText}>
+                      {firstAppointment.status === "scheduled"
+                        ? "On-going apt."
+                        : firstAppointment.status}
+                    </Text>
+                  </View>
+                  <Entypo
+                    name="chevron-small-right"
+                    size={moderateWidthScale(22)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+              </View>
             </View>
-            <View style={styles.appointmentInfoRow}>
-              <Ionicons
-                name="person-outline"
-                size={moderateWidthScale(15)}
-                color={theme.darkGreen}
-              />
-              <Text style={styles.appointmentInfoText}>Sanna</Text>
-            </View>
-            <View style={styles.appointmentInfoRow}>
-              <Ionicons
-                name="time-outline"
-                size={moderateWidthScale(15)}
-                color={theme.darkGreen}
-              />
-              <Text style={styles.appointmentInfoText}>
-                1/5/2025 - 12:30 pm • 45 min
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateText}>
+                No appointments to display
               </Text>
             </View>
-          </View>
-        </View>
-
-        <View style={{ gap: 10, alignItems: "flex-end" }}>
-          <Text style={styles.appointmentPrice}>$132.00 USD</Text>
-          <View style={styles.appointmentStatusRow}>
-            <View style={styles.appointmentStatus}>
-              <Text style={styles.appointmentStatusText}>On-going apt.</Text>
-            </View>
-            <Entypo
-              name="chevron-small-right"
-              size={moderateWidthScale(22)}
-              color={theme.darkGreen}
-            />
-          </View>
-        </View>
-      </View>
+          )}
+        </>
+      )}
     </View>
   );
 }

@@ -850,6 +850,58 @@ export const CameraIcon: React.FC<CameraIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Subscription Ticket Icon SVG
+const subscriptionTicketIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.334 1.33301H2.66732C1.92732 1.33301 1.33398 1.92634 1.33398 2.66634V9.99967C1.33398 10.7397 1.92732 11.333 2.66732 11.333H5.33398V14.6663L8.00065 13.333L10.6673 14.6663V11.333H13.334C14.074 11.333 14.6673 10.7397 14.6673 9.99967V2.66634C14.6673 1.92634 14.074 1.33301 13.334 1.33301ZM13.334 9.99967H2.66732V8.66634H13.334V9.99967ZM13.334 6.66634H2.66732V2.66634H13.334V6.66634Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface SubscriptionTicketIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const SubscriptionTicketIcon: React.FC<SubscriptionTicketIconProps> = ({
+  width = 16,
+  height = 16,
+  color = "#283618",
+}) => {
+  const svgXml = subscriptionTicketIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Person Icon SVG
+const personIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M13.1858 1.33398H2.81547C1.99324 1.33398 1.33398 2.00065 1.33398 2.81547V13.1858C1.33398 14.0007 1.99324 14.6673 2.81547 14.6673H5.77843H10.2229H13.1858C14.0007 14.6673 14.6673 14.0007 14.6673 13.1858V2.81547C14.6673 2.00065 14.0007 1.33398 13.1858 1.33398ZM13.1858 13.1858H9.60806H6.39324H2.81547V2.81547H13.1858V13.1858ZM8.00065 8.00065C9.22287 8.00065 10.2229 7.00065 10.2229 5.77843C10.2229 4.55621 9.22287 3.55621 8.00065 3.55621C6.77843 3.55621 5.77843 4.55621 5.77843 5.77843C5.77843 7.00065 6.77843 8.00065 8.00065 8.00065ZM8.00065 5.03769C8.40806 5.03769 8.74139 5.37102 8.74139 5.77843C8.74139 6.18584 8.40806 6.51917 8.00065 6.51917C7.59324 6.51917 7.25991 6.18584 7.25991 5.77843C7.25991 5.37102 7.59324 5.03769 8.00065 5.03769ZM12.4451 11.3932C12.4451 9.54139 9.50435 8.74139 8.00065 8.74139C6.49695 8.74139 3.55621 9.54139 3.55621 11.3932V12.4451H12.4451V11.3932ZM5.39324 10.9636C5.94139 10.5858 7.0451 10.2229 8.00065 10.2229C8.95621 10.2229 10.0599 10.5858 10.6081 10.9636H5.39324Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface PersonIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const PersonIcon: React.FC<PersonIconProps> = ({
+  width = 16,
+  height = 16,
+  color = "#283618",
+}) => {
+  const svgXml = personIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -877,4 +929,6 @@ export default {
   GuestIcon,
   GalleryIcon,
   CameraIcon,
+  SubscriptionTicketIcon,
+  PersonIcon,
 };
