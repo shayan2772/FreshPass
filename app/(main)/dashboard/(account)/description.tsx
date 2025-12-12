@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -6,6 +6,7 @@ import {
   ScrollView,
   TextInput,
   Keyboard,
+  Pressable,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -21,7 +22,9 @@ import { validateDescription } from "@/src/services/validationService";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import { CloseIcon } from "@/assets/icons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -59,6 +62,7 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(16),
       minHeight: moderateHeightScale(200),
       marginBottom: moderateHeightScale(8),
+      position: "relative",
     },
     textInput: {
       fontSize: fontSize.size15,
@@ -79,7 +83,34 @@ const createStyles = (theme: Theme) =>
       paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
     },
+    skeletonTitle: {
+      height: moderateHeightScale(28),
+      width: "70%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(8),
+    },
+    skeletonSubtitle: {
+      height: moderateHeightScale(18),
+      width: "90%",
+      borderRadius: moderateWidthScale(4),
+    },
+    skeletonTextInput: {
+      height: moderateHeightScale(200),
+      width: "100%",
+      borderRadius: moderateWidthScale(12),
+      marginBottom: moderateHeightScale(8),
+    },
+    clearButton: {
+      position: "absolute",
+      top: moderateHeightScale(12),
+      right: moderateWidthScale(12),
+      zIndex: 1,
+    },
   });
+
+interface DescriptionData {
+  description: string | null;
+}
 
 export default function DescriptionScreen() {
   const { colors } = useTheme();
@@ -88,9 +119,35 @@ export default function DescriptionScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
 
+  const [loading, setLoading] = useState(true);
   const [description, setDescription] = useState("");
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  const fetchDescription = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: DescriptionData;
+      }>(businessEndpoints.moduleData("description"));
+
+      if (response.success && response.data) {
+        setDescription(response.data.description || "");
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch description:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDescription();
+    }, [fetchDescription])
+  );
 
   // Validate description when it changes
   useEffect(() => {
@@ -102,19 +159,22 @@ export default function DescriptionScreen() {
     }
   }, [description]);
 
-  // Check if form is valid
-  const isFormValid = useMemo(() => {
-    const validation = validateDescription(description);
-    return validation.isValid;
-  }, [description]);
+  const handleClearDescription = useCallback(() => {
+    setDescription("");
+    setDescriptionError(null);
+  }, []);
 
   const handleContinue = async () => {
-    // Validate before submitting
-    const validation = validateDescription(description);
-    setDescriptionError(validation.error);
+    // Validate only if description has content
+    if (description.length > 0) {
+      const validation = validateDescription(description);
+      setDescriptionError(validation.error);
 
-    if (!validation.isValid) {
-      return;
+      if (!validation.isValid) {
+        return;
+      }
+    } else {
+      setDescriptionError(null);
     }
 
     Keyboard.dismiss();
@@ -166,6 +226,16 @@ export default function DescriptionScreen() {
     }
   };
 
+  const renderSkeleton = () => (
+    <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+      <View style={styles.titleSection}>
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSubtitle} />
+      </View>
+      <View style={styles.skeletonTextInput} />
+    </SkeletonPlaceholder>
+  );
+
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Description" />
@@ -175,38 +245,55 @@ export default function DescriptionScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.titleSection}>
-          <Text style={styles.title}>Describe about yourself</Text>
-          <Text style={styles.subtitle}>
-            Introduce yourself in your own words.
-          </Text>
-        </View>
+        {loading ? (
+          renderSkeleton()
+        ) : (
+          <>
+            <View style={styles.titleSection}>
+              <Text style={styles.title}>Describe about yourself</Text>
+              <Text style={styles.subtitle}>
+                Introduce yourself in your own words.
+              </Text>
+            </View>
 
-        <View style={styles.textInputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={description}
-            onChangeText={setDescription}
-            placeholder="If you have a ready-to-go description, you can paste it here."
-            placeholderTextColor={theme.lightGreen2}
-            multiline
-            textAlignVertical="top"
-            autoCapitalize="sentences"
-            maxLength={1000}
-          />
-        </View>
-        {descriptionError && (
-          <Text style={styles.errorText}>{descriptionError}</Text>
+            <View style={styles.textInputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={description}
+                onChangeText={setDescription}
+                placeholder="If you have a ready-to-go description, you can paste it here."
+                placeholderTextColor={theme.lightGreen2}
+                multiline
+                textAlignVertical="top"
+                autoCapitalize="sentences"
+                maxLength={1000}
+              />
+              {description.length > 0 && (
+                <Pressable
+                  onPress={handleClearDescription}
+                  style={styles.clearButton}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <CloseIcon color={theme.darkGreen} />
+                </Pressable>
+              )}
+            </View>
+            {descriptionError && (
+              <Text style={styles.errorText}>{descriptionError}</Text>
+            )}
+          </>
         )}
       </ScrollView>
 
-      <View style={styles.continueButtonContainer}>
-        <Button
-          title="Continue"
-          onPress={handleContinue}
-          disabled={!isFormValid || isUpdating}
-        />
-      </View>
+      {!loading && (
+        <View style={styles.continueButtonContainer}>
+          <Button
+            title="Update"
+            onPress={handleContinue}
+            disabled={isUpdating}
+          />
+        </View>
+      )}
     </SafeAreaView>
   );
 }

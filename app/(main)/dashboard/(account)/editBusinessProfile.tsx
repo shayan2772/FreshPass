@@ -31,7 +31,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -139,12 +139,25 @@ export default function EditBusinessProfileScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const { showBanner } = useNotificationContext();
+  const params = useLocalSearchParams<{
+    title?: string;
+    slogan?: string;
+    logo_url?: string;
+  }>();
+
+  const getInitialLogoUri = () => {
+    if (params.logo_url) {
+      const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+      return `${baseUrl}${params.logo_url}`;
+    }
+    return null;
+  };
+
+  const originalLogoImageUri = getInitialLogoUri();
   
-  const originalLogoImageUri = "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
-  
-  const [businessName, setBusinessName] = useState("Ra Benjamin Styles LLC");
-  const [slogan, setSlogan] = useState("");
-  const [logoImageUri, setLogoImageUri] = useState(originalLogoImageUri);
+  const [businessName, setBusinessName] = useState(params.title || "");
+  const [slogan, setSlogan] = useState(params.slogan || "");
+  const [logoImageUri, setLogoImageUri] = useState<string | null>(originalLogoImageUri);
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [businessNameError, setBusinessNameError] = useState<string | null>(
     null
@@ -251,13 +264,13 @@ export default function EditBusinessProfileScreen() {
       formData.append("title", businessName.trim());
 
       // Add slogan if provided
-      if (slogan.trim()) {
+      // if (slogan.trim()) {
         formData.append("slogan", slogan.trim());
-      }
+      // }
 
       // Add image if it has changed and is a local file
       const hasImageChanged = logoImageUri !== originalLogoImageUri;
-      if (hasImageChanged) {
+      if (hasImageChanged && logoImageUri) {
         // Check if it's a local file (starts with file://, content://, or ph://)
         if (
           logoImageUri.startsWith("file://") ||
@@ -337,15 +350,17 @@ export default function EditBusinessProfileScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.profileSection}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{
-                uri: logoImageUri,
-              }}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-          </View>
+          {logoImageUri && (
+            <View style={styles.profileImageContainer}>
+              <Image
+                source={{
+                  uri: logoImageUri,
+                }}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            </View>
+          )}
           <View style={styles.uploadSection}>
             <Text style={styles.uploadText}>Add your business logo</Text>
             <TouchableOpacity

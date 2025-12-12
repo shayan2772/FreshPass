@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -17,7 +17,10 @@ import {
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import SkeletonPlaceholder from "react-native-skeleton-placeholder";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -88,7 +91,47 @@ const createStyles = (theme: Theme) =>
       textAlign: "center",
       paddingHorizontal: moderateWidthScale(20),
     },
+    skeletonImage: {
+      width: widthScale(120),
+      height: widthScale(120),
+      borderRadius: moderateWidthScale(12),
+      marginBottom: moderateHeightScale(16),
+    },
+    skeletonTitle: {
+      height: moderateHeightScale(28),
+      width: moderateWidthScale(200),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(5),
+      alignSelf: "center",
+    },
+    skeletonSlogan: {
+      height: moderateHeightScale(18),
+      width: moderateWidthScale(150),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(24),
+      alignSelf: "center",
+    },
+    skeletonButton: {
+      height: moderateHeightScale(44),
+      width: moderateWidthScale(100),
+      borderRadius: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(16),
+      alignSelf: "center",
+    },
+    skeletonNote: {
+      height: moderateHeightScale(16),
+      width: moderateWidthScale(250),
+      borderRadius: moderateWidthScale(4),
+      alignSelf: "center",
+      marginTop: moderateHeightScale(8),
+    },
   });
+
+interface BusinessProfileData {
+  title: string;
+  slogan: string;
+  logo_url: string | null;
+}
 
 export default function BusinessProfileScreen() {
   const { colors } = useTheme();
@@ -96,9 +139,68 @@ export default function BusinessProfileScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
 
+  const [loading, setLoading] = useState(true);
+  const [profileData, setProfileData] = useState<BusinessProfileData | null>(null);
+
+  const fetchBusinessProfile = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: BusinessProfileData;
+      }>(businessEndpoints.moduleData("business-profile"));
+
+      if (response.success && response.data) {
+        setProfileData(response.data);
+      }
+    } catch (error: any) {
+      console.error("Failed to fetch business profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBusinessProfile();
+    }, [fetchBusinessProfile])
+  );
+
   const handleEditPress = () => {
-    router.push("./editBusinessProfile");
+    if (profileData) {
+      router.push({
+        pathname: "./editBusinessProfile",
+        params: {
+          title: profileData.title,
+          slogan: profileData.slogan || "",
+          logo_url: profileData.logo_url || "",
+        },
+      });
+    } else {
+      router.push("./editBusinessProfile");
+    }
   };
+
+  const getLogoUri = () => {
+    if (!profileData?.logo_url) {
+      return null;
+    }
+    const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+    return `${baseUrl}${profileData.logo_url}`;
+  };
+
+  const renderSkeleton = () => (
+    <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+      <View style={styles.contentContainer}>
+        <View style={styles.skeletonImage} />
+        <View style={styles.skeletonTitle} />
+        <View style={styles.skeletonSlogan} />
+        <View style={styles.skeletonButton} />
+        <View style={styles.skeletonNote} />
+      </View>
+    </SkeletonPlaceholder>
+  );
 
   return (
     <View style={styles.container}>
@@ -108,38 +210,50 @@ export default function BusinessProfileScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={{
-              uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-            }}
-            style={styles.profileImage}
-            resizeMode="cover"
-          />
-        </View>
+        {loading ? (
+          renderSkeleton()
+        ) : (
+          <>
+            {getLogoUri() && (
+              <View style={styles.profileImageContainer}>
+                <Image
+                  source={{
+                    uri: getLogoUri()!,
+                  }}
+                  style={styles.profileImage}
+                  resizeMode="cover"
+                />
+              </View>
+            )}
 
-        <Text style={styles.businessNameText}>Ra Benjamin Styles LLC</Text>
-        <Text style={styles.sloganText}>Slogan will be here</Text>
+            <Text style={styles.businessNameText}>
+              {profileData?.title || ""}
+            </Text>
+            <Text style={styles.sloganText}>
+              {profileData?.slogan || "Slogan will be here"}
+            </Text>
 
-        <View style={styles.editButtonContainer}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={handleEditPress}
-            style={styles.editButton}
-          >
-            <MaterialIcons
-              name="edit"
-              size={moderateWidthScale(18)}
-              color={theme.buttonText}
-            />
-            <Text style={styles.editButtonText}>Edit</Text>
-          </TouchableOpacity>
-        </View>
+            <View style={styles.editButtonContainer}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleEditPress}
+                style={styles.editButton}
+              >
+                <MaterialIcons
+                  name="edit"
+                  size={moderateWidthScale(18)}
+                  color={theme.buttonText}
+                />
+                <Text style={styles.editButtonText}>Edit</Text>
+              </TouchableOpacity>
+            </View>
 
-        <Text style={styles.privacyNote}>
-          This photo is seen by others when they view your profile, messages and
-          reviews.
-        </Text>
+            <Text style={styles.privacyNote}>
+              This photo is seen by others when they view your profile, messages
+              and reviews.
+            </Text>
+          </>
+        )}
       </ScrollView>
     </View>
   );
