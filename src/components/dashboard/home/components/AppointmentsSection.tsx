@@ -252,6 +252,8 @@ export default function AppointmentsSection({
 
   const firstAppointment = data && data.length > 0 ? data[0] : null;
 
+  console.log(data);
+
   return (
     <View style={styles.appointmentsContainer}>
       <View style={styles.sectionHeader}>

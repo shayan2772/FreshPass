@@ -91,6 +91,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("description");
+  const isSocialMediaScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("socialMedia");
   const isChatBoxScreen =
     Array.isArray(segments) && segments.includes("chatBox");
 
@@ -118,6 +122,7 @@ export default function DashboardLayout() {
             isBusinessProfileScreen ||
             isEditBusinessProfileScreen ||
             isDescriptionScreen ||
+            isSocialMediaScreen ||
             isChatBoxScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,

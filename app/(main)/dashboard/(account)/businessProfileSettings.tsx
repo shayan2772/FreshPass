@@ -63,6 +63,8 @@ export default function BusinessProfileSettingsScreen() {
       router.push("./businessProfile");
     } else if (key === "description") {
       router.push("./description");
+    } else if (key === "socialMedia") {
+      router.push("./socialMedia");
     } else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
