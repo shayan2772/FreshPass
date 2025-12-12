@@ -237,6 +237,9 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
+    disabledInputContainer: {
+      backgroundColor: theme.lightGreen07,
+    },
   });
 
 const FALLBACK_PHONE_PLACEHOLDERS: Record<string, string> = {
@@ -372,8 +375,10 @@ export default function EditProfileScreen() {
   const initialCountryCode = user.country_code || "+1";
   const initialCountryIso = getCountryIsoFromDialCode(initialCountryCode);
   const initialPhoneNumber = user.phone || "";
-  const originalProfileImageUri = user.profile_image_url || "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
-  
+  const originalProfileImageUri = user?.profile_image_url 
+    ? process.env.EXPO_PUBLIC_API_BASE_URL + user.profile_image_url
+    : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+
   const [email, setEmail] = useState(user.email || "");
   const [fullName, setFullName] = useState(user.name || "");
   const [profileImageUri, setProfileImageUri] = useState(originalProfileImageUri);
@@ -901,11 +906,12 @@ export default function EditProfileScreen() {
               <Text style={styles.uploadButtonText}>Upload photo</Text>
             </TouchableOpacity>
             <TouchableOpacity
+            disabled
               activeOpacity={0.7}
               onPress={handleImportFromGoogleDrive}
             >
               <Text style={styles.googleDriveLink}>
-                Import from google drive
+                {/* Import from google drive */}
               </Text>
             </TouchableOpacity>
           </View>
@@ -923,6 +929,7 @@ export default function EditProfileScreen() {
             onClear={handleClearEmail}
             editable={false}
             showClearButton={false}
+            containerStyle={styles.disabledInputContainer}
           />
           {emailError && <Text style={styles.errorText}>{emailError}</Text>}
         </View>
