@@ -4,7 +4,6 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
-  heightScale,
   moderateHeightScale,
   moderateWidthScale,
   widthScale,
@@ -33,58 +32,6 @@ const createStyles = (theme: Theme) =>
       // paddingHorizontal: moderateWidthScale(20),
       // paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(24),
-    },
-    metricsCard: {
-      backgroundColor: theme.lightBeige,
-      paddingVertical: moderateHeightScale(16),
-      paddingHorizontal: moderateWidthScale(16),
-      borderBottomWidth: 1,
-      borderColor: theme.borderLight,
-      marginBottom: moderateHeightScale(12),
-      gap: moderateHeightScale(12),
-    },
-    metricRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-    },
-    metricLabel: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      flex: 1,
-    },
-    metricRight: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginLeft: moderateWidthScale(12),
-    },
-    metricScore: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginRight: moderateWidthScale(4),
-    },
-    metricCount: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    progressTrack: {
-      flex: 1,
-      height: heightScale(4),
-      borderRadius: moderateWidthScale(999),
-      backgroundColor: theme.borderLight,
-      marginHorizontal: moderateWidthScale(12),
-      overflow: "hidden",
-    },
-    progressFill: {
-      height: "100%",
-      borderRadius: moderateWidthScale(999),
-      backgroundColor: theme.darkGreen,
-    },
-    progressFillSecondary: {
-      backgroundColor: theme.lightGreen,
     },
     averageText: {
       fontSize: fontSize.size32,
@@ -215,52 +162,6 @@ export default function UserReviewsScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.metricsCard}>
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Service Quality</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: "100%" }]} />
-            </View>
-            <View style={styles.metricRight}>
-              <Text style={styles.metricScore}>5.0</Text>
-              <Text style={styles.metricCount}>/ 269</Text>
-            </View>
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Experience</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: "80%" }]} />
-            </View>
-            <View style={styles.metricRight}>
-              <Text style={styles.metricScore}>4.6</Text>
-              <Text style={styles.metricCount}>/ 4</Text>
-            </View>
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Cleanliness & Hygiene</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: "100%" }]} />
-            </View>
-            <View style={styles.metricRight}>
-              <Text style={styles.metricScore}>5.0</Text>
-              <Text style={styles.metricCount}>/ 2</Text>
-            </View>
-          </View>
-
-          <View style={styles.metricRow}>
-            <Text style={styles.metricLabel}>Punctuality & Booking</Text>
-            <View style={styles.progressTrack}>
-              <View style={[styles.progressFill, { width: "100%" }]} />
-            </View>
-            <View style={styles.metricRight}>
-              <Text style={styles.metricScore}>5.0</Text>
-              <Text style={styles.metricCount}>/ 1</Text>
-            </View>
-          </View>
-        </View>
-
         <View style={{ paddingHorizontal: moderateWidthScale(20) }}>
           <Text style={styles.averageText}>4.9 Average</Text>
           <Text style={styles.countLabel}>276 ratings</Text>

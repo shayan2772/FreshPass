@@ -142,6 +142,27 @@ const createSkeletonStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(8),
       marginBottom: moderateHeightScale(12),
     },
+    workHistoryItemSkeleton: {
+      height: moderateHeightScale(50),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(12),
+    },
+    workHistoryServiceSkeleton: {
+      height: moderateHeightScale(16),
+      width: "70%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(4),
+    },
+    workHistoryDateSkeleton: {
+      height: moderateHeightScale(12),
+      width: "50%",
+      borderRadius: moderateWidthScale(4),
+    },
+    workHistoryPriceSkeleton: {
+      height: moderateHeightScale(18),
+      width: moderateWidthScale(60),
+      borderRadius: moderateWidthScale(4),
+    },
   });
 
 export const Skeleton = ({
@@ -155,7 +176,8 @@ export const Skeleton = ({
     | "BusinessPlans"
     | "SummaryStats"
     | "StaffOnDuty"
-    | "AppointmentsSection";
+    | "AppointmentsSection"
+    | "WorkHistory";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -293,6 +315,23 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const workHistorySkeleton = styles ? (
+    <>
+      {[...Array(3)].map((_, index) => (
+        <View key={index}>
+          <View style={styles.workHistoryItem}>
+            <View style={{ flex: 1 }}>
+              <View style={skeletonStyles.workHistoryServiceSkeleton} />
+              <View style={skeletonStyles.workHistoryDateSkeleton} />
+            </View>
+            <View style={skeletonStyles.workHistoryPriceSkeleton} />
+          </View>
+          {index < 2 && <View style={styles.line} />}
+        </View>
+      ))}
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -319,6 +358,11 @@ export const Skeleton = ({
       {screenType === "AppointmentsSection" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {appointmentsSectionSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "WorkHistory" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {workHistorySkeleton}
         </SkeletonPlaceholder>
       )}
     </>

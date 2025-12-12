@@ -130,6 +130,8 @@ export default function HomeScreen() {
   const [staffData, setStaffData] = useState<any[] | null>(null);
   const [appointmentsData, setAppointmentsData] = useState<Appointment[] | null>(null);
   const [appointmentsTotalCount, setAppointmentsTotalCount] = useState(0);
+  const [workHistoryData, setWorkHistoryData] = useState<Appointment[] | null>(null);
+  const [workHistoryTotalCount, setWorkHistoryTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
   const handleFetchBusinessStatus = async () => {
@@ -278,6 +280,43 @@ export default function HomeScreen() {
     }
   };
 
+  const handleFetchWorkHistory = async () => {
+    
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          data: Appointment[];
+          meta: {
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        };
+      }>(
+        appointmentsEndpoints.list({
+          status: "without_scheduled",
+          per_page: 10,
+          direction: "desc",
+        })
+      );
+
+      if (response.success && response.data) {
+        setWorkHistoryData(response.data.data);
+        setWorkHistoryTotalCount(response.data.meta.total);
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to fetch work history",
+        "error",
+        2500
+      );
+    }  
+  };
+
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
 
@@ -303,6 +342,7 @@ export default function HomeScreen() {
         handleFetchDashboardStats(),
         handleFetchStaff("active"),
         handleFetchAppointments(),
+        handleFetchWorkHistory(),
       ]);
     } catch (error: any) {
       // Error handling is done in individual functions
@@ -414,7 +454,11 @@ export default function HomeScreen() {
 
         {/* Work History */}
         <View style={styles.workHistoryContainer}>
-          <WorkHistory />
+          <WorkHistory
+            data={workHistoryData}
+            totalCount={workHistoryTotalCount}
+            callApi={handleFetchWorkHistory}
+          />
         </View>
       </ScrollView>
     </View>
