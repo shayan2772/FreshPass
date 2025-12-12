@@ -21,76 +21,62 @@ import { PersonIcon } from "@/assets/icons";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
+import { ApiService } from "@/src/services/api";
+import { appointmentsEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
 
-// Static appointment data
-const STATIC_APPOINTMENTS = [
-  {
-    id: "1",
-    title: "Haircut + Beard Trim",
-    scheduled_at: dayjs().hour(12).minute(30).second(0).millisecond(0).toISOString(),
-    duration: "45 min",
-    price: 50,
-    status_label: "On-going apt.",
-    client_name: "Sanna H...",
-  },
-  {
-    id: "2",
-    title: "Hair Styling",
-    scheduled_at: dayjs().add(1, "day").hour(14).minute(0).second(0).millisecond(0).toISOString(),
-    duration: "60 min",
-    price: 75,
-    status_label: "Upcoming",
-    client_name: "John D...",
-  },
-  {
-    id: "3",
-    title: "Beard Trim",
-    scheduled_at: dayjs().add(2, "day").hour(10).minute(30).second(0).millisecond(0).toISOString(),
-    duration: "30 min",
-    price: 25,
-    status_label: "Upcoming",
-    client_name: "Mike S...",
-  },
-  {
-    id: "4",
-    title: "Haircut",
-    scheduled_at: dayjs().hour(1).minute(0).second(0).millisecond(0).toISOString(),
-    duration: "30 min",
-    price: 30,
-    status_label: "Upcoming",
-    client_name: "Client A...",
-  },
-  {
-    id: "4b",
-    title: "Hair Treatment as",
-    scheduled_at: dayjs().hour(1).minute(0).second(0).millisecond(0).toISOString(),
-    duration: "60 min",
-    price: 120,
-    status_label: "On-going apt.",
-    client_name: "Emma Wasasasas",
-  },
-  {
-    id: "5",
-    title: "Beard Styling",
-    scheduled_at: dayjs().month(11).date(6).hour(3).minute(0).second(0).millisecond(0).toISOString(),
-    duration: "20 min",
-    price: 20,
-    status_label: "Upcoming",
-    client_name: "Client B...",
-  },
-  {
-    id: "6",
-    title: "Full Service",
-    scheduled_at: dayjs().month(11).date(7).hour(15).minute(0).second(0).millisecond(0).toISOString(),
-    duration: "90 min",
-    price: 100,
-    status_label: "Upcoming",
-    client_name: "Client C...",
-  },
-];
+interface Appointment {
+  id: number;
+  appointmentDate: string;
+  appointmentTime: string;
+  appointmentType: "subscription" | "service";
+  status: string;
+  user: string;
+  userEmail: string;
+  subscription: string | null;
+  subscriptionServices: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  subscriptionVisits: {
+    used: number;
+    total: number;
+  } | null;
+  services: Array<{
+    id: number;
+    name: string;
+    description: string;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  totalPrice: number;
+  paidAmount: string;
+  staffName: string;
+  staffEmail: string;
+  notes: string | null;
+}
+
+interface CalendarAppointment {
+  id: string;
+  title: string;
+  scheduled_at: string;
+  duration: string;
+  price: number;
+  status_label: string;
+  client_name: string;
+}
 
 const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
   const hour24 = hour; // 0 to 23
@@ -337,7 +323,7 @@ const createStyles = (theme: Theme) =>
       color: theme.selectCard,
     },
     appointmentMeta: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
@@ -357,10 +343,13 @@ export default function CalendarScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const scrollViewRef = useRef<ScrollView>(null);
+  const { showBanner } = useNotificationContext();
 
   const today = dayjs();
   const [selectedDate, setSelectedDate] = useState(today);
   const [week, setWeek] = useState(getWeekDays(today));
+  const [appointments, setAppointments] = useState<CalendarAppointment[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Set to current week on mount
   useEffect(() => {
@@ -368,6 +357,136 @@ export default function CalendarScreen() {
     setWeek(currentWeek);
     setSelectedDate(today);
   }, []);
+
+  // Fetch appointments when week changes
+  useEffect(() => {
+    if (week.length > 0) {
+      fetchAppointments();
+    }
+  }, [week]);
+
+  const fetchAppointments = async () => {
+    if (week.length === 0) return;
+
+    setLoading(true);
+    try {
+      const fromDate = week[0].format("YYYY-MM-DD");
+      const toDate = week[6].format("YYYY-MM-DD");
+
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          data: Appointment[];
+          meta: {
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        };
+      }>(
+        appointmentsEndpoints.list({
+          from_date: fromDate,
+          to_date: toDate,
+          per_page: 100,
+          direction: "desc",
+        })
+      );
+
+      if (response.success && response.data) {
+        const transformedAppointments = transformAppointments(response.data.data);
+        setAppointments(transformedAppointments);
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to fetch appointments",
+        "error",
+        2500
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const transformAppointments = (apiAppointments: Appointment[]): CalendarAppointment[] => {
+    return apiAppointments.map((appointment) => {
+      // Get service titles (subscription base or service base)
+      const getServiceTitles = () => {
+        if (
+          appointment.appointmentType === "subscription" &&
+          appointment.subscriptionServices.length > 0
+        ) {
+          return appointment.subscriptionServices.map((s) => s.name).join(", ");
+        } else if (
+          appointment.appointmentType === "service" &&
+          appointment.services.length > 0
+        ) {
+          return appointment.services.map((s) => s.name).join(", ");
+        }
+        return "Service";
+      };
+
+      // Calculate total duration
+      const calculateTotalDuration = (
+        services: Array<{ duration: { hours: number; minutes: number } }>
+      ) => {
+        if (!services || services.length === 0) return 0;
+        const totalMinutes = services.reduce((total, service) => {
+          return total + service.duration.hours * 60 + service.duration.minutes;
+        }, 0);
+        return totalMinutes;
+      };
+
+      const services =
+        appointment.appointmentType === "subscription"
+          ? appointment.subscriptionServices
+          : appointment.services;
+
+      const totalMinutes = calculateTotalDuration(services);
+      const hours = Math.floor(totalMinutes / 60);
+      const minutes = totalMinutes % 60;
+
+      let durationText = "";
+      if (hours > 0 && minutes > 0) {
+        durationText = `${hours} hour${hours > 1 ? "s" : ""} ${minutes} min`;
+      } else if (hours > 0) {
+        durationText = `${hours} hour${hours > 1 ? "s" : ""}`;
+      } else {
+        durationText = `${minutes} min`;
+      }
+
+      // Parse date and time
+      // Date format is "MM/DD/YYYY"
+      const dateParts = appointment.appointmentDate.split("/");
+      const month = dateParts[0].padStart(2, "0");
+      const day = dateParts[1].padStart(2, "0");
+      const year = dateParts[2];
+      const [hour, minute] = appointment.appointmentTime.split(":");
+
+      const scheduledAt = dayjs(`${year}-${month}-${day} ${hour}:${minute}`, "YYYY-MM-DD HH:mm").toISOString();
+
+      // Format status - show "On-going apt." for scheduled
+      const statusLabel =
+        appointment.status === "scheduled" ? "On-going apt." : appointment.status;
+
+      // Format client name (truncate if needed)
+      const clientName = appointment.user.length > 12 
+        ? `${appointment.user.substring(0, 10)}...` 
+        : appointment.user;
+
+      return {
+        id: appointment.id.toString(),
+        title: getServiceTitles(),
+        scheduled_at: scheduledAt,
+        duration: durationText,
+        price: parseFloat(appointment.paidAmount),
+        status_label: statusLabel,
+        client_name: clientName,
+      };
+    });
+  };
 
   const currentDate = selectedDate.format("YYYY-MM-DD");
 
@@ -491,7 +610,7 @@ export default function CalendarScreen() {
           >
             {TIME_SLOTS.map((time) => {
               const timeSlot24h = convertTo24Hour(time);
-              const appointments = STATIC_APPOINTMENTS.filter((appointment) => {
+              const filteredAppointments = appointments.filter((appointment) => {
                 if (!appointment.scheduled_at) return false;
 
                 const scheduledDate = dayjs(appointment.scheduled_at).format("YYYY-MM-DD");
@@ -513,7 +632,7 @@ export default function CalendarScreen() {
                 );
               });
 
-              const hasMultipleAppointments = appointments.length > 1;
+              const hasMultipleAppointments = filteredAppointments.length > 1;
 
               return (
                 <View 
@@ -527,8 +646,8 @@ export default function CalendarScreen() {
                     <Text style={styles.timeSlotText}>{time}</Text>
                   </View>
                   <View style={styles.appointmentsContainer}>
-                    {appointments.length > 0 ? (
-                      appointments.map((appointment, index) => {
+                    {filteredAppointments.length > 0 ? (
+                      filteredAppointments.map((appointment, index) => {
                         const isLast = index === appointments.length - 1;
                         return (
                           <View 
