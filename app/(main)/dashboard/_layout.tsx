@@ -53,6 +53,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(home)") &&
     segments.includes("userReviews");
+  const isAppointmentDetailScreen =
+    Array.isArray(segments) &&
+    segments.includes("(home)") &&
+    segments.includes("appointmentDetail");
   const isProfileScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
@@ -113,6 +117,7 @@ export default function DashboardLayout() {
               : moderateHeightScale(80),
           },
           (isUserReviewsScreen ||
+            isAppointmentDetailScreen ||
             isProfileScreen ||
             isRulesAndTermsScreen ||
             isChangePasswordScreen ||

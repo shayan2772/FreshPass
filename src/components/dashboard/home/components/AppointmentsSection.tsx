@@ -149,7 +149,7 @@ interface Appointment {
       hours: number;
       minutes: number;
     };
-  }>;
+  }> | {};
   subscriptionVisits: {
     used: number;
     total: number;
@@ -163,12 +163,16 @@ interface Appointment {
       hours: number;
       minutes: number;
     };
-  }>;
-  totalPrice: number;
+  }> | {};
+  totalPrice: number | {};
   paidAmount: string;
   staffName: string;
   staffEmail: string;
   notes: string | null;
+  businessTitle: string;
+  businessAddress: string;
+  businessLogoUrl: string | null;
+  createdAt: string;
 }
 
 interface AppointmentsSectionProps {
@@ -225,9 +229,9 @@ export default function AppointmentsSection({
 
   // Calculate total duration from services
   const calculateTotalDuration = (
-    services: Array<{ duration: { hours: number; minutes: number } }>
+    services: Array<{ duration: { hours: number; minutes: number } }> | {}
   ) => {
-    if (!services || services.length === 0) return 0;
+    if (!services || !Array.isArray(services) || services.length === 0) return 0;
     const totalMinutes = services.reduce((total, service) => {
       return total + service.duration.hours * 60 + service.duration.minutes;
     }, 0);
@@ -238,11 +242,13 @@ export default function AppointmentsSection({
   const getServiceTitles = (appointment: Appointment) => {
     if (
       appointment.appointmentType === "subscription" &&
+      Array.isArray(appointment.subscriptionServices) &&
       appointment.subscriptionServices.length > 0
     ) {
       return appointment.subscriptionServices.map((s) => s.name).join(", ");
     } else if (
       appointment.appointmentType === "service" &&
+      Array.isArray(appointment.services) &&
       appointment.services.length > 0
     ) {
       return appointment.services.map((s) => s.name).join(", ");
@@ -252,7 +258,7 @@ export default function AppointmentsSection({
 
   const firstAppointment = data && data.length > 0 ? data[0] : null;
 
-  console.log(data);
+ 
 
   return (
     <View style={styles.appointmentsContainer}>
@@ -288,89 +294,101 @@ export default function AppointmentsSection({
           </View>
 
           {firstAppointment ? (
-            <View style={[styles.currentAppointmentCard, styles.shadow]}>
-              <View
-                style={{
-                  gap: moderateHeightScale(7),
-                  width: "58%",
-                }}
-              >
-                <Text numberOfLines={1} style={styles.appointmentService}>
-                  {getServiceTitles(firstAppointment)}
-                </Text>
-                <View style={styles.appointmentInfoContainer}>
-                  <View style={styles.appointmentInfoRow}>
-                    <SubscriptionTicketIcon
-                      width={moderateWidthScale(15)}
-                      height={moderateWidthScale(15)}
-                    />
-                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                      {firstAppointment.appointmentType === "subscription"
-                        ? firstAppointment.subscription
-                        : "Service Base"}
-                    </Text>
-                  </View>
-                  <View style={styles.appointmentInfoRow}>
-                    <PersonIcon
-                      width={moderateWidthScale(15)}
-                      height={moderateWidthScale(15)}
-                    />
-                    <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                      {firstAppointment.user}
-                    </Text>
-                  </View>
-                </View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                router.push({
+                  pathname: "/(main)/dashboard/(home)/appointmentDetail",
+                  params: {
+                    appointment: JSON.stringify(firstAppointment),
+                  },
+                });
+              }}
+            >
+              <View style={[styles.currentAppointmentCard, styles.shadow]}>
                 <View
-                  style={[
-                    styles.appointmentInfoRow,
-                    { alignItems: "baseline", width: "90%" },
-                  ]}
+                  style={{
+                    gap: moderateHeightScale(7),
+                    width: "58%",
+                  }}
                 >
-                  <Ionicons
-                    name="time-outline"
-                    size={moderateWidthScale(15)}
-                    color={theme.darkGreen}
-                  />
-                  <Text style={styles.appointmentInfoText}>
-                    {formatDateTime(
-                      firstAppointment.appointmentDate,
-                      firstAppointment.appointmentTime,
-                      firstAppointment.appointmentType === "subscription"
-                        ? calculateTotalDuration(
-                            firstAppointment.subscriptionServices
-                          )
-                        : calculateTotalDuration(firstAppointment.services)
-                    )}
+                  <Text numberOfLines={1} style={styles.appointmentService}>
+                    {getServiceTitles(firstAppointment)}
                   </Text>
-                </View>
-              </View>
-
-              <View
-                style={{
-                  gap: moderateHeightScale(10),
-                  alignItems: "flex-end",
-                  width: "40%",
-                }}
-              >
-                <Text style={styles.appointmentPrice}>
-                  {formatPrice(firstAppointment.paidAmount)}
-                </Text>
-                <View style={styles.appointmentStatusRow}>
-                  <View style={[styles.appointmentStatus]}>
-                    <Text style={styles.appointmentStatusText}>
-                      {firstAppointment.status === "scheduled"
-                        ? "On-going apt."
-                        : firstAppointment.status}
+                  <View style={styles.appointmentInfoContainer}>
+                    <View style={styles.appointmentInfoRow}>
+                      <SubscriptionTicketIcon
+                        width={moderateWidthScale(15)}
+                        height={moderateWidthScale(15)}
+                      />
+                      <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                        {firstAppointment.appointmentType === "subscription"
+                          ? firstAppointment.subscription
+                          : "Service Base"}
+                      </Text>
+                    </View>
+                    <View style={styles.appointmentInfoRow}>
+                      <PersonIcon
+                        width={moderateWidthScale(15)}
+                        height={moderateWidthScale(15)}
+                      />
+                      <Text numberOfLines={1} style={styles.appointmentInfoText}>
+                        {firstAppointment.user}
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.appointmentInfoRow,
+                      { alignItems: "baseline", width: "90%" },
+                    ]}
+                  >
+                    <Ionicons
+                      name="time-outline"
+                      size={moderateWidthScale(15)}
+                      color={theme.darkGreen}
+                    />
+                    <Text style={styles.appointmentInfoText}>
+                      {formatDateTime(
+                        firstAppointment.appointmentDate,
+                        firstAppointment.appointmentTime,
+                        firstAppointment.appointmentType === "subscription"
+                          ? calculateTotalDuration(
+                              firstAppointment.subscriptionServices
+                            )
+                          : calculateTotalDuration(firstAppointment.services)
+                      )}
                     </Text>
                   </View>
-                  <Entypo
-                    name="chevron-small-right"
-                    size={moderateWidthScale(22)}
-                    color={theme.darkGreen}
-                  />
+                </View>
+
+                <View
+                  style={{
+                    gap: moderateHeightScale(10),
+                    alignItems: "flex-end",
+                    width: "40%",
+                  }}
+                >
+                  <Text style={styles.appointmentPrice}>
+                    {formatPrice(firstAppointment.paidAmount)}
+                  </Text>
+                  <View style={styles.appointmentStatusRow}>
+                    <View style={[styles.appointmentStatus]}>
+                      <Text style={styles.appointmentStatusText}>
+                        {firstAppointment.status === "scheduled"
+                          ? "On-going apt."
+                          : firstAppointment.status}
+                      </Text>
+                    </View>
+                    <Entypo
+                      name="chevron-small-right"
+                      size={moderateWidthScale(22)}
+                      color={theme.darkGreen}
+                    />
+                  </View>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ) : (
             <View style={styles.emptyStateContainer}>
               <Text style={styles.emptyStateText}>
