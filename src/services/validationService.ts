@@ -90,3 +90,38 @@ export const validateName = (
   return { isValid: true, error: null };
 };
 
+/**
+ * Validates description text
+ * @param description - Description string to validate
+ * @param minLength - Minimum length (default: 10)
+ * @param maxLength - Maximum length (default: 1000)
+ * @returns Object with isValid boolean and error message
+ */
+export const validateDescription = (
+  description: string,
+  minLength: number = 10,
+  maxLength: number = 1000
+): { isValid: boolean; error: string | null } => {
+  if (!description || description.trim().length === 0) {
+    return { isValid: false, error: "Description is required" };
+  }
+
+  const trimmedDescription = description.trim();
+
+  if (trimmedDescription.length < minLength) {
+    return {
+      isValid: false,
+      error: `Description must be at least ${minLength} characters long`,
+    };
+  }
+
+  if (trimmedDescription.length > maxLength) {
+    return {
+      isValid: false,
+      error: `Description must not exceed ${maxLength} characters`,
+    };
+  }
+
+  return { isValid: true, error: null };
+};
+

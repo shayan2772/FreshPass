@@ -61,6 +61,8 @@ export default function BusinessProfileSettingsScreen() {
   const handleRowPress = (key: string) => {
     if (key === "businessProfile") {
       router.push("./businessProfile");
+    } else if (key === "description") {
+      router.push("./description");
     } else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
