@@ -17,6 +17,7 @@ import {
 } from "@/src/theme/dimensions";
 import DashboardHeader from "@/src/components/DashboardHeader";
 import { MaterialIcons } from "@expo/vector-icons";
+import { PersonIcon } from "@/assets/icons";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -187,7 +188,7 @@ const createStyles = (theme: Theme) =>
       overflow: "hidden",
     },
     dayNumberSelected: {
-      backgroundColor: theme.orangeBrown,
+      backgroundColor: theme.orangeBrown30,
     },
     dayNumber: {
       fontSize: fontSize.size14,
@@ -259,17 +260,6 @@ const createStyles = (theme: Theme) =>
     appointmentWrapper: {
       marginBottom: moderateHeightScale(12),
     },
-    clientNameContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: moderateHeightScale(4),
-    },
-    clientNameText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.text,
-      marginLeft: moderateWidthScale(4),
-    },
     appointmentCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(8),
@@ -277,29 +267,54 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.borderLight,
     },
+    shadow: {
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      elevation: 2,
+    },
     appointmentHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(8),
     },
+    appointmentLeftSection: {
+      flex: 1,
+    },
     appointmentTitle: {
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
-      color: theme.text,
-      flex: 1,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    appointmentRightSection: {
+      alignItems: "flex-end",
+      gap: moderateHeightScale(8),
+    },
+    clientNameContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(4),
+    },
+    clientNameText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
     },
     appointmentStatus: {
       backgroundColor: theme.orangeBrown30,
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
-      marginLeft: moderateWidthScale(8),
     },
     appointmentStatusText: {
       fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
-      color: theme.text,
+      color: theme.selectCard,
     },
     appointmentMeta: {
       fontSize: fontSize.size12,
@@ -487,33 +502,37 @@ export default function CalendarScreen() {
                     {appointments.length > 0 ? (
                       appointments.map((appointment) => (
                         <View key={appointment.id} style={styles.appointmentWrapper}>
-                          <View style={styles.clientNameContainer}>
-                            <MaterialIcons
-                              name="person"
-                              size={moderateWidthScale(14)}
-                              color={theme.text}
-                            />
-                            <Text style={styles.clientNameText}>
-                              {appointment.client_name}
-                            </Text>
-                          </View>
                           <TouchableOpacity
-                            style={styles.appointmentCard}
+                            style={[styles.appointmentCard, styles.shadow]}
                             activeOpacity={0.7}
                           >
                             <View style={styles.appointmentHeader}>
-                              <Text style={styles.appointmentTitle}>
-                                {appointment.title}
-                              </Text>
-                              <View style={styles.appointmentStatus}>
-                                <Text style={styles.appointmentStatusText}>
-                                  {appointment.status_label}
+                              <View style={styles.appointmentLeftSection}>
+                                <Text style={styles.appointmentTitle}>
+                                  {appointment.title}
+                                </Text>
+                                <Text style={styles.appointmentMeta}>
+                                  {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
                                 </Text>
                               </View>
+                              <View style={styles.appointmentRightSection}>
+                                <View style={styles.clientNameContainer}>
+                                  <PersonIcon
+                                    width={moderateWidthScale(14)}
+                                    height={moderateWidthScale(14)}
+                                    color={theme.darkGreen}
+                                  />
+                                  <Text style={styles.clientNameText}>
+                                    {appointment.client_name}
+                                  </Text>
+                                </View>
+                                <View style={styles.appointmentStatus}>
+                                  <Text style={styles.appointmentStatusText}>
+                                    {appointment.status_label}
+                                  </Text>
+                                </View>
+                              </View>
                             </View>
-                            <Text style={styles.appointmentMeta}>
-                              {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
-                            </Text>
                           </TouchableOpacity>
                         </View>
                       ))

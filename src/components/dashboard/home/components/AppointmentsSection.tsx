@@ -106,14 +106,12 @@ const createStyles = (theme: Theme) =>
       justifyContent: "flex-end",
     },
     appointmentStatus: {
-      backgroundColor: theme.appointmentStatus,
+      backgroundColor: theme.orangeBrown30,
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.borderLight,
     },
     appointmentStatusText: {
       fontSize: fontSize.size12,

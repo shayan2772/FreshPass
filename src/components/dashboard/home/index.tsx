@@ -259,7 +259,8 @@ export default function HomeScreen() {
       }>(
         appointmentsEndpoints.list({
           status: "scheduled",
-          per_page: 7,
+          per_page: 10,
+          direction: "desc",
         })
       );
 
