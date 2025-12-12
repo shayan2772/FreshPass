@@ -11,6 +11,7 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { Skeleton } from "@/src/components/skeletons";
 import dayjs from "dayjs";
 import { SubscriptionTicketIcon, PersonIcon } from "@/assets/icons";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -186,6 +187,7 @@ export default function AppointmentsSection({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
 
   useEffect(() => {
     callApi();
@@ -270,7 +272,10 @@ export default function AppointmentsSection({
                 ? "1 upcoming appointment"
                 : `${totalCount} upcoming appointments`}
             </Text>
-            <TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => router.push("/(main)/dashboard/calendar")}
+            >
               <View style={styles.sectionLink}>
                 <Text style={styles.sectionLink}>View calendar</Text>
                 <Entypo
@@ -300,7 +305,9 @@ export default function AppointmentsSection({
                       height={moderateWidthScale(15)}
                     />
                     <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                      {firstAppointment.subscription}
+                      {firstAppointment.appointmentType === "subscription"
+                        ? firstAppointment.subscription
+                        : "Service Base"}
                     </Text>
                   </View>
                   <View style={styles.appointmentInfoRow}>
