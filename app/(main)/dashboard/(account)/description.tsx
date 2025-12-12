@@ -143,11 +143,11 @@ export default function DescriptionScreen() {
     }
   }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      fetchDescription();
-    }, [fetchDescription])
-  );
+   
+
+  useEffect(()=>{
+    fetchDescription();
+  },[])
 
   // Validate description when it changes
   useEffect(() => {
