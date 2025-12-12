@@ -26,7 +26,8 @@ const createStyles = (theme: Theme) =>
     upcomingCard: {
       backgroundColor: theme.upcomingCard,
       borderRadius: moderateWidthScale(6),
-      padding: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      height: moderateHeightScale(42),
       marginBottom: moderateHeightScale(12),
       flexDirection: "row",
       alignItems: "center",
@@ -49,7 +50,8 @@ const createStyles = (theme: Theme) =>
     currentAppointmentCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(16),
+      paddingHorizontal: moderateWidthScale(16),
+      height: moderateHeightScale(100),
       marginBottom: moderateHeightScale(12),
       shadowColor: theme.shadow,
       shadowOffset: {
@@ -60,8 +62,8 @@ const createStyles = (theme: Theme) =>
       shadowRadius: 1.41,
       elevation: 2,
       flexDirection: "row",
-      // alignItems: "center",
       justifyContent: "space-between",
+      paddingVertical: 15,
     },
     appointmentService: {
       fontSize: fontSize.size14,
