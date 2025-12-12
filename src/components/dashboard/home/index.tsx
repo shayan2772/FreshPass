@@ -236,7 +236,6 @@ export default function HomeScreen() {
     handleFetchUserDetails();
   }, []);
 
-  // Listen for app state changes and refresh data when app becomes active
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
@@ -248,10 +247,6 @@ export default function HomeScreen() {
       subscription.remove();
     };
   }, []);
-
-  
-
-  
 
   // Show loader only if businessStatus doesn't exist and is loading
   if (isLoading && !businessStatus && !apiError) {
