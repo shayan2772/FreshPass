@@ -1,5 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { StyleSheet, View, Text, ScrollView, Image } from "react-native";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  FlatList,
+  Image,
+  ActivityIndicator,
+} from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -10,15 +17,49 @@ import {
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import { MaterialIcons } from "@expo/vector-icons";
-import { UserAvatarIcon } from "@/assets/icons";
+import { ApiService } from "@/src/services/api";
+import { reviewsEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { Skeleton } from "@/src/components/skeletons";
+import dayjs from "dayjs";
 
 type Review = {
-  id: string;
-  name: string;
-  date: string;
-  rating: number;
-  text: string;
-  image: string | null;
+  id: number;
+  business_id: number;
+  business: {
+    id: number;
+    title: string;
+  };
+  user_id: number;
+  user: {
+    id: number;
+    name: string | null;
+    email: string;
+    profile_image_url: string | null;
+  };
+  overall_rating: string;
+  comment: string;
+  review_suggestion_id: number | null;
+  review_suggestion: {
+    id: number;
+    title: string;
+  } | null;
+  created_at: string;
+};
+
+type ReviewsResponse = {
+  success: boolean;
+  message: string;
+  data: Review[];
+  meta: {
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+  };
+  averages: {
+    overall_average_rating: number;
+  };
 };
 
 const createStyles = (theme: Theme) =>
@@ -29,9 +70,12 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       flexGrow: 1,
-      // paddingHorizontal: moderateWidthScale(20),
-      // paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(24),
+    },
+    headerSection: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(20),
+      paddingBottom: moderateHeightScale(12),
     },
     averageText: {
       fontSize: fontSize.size32,
@@ -71,8 +115,8 @@ const createStyles = (theme: Theme) =>
       marginRight: moderateWidthScale(12),
     },
     avatarImage: {
-      width:"100%",
-      height:"100%",
+      width: "100%",
+      height: "100%",
       overflow: "hidden",
       borderRadius: moderateWidthScale(4),
     },
@@ -94,6 +138,12 @@ const createStyles = (theme: Theme) =>
     starIcon: {
       marginRight: moderateWidthScale(4),
     },
+    reviewSuggestionTitle: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.selectCard,
+      marginBottom: moderateHeightScale(8),
+    },
     reviewText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
@@ -108,42 +158,104 @@ const createStyles = (theme: Theme) =>
       textDecorationColor: theme.selectCard,
       marginTop: moderateHeightScale(8),
     },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: moderateHeightScale(40),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
+    },
+    loadingFooter: {
+      paddingVertical: moderateHeightScale(20),
+      alignItems: "center",
+    },
   });
 
-const REVIEWS: Review[] = [
-  {
-    id: "1",
-    name: "Ofir Kiran",
-    date: "September 28, 2023",
-    rating: 5,
-    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth.",
-    image:
-      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-  },
-  {
-    id: "2",
-    name: "Ofir Kiran",
-    date: "September 28, 2023",
-    rating: 3.4,
-    text: "Super professional and right on time. Loved the attention to detail. From booking to the cut—it’s a smooth experience every time.",
-    image: null,
-  },
-];
+const textWrapLength = 145;
+const DEFAULT_AVATAR_URL =
+  "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
 
 export default function UserReviewsScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const { showBanner } = useNotificationContext();
+
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalReviews, setTotalReviews] = useState(0);
+  const [averageRating, setAverageRating] = useState(0);
   const [expandedReviews, setExpandedReviews] = useState<
     Record<string, boolean>
   >({});
 
+  const fetchReviews = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+
+      try {
+        const response = await ApiService.get<ReviewsResponse>(
+          reviewsEndpoints.list({
+            page,
+            per_page: 10,
+          })
+        );
+
+        if (response.success && response.data) {
+          if (append) {
+            setReviews((prev) => [...prev, ...response.data]);
+          } else {
+            setReviews(response.data);
+          }
+          setCurrentPage(response.meta.current_page);
+          setTotalPages(response.meta.last_page);
+          setTotalReviews(response.meta.total);
+          setAverageRating(response.averages.overall_average_rating);
+        }
+      } catch (error: any) {
+        showBanner(
+          "API Failed",
+          error?.message || "Failed to fetch reviews",
+          "error",
+          2500
+        );
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [showBanner]
+  );
+
+  useEffect(() => {
+    fetchReviews(1, false);
+  }, []);
+
+  const loadMore = useCallback(() => {
+    if (!loadingMore && currentPage < totalPages) {
+      fetchReviews(currentPage + 1, true);
+    }
+  }, [loadingMore, currentPage, totalPages, fetchReviews]);
+
   const getStars = (rating: number) => {
     const stars: ("star" | "star-half" | "star-border")[] = [];
+    const ratingNum = parseFloat(rating.toString());
     for (let i = 1; i <= 5; i += 1) {
-      if (rating >= i) {
+      if (ratingNum >= i) {
         stars.push("star");
-      } else if (rating >= i - 0.5) {
+      } else if (ratingNum >= i - 0.5) {
         stars.push("star-half");
       } else {
         stars.push("star-border");
@@ -152,86 +264,151 @@ export default function UserReviewsScreen() {
     return stars;
   };
 
-  const textWrapLength = 145;
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).format("MMMM D, YYYY");
+  };
+
+  const getProfileImageUrl = (profileImageUrl: string | null) => {
+    if (profileImageUrl) {
+      return `${process.env.EXPO_PUBLIC_API_BASE_URL}${profileImageUrl}`;
+    }
+    return DEFAULT_AVATAR_URL;
+  };
+
+  const getUserName = (user: Review["user"]) => {
+    return user.name || user.email.split("@")[0] || "User";
+  };
+
+  const renderReviewItem = ({ item }: { item: Review }) => {
+    const hasImage = !!item.user.profile_image_url;
+    const reviewText = item.comment || "";
+    const isExpanded = expandedReviews[item.id.toString()];
+    const shouldShowSeeMore = reviewText.length > textWrapLength && !isExpanded;
+
+    return (
+      <View style={styles.card}>
+        <View style={styles.cardHeaderRow}>
+          <View
+            style={[
+              styles.avatar,
+              {
+                backgroundColor: hasImage
+                  ? theme.lightGreen07
+                  : theme.green,
+              },
+            ]}
+          >
+            <Image
+              source={{ uri: getProfileImageUrl(item.user.profile_image_url) }}
+              style={styles.avatarImage}
+            />
+          </View>
+          <View>
+            <Text style={styles.nameText}>{getUserName(item.user)}</Text>
+            <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+          </View>
+        </View>
+
+        <View style={styles.starsRow}>
+          {getStars(parseFloat(item.overall_rating)).map((icon, index) => (
+            <MaterialIcons
+              key={`${item.id}-star-${index}`}
+              name={icon}
+              size={moderateWidthScale(18)}
+              color={theme.darkGreen}
+              style={styles.starIcon}
+            />
+          ))}
+        </View>
+
+        {item.review_suggestion && (
+          <Text style={styles.reviewSuggestionTitle}>
+            {item.review_suggestion.title}
+          </Text>
+        )}
+
+        {reviewText && (
+          <>
+            <Text style={styles.reviewText}>
+              {isExpanded || reviewText.length <= textWrapLength
+                ? reviewText
+                : `${reviewText.slice(0, textWrapLength).trim()}...`}
+            </Text>
+
+            {shouldShowSeeMore && (
+              <Text
+                style={styles.seeMoreText}
+                onPress={() =>
+                  setExpandedReviews((prev) => ({
+                    ...prev,
+                    [item.id.toString()]: true,
+                  }))
+                }
+              >
+                See more
+              </Text>
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
+
+  const renderFooter = () => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={theme.primary} />
+      </View>
+    );
+  };
+
+  const renderEmptyState = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.emptyStateContainer}>
+        <Text style={styles.emptyStateText}>No any review</Text>
+      </View>
+    );
+  };
+
+  const renderHeader = () => {
+    if (loading) return null;
+    return (
+      <View style={styles.headerSection}>
+        <Text style={styles.averageText}>
+          {averageRating.toFixed(1)} Average
+        </Text>
+        <Text style={styles.countLabel}>
+          {totalReviews} {totalReviews === 1 ? "rating" : "ratings"}
+        </Text>
+      </View>
+    );
+  };
+
+  const listData = loading ? [] : reviews;
 
   return (
     <View style={styles.container}>
       <StackHeader title="User reviews rate" />
-      <ScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={styles.contentContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={{ paddingHorizontal: moderateWidthScale(20) }}>
-          <Text style={styles.averageText}>4.9 Average</Text>
-          <Text style={styles.countLabel}>276 ratings</Text>
+      {loading   ? (
+        <View style={styles.contentContainer}>
+          <Skeleton screenType="Reviews" styles={styles} />
         </View>
-
-        {REVIEWS.map((review) => (
-          <View key={review.id} style={styles.card}>
-            <View style={styles.cardHeaderRow}>
-              <View
-                style={[
-                  styles.avatar,
-                  {
-                    backgroundColor: review.image
-                      ? theme.lightGreen07
-                      : theme.green,
-                  },
-                ]}
-              >
-                {review.image ? (
-                  <Image
-                    source={{ uri: review.image }}
-                    style={styles.avatarImage}
-                  />
-                ) : (
-                  <UserAvatarIcon
-                    width={widthScale(22)}
-                    height={widthScale(22)}
-                  />
-                )}
-              </View>
-              <View>
-                <Text style={styles.nameText}>{review.name}</Text>
-                <Text style={styles.dateText}>{review.date}</Text>
-              </View>
-            </View>
-
-            <View style={styles.starsRow}>
-              {getStars(review.rating).map((icon, index) => (
-                <MaterialIcons
-                  key={`${review.id}-star-${index}`}
-                  name={icon}
-                  size={moderateWidthScale(18)}
-                  color={theme.darkGreen}
-                  style={styles.starIcon}
-                />
-              ))}
-            </View>
-            <Text style={styles.reviewText}>
-              {expandedReviews[review.id] ||
-              review.text.length <= textWrapLength
-                ? review.text
-                : `${review.text.slice(0, textWrapLength).trim()}...`}
-            </Text>
-            {review.text.length > textWrapLength &&
-              !expandedReviews[review.id] && (
-                <Text
-                  style={styles.seeMoreText}
-                  onPress={() =>
-                    setExpandedReviews((prev) => ({
-                      ...prev,
-                      [review.id]: true,
-                    }))
-                  }
-                >
-                  See more
-                </Text>
-              )}
-          </View>
-        ))}
-      </ScrollView>
+      ) : (
+        <FlatList
+          data={listData}
+          renderItem={renderReviewItem}
+          keyExtractor={(item) => item.id.toString()}
+          ListHeaderComponent={renderHeader}
+          ListEmptyComponent={renderEmptyState}
+          ListFooterComponent={renderFooter}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          contentContainerStyle={styles.contentContainer}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </View>
   );
 }

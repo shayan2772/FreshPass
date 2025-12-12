@@ -101,3 +101,21 @@ export const appointmentsEndpoints = {
     return `/api/appointments${queryString ? `?${queryString}` : ''}`;
   },
 };
+
+/**
+ * Reviews endpoints
+ */
+export const reviewsEndpoints = {
+  list: (params?: {
+    page?: number;
+    per_page?: number;
+  }) => {
+    const queryParams = new URLSearchParams();
+    
+    if (params?.page) queryParams.append('page', params.page.toString());
+    if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    
+    const queryString = queryParams.toString();
+    return `/api/reviews${queryString ? `?${queryString}` : ''}`;
+  },
+};

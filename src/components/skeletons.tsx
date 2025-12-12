@@ -163,6 +163,51 @@ const createSkeletonStyles = (theme: Theme) =>
       width: moderateWidthScale(60),
       borderRadius: moderateWidthScale(4),
     },
+    reviewCardSkeleton: {
+      height: moderateHeightScale(150),
+      borderRadius: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(16),
+      marginHorizontal: moderateWidthScale(20),
+    },
+    reviewHeaderSkeleton: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(12),
+    },
+    reviewAvatarSkeleton: {
+      width: widthScale(42),
+      height: widthScale(42),
+      borderRadius: moderateWidthScale(4),
+      marginRight: moderateWidthScale(12),
+    },
+    reviewNameSkeleton: {
+      height: moderateHeightScale(16),
+      width: moderateWidthScale(120),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(4),
+    },
+    reviewDateSkeleton: {
+      height: moderateHeightScale(12),
+      width: moderateWidthScale(100),
+      borderRadius: moderateWidthScale(4),
+    },
+    reviewStarsSkeleton: {
+      height: moderateHeightScale(18),
+      width: moderateWidthScale(100),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(12),
+    },
+    reviewTextSkeleton: {
+      height: moderateHeightScale(14),
+      width: "100%",
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(4),
+    },
+    reviewTextSkeletonShort: {
+      height: moderateHeightScale(14),
+      width: "70%",
+      borderRadius: moderateWidthScale(4),
+    },
   });
 
 export const Skeleton = ({
@@ -177,7 +222,8 @@ export const Skeleton = ({
     | "SummaryStats"
     | "StaffOnDuty"
     | "AppointmentsSection"
-    | "WorkHistory";
+    | "WorkHistory"
+    | "Reviews";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -332,6 +378,30 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const reviewsSkeleton = styles ? (
+    <>
+      <View style={styles.headerSection}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={skeletonStyles.subtitleSkeleton} />
+      </View>
+      {[...Array(3)].map((_, index) => (
+        <View key={index} style={styles.card}>
+          <View style={skeletonStyles.reviewHeaderSkeleton}>
+            <View style={skeletonStyles.reviewAvatarSkeleton} />
+            <View style={{ flex: 1 }}>
+              <View style={skeletonStyles.reviewNameSkeleton} />
+              <View style={skeletonStyles.reviewDateSkeleton} />
+            </View>
+          </View>
+          <View style={skeletonStyles.reviewStarsSkeleton} />
+          <View style={skeletonStyles.reviewTextSkeleton} />
+          <View style={skeletonStyles.reviewTextSkeleton} />
+          <View style={skeletonStyles.reviewTextSkeletonShort} />
+        </View>
+      ))}
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -363,6 +433,11 @@ export const Skeleton = ({
       {screenType === "WorkHistory" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {workHistorySkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "Reviews" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {reviewsSkeleton}
         </SkeletonPlaceholder>
       )}
     </>
