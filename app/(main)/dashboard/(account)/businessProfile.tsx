@@ -184,7 +184,7 @@ export default function BusinessProfileScreen() {
 
   const getLogoUri = () => {
     if (!profileData?.logo_url) {
-      return null;
+      return  "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg"
     }
     const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
     return `${baseUrl}${profileData.logo_url}`;
