@@ -30,6 +30,7 @@ import {
   appointmentsEndpoints,
 } from "@/src/services/endpoints";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
+import { Appointment } from "@/src/components/appointmentDetail";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -73,46 +74,6 @@ interface DashboardStatsData {
   rating: {
     overall_rating: number;
   };
-}
-
-interface Appointment {
-  id: number;
-  appointmentDate: string;
-  appointmentTime: string;
-  appointmentType: "subscription" | "service";
-  status: string;
-  user: string;
-  userEmail: string;
-  subscription: string | null;
-  subscriptionServices: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }>;
-  subscriptionVisits: {
-    used: number;
-    total: number;
-  } | null;
-  services: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }>;
-  totalPrice: number;
-  paidAmount: string;
-  staffName: string;
-  staffEmail: string;
-  notes: string | null;
 }
 
 export default function HomeScreen() {

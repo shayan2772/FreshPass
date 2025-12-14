@@ -12,6 +12,7 @@ import { Skeleton } from "@/src/components/skeletons";
 import dayjs from "dayjs";
 import { SubscriptionTicketIcon, PersonIcon } from "@/assets/icons";
 import { useRouter } from "expo-router";
+import { Appointment } from "@/src/components/appointmentDetail";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -131,50 +132,6 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-interface Appointment {
-  id: number;
-  appointmentDate: string;
-  appointmentTime: string;
-  appointmentType: "subscription" | "service";
-  status: string;
-  user: string;
-  userEmail: string;
-  subscription: string | null;
-  subscriptionServices: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }> | {};
-  subscriptionVisits: {
-    used: number;
-    total: number;
-  } | null;
-  services: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }> | {};
-  totalPrice: number | {};
-  paidAmount: string;
-  staffName: string;
-  staffEmail: string;
-  notes: string | null;
-  businessTitle: string;
-  businessAddress: string;
-  businessLogoUrl: string | null;
-  createdAt: string;
-}
-
 interface AppointmentsSectionProps {
   data: Appointment[] | null;
   totalCount: number;
@@ -280,7 +237,7 @@ export default function AppointmentsSection({
             </Text>
             <TouchableOpacity
               activeOpacity={0.6}
-              onPress={() => router.push("/(main)/dashboard/calendar")}
+              onPress={() => router.push("/(main)/dashboard/(calendar)")}
             >
               <View style={styles.sectionLink}>
                 <Text style={styles.sectionLink}>View calendar</Text>
@@ -294,7 +251,7 @@ export default function AppointmentsSection({
           </View>
 
           {firstAppointment ? (
-            <TouchableOpacity
+            <TouchableOpacity 
               activeOpacity={0.7}
               onPress={() => {
                 router.push({
@@ -304,8 +261,8 @@ export default function AppointmentsSection({
                   },
                 });
               }}
-            >
-            <View style={[styles.currentAppointmentCard, styles.shadow]}>
+            
+            style={[styles.currentAppointmentCard, styles.shadow]}>
               <View
                 style={{
                   gap: moderateHeightScale(7),
@@ -387,8 +344,8 @@ export default function AppointmentsSection({
                   />
                 </View>
               </View>
-            </View>
             </TouchableOpacity>
+            
           ) : (
             <View style={styles.emptyStateContainer}>
               <Text style={styles.emptyStateText}>

@@ -9,6 +9,8 @@ import {
 } from "@/src/theme/dimensions";
 import { Skeleton } from "@/src/components/skeletons";
 import dayjs from "dayjs";
+import { Appointment } from "@/src/components/appointmentDetail";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -73,46 +75,6 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-interface Appointment {
-  id: number;
-  appointmentDate: string;
-  appointmentTime: string;
-  appointmentType: "subscription" | "service";
-  status: string;
-  user: string;
-  userEmail: string;
-  subscription: string | null;
-  subscriptionServices: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }>;
-  subscriptionVisits: {
-    used: number;
-    total: number;
-  } | null;
-  services: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }>;
-  totalPrice: number;
-  paidAmount: string;
-  staffName: string;
-  staffEmail: string;
-  notes: string | null;
-}
-
 interface WorkHistoryProps {
   data: Appointment[] | null;
   totalCount: number;
@@ -128,6 +90,7 @@ export default function WorkHistory({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
 
   useEffect(() => {
     callApi();
@@ -150,11 +113,13 @@ export default function WorkHistory({
   const getServiceTitles = (appointment: Appointment) => {
     if (
       appointment.appointmentType === "subscription" &&
+      Array.isArray(appointment.subscriptionServices) &&
       appointment.subscriptionServices.length > 0
     ) {
       return appointment.subscriptionServices.map((s) => s.name).join(", ");
     } else if (
       appointment.appointmentType === "service" &&
+      Array.isArray(appointment.services) &&
       appointment.services.length > 0
     ) {
       return appointment.services.map((s) => s.name).join(", ");
@@ -177,19 +142,31 @@ export default function WorkHistory({
       ) : data && data.length > 0 ? (
         data.map((item, index) => (
           <View key={item.id}>
-            <View style={styles.workHistoryItem}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.workHistoryService}>
-                  {getServiceTitles(item)}
-                </Text>
-                <Text style={styles.workHistoryDate}>
-                  {formatDateTime(item.appointmentDate, item.appointmentTime)}
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => {
+                router.push({
+                  pathname: "/(main)/dashboard/(home)/appointmentDetail",
+                  params: {
+                    appointment: JSON.stringify(item),
+                  },
+                });
+              }}
+            >
+              <View style={styles.workHistoryItem}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.workHistoryService}>
+                    {getServiceTitles(item)}
+                  </Text>
+                  <Text style={styles.workHistoryDate}>
+                    {formatDateTime(item.appointmentDate, item.appointmentTime)}
+                  </Text>
+                </View>
+                <Text style={styles.workHistoryPrice}>
+                  {formatPrice(item.paidAmount)}
                 </Text>
               </View>
-              <Text style={styles.workHistoryPrice}>
-                {formatPrice(item.paidAmount)}
-              </Text>
-            </View>
+            </TouchableOpacity>
             {index < data.length - 1 && <View style={styles.line} />}
           </View>
         ))
