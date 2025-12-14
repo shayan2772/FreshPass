@@ -159,7 +159,7 @@ export default function DashboardLayout() {
       />
 
       <Tabs.Screen
-        name="calendar"
+        name="(calendar)"
         options={{
           title: "Calendar",
           tabBarIcon: ({ color, size, focused }) => (

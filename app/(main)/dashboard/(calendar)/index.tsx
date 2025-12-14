@@ -674,7 +674,7 @@ export default function CalendarScreen() {
                               activeOpacity={0.7}
                               onPress={() => {
                                 router.push({
-                                  pathname: "/(main)/dashboard/(home)/appointmentDetail",
+                                  pathname: "/(main)/dashboard/(calendar)/appointmentDetail",
                                   params: {
                                     appointment: JSON.stringify(appointment.originalAppointment),
                                   },
