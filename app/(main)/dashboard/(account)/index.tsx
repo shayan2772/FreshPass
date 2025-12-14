@@ -160,7 +160,7 @@ export default function AccountScreen() {
     } else if (key === "notifications") {
       router.push("./notificationSettings");
     } else if (key === "business") {
-      router.push("./businessProfileSettings");
+      router.push("./(businessProfileSettings)");
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {

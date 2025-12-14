@@ -61,50 +61,24 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(calendar)") &&
     segments.includes("appointmentDetail");
-  const isProfileScreen =
+  const isChatBoxScreen =
+    Array.isArray(segments) && segments.includes("chatBox");
+    const isProfileScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("(profile)");
+  const isBusinessProfileSettingsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("(businessProfileSettings)");
+    const isNotificationSettingsScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("notificationSettings");
   const isRulesAndTermsScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("rulesAndTerms");
-  const isChangePasswordScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("(profile)") &&
-    segments.includes("changePassword");
-  const isEditProfileScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("(profile)") &&
-    segments.includes("editProfile");
-  const isNotificationSettingsScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("notificationSettings");
-  const isBusinessProfileSettingsScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("businessProfileSettings");
-  const isBusinessProfileScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("businessProfile");
-  const isEditBusinessProfileScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("editBusinessProfile");
-  const isDescriptionScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("description");
-  const isSocialMediaScreen =
-    Array.isArray(segments) &&
-    segments.includes("(account)") &&
-    segments.includes("socialMedia");
-  const isChatBoxScreen =
-    Array.isArray(segments) && segments.includes("chatBox");
 
   return (
     <Tabs
@@ -125,14 +99,8 @@ export default function DashboardLayout() {
             isCalendarAppointmentDetailScreen ||
             isProfileScreen ||
             isRulesAndTermsScreen ||
-            isChangePasswordScreen ||
-            isEditProfileScreen ||
             isNotificationSettingsScreen ||
             isBusinessProfileSettingsScreen ||
-            isBusinessProfileScreen ||
-            isEditBusinessProfileScreen ||
-            isDescriptionScreen ||
-            isSocialMediaScreen ||
             isChatBoxScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
