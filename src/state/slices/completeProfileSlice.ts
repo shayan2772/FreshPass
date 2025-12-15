@@ -717,6 +717,21 @@ const completeProfileSlice = createSlice({
     ) => {
       state.businessServices = action.payload;
     },
+    setServices: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: string;
+          name: string;
+          hours: number;
+          minutes: number;
+          price: number;
+          currency: string;
+        }>
+      >
+    ) => {
+      state.services = action.payload;
+    },
   },
 });
 
@@ -766,6 +781,7 @@ export const {
   setCategories,
   setServiceTemplates,
   setBusinessServices,
+  setServices,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

@@ -22,6 +22,7 @@ const createSkeletonStyles = (theme: Theme) =>
       width: "90%",
       borderRadius: moderateWidthScale(4),
       marginTop: moderateHeightScale(5),
+      marginBottom: moderateHeightScale(20),
     },
     searchSkeleton: {
       height: heightScale(18),
@@ -318,12 +319,12 @@ export const Skeleton = ({
         <View style={skeletonStyles.subtitleSkeleton} />
       </View>
 
-      <View style={styles.emptyState}>
+      {/* <View style={styles.emptyState}>
         <View style={skeletonStyles.emptyStateSkeleton} />
-      </View>
+      </View> */}
 
       <View style={styles.popularSection}>
-        <View style={skeletonStyles.popularTitleSkeleton} />
+        {/* <View style={skeletonStyles.popularTitleSkeleton} /> */}
         {[...Array(3)].map((_, index) => (
           <View key={index} style={skeletonStyles.suggestionItemSkeleton} />
         ))}

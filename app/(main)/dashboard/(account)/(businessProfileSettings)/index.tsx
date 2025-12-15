@@ -63,11 +63,15 @@ export default function BusinessProfileSettingsScreen() {
       router.push("./businessProfile");
     } else if (key === "description") {
       router.push("./description");
+    } else if (key === "services") {
+      router.push("./services");
     } else if (key === "socialMedia") {
       router.push("./socialMedia");
     } else if (key === "availability") {
       router.push("./setupAvailability");
-    } else {
+    } else if (key === "subscriptions") {
+   
+    }  else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
     }
@@ -79,7 +83,7 @@ export default function BusinessProfileSettingsScreen() {
     { key: "description", title: "Description" },
     { key: "availability", title: "Set availability" },
     { key: "services", title: "Manage services list" },
-    { key: "subscriptions", title: "Manage monthly subscription list" },
+    { key: "subscriptions", title: "Manage subscription list" },
     { key: "team", title: "Manage team" },
     { key: "socialMedia", title: "Your social media" },
     { key: "portfolio", title: "Manage portfolio photos" },
