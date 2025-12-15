@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -297,6 +299,13 @@ export default function ManageSubscriptionsScreen() {
   );
 
   const [loading, setLoading] = useState(true);
+  const [deletingSubscriptionId, setDeletingSubscriptionId] = useState<
+    string | null
+  >(null);
+  // Map of local subscription id (could be suggestion id) -> backend subscription plan id
+  const [subscriptionPlanIdMap, setSubscriptionPlanIdMap] = useState<
+    Record<string, number>
+  >({});
   const [isUpdating, setIsUpdating] = useState(false);
   const [editSubscriptionVisible, setEditSubscriptionVisible] = useState(false);
   const [editingSubscriptionId, setEditingSubscriptionId] = useState<
@@ -375,8 +384,20 @@ export default function ManageSubscriptionsScreen() {
             serviceIds: plan.services.map((service) => service.id.toString()),
           };
         });
+
+        const planIdMap: Record<string, number> = {};
+        response.data.subscription_plans.forEach((plan) => {
+          const suggestionId = getSuggestionIdForName(plan.name);
+          if (suggestionId) {
+            planIdMap[suggestionId] = plan.id;
+          }
+          planIdMap[plan.id.toString()] = plan.id;
+        });
+
+        setSubscriptionPlanIdMap(planIdMap);
         dispatch(setSubscriptions(mapped));
       } else {
+        setSubscriptionPlanIdMap({});
         dispatch(setSubscriptions([]));
       }
     } catch (error: any) {
@@ -387,6 +408,7 @@ export default function ManageSubscriptionsScreen() {
         "error",
         3000
       );
+      setSubscriptionPlanIdMap({});
       dispatch(setSubscriptions([]));
     } finally {
       setLoading(false);
@@ -430,7 +452,80 @@ export default function ManageSubscriptionsScreen() {
       .filter(Boolean) as string[];
   };
 
-  const handleDeleteSubscription = (subscriptionId: string) => {
+  const confirmDeleteSubscription = (
+    subscriptionId: string,
+    subscriptionName: string
+  ) => {
+    if (deletingSubscriptionId) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete subscription plan",
+      `Are you sure you want to delete "${subscriptionName}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDeleteSubscription(subscriptionId),
+        },
+      ]
+    );
+  };
+
+  const handleDeleteSubscription = async (subscriptionId: string) => {
+    const backendPlanId = subscriptionPlanIdMap[subscriptionId];
+
+    // If plan exists on backend, delete via API
+    if (backendPlanId) {
+      setDeletingSubscriptionId(subscriptionId);
+      try {
+        const response = await ApiService.delete<{
+          success: boolean;
+          message: string;
+        }>(`/api/subscription-plan/${backendPlanId}`);
+
+        if (response.success) {
+          dispatch(removeSubscription(subscriptionId));
+          setSubscriptionPlanIdMap((prev) => {
+            const updated = { ...prev };
+            delete updated[subscriptionId];
+            return updated;
+          });
+          showBanner(
+            "Success",
+            response.message || "Subscription plan deleted successfully.",
+            "success",
+            3000
+          );
+        } else {
+          showBanner(
+            "Error",
+            response.message || "Failed to delete subscription plan.",
+            "error",
+            3000
+          );
+        }
+      } catch (error: any) {
+        console.error("Failed to delete subscription plan:", error);
+        showBanner(
+          "Error",
+          error?.message ||
+            "Failed to delete subscription plan. Please try again.",
+          "error",
+          3000
+        );
+      } finally {
+        setDeletingSubscriptionId(null);
+      }
+      return;
+    }
+
+    // For newly added plans (not yet saved on backend), just remove from local list
     dispatch(removeSubscription(subscriptionId));
   };
 
@@ -607,14 +702,24 @@ export default function ManageSubscriptionsScreen() {
                             </Text>
                             <TouchableOpacity
                               onPress={() =>
-                                handleDeleteSubscription(subscription.id)
+                                confirmDeleteSubscription(
+                                  subscription.id,
+                                  subscription.packageName
+                                )
                               }
                             >
-                              <MaterialIcons
-                                name="delete-outline"
-                                size={moderateWidthScale(19)}
-                                color={theme.red}
-                              />
+                              {deletingSubscriptionId === subscription.id ? (
+                                <ActivityIndicator
+                                  size="small"
+                                  color={theme.red}
+                                />
+                              ) : (
+                                <MaterialIcons
+                                  name="delete-outline"
+                                  size={moderateWidthScale(19)}
+                                  color={theme.red}
+                                />
+                              )}
                             </TouchableOpacity>
                           </View>
                         </View>
