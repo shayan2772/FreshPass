@@ -25,6 +25,33 @@ interface BusinessHoursBottomSheetProps {
   visible: boolean;
   onClose: () => void;
   day: string;
+  onSave?: (
+    day: string,
+    fromHours: number,
+    fromMinutes: number,
+    tillHours: number,
+    tillMinutes: number,
+    breaks: Array<{
+      fromHours: number;
+      fromMinutes: number;
+      tillHours: number;
+      tillMinutes: number;
+    }>,
+    copyHoursEnabled?: boolean,
+    selectedDays?: string[]
+  ) => void;
+  initialData?: {
+    fromHours: number;
+    fromMinutes: number;
+    tillHours: number;
+    tillMinutes: number;
+    breaks: Array<{
+      fromHours: number;
+      fromMinutes: number;
+      tillHours: number;
+      tillMinutes: number;
+    }>;
+  };
 }
 
 interface BreakTime {
@@ -209,6 +236,8 @@ export default function BusinessHoursBottomSheet({
   visible,
   onClose,
   day,
+  onSave,
+  initialData,
 }: BusinessHoursBottomSheetProps) {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
@@ -216,14 +245,24 @@ export default function BusinessHoursBottomSheet({
   const theme = colors as Theme;
   const { businessHours } = useAppSelector((state) => state.completeProfile);
 
-  const dayData = businessHours[day] || {
-    isOpen: false,
-    fromHours: 0,
-    fromMinutes: 0,
-    tillHours: 0,
-    tillMinutes: 0,
-    breaks: [],
-  };
+  // Use initialData if provided (for non-Redux usage), otherwise use Redux state
+  const dayData = initialData
+    ? {
+        isOpen: true,
+        fromHours: initialData.fromHours,
+        fromMinutes: initialData.fromMinutes,
+        tillHours: initialData.tillHours,
+        tillMinutes: initialData.tillMinutes,
+        breaks: initialData.breaks,
+      }
+    : businessHours[day] || {
+        isOpen: false,
+        fromHours: 0,
+        fromMinutes: 0,
+        tillHours: 0,
+        tillMinutes: 0,
+        breaks: [],
+      };
 
   // Default hours: 9 AM - 6 PM
   const DEFAULT_FROM_HOURS = 9;
@@ -271,11 +310,30 @@ export default function BusinessHoursBottomSheet({
 
   useEffect(() => {
     if (visible && day) {
+      // Recompute dayData to ensure we have the latest initialData or Redux state
+      const currentDayData = initialData
+        ? {
+            isOpen: true,
+            fromHours: initialData.fromHours,
+            fromMinutes: initialData.fromMinutes,
+            tillHours: initialData.tillHours,
+            tillMinutes: initialData.tillMinutes,
+            breaks: initialData.breaks,
+          }
+        : businessHours[day] || {
+            isOpen: false,
+            fromHours: 0,
+            fromMinutes: 0,
+            tillHours: 0,
+            tillMinutes: 0,
+            breaks: [],
+          };
+
       // Check if day has no hours set (all zeros)
       const hasNoHours = 
-        (dayData.fromHours === 0 && dayData.fromMinutes === 0 && 
-         dayData.tillHours === 0 && dayData.tillMinutes === 0) ||
-        (!dayData.fromHours && !dayData.tillHours);
+        (currentDayData.fromHours === 0 && currentDayData.fromMinutes === 0 && 
+         currentDayData.tillHours === 0 && currentDayData.tillMinutes === 0) ||
+        (!currentDayData.fromHours && !currentDayData.tillHours);
       
       let currentFromHours = 0;
       let currentFromMinutes = 0;
@@ -293,10 +351,10 @@ export default function BusinessHoursBottomSheet({
         setTillHours(18);
         setTillMinutes(0);
       } else {
-        currentFromHours = dayData.fromHours || 0;
-        currentFromMinutes = dayData.fromMinutes || 0;
-        currentTillHours = dayData.tillHours || 0;
-        currentTillMinutes = dayData.tillMinutes || 0;
+        currentFromHours = currentDayData.fromHours || 0;
+        currentFromMinutes = currentDayData.fromMinutes || 0;
+        currentTillHours = currentDayData.tillHours || 0;
+        currentTillMinutes = currentDayData.tillMinutes || 0;
         setFromHours(currentFromHours);
         setFromMinutes(currentFromMinutes);
         setTillHours(currentTillHours);
@@ -304,7 +362,7 @@ export default function BusinessHoursBottomSheet({
       }
       
       // Auto-add at least 1 break time field if no breaks exist
-      const existingBreaks = dayData.breaks || [];
+      const existingBreaks = currentDayData.breaks || [];
       if (existingBreaks.length === 0) {
         // Calculate default break time: 1 hour in the middle of business hours
         const fromTotalMinutes = getTotalMinutes(currentFromHours, currentFromMinutes);
@@ -353,7 +411,7 @@ export default function BusinessHoursBottomSheet({
       setCopyHoursEnabled(false);
       setSelectedDays([]);
     }
-  }, [visible, day, dayData]);
+  }, [visible, day, initialData, businessHours]);
 
   const handleSave = () => {
     setOpeningHoursError(null);
@@ -461,31 +519,37 @@ export default function BusinessHoursBottomSheet({
       return;
     }
 
-    dispatch(
-      setDayHours({
-        day,
-        fromHours,
-        fromMinutes,
-        tillHours,
-        tillMinutes,
-        breaks: validBreaks,
-      })
-    );
+    // If onSave callback is provided, use it (for non-Redux usage)
+    if (onSave) {
+      onSave(day, fromHours, fromMinutes, tillHours, tillMinutes, validBreaks, copyHoursEnabled, selectedDays);
+    } else {
+      // Otherwise use Redux (for completeProfile flow)
+      dispatch(
+        setDayHours({
+          day,
+          fromHours,
+          fromMinutes,
+          tillHours,
+          tillMinutes,
+          breaks: validBreaks,
+        })
+      );
 
-    if (copyHoursEnabled && selectedDays.length > 0) {
-      selectedDays.forEach((selectedDay) => {
-        dispatch(
-          setDayHours({
-            day: selectedDay,
-            fromHours,
-            fromMinutes,
-            tillHours,
-            tillMinutes,
-            breaks: validBreaks,
-          })
-        );
-        dispatch(setDayAvailability({ day: selectedDay, isOpen: true }));
-      });
+      if (copyHoursEnabled && selectedDays.length > 0) {
+        selectedDays.forEach((selectedDay) => {
+          dispatch(
+            setDayHours({
+              day: selectedDay,
+              fromHours,
+              fromMinutes,
+              tillHours,
+              tillMinutes,
+              breaks: validBreaks,
+            })
+          );
+          dispatch(setDayAvailability({ day: selectedDay, isOpen: true }));
+        });
+      }
     }
 
     onClose();
