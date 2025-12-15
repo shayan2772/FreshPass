@@ -248,9 +248,8 @@ export default function EditSubscriptionBottomSheet({
         setPackageName("");
         setServicesPerMonth(1); // Default 1 service per month
         setPrice("10.00"); // Default price
-        // Select first 2 services by default
-        const firstTwoServiceIds = services.slice(0, 2).map((s) => s.id);
-        setSelectedServiceIds(firstTwoServiceIds);
+        // Don't preselect any services; user can add them later if needed
+        setSelectedServiceIds([]);
       }
       setErrors({});
     }
@@ -318,10 +317,6 @@ export default function EditSubscriptionBottomSheet({
     const priceValue = parseFloat(price);
     if (isNaN(priceValue) || priceValue <= 0) {
       newErrors.price = "Price must be greater than 0";
-    }
-
-    if (selectedServiceIds.length === 0) {
-      newErrors.services = "At least one service is required";
     }
 
     if (Object.keys(newErrors).length > 0) {

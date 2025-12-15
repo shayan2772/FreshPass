@@ -6,10 +6,7 @@ import {
   View,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
-import { setBusinessServices } from "@/src/state/slices/completeProfileSlice";
-import { ApiService } from "@/src/services/api";
-import { businessEndpoints } from "@/src/services/endpoints";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -80,7 +77,6 @@ export default function ServicePickerBottomSheet({
   selectedServiceIds,
   onSelectServices,
 }: ServicePickerBottomSheetProps) {
-  const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
@@ -103,43 +99,9 @@ export default function ServicePickerBottomSheet({
     }));
   }, [businessServices]);
 
-  const fetchBusinessServices = async () => {
-    try {
-      const response = await ApiService.get<{
-        success: boolean;
-        message: string;
-        data: Array<{
-          id: number;
-          template_id: number;
-          price: string;
-          description: string;
-          duration_hours: number;
-          duration_minutes: number;
-          active: boolean;
-          businessId: number;
-          business: string;
-          templateId: number;
-          name: string;
-          category: string;
-          created_at: string;
-          createdAt: string;
-        }>;
-      }>(businessEndpoints.services);
-
-      if (response.success && response.data) {
-        dispatch(setBusinessServices(response.data));
-      }
-    } catch (error) {
-      console.error("Failed to fetch business services:", error);
-      // Silent fail - no loader/error shown
-    }
-  };
-
   React.useEffect(() => {
     if (visible) {
       setLocalSelectedIds(selectedServiceIds);
-      // Refetch business services when opening (silent, no loader)
-      fetchBusinessServices();
     }
   }, [visible, selectedServiceIds]);
 
