@@ -204,6 +204,7 @@ export default function ManageTeamScreen() {
 
   const fetchTeam = async () => {
     setLoading(true);
+
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -269,7 +270,7 @@ export default function ManageTeamScreen() {
       });
 
       if (response.success && response.data?.invited_staff) {
-        fetchTeam();
+        fetchTeam( );
         dispatch(setStaffInvitationEmail(""));
 
         showBanner(
@@ -307,8 +308,8 @@ export default function ManageTeamScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {loading ? (
-          <Skeleton screenType="StaffOnDuty" styles={styles} />
+        {loading && teamMembers.length ===  0 ? (
+          <Skeleton screenType="Team" styles={styles} />
         ) : (
           <>
             <View style={styles.titleSec}>

@@ -31,7 +31,7 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(24),
     },
     listContainer: {
-    //   marginTop: moderateHeightScale(24),
+      //   marginTop: moderateHeightScale(24),
     },
     row: {
       paddingVertical: moderateHeightScale(16),
@@ -71,11 +71,11 @@ export default function BusinessProfileSettingsScreen() {
       router.push("./setupAvailability");
     } else if (key === "subscriptions") {
       router.push("./subscriptions");
-    } 
-    else if (key === "team") {
+    } else if (key === "team") {
       router.push("./team");
-    } 
-    else {
+    } else if (key === "portfolio") {
+      router.push("./portfolio");
+    } else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
     }
@@ -129,4 +129,3 @@ export default function BusinessProfileSettingsScreen() {
     </View>
   );
 }
-

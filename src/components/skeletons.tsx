@@ -248,6 +248,14 @@ const createSkeletonStyles = (theme: Theme) =>
       width: "70%",
       borderRadius: moderateWidthScale(4),
     },
+    memberCard2:{
+      marginTop: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(12),
+    },
+    memeberDivider:{
+      marginVertical:3
+    },
+  
   });
 
 export const Skeleton = ({
@@ -264,7 +272,8 @@ export const Skeleton = ({
     | "AppointmentsSection"
     | "WorkHistory"
     | "Reviews"
-    | "Notifications";
+    | "Notifications"
+    | "Team";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -473,6 +482,56 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const teamSkeleton = styles ? (
+    <>
+      <View style={styles.titleSec}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={skeletonStyles.subtitleSkeleton} />
+      </View>
+ 
+       
+
+      {[...Array(5)].map((_, index) => (
+        <React.Fragment key={index}>
+          <View style={[styles.memberCard,skeletonStyles.memberCard2]}>
+            <View style={skeletonStyles.staffOnDutyAvatar} />
+            <View
+              style={{
+                flex: 1,
+                marginLeft: moderateWidthScale(12),
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View
+                style={{
+                  flex: 1,
+                  marginRight: moderateWidthScale(12),
+                }}
+              >
+                <View style={skeletonStyles.workHistoryServiceSkeleton} />
+                <View
+                  style={[
+                    skeletonStyles.workHistoryDateSkeleton,
+                    { marginTop: moderateHeightScale(4) },
+                  ]}
+                />
+              </View>
+              <View
+                style={[
+                  skeletonStyles.workHistoryDateSkeleton,
+                  { width: moderateWidthScale(80) },
+                ]}
+              />
+            </View>
+          </View>
+          {index <= 5  && <View style={styles.divider} />}
+        </React.Fragment>
+      ))}
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -514,6 +573,11 @@ export const Skeleton = ({
       {screenType === "Notifications" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {notificationsSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "Team" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {teamSkeleton}
         </SkeletonPlaceholder>
       )}
     </>
