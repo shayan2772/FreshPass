@@ -70,8 +70,8 @@ export default function BusinessProfileSettingsScreen() {
     } else if (key === "availability") {
       router.push("./setupAvailability");
     } else if (key === "subscriptions") {
-   
-    }  else {
+      router.push("./subscriptions");
+    } else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
     }

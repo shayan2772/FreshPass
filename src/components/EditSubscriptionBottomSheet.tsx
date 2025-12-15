@@ -16,10 +16,7 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import {
-  updateSubscription,
-  addSubscription,
-} from "@/src/state/slices/completeProfileSlice";
+import { updateSubscription, addSubscription } from "@/src/state/slices/completeProfileSlice";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import ServicePickerBottomSheet from "@/src/components/ServicePickerBottomSheet";
 
@@ -301,38 +298,6 @@ export default function EditSubscriptionBottomSheet({
     setSelectedServiceIds(selectedServiceIds.filter((id) => id !== serviceId));
   };
 
-  const fetchBusinessServices = async () => {
-    try {
-      const response = await ApiService.get<{
-        success: boolean;
-        message: string;
-        data: Array<{
-          id: number;
-          template_id: number;
-          price: string;
-          description: string;
-          duration_hours: number;
-          duration_minutes: number;
-          active: boolean;
-          businessId: number;
-          business: string;
-          templateId: number;
-          name: string;
-          category: string;
-          created_at: string;
-          createdAt: string;
-        }>;
-      }>(businessEndpoints.services);
-
-      if (response.success && response.data) {
-        dispatch(setBusinessServices(response.data));
-      }
-    } catch (error) {
-      console.error("Failed to fetch business services:", error);
-      // Silent fail - no loader/error shown
-    }
-  };
-
   const handleSave = () => {
     const newErrors: typeof errors = {};
 
@@ -517,8 +482,6 @@ export default function EditSubscriptionBottomSheet({
         <TouchableOpacity
           style={styles.serviceDropdownButton}
           onPress={() => {
-            // Refetch business services when opening picker (silent, no loader)
-            fetchBusinessServices();
             setServicePickerVisible(true);
           }}
           activeOpacity={0.7}

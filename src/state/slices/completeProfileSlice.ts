@@ -717,6 +717,21 @@ const completeProfileSlice = createSlice({
     ) => {
       state.businessServices = action.payload;
     },
+    setSubscriptions: (
+      state,
+      action: PayloadAction<
+        Array<{
+          id: string;
+          packageName: string;
+          servicesPerMonth: number;
+          price: number;
+          currency: string;
+          serviceIds: string[];
+        }>
+      >
+    ) => {
+      state.subscriptions = action.payload;
+    },
     setServices: (
       state,
       action: PayloadAction<
@@ -781,6 +796,7 @@ export const {
   setCategories,
   setServiceTemplates,
   setBusinessServices,
+  setSubscriptions,
   setServices,
 } = completeProfileSlice.actions;
 
