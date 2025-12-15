@@ -5,6 +5,7 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -228,6 +229,11 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(12),
       paddingHorizontal: moderateWidthScale(12),
       justifyContent: "center",
+    },
+    todayLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
     },
     todayText: {
       fontSize: fontSize.size14,
@@ -611,7 +617,12 @@ export default function CalendarScreen() {
               <Text style={styles.allDayText}>All Day</Text>
             </View>
             <View style={styles.todayLabel}>
-              <Text style={styles.todayText}>{formatDate(selectedDate)}</Text>
+              <View style={styles.todayLabelRow}>
+                <Text style={styles.todayText}>{formatDate(selectedDate)}</Text>
+                {loading && (
+                  <ActivityIndicator size="small" color={theme.primary} />
+                )}
+              </View>
             </View>
           </View>
 
