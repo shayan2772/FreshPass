@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -247,6 +249,9 @@ export default function ManageServicesScreen() {
   const [editServiceVisible, setEditServiceVisible] = useState(false);
   const [serviceListVisible, setServiceListVisible] = useState(false);
 
+  // Map of local service id (template_id as string) -> backend service id
+  const [serviceIdMap, setServiceIdMap] = useState<Record<string, number>>({});
+  const [deletingServiceId, setDeletingServiceId] = useState<string | null>(null);
   const [serviceTemplatesLoading, setServiceTemplatesLoading] = useState(true);
   const [apiError, setApiError] = useState(false);
 
@@ -273,8 +278,16 @@ export default function ManageServicesScreen() {
           price: parseFloat(service.price),
           currency: "USD",
         }));
+
+        const backendIdMap: Record<string, number> = {};
+        response.data.services.forEach((service) => {
+          backendIdMap[service.template_id.toString()] = service.id;
+        });
+
+        setServiceIdMap(backendIdMap);
         dispatch(setServices(mapped));
       } else {
+        setServiceIdMap({});
         dispatch(setServices([]));
       }
     } catch (error: any) {
@@ -383,7 +396,76 @@ export default function ManageServicesScreen() {
     setServiceListVisible(true);
   };
 
-  const handleDeleteService = (serviceId: string) => {
+  const confirmDeleteService = (serviceId: string, serviceName: string) => {
+    if (deletingServiceId) {
+      return;
+    }
+
+    Alert.alert(
+      "Delete service",
+      `Are you sure you want to delete "${serviceName}"?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => handleDeleteService(serviceId),
+        },
+      ]
+    );
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    const backendServiceId = serviceIdMap[serviceId];
+
+    // If service exists on backend, delete via API
+    if (backendServiceId) {
+      setDeletingServiceId(serviceId);
+      try {
+        const response = await ApiService.delete<{
+          success: boolean;
+          message: string;
+        }>(`/api/services/${backendServiceId}`);
+
+        if (response.success) {
+          dispatch(removeService(serviceId));
+          setServiceIdMap((prev) => {
+            const updated = { ...prev };
+            delete updated[serviceId];
+            return updated;
+          });
+          showBanner(
+            "Success",
+            response.message || "Service deleted successfully.",
+            "success",
+            3000
+          );
+        } else {
+          showBanner(
+            "Error",
+            response.message || "Failed to delete service.",
+            "error",
+            3000
+          );
+        }
+      } catch (error: any) {
+        console.error("Failed to delete service:", error);
+        showBanner(
+          "Error",
+          error?.message || "Failed to delete service. Please try again.",
+          "error",
+          3000
+        );
+      } finally {
+        setDeletingServiceId(null);
+      }
+      return;
+    }
+
+    // For newly added services (not yet saved on backend), just remove from local list
     dispatch(removeService(serviceId));
   };
 
@@ -487,14 +569,26 @@ export default function ManageServicesScreen() {
                   <React.Fragment key={service.id}>
                     <View style={styles.serviceCard}>
                       <TouchableOpacity
-                        onPress={() => handleDeleteService(service.id)}
+                        onPress={
+                          deletingServiceId
+                            ? undefined
+                            : () =>
+                                confirmDeleteService(service.id, service.name)
+                        }
                         style={styles.deleteButton}
                       >
-                        <MaterialIcons
-                          name="delete-outline"
-                          size={moderateWidthScale(19)}
-                          color={theme.red}
-                        />
+                        {deletingServiceId === service.id ? (
+                          <ActivityIndicator
+                            size="small"
+                            color={theme.red}
+                          />
+                        ) : (
+                          <MaterialIcons
+                            name="delete-outline"
+                            size={moderateWidthScale(19)}
+                            color={theme.red}
+                          />
+                        )}
                       </TouchableOpacity>
                       <View style={styles.serviceInfo}>
                         <Text style={styles.serviceName}>{service.name}</Text>
@@ -503,7 +597,11 @@ export default function ManageServicesScreen() {
                         </Text>
                       </View>
                       <TouchableOpacity
-                        onPress={() => handleEditService(service.id)}
+                        onPress={
+                          deletingServiceId === service.id
+                            ? undefined
+                            : () => handleEditService(service.id)
+                        }
                         style={styles.editButton}
                       >
                         <Text style={styles.servicePrice}>
