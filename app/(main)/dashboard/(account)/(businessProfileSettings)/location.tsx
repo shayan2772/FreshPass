@@ -47,6 +47,7 @@ import {
 import { resolveCurrentLocation } from "@/src/constant/functions";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
+import NotificationBanner from "@/src/components/notificationBanner";
 
 interface LocationData {
   street_address: string;
@@ -210,6 +211,19 @@ export default function LocationScreen() {
   const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
 
+  // Local banner for modal
+  const [modalBanner, setModalBanner] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "info",
+  });
+
   // Search modal state
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [addressSearch, setAddressSearch] = useState("");
@@ -262,14 +276,17 @@ export default function LocationScreen() {
         setLongitude(response.data.longitude || "");
 
         if (response.data.latitude && response.data.longitude) {
+          const lat = parseFloat(response.data.latitude);
+          const lng = parseFloat(response.data.longitude);
           setSelectedLocation({
-            latitude: parseFloat(response.data.latitude),
-            longitude: parseFloat(response.data.longitude),
+            latitude: lat,
+            longitude: lng,
           });
+          // Set initial map region with closer zoom for location screen
           setMapRegion({
-            latitude: parseFloat(response.data.latitude),
-            longitude: parseFloat(response.data.longitude),
-            latitudeDelta: 0.01,
+            latitude: lat,
+            longitude: lng,
+            latitudeDelta: 0.01, // Very close zoom to see pin and circle clearly
             longitudeDelta: 0.01,
           });
         }
@@ -361,12 +378,12 @@ export default function LocationScreen() {
         const isUS = details.countryCode?.toUpperCase() === "US";
 
         if (!isUS) {
-          showBanner(
-            "Location Not Supported",
-            "Just US related country city acceptable",
-            "error",
-            3000
-          );
+          setModalBanner({
+            visible: true,
+            title: "Location Not Supported",
+            message: "Just US related country city acceptable",
+            type: "error",
+          });
           setIsFetchingDetails(false);
           sessionTokenRef.current = generateSessionToken();
           return;
@@ -388,7 +405,7 @@ export default function LocationScreen() {
           setMapRegion({
             latitude: details.latitude,
             longitude: details.longitude,
-            latitudeDelta: 0.01,
+            latitudeDelta: 0.01, // Very close zoom to see pin and circle clearly
             longitudeDelta: 0.01,
           });
         }
@@ -396,6 +413,12 @@ export default function LocationScreen() {
         setSearchModalVisible(false);
         setAddressSearch("");
         setPredictions([]);
+        setModalBanner({
+          visible: false,
+          title: "",
+          message: "",
+          type: "info",
+        });
       } catch (error) {
         setSuggestionError("Unable to fetch place details. Try again.");
       } finally {
@@ -414,7 +437,7 @@ export default function LocationScreen() {
     [handleFetchPlaceDetails]
   );
 
-  const handleUseCurrentLocation = useCallback(async () => {
+  const handleUseCurrentLocation = async () => {
     setLocationMessage(null);
 
     const permissionResult = await handleLocationPermission();
@@ -447,12 +470,12 @@ export default function LocationScreen() {
     const isUS = details.countryCode?.toUpperCase() === "US";
 
     if (!isUS) {
-      showBanner(
-        "Location Not Supported",
-        "Just US related country city acceptable",
-        "error",
-        3000
-      );
+      setModalBanner({
+        visible: true,
+        title: "Location Not Supported",
+        message: "Just US related country city acceptable",
+        type: "error",
+      });
       return;
     }
 
@@ -468,14 +491,15 @@ export default function LocationScreen() {
       setMapRegion({
         latitude: details.coordinates.latitude,
         longitude: details.coordinates.longitude,
-        latitudeDelta: 0.01,
+        latitudeDelta: 0.01, // Very close zoom to see pin and circle clearly
         longitudeDelta: 0.01,
       });
     }
 
     setSearchModalVisible(false);
     setAddressSearch("");
-  }, [apiKey, showBanner]);
+    setModalBanner({ visible: false, title: "", message: "", type: "info" });
+  };
 
   const handleSearchChange = useCallback((value: string) => {
     setAddressSearch(value);
@@ -664,7 +688,18 @@ export default function LocationScreen() {
           {selectedLocation && (
             <View style={styles.viewMapButtonContainer}>
               <TouchableOpacity
-                onPress={() => setMapModalVisible(true)}
+                onPress={() => {
+                  if (selectedLocation) {
+                    // Set map region with close zoom before opening modal
+                    setMapRegion({
+                      latitude: selectedLocation.latitude,
+                      longitude: selectedLocation.longitude,
+                      latitudeDelta: 0.001, // Very close zoom to see pin and circle clearly
+                      longitudeDelta: 0.001,
+                    });
+                  }
+                  setMapModalVisible(true);
+                }}
                 style={styles.viewMapButton}
                 activeOpacity={0.7}
               >
@@ -697,6 +732,12 @@ export default function LocationScreen() {
           setAddressSearch("");
           setPredictions([]);
           setLocationMessage(null);
+          setModalBanner({
+            visible: false,
+            title: "",
+            message: "",
+            type: "info",
+          });
         }}
         statusBarTranslucent
       >
@@ -712,6 +753,12 @@ export default function LocationScreen() {
                 setAddressSearch("");
                 setPredictions([]);
                 setLocationMessage(null);
+                setModalBanner({
+                  visible: false,
+                  title: "",
+                  message: "",
+                  type: "info",
+                });
               }}
               style={styles.modalCloseButton}
               activeOpacity={0.7}
@@ -742,51 +789,63 @@ export default function LocationScreen() {
               locationMessage={locationMessage}
             />
           </View>
+          <NotificationBanner
+            visible={modalBanner.visible}
+            title={modalBanner.title}
+            message={modalBanner.message}
+            type={modalBanner.type}
+            duration={3000}
+            onDismiss={() =>
+              setModalBanner((prev) => ({ ...prev, visible: false }))
+            }
+          />
         </SafeAreaView>
       </Modal>
 
       {/* Map Modal */}
-      <Modal
-        visible={mapModalVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setMapModalVisible(false)}
-        statusBarTranslucent
-      >
-        <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalHeaderTitle}>
-              Is the pin placed correctly?
-            </Text>
-            <TouchableOpacity
-              onPress={() => setMapModalVisible(false)}
-              style={styles.modalCloseButton}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name="x"
-                size={moderateWidthScale(24)}
-                color={theme.darkGreen}
+      {mapModalVisible && (
+        <Modal
+          visible={mapModalVisible}
+          animationType="slide"
+          transparent={false}
+          onRequestClose={() => setMapModalVisible(false)}
+          statusBarTranslucent
+        >
+          <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalHeaderTitle}>
+                Is the pin placed correctly?
+              </Text>
+              <TouchableOpacity
+                onPress={() => setMapModalVisible(false)}
+                style={styles.modalCloseButton}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name="x"
+                  size={moderateWidthScale(24)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalContent}>
+              <StepFourMapSection
+                mapRegion={mapRegion}
+                streetAddress={streetAddress}
+                selectedAddress={streetAddress}
+                area={city}
+                zipCode={zipCode}
+                selectedLocation={selectedLocation}
+                onZoom={handleMapZoom}
+                onRegionChangeComplete={handleMapRegionChange}
               />
-            </TouchableOpacity>
-          </View>
-          <View style={styles.modalContent}>
-            <StepFourMapSection
-              mapRegion={mapRegion}
-              streetAddress={streetAddress}
-              selectedAddress={streetAddress}
-              area={city}
-              zipCode={zipCode}
-              selectedLocation={selectedLocation}
-              onZoom={handleMapZoom}
-              onRegionChangeComplete={handleMapRegionChange}
-            />
-          </View>
-          <View style={styles.modalFooter}>
-            <Button title="Save" onPress={handleSaveMapLocation} />
-          </View>
-        </SafeAreaView>
-      </Modal>
+            </View>
+            <View style={styles.modalFooter}>
+              <Button title="Save" onPress={handleSaveMapLocation} />
+            </View>
+          </SafeAreaView>
+        </Modal>
+      )}
     </SafeAreaView>
   );
 }
