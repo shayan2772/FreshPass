@@ -48,6 +48,8 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
+      textDecorationLine:"underline",
+      textDecorationColor:theme.darkGreen
     },
     infoText: {
       fontSize: fontSize.size12,
@@ -95,7 +97,7 @@ export default function StepFourConfirmSection({
       <View style={styles.labelRow}>
         <Text style={styles.label}></Text>
         <Pressable onPress={onEditAddress}>
-          <Text style={styles.changeButton}>Change</Text>
+          <Text style={styles.changeButton}>Search Location</Text>
         </Pressable>
       </View>
 
