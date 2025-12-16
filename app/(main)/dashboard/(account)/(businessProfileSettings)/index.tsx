@@ -76,7 +76,7 @@ export default function BusinessProfileSettingsScreen() {
     } else if (key === "portfolio") {
       router.push("./portfolio");
     } else if (key === "businessLocation") {
-      
+      router.push("./location");
     } else {
       // TODO: Navigate to respective screens
       console.log("Business profile setting pressed:", key);
