@@ -6,7 +6,7 @@ import axios, {
   InternalAxiosRequestConfig,
 } from "axios";
 import NetInfo from "@react-native-community/netinfo";
-import { store } from "@/src/state/store";
+import { store, persistor } from "@/src/state/store";
 import { setTokens, resetUser } from "@/src/state/slices/userSlice";
 import { resetGeneral } from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
@@ -167,14 +167,18 @@ const refreshAccessToken = async (): Promise<string | null> => {
 };
 
 /**
- * Handle logout - clear tokens
+ * Handle logout - clear tokens and persisted storage
  * Note: Navigation and Redux reset should be handled in the component calling logout
- * This function only clears tokens from storage
+ * This function clears tokens from Redux state and all persisted data from SecureStore
  */
 const handleLogout = async () => {
+  // Clear Redux state
   store.dispatch(resetUser());
   store.dispatch(resetCompleteProfile());
   store.dispatch(resetGeneral());
+  
+  // Clear all persisted data from SecureStore (redux-persist)
+  await persistor.purge();
 };
 
 /**

@@ -29,6 +29,7 @@ export interface UserState {
   refreshToken: string | null;
   userRole: UserRole;
   businessStatus: BusinessStatus | null;
+  unreadCount: number;
   // Business status loading/error states (NOT persisted)
   businessStatusLoading: boolean;
   businessStatusError: boolean;
@@ -46,6 +47,7 @@ const initialState: UserState = {
   refreshToken: null,
   userRole: null,
   businessStatus: null,
+  unreadCount: 0,
   businessStatusLoading: false,
   businessStatusError: false,
 };
@@ -125,6 +127,9 @@ const userSlice = createSlice({
         state.profile_image_url = action.payload.profile_image_url;
       }
     },
+    setUnreadCount(state, action: PayloadAction<number>) {
+      state.unreadCount = action.payload;
+    },
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -137,6 +142,7 @@ const userSlice = createSlice({
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
+      state.unreadCount = initialState.unreadCount;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
     },
@@ -152,6 +158,7 @@ const userSlice = createSlice({
       state.refreshToken = initialState.refreshToken;
       state.userRole = initialState.userRole;
       state.businessStatus = initialState.businessStatus;
+      state.unreadCount = initialState.unreadCount;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
     },
@@ -166,6 +173,7 @@ export const {
   setBusinessStatusLoading,
   setBusinessStatusError,
   setUserDetails,
+  setUnreadCount,
   clearUser,
   resetUser,
 } = userSlice.actions;

@@ -28,9 +28,11 @@ import {
   dashboardEndpoints,
   staffEndpoints,
   appointmentsEndpoints,
+  notificationsEndpoints,
 } from "@/src/services/endpoints";
 import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
 import { Appointment } from "@/src/components/appointmentDetail";
+import { setUnreadCount } from "@/src/state/slices/userSlice";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -137,6 +139,24 @@ export default function HomeScreen() {
         );
       }
     } catch (error: any) {}
+  };
+
+  const handleFetchUnreadCount = async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          unread_count: number;
+        };
+      }>(notificationsEndpoints.unreadCount);
+
+      if (response.success && response.data) {
+        dispatch(setUnreadCount(response.data.unread_count));
+      }
+    } catch (error: any) {
+      // Silent fail - no banner or console
+    }
   };
 
   const handleFetchDashboardStats = async () => {
@@ -315,12 +335,14 @@ export default function HomeScreen() {
   useEffect(() => {
     handleFetchBusinessStatus();
     handleFetchUserDetails();
+    handleFetchUnreadCount();
   }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
         handleFetchBusinessStatus();
+        handleFetchUnreadCount();
       }
     });
 

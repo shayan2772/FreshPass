@@ -6,8 +6,9 @@ import {
   SectionList,
   TouchableOpacity,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -20,10 +21,12 @@ import {
   ProposalDocumentIcon,
   MessageBubbleOutlineIcon,
 } from "@/assets/icons";
-import { ApiService } from "@/src/services/api";
+import { ApiService, checkInternetConnection } from "@/src/services/api";
 import { notificationsEndpoints } from "@/src/services/endpoints";
 import { Skeleton } from "@/src/components/skeletons";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { useFocusEffect } from "expo-router";
+import { setUnreadCount } from "@/src/state/slices/userSlice";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -158,11 +161,13 @@ export default function NotificationsScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
+  const dispatch = useAppDispatch();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Determine icon type from title
   const getIconType = (title: string): NotificationIconType => {
@@ -261,6 +266,25 @@ export default function NotificationsScreen() {
     [showBanner]
   );
 
+  // Fetch unread count
+  const handleFetchUnreadCount = useCallback(async () => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          unread_count: number;
+        };
+      }>(notificationsEndpoints.unreadCount);
+
+      if (response.success && response.data) {
+        dispatch(setUnreadCount(response.data.unread_count));
+      }
+    } catch (error: any) {
+      // Silent fail - no banner or console
+    }
+  }, [dispatch]);
+
   // Mark notification as read
   const handleMarkAsRead = async (notificationId: number, itemId: string) => {
     try {
@@ -276,6 +300,8 @@ export default function NotificationsScreen() {
             notif.id === itemId ? { ...notif, isRead: true } : notif
           )
         );
+        // Fetch updated unread count
+        handleFetchUnreadCount();
       }
     } catch (error: any) {
       showBanner(
@@ -290,6 +316,42 @@ export default function NotificationsScreen() {
   useEffect(() => {
     fetchNotifications(1, false);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      handleFetchUnreadCount();
+    }, [handleFetchUnreadCount])
+  );
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+
+    try {
+      // Check internet connection first
+      const hasInternet = await checkInternetConnection();
+
+      if (!hasInternet) {
+        showBanner(
+          "No Internet Connection",
+          "Please check your internet connection and try again.",
+          "error",
+          2500
+        );
+        setRefreshing(false);
+        return;
+      }
+
+      // Call both APIs in parallel
+      await Promise.all([
+        fetchNotifications(1, false),
+        handleFetchUnreadCount(),
+      ]);
+    } catch (error: any) {
+      // Error handling is done in individual functions
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchNotifications, handleFetchUnreadCount, showBanner]);
 
   const loadMore = useCallback(() => {
     if (!loadingMore && currentPage < totalPages) {
@@ -413,6 +475,14 @@ export default function NotificationsScreen() {
           sections={sections}
           showsVerticalScrollIndicator={false}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
+            />
+          }
           renderSectionHeader={({ section }) => (
             <Text style={styles.sectionHeader}>{section.title}</Text>
           )}

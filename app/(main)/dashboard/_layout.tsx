@@ -1,7 +1,7 @@
 import { Tabs, useSegments } from "expo-router";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { useMemo } from "react";
-import { Platform, StyleSheet, View } from "react-native";
+import { Platform, StyleSheet, View, Text } from "react-native";
 import { Theme } from "@/src/theme/colors";
 import {
   HomeIcon,
@@ -40,6 +40,23 @@ const createStyles = (theme: Theme) =>
     iconBackground: {
       backgroundColor: theme.lightGreen2,
     },
+    badgeContainer: {
+      position: "absolute",
+      top: moderateHeightScale(-2),
+      right: moderateWidthScale(1),
+      backgroundColor: theme.red,
+      borderRadius: moderateWidthScale(10),
+      minWidth: moderateWidthScale(22),
+      height: moderateHeightScale(18),
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(4),
+    },
+    badgeText: {
+      color: theme.white,
+      fontSize: fontSize.size9,
+      fontFamily: fonts.fontMedium,
+    },
   });
 
 export default function DashboardLayout() {
@@ -49,6 +66,7 @@ export default function DashboardLayout() {
   const insets = useSafeAreaInsets();
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
   const segments = useSegments() as string[];
+  const unreadCount = useAppSelector((state) => state.user.unreadCount);
   const isUserReviewsScreen =
     Array.isArray(segments) &&
     segments.includes("(home)") &&
@@ -158,15 +176,15 @@ export default function DashboardLayout() {
                 color={color}
                 focused={focused}
               />
+              {unreadCount > 0 && (
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? "99+" : unreadCount.toString()}
+                  </Text>
+                </View>
+              )}
             </View>
           ),
-          // tabBarBadge: "9+",
-          // tabBarBadgeStyle: {
-          //   backgroundColor: theme.red,
-          //   minWidth: moderateWidthScale(18),
-          //   height: moderateHeightScale(18),
-          //   borderRadius: moderateWidthScale(9),
-          // },
         }}
       />
       <Tabs.Screen

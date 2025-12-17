@@ -146,4 +146,5 @@ export const notificationsEndpoints = {
     return `/api/notifications${queryString ? `?${queryString}` : ''}`;
   },
   markAsRead: (notificationId: number) => `/api/notifications/${notificationId}/read`,
+  unreadCount: `/api/notifications/unread-count`,
 };
