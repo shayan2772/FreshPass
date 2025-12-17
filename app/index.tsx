@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function Index() {
   const accessToken = useAppSelector((state) => state.user.accessToken);
+  const userRole = useAppSelector((state) => state.user.userRole);
   const [isReady, setIsReady] = useState(false);
 
   console.log("accessToken", accessToken);
@@ -22,10 +23,8 @@ export default function Index() {
   }
 
   // If access token exists, redirect to dashboard home
-  if (accessToken) {
+  if (accessToken)
     return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
-    // return <Redirect href={`/${MAIN_ROUTES.COMPLETE_PROFILE}`} />;
-  }
 
   // Otherwise, redirect to role screen
   return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;

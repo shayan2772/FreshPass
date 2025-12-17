@@ -7,6 +7,7 @@ export const ROUTES = {
     REGISTER_PASSWORD: "register/password",
     REGISTER_NEXT_STEPS: "register/nextSteps",
     COMPLETE_PROFILE: "completeProfile",
+    COMPLETE_STAFF_PROFILE: "completeStaffProfile",
     ACCEPT_TERMS: "acceptTerms",
     INTRODUCTION: "introduction",
     DASHBOARD: "dashboard",

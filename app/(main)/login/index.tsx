@@ -221,9 +221,17 @@ export default function Login() {
             // Clear saved password if checkbox is unchecked
             dispatch(setSavedPassword(null));
           }
-          // Navigate to dashboard
-          router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
-          // router.push(`/${MAIN_ROUTES.DASHBOARD}`);
+          if (user?.role?.toLowerCase() === "business") {
+            router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+          } else if (user?.role?.toLowerCase() === "staff") {
+            if (user?.isOnboard) {
+              router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+            } else {
+              router.replace(
+                `/(main)/${MAIN_ROUTES.COMPLETE_STAFF_PROFILE}` as any
+              );
+            }
+          }
         } else {
           Alert.alert("Error", "Invalid response from server");
         }
@@ -238,9 +246,7 @@ export default function Login() {
     }
   }, [email, password, savePassword, dispatch, router]);
 
-  const handleSocialLogin = useCallback((provider: SocialProvider) => {}, [
-    
-  ]);
+  const handleSocialLogin = useCallback((provider: SocialProvider) => {}, []);
 
   const handleForgetPassword = useCallback(() => {
     // TODO: Navigate to forget password screen
