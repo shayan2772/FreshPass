@@ -20,7 +20,7 @@ import {
 } from "react-native-safe-area-context";
 import { Region } from "react-native-maps";
 import { Feather } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -146,8 +146,7 @@ const createStyles = (theme: Theme) =>
     modalHeader: {
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      backgroundColor: theme.background,
       gap: moderateHeightScale(5),
     },
     modalHeaderTop: {
@@ -156,9 +155,14 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
     },
     modalHeaderTitle: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+    },
+    modalHeaderFirstName: {
+      fontSize: fontSize.size24,
+      fontFamily: fonts.fontBold,
+      color: theme.orangeBrown,
     },
     modalHeaderSubtitle: {
       fontSize: fontSize.size14,
@@ -206,6 +210,15 @@ export default function LocationScreen() {
   const { showBanner } = useNotificationContext();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const user = useAppSelector((state) => state.user);
+  
+  const firstName = useMemo(() => {
+    if (!user.name?.trim()) {
+      return "";
+    }
+    const [primary] = user.name.trim().split(" ");
+    return primary ?? user.name.trim();
+  }, [user.name]);
 
   const [loading, setLoading] = useState(true);
   const [locationData, setLocationData] = useState<LocationData | null>(null);
@@ -813,20 +826,34 @@ export default function LocationScreen() {
         >
           <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
             <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderTop}>
+                <TouchableOpacity
+                  onPress={() => setMapModalVisible(false)}
+                  style={styles.modalCloseButton}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="x"
+                    size={moderateWidthScale(24)}
+                    color={theme.darkGreen}
+                  />
+                </TouchableOpacity>
+                <View style={{ flex: 1 }} />
+              </View>
               <Text style={styles.modalHeaderTitle}>
-                Is the pin placed correctly?
+                Is the pin placed correctly
+                {firstName ? (
+                  <>
+                    , <Text style={styles.modalHeaderFirstName}>{firstName}?</Text>
+                  </>
+                ) : (
+                  "?"
+                )}
               </Text>
-              <TouchableOpacity
-                onPress={() => setMapModalVisible(false)}
-                style={styles.modalCloseButton}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(24)}
-                  color={theme.darkGreen}
-                />
-              </TouchableOpacity>
+              <Text style={styles.modalHeaderSubtitle}>
+                Let us know the location you'll be operating from so the
+                customers can find and book you easily.
+              </Text>
             </View>
             <View style={styles.modalContent}>
               <StepFourMapSection
