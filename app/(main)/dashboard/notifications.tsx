@@ -1,5 +1,12 @@
 import React, { useMemo, useState, useEffect, useCallback } from "react";
-import { StyleSheet, Text, View, SectionList, TouchableOpacity, ActivityIndicator } from "react-native";
+import {
+  StyleSheet,
+  Text,
+  View,
+  SectionList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -73,7 +80,7 @@ const createStyles = (theme: Theme) =>
     iconRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap:2
+      gap: 2,
     },
     leftTimelineDotContainer: {
       width: moderateWidthScale(10),
@@ -81,7 +88,7 @@ const createStyles = (theme: Theme) =>
     timelineOuterDot: {
       width: moderateWidthScale(8),
       height: moderateWidthScale(8),
-      borderRadius: moderateWidthScale(8/2),
+      borderRadius: moderateWidthScale(8 / 2),
       borderWidth: 2.2,
       borderColor: theme.orangeBrown,
       alignItems: "center",
@@ -90,7 +97,7 @@ const createStyles = (theme: Theme) =>
     iconContainer: {
       width: moderateWidthScale(40),
       height: moderateWidthScale(40),
-      borderRadius: moderateWidthScale(40/2),
+      borderRadius: moderateWidthScale(40 / 2),
       alignItems: "center",
       justifyContent: "center",
     },
@@ -229,7 +236,8 @@ export default function NotificationsScreen() {
         }>(notificationsEndpoints.list({ page, per_page: 8 }));
 
         if (response.success && response.data) {
-          const mappedNotifications = response.data.data.map(mapApiNotification);
+          const mappedNotifications =
+            response.data.data.map(mapApiNotification);
           if (append) {
             setNotifications((prev) => [...prev, ...mappedNotifications]);
           } else {
@@ -254,37 +262,34 @@ export default function NotificationsScreen() {
   );
 
   // Mark notification as read
-  const handleMarkAsRead = useCallback(
-    async (notificationId: number, itemId: string) => {
-      try {
-        const response = await ApiService.post<{
-          success: boolean;
-          message: string;
-        }>(notificationsEndpoints.markAsRead(notificationId));
+  const handleMarkAsRead = async (notificationId: number, itemId: string) => {
+    try {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+      }>(notificationsEndpoints.markAsRead(notificationId));
 
-        if (response.success) {
-          // Update local state
-          setNotifications((prev) =>
-            prev.map((notif) =>
-              notif.id === itemId ? { ...notif, isRead: true } : notif
-            )
-          );
-        }
-      } catch (error: any) {
-        showBanner(
-          "API Failed",
-          error?.message || "Failed to mark notification as read",
-          "error",
-          2500
+      if (response.success) {
+        // Update local state
+        setNotifications((prev) =>
+          prev.map((notif) =>
+            notif.id === itemId ? { ...notif, isRead: true } : notif
+          )
         );
       }
-    },
-    [showBanner]
-  );
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to mark notification as read",
+        "error",
+        2500
+      );
+    }
+  };
 
   useEffect(() => {
     fetchNotifications(1, false);
-  }, [ ]);
+  }, []);
 
   const loadMore = useCallback(() => {
     if (!loadingMore && currentPage < totalPages) {
@@ -360,11 +365,19 @@ export default function NotificationsScreen() {
     switch (icon) {
       case "proposal":
         return (
-          <ProposalDocumentIcon width={24} height={24} color={theme.darkGreen} />
+          <ProposalDocumentIcon
+            width={24}
+            height={24}
+            color={theme.darkGreen}
+          />
         );
       case "message":
         return (
-          <MessageBubbleOutlineIcon width={24} height={24} color={theme.darkGreen} />
+          <MessageBubbleOutlineIcon
+            width={24}
+            height={24}
+            color={theme.darkGreen}
+          />
         );
       default:
         return (
@@ -436,7 +449,9 @@ export default function NotificationsScreen() {
                 <Text style={styles.messageText}>
                   {item.description}
                   {item.highlight && (
-                    <Text style={styles.messageHighlight}>{item.highlight}</Text>
+                    <Text style={styles.messageHighlight}>
+                      {item.highlight}
+                    </Text>
                   )}
                 </Text>
               </View>
