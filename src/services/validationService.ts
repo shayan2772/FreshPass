@@ -76,14 +76,14 @@ export const validateName = (
     return { isValid: false, error: `${fieldName} is required` };
   }
 
-  // Name should only contain letters, spaces, hyphens, and apostrophes
+  // Name should only contain letters, numbers, spaces, hyphens, and apostrophes
   // Minimum 2 characters, maximum 50 characters
-  const nameRegex = /^[a-zA-Z\s\-']{2,50}$/;
+  const nameRegex = /^[a-zA-Z0-9\s\-']{2,50}$/;
 
   if (!nameRegex.test(name.trim())) {
     return {
       isValid: false,
-      error: `${fieldName} should only contain letters and be 2-50 characters long`,
+      error: `${fieldName} should only contain letters, numbers and be 2-50 characters long`,
     };
   }
 

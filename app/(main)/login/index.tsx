@@ -29,11 +29,12 @@ import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
-import { setUser } from "@/src/state/slices/userSlice";
+import { setBusinessStatus, setUser } from "@/src/state/slices/userSlice";
 import {
   setRegisterEmail,
   setSavedPassword,
 } from "@/src/state/slices/generalSlice";
+import { setFullName } from "@/src/state/slices/completeProfileSlice";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -147,6 +148,9 @@ export default function Login() {
   const dispatch = useAppDispatch();
   // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
   const selectedRole = useAppSelector((state) => state.general.role);
+  const currentBusinessStatus = useAppSelector(
+    (state) => state.user.businessStatus
+  );
 
   // Get saved email from general state (if exists)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
@@ -224,11 +228,21 @@ export default function Login() {
           if (user?.role?.toLowerCase() === "business") {
             router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
           } else if (user?.role?.toLowerCase() === "staff") {
-            if (user?.isOnboard) {
+            if (user?.is_onboarded) {
               router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
             } else {
+              dispatch(setFullName(user?.name || ""));
               router.replace(
                 `/(main)/${MAIN_ROUTES.COMPLETE_STAFF_PROFILE}` as any
+              );
+            }
+
+            if (currentBusinessStatus) {
+              dispatch(
+                setBusinessStatus({
+                  ...currentBusinessStatus,
+                  onboarding_completed: user?.is_onboarded || false,
+                })
               );
             }
           }

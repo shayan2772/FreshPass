@@ -19,13 +19,7 @@ import {
 import StackHeader from "@/src/components/StackHeader";
 import FloatingInput from "@/src/components/floatingInput";
 import Button from "@/src/components/button";
-import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
-import { MaterialIcons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
-import {
-  handleMediaLibraryPermission,
-  handleCameraPermission,
-} from "@/src/services/mediaPermissionService";
+import ImagePickerModal from "@/src/components/imagePickerModal";
 import { validateName } from "@/src/services/validationService";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ApiService } from "@/src/services/api";
@@ -103,22 +97,6 @@ const createStyles = (theme: Theme) =>
     inputContainer: {
       marginBottom: moderateHeightScale(20),
     },
-    optionItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: moderateHeightScale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
-    },
-    optionIcon: {
-      marginRight: moderateWidthScale(16),
-    },
-    optionText: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-      flex: 1,
-    },
     continueButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(24),
@@ -180,55 +158,6 @@ export default function EditBusinessProfileScreen() {
     setBusinessNameError(null);
   }, []);
 
-  const handleSelectFromGallery = useCallback(async () => {
-    setShowImagePickerModal(false);
-    const hasPermission = await handleMediaLibraryPermission();
-    if (!hasPermission) {
-      return;
-    }
-
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsMultipleSelection: false,
-        quality: 0.8,
-        allowsEditing: false,
-      });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setLogoImageUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error selecting image from gallery:", error);
-      Alert.alert(
-        "Error",
-        "Failed to select image from gallery. Please try again."
-      );
-    }
-  }, []);
-
-  const handleTakePhoto = useCallback(async () => {
-    setShowImagePickerModal(false);
-    const hasPermission = await handleCameraPermission();
-    if (!hasPermission) {
-      return;
-    }
-
-    try {
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        quality: 0.8,
-        allowsEditing: false,
-      });
-
-      if (!result.canceled && result.assets && result.assets[0]) {
-        setLogoImageUri(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Error taking photo:", error);
-      Alert.alert("Error", "Failed to take photo. Please try again.");
-    }
-  }, []);
 
   const handleUploadPhoto = () => {
     setShowImagePickerModal(true);
@@ -422,39 +351,11 @@ export default function EditBusinessProfileScreen() {
         />
       </View>
 
-      <ModalizeBottomSheet
+      <ImagePickerModal
         visible={showImagePickerModal}
         onClose={() => setShowImagePickerModal(false)}
-        title="Select Photo"
-      >
-        <TouchableOpacity
-          style={styles.optionItem}
-          onPress={handleSelectFromGallery}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons
-            name="photo-library"
-            size={moderateWidthScale(24)}
-            color={theme.darkGreen}
-            style={styles.optionIcon}
-          />
-          <Text style={styles.optionText}>From Gallery</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.optionItem}
-          onPress={handleTakePhoto}
-          activeOpacity={0.7}
-        >
-          <MaterialIcons
-            name="camera-alt"
-            size={moderateWidthScale(24)}
-            color={theme.darkGreen}
-            style={styles.optionIcon}
-          />
-          <Text style={styles.optionText}>From Camera</Text>
-        </TouchableOpacity>
-      </ModalizeBottomSheet>
+        onImageSelected={setLogoImageUri}
+      />
     </SafeAreaView>
   );
 }

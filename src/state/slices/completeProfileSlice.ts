@@ -103,6 +103,8 @@ export interface CompleteProfileState {
     created_at: string;
     createdAt: string;
   }>;
+  profileImageUri: string | null;
+  aboutYourself: string;
 }
 
 const initialState: CompleteProfileState = {
@@ -198,6 +200,8 @@ const initialState: CompleteProfileState = {
   categories: [],
   serviceTemplates: [],
   businessServices: [],
+  profileImageUri: null,
+  aboutYourself: "",
 };
 
 const completeProfileSlice = createSlice({
@@ -207,6 +211,9 @@ const completeProfileSlice = createSlice({
     resetCompleteProfile: () => initialState,
     setCurrentStep: (state, action: PayloadAction<number>) => {
       state.currentStep = action.payload;
+    },
+    setTotalSteps: (state, action: PayloadAction<number>) => {
+      state.totalSteps = action.payload;
     },
     goToNextStep: (state) => {
       if (state.currentStep < state.totalSteps) {
@@ -243,6 +250,8 @@ const completeProfileSlice = createSlice({
           state.phonePlaceholder = "201 555 0123";
           state.phoneNumber = "";
           state.phoneIsValid = false;
+          state.profileImageUri = null;
+          state.aboutYourself = "";
         }
 
         if (nextStep < 1) {
@@ -329,6 +338,12 @@ const completeProfileSlice = createSlice({
     },
     setFullName: (state, action: PayloadAction<string>) => {
       state.fullName = action.payload;
+    },
+    setProfileImageUri: (state, action: PayloadAction<string | null>) => {
+      state.profileImageUri = action.payload;
+    },
+    setAboutYourself: (state, action: PayloadAction<string>) => {
+      state.aboutYourself = action.payload;
     },
     setPhoneNumber: (
       state,
@@ -753,12 +768,15 @@ const completeProfileSlice = createSlice({
 export const {
   resetCompleteProfile,
   setCurrentStep,
+  setTotalSteps,
   goToNextStep,
   goToPreviousStep,
   setSearchTerm,
   setBusinessCategory,
   setBusinessName,
   setFullName,
+  setProfileImageUri,
+  setAboutYourself,
   setCountryDetails,
   setPhoneNumber,
   setAppointmentVolume,

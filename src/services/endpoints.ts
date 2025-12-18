@@ -9,6 +9,7 @@
  */
 export const staffEndpoints = {
   register: `/staff/auth/register`,
+  details: `/api/staff/details`,
   list: (active?: string) => {
     if (active) {
       return `/api/staff?active=${active}`;

@@ -20,6 +20,7 @@ export const themes = {
     lightGreen13: "rgba(40, 54, 24, 0.13)",
     lightGreen20: "rgba(40, 54, 24, 0.20)",
     lightGreen05: "rgba(40, 54, 24, 0.05)",
+    emptyProfileImage:"rgba(96, 108, 56, 0.25)",
     borderLight: "#2836181A",
     darkGreen15: "rgba(40, 54, 24, 0.15)",
     orangeBrown: "#DDA15E",

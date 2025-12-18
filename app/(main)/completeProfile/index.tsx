@@ -33,7 +33,6 @@ import {
   goToPreviousStep,
   setAddressStage,
   setSelectedLocation,
-  setCurrentStep,
 } from "@/src/state/slices/completeProfileSlice";
 import PrivacyBanner from "@/src/components/privacyBanner";
 import { ApiService } from "@/src/services/api";
