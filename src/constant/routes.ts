@@ -11,6 +11,7 @@ export const ROUTES = {
     ACCEPT_TERMS: "acceptTerms",
     INTRODUCTION: "introduction",
     DASHBOARD: "dashboard",
+    HOME: "(home)",
   },
 } as const;
 

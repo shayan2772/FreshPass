@@ -98,7 +98,7 @@ export default function CustomToggleInside({
           <ActivityIndicator size="small" color={theme.darkGreen} />
         ) : (
           <Text style={[styles.text, value && styles.textInactive]}>
-            Go offline
+           Inactive
           </Text>
         )}
       </View>
@@ -112,7 +112,7 @@ export default function CustomToggleInside({
           <ActivityIndicator size="small" color={theme.darkGreen} />
         ) : (
           <Text style={[styles.text, !value && styles.textInactive]}>
-            Online
+            Active
           </Text>
         )}
       </View>

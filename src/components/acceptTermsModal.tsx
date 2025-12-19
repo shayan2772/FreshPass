@@ -104,32 +104,34 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(12),
-      marginTop: moderateHeightScale(20),
     },
     checkbox: {
-      width: moderateWidthScale(24),
-      height: moderateWidthScale(24),
-      borderRadius: moderateWidthScale(12),
-      backgroundColor: theme.orangeBrown,
+      width: moderateWidthScale(45),
+      height: moderateWidthScale(45),
+      borderRadius: moderateWidthScale(45 / 2),
+      backgroundColor: theme.acceptTermsCheckbox,
       alignItems: "center",
       justifyContent: "center",
     },
     checkboxInnerSquare: {
-      width: moderateWidthScale(12),
-      height: moderateWidthScale(12),
+      width: moderateWidthScale(18),
+      height: moderateWidthScale(18),
       borderWidth: 1.5,
       borderColor: theme.white,
       borderRadius: moderateWidthScale(2),
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
     },
     checkboxLabel: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
       color: theme.white,
       flex: 1,
     },
     buttonContainer: {
-      marginTop: "auto",
       paddingBottom: moderateHeightScale(20),
+      gap: moderateHeightScale(22),
     },
   });
 
@@ -246,15 +248,15 @@ export default function AcceptTermsModal({
               activeOpacity={0.7}
             >
               <View style={styles.checkbox}>
-                {isAgreed ? (
-                  <Feather
-                    name="check"
-                    size={moderateWidthScale(14)}
-                    color={theme.white}
-                  />
-                ) : (
-                  <View style={styles.checkboxInnerSquare} />
-                )}
+                <View style={styles.checkboxInnerSquare}>
+                  {isAgreed && (
+                    <Feather
+                      name="check"
+                      size={moderateWidthScale(15)}
+                      color={theme.white}
+                    />
+                  )}
+                </View>
               </View>
               <Text style={styles.checkboxLabel}>I Agree</Text>
             </TouchableOpacity>

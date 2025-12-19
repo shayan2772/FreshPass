@@ -44,6 +44,7 @@ export const themes = {
     upcomingBorder: "rgba(221, 161, 94, 0.7)",
     appointmentStatus:"#AF8A2526",
     acceptTermsBackground: "rgba(96, 108, 56, 1)",
+    acceptTermsCheckbox: "rgba(188, 108, 37, 1)",
   },
   dark: {},
   blue: {},

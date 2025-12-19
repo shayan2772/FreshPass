@@ -24,7 +24,10 @@ import {
 import { ApiService } from "@/src/services/api";
 import { staffEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import { validateName, validateDescription } from "@/src/services/validationService";
+import {
+  validateName,
+  validateDescription,
+} from "@/src/services/validationService";
 import AcceptTermsModal from "@/src/components/acceptTermsModal";
 
 export default function CompleteStaffProfile() {
@@ -43,14 +46,13 @@ export default function CompleteStaffProfile() {
     aboutYourself,
   } = useAppSelector((state) => state.completeProfile);
 
-   
   const handleBack = useCallback(() => {
     // Prevent back navigation only if user is on the initial step they landed on from home
     if (currentStep <= 1) {
       return;
     }
 
-    if (currentStep >1) {
+    if (currentStep > 1) {
       dispatch(goToPreviousStep());
       return;
     }
@@ -153,7 +155,7 @@ export default function CompleteStaffProfile() {
         // Move to next step on success
         if (currentStep <= 1) {
           dispatch(goToNextStep());
-        } else if (currentStep >1) {
+        } else if (currentStep > 1) {
           // Show accept terms modal when step 2 is completed
           setShowAcceptTermsModal(true);
         }
@@ -182,11 +184,11 @@ export default function CompleteStaffProfile() {
     useCallback(() => {
       const onHardwareBackPress = () => {
         // Prevent back navigation only if user is on the initial step they landed on from home
-        if (currentStep <=1) {
+        if (currentStep <= 1) {
           return true; // Prevent back navigation
         }
 
-        if (currentStep >1) {
+        if (currentStep > 1) {
           dispatch(goToPreviousStep());
           return true;
         }
@@ -240,7 +242,7 @@ export default function CompleteStaffProfile() {
   }, [currentStep]);
 
   const continueLabel = useMemo(() => {
-    if (currentStep >1) {
+    if (currentStep > 1) {
       return "Save";
     }
     return "Create";
@@ -248,7 +250,7 @@ export default function CompleteStaffProfile() {
 
   const handleAcceptTermsContinue = useCallback(() => {
     setShowAcceptTermsModal(false);
-    router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
+    router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
   }, [router]);
 
   const handleAcceptTermsClose = useCallback(() => {

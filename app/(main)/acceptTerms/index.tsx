@@ -10,7 +10,7 @@ import {
   Platform,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -90,6 +90,7 @@ export default function AcceptTerms() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const insets = useSafeAreaInsets();
+  const userRole = useAppSelector((state) => state.user.userRole);
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
 
   // Disable back button
@@ -110,8 +111,9 @@ export default function AcceptTerms() {
   );
 
   const handleGetStarted = useCallback(() => {
-    // Navigate to introduction screen
-    router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
+    userRole === "staff"
+      ? router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/${MAIN_ROUTES.HOME}`)
+      : router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
   }, [router]);
 
   return (
@@ -143,26 +145,41 @@ export default function AcceptTerms() {
           </View>
 
           <View style={{ gap: moderateHeightScale(12) }}>
-            <Text style={styles.headline}>
-              Welcome to your new business command center
-            </Text>
+            {userRole === "business" ? (
+              <>
+                <Text style={styles.headline}>
+                  Welcome to your new business command center
+                </Text>
 
-            <Text style={styles.boldText}>
-              FreshPass is designed to simplify your operations and grow your
-              revenue.
-            </Text>
+                <Text style={styles.boldText}>
+                  FreshPass is designed to simplify your operations and grow
+                  your revenue.
+                </Text>
 
-            <Text style={styles.bodyText}>
-              Easily manage team schedules, process payments, track
-              subscriptions, and monitor staff performance—all from one powerful
-              dashboard.
-            </Text>
+                <Text style={styles.bodyText}>
+                  Easily manage team schedules, process payments, track
+                  subscriptions, and monitor staff performance—all from one
+                  powerful dashboard.
+                </Text>
 
-            <Text style={styles.bodyText}>
-              Stay connected on the go. Use the FreshPass mobile app to manage
-              bookings, send reminders, and view real-time business insights
-              from anywhere.
-            </Text>
+                <Text style={styles.bodyText}>
+                  Stay connected on the go. Use the FreshPass mobile app to
+                  manage bookings, send reminders, and view real-time business
+                  insights from anywhere.
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.headline}>
+                  Welcome to the FreshPass service staff side
+                </Text>
+
+                <Text style={styles.bodyText}>
+                  You’ve successfully created your profile on FreshPass
+                  platform.
+                </Text>
+              </>
+            )}
           </View>
 
           <View style={styles.buttonContainer}>
@@ -171,7 +188,9 @@ export default function AcceptTerms() {
               onPress={handleGetStarted}
               activeOpacity={0.7}
             >
-              <Text style={styles.buttonText}>Get started</Text>
+              <Text style={styles.buttonText}>
+                {userRole === "staff" ? "Go to dashboard" : "Get started"}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>
