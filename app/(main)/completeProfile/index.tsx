@@ -75,10 +75,14 @@ export default function CompleteProfile() {
     serviceTemplates,
   } = useAppSelector((state) => state.completeProfile);
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
+  const userRole = useAppSelector((state) => state.user.userRole);
   
   // Check if onboarding is not completed - prevent back navigation
+  // Only for business users (staff and client have their own profile pages)
   const isOnboardingIncomplete = Boolean(
-    businessStatus && !businessStatus.onboarding_completed
+    userRole === "business" &&
+    businessStatus &&
+    !businessStatus.onboarding_completed
   );
 
   // Check if user is on the step they landed on from home

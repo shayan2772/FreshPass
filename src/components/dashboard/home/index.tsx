@@ -30,7 +30,7 @@ import {
   appointmentsEndpoints,
   notificationsEndpoints,
 } from "@/src/services/endpoints";
-import { fetchBusinessStatus } from "@/src/state/thunks/businessThunks";
+import { fetchUserStatus } from "@/src/state/thunks/businessThunks";
 import { Appointment } from "@/src/components/appointmentDetail";
 import { setUnreadCount } from "@/src/state/slices/userSlice";
 
@@ -102,11 +102,11 @@ export default function HomeScreen() {
   const [workHistoryTotalCount, setWorkHistoryTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Role-based API handlers
-  const handleFetchStatus = async () => {
-    if (userRole !== "business") return;
+ 
+  const handleFetchUserStatus = async (): Promise<boolean> => {
     try {
-      await dispatch(fetchBusinessStatus({ showError: true })).unwrap();
+      await dispatch(fetchUserStatus({ showError: true })).unwrap();
+      return true;  
     } catch (error: any) {
       showBanner(
         "API Failed",
@@ -114,6 +114,7 @@ export default function HomeScreen() {
         "error",
         2500
       );
+      return false; // Failed
     }
   };
 
@@ -362,95 +363,67 @@ export default function HomeScreen() {
         return;
       }
 
-      // Role-based API calls
-      const apiCalls: Promise<any>[] = [
-        handleFetchUserDetails(),
-        handleFetchUnreadCount(),
-        handleFetchDashboardStats(),
-        handleFetchAppointments(),
-        handleFetchWorkHistory(),
-        handleFetchStatus()
-      ];
-
-      // Business-specific APIs
-      if (userRole === "business") {
-        apiCalls.push(handleFetchStaff("active"));
-      }
-
-      // Call all APIs in parallel
-      await Promise.all(apiCalls);
+      await fetchInitialData();
     } catch (error: any) {
-      // Error handling is done in individual functions
     } finally {
       setRefreshing(false);
     }
   }, [userRole]);
 
-  useEffect(() => {
-    // Initial data fetch based on role
-    handleFetchStatus();
-    handleFetchUserDetails();
-    handleFetchUnreadCount();
-  }, []);
+  const fetchInitialData = async () => {
+    const statusSuccess = await handleFetchUserStatus();
+    // Only proceed with other APIs if status fetch succeeded
+    if (statusSuccess) {
+      handleFetchUserDetails();
+      handleFetchUnreadCount();
+      handleFetchDashboardStats();
+      if (userRole === "business") {
+        handleFetchStaff("active");
+      }
+      handleFetchAppointments();
+      handleFetchWorkHistory();
+    }
+  };
 
   useEffect(() => {
-    const subscription = AppState.addEventListener("change", (nextAppState) => {
-      if (nextAppState === "active") {
-        // Refresh data when app comes to foreground
-        handleFetchUnreadCount();
-        handleFetchStatus();
+    fetchInitialData();
+
+    const subscription = AppState.addEventListener(
+      "change",
+      async (nextAppState) => {
+        if (nextAppState === "active") {
+          // Refresh data when app comes to foreground
+          handleFetchUserStatus();
+          handleFetchUnreadCount();
+        }
       }
-    });
+    );
 
     return () => {
       subscription.remove();
     };
   }, []);
 
-  // Business role: Show loader/retry only for business status
-  if (userRole === "business") {
-    if (isLoading && !businessStatus && !apiError) {
-      return (
-        <View style={styles.container}>
-          <StatusBar barStyle="dark-content" />
-          <DashboardHeader />
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        </View>
-      );
-    }
 
-    if (apiError && !isLoading) {
-      return (
-        <View style={styles.container}>
-          <StatusBar barStyle="dark-content" />
-          <DashboardHeader />
-          <View style={styles.loaderContainer}>
-            <RetryButton onPress={handleFetchStatus} loading={isLoading} />
-          </View>
-        </View>
-      );
-    }
-
-    if (!businessStatus && !apiError) {
-      return (
-        <View style={styles.container}>
-          <StatusBar barStyle="dark-content" />
-          <DashboardHeader />
-          <View style={styles.loaderContainer}>
-            <ActivityIndicator size="large" color={theme.primary} />
-          </View>
-        </View>
-      );
-    }
-  }
+  const showLoadingState =
+    (isLoading && !businessStatus && !apiError) ||
+    (!businessStatus && !apiError);
+  const showErrorState = apiError && !isLoading;
 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <DashboardHeader />
-      <ScrollView
+      {showLoadingState || showErrorState ? (
+        <View style={styles.loaderContainer}>
+          {showErrorState ? (
+            <RetryButton onPress={fetchInitialData} loading={isLoading} />
+          ) : (
+            <ActivityIndicator size="large" color={theme.primary} />
+          )}
+        </View>
+      ) : (
+        <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -498,6 +471,7 @@ export default function HomeScreen() {
           />
         </View>
       </ScrollView>
+      )}
     </View>
   );
 }

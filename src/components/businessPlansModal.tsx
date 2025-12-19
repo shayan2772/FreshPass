@@ -26,7 +26,7 @@ import { useAppSelector } from "@/src/hooks/hooks";
 import NotificationBanner from "@/src/components/notificationBanner";
 import { Skeleton } from "@/src/components/skeletons";
 import RetryButton from "@/src/components/retryButton";
-import { fetchBusinessStatus } from "../state/thunks/businessThunks";
+import { fetchUserStatus } from "../state/thunks/businessThunks";
 
 interface SubscriptionPlan {
   id: number;
@@ -331,7 +331,7 @@ function BusinessPlansModalContent({
         4000
       );
       onClose();
-      dispatch(fetchBusinessStatus({ showError: true })).unwrap();
+      dispatch(fetchUserStatus({ showError: true })).unwrap();
     } catch (err: any) {
       // Extract clean error message
       let errorMessage = "Failed to process payment";

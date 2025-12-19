@@ -6,29 +6,72 @@ import {
   setBusinessStatusError,
 } from "../slices/userSlice";
 import { ApiService } from "@/src/services/api";
-import { businessEndpoints } from "@/src/services/endpoints";
+import {
+  businessEndpoints,
+  staffEndpoints,
+  userEndpoints,
+} from "@/src/services/endpoints";
 import { BusinessStatus } from "../slices/userSlice";
 
-interface FetchBusinessStatusOptions {
+interface fetchUserStatusOptions {
   showError?: boolean;
 }
 
-export const fetchBusinessStatus = createAsyncThunk<
+export const fetchUserStatus = createAsyncThunk<
   BusinessStatus | null,
-  FetchBusinessStatusOptions | undefined,
+  fetchUserStatusOptions | undefined,
   { dispatch: AppDispatch; state: RootState }
->("business/fetchStatus", async (options, { dispatch, rejectWithValue }) => {
+>("user/status", async (options, { dispatch, rejectWithValue, getState }) => {
   const { showError = true } = options || {};
 
   dispatch(setBusinessStatusLoading(true));
   dispatch(setBusinessStatusError(false));
 
   try {
+    const state = getState();
+    const userRole = state.user.userRole;
+
+    // For staff users, response structure is different
+    if (userRole === "staff") {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          business: {
+            id: number;
+            title: string;
+          };
+        };
+        active: boolean;
+      }>(userEndpoints.status);
+
+      if (response.success && response.data) {
+        const businessStatusData: BusinessStatus = {
+          onboarding_completed: false,
+          current_step: null,
+          next_step: null,
+          business_category: null,
+          stripe_onboarding_status: "",
+          stripe_onboarding_link: null,
+          has_subscription: false,
+          subscription_status: "",
+          active: response.active ?? false,
+          business_id: response.data.business?.id,
+          business_name: response.data.business?.title,
+        };
+        dispatch(setBusinessStatus(businessStatusData));
+        dispatch(setBusinessStatusError(false));
+        return businessStatusData;
+      }
+      return null;
+    }
+
+    // For business users, use existing structure
     const response = await ApiService.get<{
       success: boolean;
       message: string;
       data: BusinessStatus;
-    }>(businessEndpoints.status);
+    }>(userEndpoints.status);
 
     if (response.success && response.data) {
       // Ensure active field exists, default to false if not provided
@@ -62,18 +105,25 @@ export const updateBusinessActiveStatus = createAsyncThunk<
   { active: boolean },
   { dispatch: AppDispatch; state: RootState }
 >(
-  "business/updateActiveStatus",
+  "user/ActiveStatus",
   async ({ active }, { dispatch, rejectWithValue, getState }) => {
     try {
+      const state = getState();
+      const userRole = state.user.userRole;
+
+      // Use different endpoint based on user role
+      const endpoint =
+        userRole === "staff"
+          ? staffEndpoints.profile
+          : businessEndpoints.profile;
+
       const response = await ApiService.post<{
         success: boolean;
         message: string;
         data: {
-          id: number;
-          updated_at: string;
           active: boolean;
         };
-      }>(businessEndpoints.profile, {
+      }>(endpoint, {
         active,
       });
 

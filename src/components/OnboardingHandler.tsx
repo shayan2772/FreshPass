@@ -9,11 +9,14 @@ export default function OnboardingHandler() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
+  const userRole = useAppSelector((state) => state.user.userRole);
   const accessToken = useAppSelector((state) => state.user.accessToken);
   const [modalVisible, setModalVisible] = useState(false);
 
-  // Show modal if onboarding is not completed and user is logged in
+  // Show modal only for business users if onboarding is not completed
+  // Staff and client don't need onboarding
   const shouldShowModal =
+    userRole === "business" &&
     accessToken &&
     businessStatus &&
     !businessStatus.onboarding_completed;

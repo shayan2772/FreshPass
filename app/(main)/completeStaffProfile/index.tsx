@@ -180,6 +180,10 @@ export default function CompleteStaffProfile() {
     }
   };
 
+  useEffect(() => {
+    ApiService.post(staffEndpoints.details, { is_onboarded: true });
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       const onHardwareBackPress = () => {

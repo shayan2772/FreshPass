@@ -15,6 +15,8 @@ export interface BusinessStatus {
   has_subscription: boolean;
   subscription_status: string;
   active: boolean;
+  business_id?: number;
+  business_name?: string;
 }
 
 export interface UserState {
@@ -28,8 +30,8 @@ export interface UserState {
   accessToken: string | null;
   refreshToken: string | null;
   userRole: UserRole;
-  businessStatus: BusinessStatus | null;
   unreadCount: number;
+  businessStatus: BusinessStatus | null;
   // Business status loading/error states (NOT persisted)
   businessStatusLoading: boolean;
   businessStatusError: boolean;

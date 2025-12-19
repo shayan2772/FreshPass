@@ -81,7 +81,7 @@ export default function DashboardLayout() {
     segments.includes("appointmentDetail");
   const isChatBoxScreen =
     Array.isArray(segments) && segments.includes("chatBox");
-    const isProfileScreen =
+  const isProfileScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("(profile)");
@@ -89,7 +89,7 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("(businessProfileSettings)");
-    const isNotificationSettingsScreen =
+  const isNotificationSettingsScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("notificationSettings");
@@ -203,13 +203,6 @@ export default function DashboardLayout() {
               />
             </View>
           ),
-          // tabBarBadge: 1,
-          // tabBarBadgeStyle: {
-          //   backgroundColor: theme.red,
-          //   minWidth: moderateWidthScale(18),
-          //   height: moderateHeightScale(18),
-          //   borderRadius: moderateWidthScale(9),
-          // },
         }}
       />
       <Tabs.Screen

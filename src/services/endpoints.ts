@@ -10,6 +10,7 @@
 export const staffEndpoints = {
   register: `/staff/auth/register`,
   details: `/api/staff/details`,
+  profile: `/api/staff/details`,
   list: (active?: string) => {
     if (active) {
       return `/api/staff?active=${active}`;
@@ -36,7 +37,6 @@ export const businessEndpoints = {
   onboarding: `/api/business/onboarding`,
   serviceTemplates: (categoryId: number) => `/api/service-templates?category_id=${categoryId}`,
   services: `/api/services?status=active`,
-  status: `/api/business/status`,
   profile: `/api/business/profile`,
   moduleData: (module: string, businessId?: number) => {
     const queryParams = new URLSearchParams();
@@ -59,6 +59,7 @@ export const userEndpoints = {
   update: `/api/user`,
   changePassword: `/api/user/change-password`,
   deleteAccount: `/api/user/account`,
+  status: `/api/user/status`,
 };
 
 /**
@@ -66,6 +67,7 @@ export const userEndpoints = {
  */
 export const stripeEndpoints = {
   paymentSheet: `/api/payment-sheet`,
+  profile: `/api/staff/details`,
 };
 
 /**

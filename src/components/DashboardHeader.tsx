@@ -28,7 +28,7 @@ import { LeafLogo } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import CustomToggleInside from "@/src/components/customToggleInside";
 import {
-  fetchBusinessStatus,
+  fetchUserStatus,
   updateBusinessActiveStatus,
 } from "@/src/state/thunks/businessThunks";
 import { checkInternetConnection } from "@/src/services/api";
@@ -96,6 +96,7 @@ function DashboardHeader({
   const dispatch = useAppDispatch();
   const { showBanner } = useNotificationContext();
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
+  const userRole = useAppSelector((state) => state.user.userRole);
   const isOnline = businessStatus?.active ?? false;
   const insets = useSafeAreaInsets();
 
@@ -124,7 +125,7 @@ function DashboardHeader({
     setIsFetchingStripeLink(true);
     try {
       const businessData = await dispatch(
-        fetchBusinessStatus({ showError: false })
+        fetchUserStatus({ showError: false })
       ).unwrap();
 
       // Open the link in browser after successful fetch
@@ -170,14 +171,20 @@ function DashboardHeader({
     setBusinessPlansModalVisible(true);
   };
 
+  // Only apply restrictions for business users
+  // Staff and client can activate anytime
   const showStripeBanner =
+    userRole === "business" &&
     businessStatus?.onboarding_completed === true &&
     businessStatus?.stripe_onboarding_status === "pending";
   const showBusinessSubscriptipn =
+    userRole === "business" &&
     businessStatus?.onboarding_completed === true &&
     businessStatus?.stripe_onboarding_status === "completed" &&
     businessStatus?.has_subscription === false;
-  const actualCanGoOnline = !showStripeBanner && !showBusinessSubscriptipn;
+  // For staff and client, always allow going online
+  const actualCanGoOnline =
+    userRole !== "business" || (!showStripeBanner && !showBusinessSubscriptipn);
 
   const animateBanner = useCallback(() => {
     Animated.sequence([
@@ -283,7 +290,8 @@ function DashboardHeader({
         </View>
       </View>
       <View style={styles.line} />
-      {(showStripeBanner || showBusinessSubscriptipn) && (
+      {userRole === "business" &&
+        (showStripeBanner || showBusinessSubscriptipn) && (
         <TouchableOpacity
           onPress={
             showStripeBanner
