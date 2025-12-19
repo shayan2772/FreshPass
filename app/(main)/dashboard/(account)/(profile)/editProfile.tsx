@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -11,7 +17,7 @@ import {
   Pressable,
   Dimensions,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { ApiService } from "@/src/services/api";
@@ -28,10 +34,7 @@ import StackHeader from "@/src/components/StackHeader";
 import FloatingInput from "@/src/components/floatingInput";
 import Button from "@/src/components/button";
 import ImagePickerModal from "@/src/components/imagePickerModal";
-import {
-  validateEmail,
-  validateName,
-} from "@/src/services/validationService";
+import { validateEmail, validateName } from "@/src/services/validationService";
 import { CloseIcon } from "@/assets/icons";
 import {
   CountryCode as PhoneCountryCode,
@@ -46,7 +49,10 @@ import {
   CountryItem,
   Style as CountryPickerStyle,
 } from "react-native-country-codes-picker";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
@@ -85,7 +91,7 @@ const createStyles = (theme: Theme) =>
     uploadSection: {
       flex: 1,
       justifyContent: "space-between",
-      gap:10
+      gap: 10,
     },
     uploadText: {
       fontSize: fontSize.size15,
@@ -102,7 +108,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       gap: moderateWidthScale(8),
-      width:155
+      width: 155,
     },
     uploadButtonText: {
       fontSize: fontSize.size14,
@@ -348,23 +354,25 @@ export default function EditProfileScreen() {
   const user = useAppSelector((state) => state.user);
   const dispatch = useAppDispatch();
   const { showBanner } = useNotificationContext();
-  
+
   // Initialize state with user data from Redux
   const initialCountryCode = user.country_code || "+1";
   const initialCountryIso = getCountryIsoFromDialCode(initialCountryCode);
   const initialPhoneNumber = user.phone || "";
-  const originalProfileImageUri = user?.profile_image_url 
+  const originalProfileImageUri = user?.profile_image_url
     ? process.env.EXPO_PUBLIC_API_BASE_URL + user.profile_image_url
     : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
 
   const [email, setEmail] = useState(user.email || "");
   const [fullName, setFullName] = useState(user.name || "");
-  const [profileImageUri, setProfileImageUri] = useState(originalProfileImageUri);
+  const [profileImageUri, setProfileImageUri] = useState(
+    originalProfileImageUri
+  );
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  
+
   // Phone number state
   const [countryCode, setCountryCode] = useState(initialCountryCode);
   const [countryIso, setCountryIso] = useState(initialCountryIso);
@@ -378,7 +386,7 @@ export default function EditProfileScreen() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const previousDigitCountRef = useRef(0);
   const isSettingCursorRef = useRef(false);
-  
+
   // Validate phone number on mount if it exists
   useEffect(() => {
     if (phoneNumber && countryCode) {
@@ -499,18 +507,15 @@ export default function EditProfileScreen() {
     ));
   }, [phonePlaceholder, phoneNumber, styles]);
 
-  const handleCountrySelect = useCallback(
-    (country: CountryItem) => {
-      setCountryCode(country.dial_code);
-      setCountryIso(country.code);
-      setPhonePlaceholder(
-        getPlaceholderForCountry(country.code, country.dial_code)
-      );
-      previousDigitCountRef.current = 0;
-      setPickerVisible(false);
-    },
-    []
-  );
+  const handleCountrySelect = useCallback((country: CountryItem) => {
+    setCountryCode(country.dial_code);
+    setCountryIso(country.code);
+    setPhonePlaceholder(
+      getPlaceholderForCountry(country.code, country.dial_code)
+    );
+    previousDigitCountRef.current = 0;
+    setPickerVisible(false);
+  }, []);
 
   const handlePhoneChange = useCallback(
     (value: string) => {
@@ -652,7 +657,6 @@ export default function EditProfileScreen() {
 
   const isPhoneInvalid = phoneNumber.length > 0 && !phoneIsValid;
 
-
   const handleUploadPhoto = () => {
     setShowImagePickerModal(true);
   };
@@ -668,10 +672,11 @@ export default function EditProfileScreen() {
   // - phone is invalid (but phone is optional, so empty is OK)
   const isFormValid = useMemo(() => {
     const fullNameValidation = validateName(fullName, "Your full name");
-    
+
     // Full name must be valid and not empty
-    const isFullNameValid = fullName.trim().length > 0 && fullNameValidation.isValid;
-    
+    const isFullNameValid =
+      fullName.trim().length > 0 && fullNameValidation.isValid;
+
     // Phone is optional, but if provided, it must be valid
     const isPhoneValid = phoneNumber.length === 0 || phoneIsValid;
 
@@ -684,7 +689,10 @@ export default function EditProfileScreen() {
 
     setFullNameError(fullNameValidation.error);
 
-    if (!fullNameValidation.isValid || !(phoneNumber.length === 0 || phoneIsValid)) {
+    if (
+      !fullNameValidation.isValid ||
+      !(phoneNumber.length === 0 || phoneIsValid)
+    ) {
       return;
     }
 
@@ -712,17 +720,23 @@ export default function EditProfileScreen() {
       const hasImageChanged = profileImageUri !== originalProfileImageUri;
       if (hasImageChanged) {
         // Check if it's a local file (starts with file://) or a remote URL
-        if (profileImageUri.startsWith("file://") || profileImageUri.startsWith("content://") || profileImageUri.startsWith("ph://")) {
+        if (
+          profileImageUri.startsWith("file://") ||
+          profileImageUri.startsWith("content://") ||
+          profileImageUri.startsWith("ph://")
+        ) {
           // It's a local file, append it
-          const fileExtension = profileImageUri.split(".").pop()?.toLowerCase() || "jpg";
+          const fileExtension =
+            profileImageUri.split(".").pop()?.toLowerCase() || "jpg";
           const fileName = `profile_image.${fileExtension}`;
-          const mimeType = fileExtension === "jpg" || fileExtension === "jpeg" 
-            ? "image/jpeg" 
-            : fileExtension === "png" 
-            ? "image/png" 
-            : fileExtension === "webp"
-            ? "image/webp"
-            : "image/jpeg";
+          const mimeType =
+            fileExtension === "jpg" || fileExtension === "jpeg"
+              ? "image/jpeg"
+              : fileExtension === "png"
+              ? "image/png"
+              : fileExtension === "webp"
+              ? "image/webp"
+              : "image/jpeg";
 
           formData.append("avatar", {
             uri: profileImageUri,
@@ -747,12 +761,9 @@ export default function EditProfileScreen() {
         success: boolean;
         message: string;
         data?: {
-          id: number;
           name: string;
-          email: string;
           phone: string | null;
           country_code: string | null;
-          email_notifications: boolean | null;
           profile_image_url: string | null;
         };
       }>(userEndpoints.update, formData, config);
@@ -777,9 +788,7 @@ export default function EditProfileScreen() {
           3000
         );
 
-      
-          router.back();
-         
+        router.back();
       } else {
         showBanner(
           "Error",
@@ -801,10 +810,9 @@ export default function EditProfileScreen() {
     }
   };
 
- 
   return (
-    <SafeAreaView  edges={["bottom"]} style={styles.container}>
-      <StackHeader title="Edit Profile"  />
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
+      <StackHeader title="Edit Profile" />
       <ScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
@@ -835,7 +843,7 @@ export default function EditProfileScreen() {
               <Text style={styles.uploadButtonText}>Upload photo</Text>
             </TouchableOpacity>
             <TouchableOpacity
-            disabled
+              disabled
               activeOpacity={0.7}
               onPress={handleImportFromGoogleDrive}
             >

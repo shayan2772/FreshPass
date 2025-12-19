@@ -124,8 +124,6 @@ export default function ProfileScreen() {
     ? process.env.EXPO_PUBLIC_API_BASE_URL + user.profile_image_url
     : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
   const userName = user.name || "";
-  const userPhone = user.phone || "";
-  const userCountryCode = user.country_code || "";
   const userEmail = user.email || "";
  
 

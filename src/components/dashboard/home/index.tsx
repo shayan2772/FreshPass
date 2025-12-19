@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect, useEffect } from "react";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
 import {
   StyleSheet,
   View,
@@ -21,7 +21,7 @@ import WorkHistory from "./components/WorkHistory";
 import DashboardHeader from "../../DashboardHeader";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
-import { setUserDetails } from "@/src/state/slices/userSlice";
+import { setUserDetails, UserRole } from "@/src/state/slices/userSlice";
 import { ApiService, checkInternetConnection } from "@/src/services/api";
 import {
   userEndpoints,
@@ -84,6 +84,7 @@ export default function HomeScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const dispatch = useAppDispatch();
   const { showBanner } = useNotificationContext();
+  const userRole = useAppSelector((state) => state.user.userRole) as UserRole;
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const isLoading = useAppSelector((state) => state.user.businessStatusLoading);
   const apiError = useAppSelector((state) => state.user.businessStatusError);
@@ -91,13 +92,19 @@ export default function HomeScreen() {
   const [dashboardStats, setDashboardStats] =
     useState<DashboardStatsData | null>(null);
   const [staffData, setStaffData] = useState<any[] | null>(null);
-  const [appointmentsData, setAppointmentsData] = useState<Appointment[] | null>(null);
+  const [appointmentsData, setAppointmentsData] = useState<
+    Appointment[] | null
+  >(null);
   const [appointmentsTotalCount, setAppointmentsTotalCount] = useState(0);
-  const [workHistoryData, setWorkHistoryData] = useState<Appointment[] | null>(null);
+  const [workHistoryData, setWorkHistoryData] = useState<Appointment[] | null>(
+    null
+  );
   const [workHistoryTotalCount, setWorkHistoryTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleFetchBusinessStatus = async () => {
+  // Role-based API handlers
+  const handleFetchStatus = async () => {
+    if (userRole !== "business") return;
     try {
       await dispatch(fetchBusinessStatus({ showError: true })).unwrap();
     } catch (error: any) {
@@ -116,7 +123,6 @@ export default function HomeScreen() {
         success: boolean;
         message: string;
         data: {
-          id: number;
           name: string;
           email: string;
           phone: string | null;
@@ -161,6 +167,7 @@ export default function HomeScreen() {
 
   const handleFetchDashboardStats = async () => {
     try {
+      // Role-based endpoint - same endpoint but backend handles role
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -181,6 +188,8 @@ export default function HomeScreen() {
   };
 
   const handleFetchStaff = async (active?: string) => {
+    // Only fetch staff for business role
+    if (userRole !== "business") return;
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -227,6 +236,32 @@ export default function HomeScreen() {
 
   const handleFetchAppointments = async () => {
     try {
+      // Role-based appointment fetching
+      let params: {
+        status?: string;
+        per_page: number;
+        direction: string;
+        staff_id?: number;
+      } = {
+        status: "scheduled",
+        per_page: 10,
+        direction: "desc",
+      };
+
+      // For staff role, fetch appointments assigned to this staff
+      if (userRole === "staff") {
+        // Backend should filter by current staff user automatically
+        params.status = "scheduled";
+      }
+      // For client role, fetch client's appointments
+      else if (userRole === "client") {
+        params.status = "scheduled";
+      }
+      // For business, fetch all scheduled appointments
+      else {
+        params.status = "scheduled";
+      }
+
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -239,13 +274,7 @@ export default function HomeScreen() {
             last_page: number;
           };
         };
-      }>(
-        appointmentsEndpoints.list({
-          status: "scheduled",
-          per_page: 10,
-          direction: "desc",
-        })
-      );
+      }>(appointmentsEndpoints.list(params));
 
       if (response.success && response.data) {
         setAppointmentsData(response.data.data);
@@ -262,8 +291,31 @@ export default function HomeScreen() {
   };
 
   const handleFetchWorkHistory = async () => {
-    
     try {
+      // Role-based work history fetching
+      let params: {
+        status?: string;
+        per_page: number;
+        direction: string;
+        staff_id?: number;
+      } = {
+        per_page: 10,
+        direction: "desc",
+      };
+
+      // For staff role, fetch completed appointments
+      if (userRole === "staff") {
+        params.status = "completed";
+      }
+      // For client role, fetch past appointments
+      else if (userRole === "client") {
+        params.status = "completed";
+      }
+      // For business, fetch without_scheduled (past appointments)
+      else {
+        params.status = "without_scheduled";
+      }
+
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -276,13 +328,7 @@ export default function HomeScreen() {
             last_page: number;
           };
         };
-      }>(
-        appointmentsEndpoints.list({
-          status: "without_scheduled",
-          per_page: 10,
-          direction: "desc",
-        })
-      );
+      }>(appointmentsEndpoints.list(params));
 
       if (response.success && response.data) {
         setWorkHistoryData(response.data.data);
@@ -295,7 +341,7 @@ export default function HomeScreen() {
         "error",
         2500
       );
-    }  
+    }
   };
 
   const handleRefresh = useCallback(async () => {
@@ -316,24 +362,33 @@ export default function HomeScreen() {
         return;
       }
 
-      // Call all APIs in parallel
-      await Promise.all([
-        handleFetchBusinessStatus(),
+      // Role-based API calls
+      const apiCalls: Promise<any>[] = [
         handleFetchUserDetails(),
+        handleFetchUnreadCount(),
         handleFetchDashboardStats(),
-        handleFetchStaff("active"),
         handleFetchAppointments(),
         handleFetchWorkHistory(),
-      ]);
+        handleFetchStatus()
+      ];
+
+      // Business-specific APIs
+      if (userRole === "business") {
+        apiCalls.push(handleFetchStaff("active"));
+      }
+
+      // Call all APIs in parallel
+      await Promise.all(apiCalls);
     } catch (error: any) {
       // Error handling is done in individual functions
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [userRole]);
 
   useEffect(() => {
-    handleFetchBusinessStatus();
+    // Initial data fetch based on role
+    handleFetchStatus();
     handleFetchUserDetails();
     handleFetchUnreadCount();
   }, []);
@@ -341,8 +396,9 @@ export default function HomeScreen() {
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (nextAppState) => {
       if (nextAppState === "active") {
-        handleFetchBusinessStatus();
+        // Refresh data when app comes to foreground
         handleFetchUnreadCount();
+        handleFetchStatus();
       }
     });
 
@@ -351,46 +407,43 @@ export default function HomeScreen() {
     };
   }, []);
 
-  // Show loader only if businessStatus doesn't exist and is loading
-  if (isLoading && !businessStatus && !apiError) {
-    return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <DashboardHeader />
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
+  // Business role: Show loader/retry only for business status
+  if (userRole === "business") {
+    if (isLoading && !businessStatus && !apiError) {
+      return (
+        <View style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <DashboardHeader />
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
         </View>
-      </View>
-    );
-  }
+      );
+    }
 
-  // Show retry button and empty state if API fails
-  if (apiError && !isLoading) {
-    return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <DashboardHeader />
-        <View style={styles.loaderContainer}>
-          <RetryButton
-            onPress={handleFetchBusinessStatus}
-            loading={isLoading}
-          />
+    if (apiError && !isLoading) {
+      return (
+        <View style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <DashboardHeader />
+          <View style={styles.loaderContainer}>
+            <RetryButton onPress={handleFetchStatus} loading={isLoading} />
+          </View>
         </View>
-      </View>
-    );
-  }
+      );
+    }
 
-  // Show loader only if businessStatus doesn't exist
-  if (!businessStatus && !apiError) {
-    return (
-      <View style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <DashboardHeader />
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={theme.primary} />
+    if (!businessStatus && !apiError) {
+      return (
+        <View style={styles.container}>
+          <StatusBar barStyle="dark-content" />
+          <DashboardHeader />
+          <View style={styles.loaderContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
         </View>
-      </View>
-    );
+      );
+    }
   }
 
   return (
@@ -409,7 +462,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Summary Statistics */}
+        {/* Summary Statistics - All roles */}
         <View style={styles.statsContainer}>
           <SummaryStats
             callApi={handleFetchDashboardStats}
@@ -417,14 +470,15 @@ export default function HomeScreen() {
           />
         </View>
 
-        {/* Staff on Duty - Full Width */}
-        <StaffOnDuty
-          data={staffData}
-          // callApi={() => handleFetchStaff()}
-          callApi={() => handleFetchStaff("active")}
-        />
+        {/* Staff on Duty - Only for Business role */}
+        {userRole === "business" && (
+          <StaffOnDuty
+            data={staffData}
+            callApi={() => handleFetchStaff("active")}
+          />
+        )}
 
-        {/* Appointments */}
+        {/* Appointments - All roles */}
         <View style={styles.appointmentsContainer}>
           <AppointmentsSection
             data={appointmentsData}
@@ -435,7 +489,7 @@ export default function HomeScreen() {
 
         <View style={styles.line} />
 
-        {/* Work History */}
+        {/* Work History - All roles */}
         <View style={styles.workHistoryContainer}>
           <WorkHistory
             data={workHistoryData}
