@@ -25,6 +25,7 @@ import { ApiService } from "@/src/services/api";
 import { staffEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { validateName, validateDescription } from "@/src/services/validationService";
+import AcceptTermsModal from "@/src/components/acceptTermsModal";
 
 export default function CompleteStaffProfile() {
   const router = useRouter();
@@ -33,6 +34,7 @@ export default function CompleteStaffProfile() {
   const { showBanner } = useNotificationContext();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAcceptTermsModal, setShowAcceptTermsModal] = useState(false);
   const {
     currentStep,
     fullName,
@@ -152,8 +154,8 @@ export default function CompleteStaffProfile() {
         if (currentStep <= 1) {
           dispatch(goToNextStep());
         } else if (currentStep >1) {
-          // Navigate to acceptTerms screen when step 2 is completed
-          router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
+          // Show accept terms modal when step 2 is completed
+          setShowAcceptTermsModal(true);
         }
       } else {
         showBanner(
@@ -244,30 +246,46 @@ export default function CompleteStaffProfile() {
     return "Create";
   }, [currentStep]);
 
+  const handleAcceptTermsContinue = useCallback(() => {
+    setShowAcceptTermsModal(false);
+    router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
+  }, [router]);
+
+  const handleAcceptTermsClose = useCallback(() => {
+    setShowAcceptTermsModal(false);
+  }, []);
+
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={"dark-content"} />
-      <StaffProfileHeader currentStep={currentStep} onBack={handleBack} />
-      <KeyboardAvoidingView
-        style={styles.contentContainer}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+    <>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar barStyle={"dark-content"} />
+        <StaffProfileHeader currentStep={currentStep} onBack={handleBack} />
+        <KeyboardAvoidingView
+          style={styles.contentContainer}
+          behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          {renderStep}
-        </ScrollView>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title={continueLabel}
-            onPress={handleContinue}
-            disabled={isContinueDisabled || isSubmitting}
-            loading={isSubmitting}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            {renderStep}
+          </ScrollView>
+          <View style={styles.buttonWrapper}>
+            <Button
+              title={continueLabel}
+              onPress={handleContinue}
+              disabled={isContinueDisabled || isSubmitting}
+              loading={isSubmitting}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+      <AcceptTermsModal
+        visible={showAcceptTermsModal}
+        onClose={handleAcceptTermsClose}
+        onContinue={handleAcceptTermsContinue}
+      />
+    </>
   );
 }

@@ -34,7 +34,11 @@ import {
   setRegisterEmail,
   setSavedPassword,
 } from "@/src/state/slices/generalSlice";
-import { setFullName } from "@/src/state/slices/completeProfileSlice";
+import {
+  setBusinessName,
+  setFullName,
+  setSalonBusinessHours,
+} from "@/src/state/slices/completeProfileSlice";
 
 type SocialProvider = "google" | "apple" | "facebook";
 
@@ -228,10 +232,74 @@ export default function Login() {
           if (user?.role?.toLowerCase() === "business") {
             router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
           } else if (user?.role?.toLowerCase() === "staff") {
+            // Save salon business hours from login response if available
+            if (user?.business_hours && Array.isArray(user.business_hours)) {
+              const parsedBusinessHours: {
+                [key: string]: {
+                  isOpen: boolean;
+                  fromHours: number;
+                  fromMinutes: number;
+                  tillHours: number;
+                  tillMinutes: number;
+                  breaks: Array<{
+                    fromHours: number;
+                    fromMinutes: number;
+                    tillHours: number;
+                    tillMinutes: number;
+                  }>;
+                };
+              } = {};
+              user.business_hours.forEach((bh: any) => {
+                // Convert day name to capitalized format (e.g., "monday" -> "Monday")
+                const dayName =
+                  bh.day.charAt(0).toUpperCase() +
+                  bh.day.slice(1).toLowerCase();
+
+                // Parse opening_time (HH:MM format) - handle null values
+                const [openingHours, openingMinutes] = bh.opening_time
+                  ? bh.opening_time.split(":").map(Number)
+                  : [0, 0];
+
+                // Parse closing_time (HH:MM format) - handle null values
+                const [closingHours, closingMinutes] = bh.closing_time
+                  ? bh.closing_time.split(":").map(Number)
+                  : [0, 0];
+
+                // Parse break_hours
+                const breaks = (bh.break_hours || []).map((breakTime: any) => {
+                  const [breakStartHours, breakStartMinutes] = breakTime.start
+                    ? breakTime.start.split(":").map(Number)
+                    : [0, 0];
+                  const [breakEndHours, breakEndMinutes] = breakTime.end
+                    ? breakTime.end.split(":").map(Number)
+                    : [0, 0];
+
+                  return {
+                    fromHours: breakStartHours,
+                    fromMinutes: breakStartMinutes,
+                    tillHours: breakEndHours,
+                    tillMinutes: breakEndMinutes,
+                  };
+                });
+
+                parsedBusinessHours[dayName] = {
+                  isOpen: !bh.closed,
+                  fromHours: openingHours,
+                  fromMinutes: openingMinutes,
+                  tillHours: closingHours,
+                  tillMinutes: closingMinutes,
+                  breaks,
+                };
+              });
+
+              dispatch(setSalonBusinessHours(parsedBusinessHours));
+            }
+            dispatch(setFullName(user?.name || ""));
+            dispatch(setBusinessName(user?.business_name || ""));
+
             if (user?.is_onboarded) {
               router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
             } else {
-              dispatch(setFullName(user?.name || ""));
               router.replace(
                 `/(main)/${MAIN_ROUTES.COMPLETE_STAFF_PROFILE}` as any
               );

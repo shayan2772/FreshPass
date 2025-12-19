@@ -48,6 +48,21 @@ export interface CompleteProfileState {
       }>;
     };
   };
+  salonBusinessHours: {
+    [key: string]: {
+      isOpen: boolean;
+      fromHours: number;
+      fromMinutes: number;
+      tillHours: number;
+      tillMinutes: number;
+      breaks: Array<{
+        fromHours: number;
+        fromMinutes: number;
+        tillHours: number;
+        tillMinutes: number;
+      }>;
+    };
+  } | null;
   services: Array<{
     id: string;
     name: string;
@@ -191,6 +206,7 @@ const initialState: CompleteProfileState = {
       breaks: [],
     },
   },
+  salonBusinessHours: null,
   services: [],
   subscriptions: [],
   tiktokUrl: "",
@@ -762,6 +778,26 @@ const completeProfileSlice = createSlice({
     ) => {
       state.services = action.payload;
     },
+    setSalonBusinessHours: (
+      state,
+      action: PayloadAction<{
+        [key: string]: {
+          isOpen: boolean;
+          fromHours: number;
+          fromMinutes: number;
+          tillHours: number;
+          tillMinutes: number;
+          breaks: Array<{
+            fromHours: number;
+            fromMinutes: number;
+            tillHours: number;
+            tillMinutes: number;
+          }>;
+        };
+      }>
+    ) => {
+      state.salonBusinessHours = action.payload;
+    },
   },
 });
 
@@ -816,6 +852,7 @@ export const {
   setBusinessServices,
   setSubscriptions,
   setServices,
+  setSalonBusinessHours,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

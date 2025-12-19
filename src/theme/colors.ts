@@ -43,6 +43,7 @@ export const themes = {
     upcomingCard: "rgba(221, 161, 94, 0.1)",
     upcomingBorder: "rgba(221, 161, 94, 0.7)",
     appointmentStatus:"#AF8A2526",
+    acceptTermsBackground: "rgba(96, 108, 56, 1)",
   },
   dark: {},
   blue: {},

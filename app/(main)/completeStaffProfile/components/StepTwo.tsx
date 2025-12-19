@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -65,15 +65,8 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
-    description: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginTop: moderateHeightScale(4),
-    },
     daysContainer: {
       gap: moderateHeightScale(2),
-      marginTop: moderateHeightScale(20),
     },
     dayRow: {
       flexDirection: "row",
@@ -126,19 +119,38 @@ const createStyles = (theme: Theme) =>
       marginLeft: moderateWidthScale(8),
     },
     copyCheckboxContainer: {
-      marginTop: moderateHeightScale(20),
-      gap: moderateHeightScale(8),
+      marginTop: moderateHeightScale(5),
+      marginBottom: moderateHeightScale(20),
+      gap: moderateHeightScale(15),
     },
-    copyCheckboxRow: {
+    copyHoursSection: {
       flexDirection: "row",
-      alignItems: "flex-start",
+      alignItems: "center",
       gap: moderateWidthScale(12),
     },
-    copyCheckboxText: {
-      flex: 1,
+    checkbox: {
+      width: moderateWidthScale(18),
+      height: moderateWidthScale(18),
+      borderRadius: moderateWidthScale(4),
+      borderWidth: 1.5,
+      borderColor: theme.black,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    checkboxChecked: {
+      backgroundColor: theme.orangeBrown,
+      borderColor: theme.orangeBrown,
+    },
+    checkboxLabel: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
+      flex: 1,
+    },
+    sectionDescription: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
     },
   });
 
@@ -147,9 +159,48 @@ export default function StepTwo() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-  const { businessHours } = useAppSelector((state) => state.completeProfile);
+  const { businessHours, salonBusinessHours, businessName } = useAppSelector(
+    (state) => state.completeProfile
+  );
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
+  const [copySalonHours, setCopySalonHours] = useState(false);
+
+  // Copy salon business hours when checkbox is checked
+  useEffect(() => {
+    if (copySalonHours && salonBusinessHours) {
+      // Copy all salon business hours to staff business hours
+      Object.keys(salonBusinessHours).forEach((day) => {
+        const salonDay = salonBusinessHours[day];
+        dispatch(
+          setDayHours({
+            day,
+            fromHours: salonDay.fromHours,
+            fromMinutes: salonDay.fromMinutes,
+            tillHours: salonDay.tillHours,
+            tillMinutes: salonDay.tillMinutes,
+            breaks: salonDay.breaks || [],
+          })
+        );
+        dispatch(setDayAvailability({ day, isOpen: salonDay.isOpen }));
+      });
+    } else if (!copySalonHours) {
+      // Clear/close all hours when unchecked
+      DAYS.forEach((day) => {
+        dispatch(
+          setDayHours({
+            day,
+            fromHours: 0,
+            fromMinutes: 0,
+            tillHours: 0,
+            tillMinutes: 0,
+            breaks: [],
+          })
+        );
+        dispatch(setDayAvailability({ day, isOpen: false }));
+      });
+    }
+  }, [copySalonHours, salonBusinessHours, dispatch]);
 
   const handleToggleDay = (day: string, value: boolean) => {
     const dayData = businessHours[day];
@@ -277,11 +328,45 @@ export default function StepTwo() {
                   />
                 </View>
               </TouchableOpacity>
-              <View style={styles.divider} /> 
+              <View style={styles.divider} />
             </React.Fragment>
           );
         })}
       </View>
+
+      {salonBusinessHours && (
+        <View style={styles.copyCheckboxContainer}>
+          <View style={styles.copyHoursSection}>
+            <TouchableOpacity
+              onPress={() => setCopySalonHours(!copySalonHours)}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  copySalonHours && styles.checkboxChecked,
+                ]}
+              >
+                {copySalonHours && (
+                  <Feather
+                    name="check"
+                    size={moderateWidthScale(14)}
+                    color={theme.white}
+                  />
+                )}
+              </View>
+            </TouchableOpacity>
+            <View style={{ gap: 3, width: "90%" }}>
+              <Text style={styles.checkboxLabel}>
+                Copy {businessName} business hours
+              </Text>
+              <Text style={styles.sectionDescription}>
+                This automatically sets their schedule to match the salon's open
+                hours.
+              </Text>
+            </View>
+          </View>
+        </View>
+      )}
 
       <BusinessHoursBottomSheet
         visible={bottomSheetVisible}
@@ -291,4 +376,3 @@ export default function StepTwo() {
     </View>
   );
 }
-
