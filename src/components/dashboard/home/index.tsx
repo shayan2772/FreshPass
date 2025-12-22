@@ -18,6 +18,7 @@ import SummaryStats from "./components/SummaryStats";
 import StaffOnDuty from "./components/StaffOnDuty";
 import AppointmentsSection from "./components/AppointmentsSection";
 import WorkHistory from "./components/WorkHistory";
+import WelcomeSection from "./components/WelcomeSection";
 import DashboardHeader from "../../DashboardHeader";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
@@ -306,11 +307,11 @@ export default function HomeScreen() {
 
       // For staff role, fetch completed appointments
       if (userRole === "staff") {
-        params.status = "completed";
+        params.status = "without_scheduled";
       }
       // For client role, fetch past appointments
       else if (userRole === "client") {
-        params.status = "completed";
+        params.status = "without_scheduled";
       }
       // For business, fetch without_scheduled (past appointments)
       else {
@@ -435,9 +436,8 @@ export default function HomeScreen() {
           />
         }
       >
-
-
-
+        {/* Welcome Section - Only for Staff role */}
+        {userRole === "staff" && <WelcomeSection />}
 
         {/* Summary Statistics - All roles */}
         <View style={styles.statsContainer}>
