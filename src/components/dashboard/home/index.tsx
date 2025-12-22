@@ -4,10 +4,10 @@ import {
   View,
   ScrollView,
   StatusBar,
-  ActivityIndicator,
   RefreshControl,
   AppState,
 } from "react-native";
+import LottieView from "lottie-react-native";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import {
@@ -34,6 +34,7 @@ import {
 import { fetchUserStatus } from "@/src/state/thunks/businessThunks";
 import { Appointment } from "@/src/components/appointmentDetail";
 import { setUnreadCount } from "@/src/state/slices/userSlice";
+import { IMAGES } from "@/src/constant/images";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -64,6 +65,10 @@ const createStyles = (theme: Theme) =>
       justifyContent: "center",
       alignItems: "center",
       backgroundColor: theme.background,
+    },
+    lottieLoader: {
+      width: moderateWidthScale(350),
+      height: moderateWidthScale(350),
     },
   });
 
@@ -406,7 +411,7 @@ export default function HomeScreen() {
   }, []);
 
 
-  const showLoadingState =
+  const showLoadingState = 
     (isLoading && !businessStatus && !apiError) ||
     (!businessStatus && !apiError);
   const showErrorState = apiError && !isLoading;
@@ -420,7 +425,12 @@ export default function HomeScreen() {
           {showErrorState ? (
             <RetryButton onPress={fetchInitialData} loading={isLoading} />
           ) : (
-            <ActivityIndicator size="large" color={theme.primary} />
+            <LottieView
+              source={IMAGES.plusLoader}
+              autoPlay
+              loop
+              style={styles.lottieLoader}
+            />
           )}
         </View>
       ) : (
