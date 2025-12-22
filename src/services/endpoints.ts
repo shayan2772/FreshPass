@@ -92,6 +92,7 @@ export const appointmentsEndpoints = {
     sort?: string;
     direction?: string;
     per_page?: number;
+    page?: number;
     from_date?: string;
     to_date?: string;
     staff_id?: number;
@@ -104,6 +105,7 @@ export const appointmentsEndpoints = {
     if (params?.sort) queryParams.append('sort', params.sort);
     if (params?.direction) queryParams.append('direction', params.direction);
     if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.from_date) queryParams.append('from_date', params.from_date);
     if (params?.to_date) queryParams.append('to_date', params.to_date);
     if (params?.staff_id) queryParams.append('staff_id', params.staff_id.toString());

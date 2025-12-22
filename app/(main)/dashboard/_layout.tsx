@@ -97,6 +97,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("rulesAndTerms");
+  const isWorkHistoryScreen =
+    Array.isArray(segments) &&
+    segments.includes("(home)") &&
+    segments.includes("workHistory");
 
   return (
     <Tabs
@@ -119,7 +123,8 @@ export default function DashboardLayout() {
             isRulesAndTermsScreen ||
             isNotificationSettingsScreen ||
             isBusinessProfileSettingsScreen ||
-            isChatBoxScreen) && { display: "none" },
+            isChatBoxScreen ||
+            isWorkHistoryScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,

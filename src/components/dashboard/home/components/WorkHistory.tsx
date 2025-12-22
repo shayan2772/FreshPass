@@ -127,20 +127,27 @@ export default function WorkHistory({
     return "Service";
   };
 
+  // Limit to first 5 items for display
+  const displayedItems = data ? data.slice(0, 5) : [];
+
   return (
     <View style={styles.workHistoryContainer}>
       <View style={styles.sectionHeader}>
         <Text style={styles.sectionTitle}>Work history</Text>
-        {data !== null && data.length > 0 && totalCount > 5 && (
-          <TouchableOpacity>
+        {data !== null && data.length > 5 && (
+          <TouchableOpacity
+            onPress={() => {
+              router.push("/(main)/dashboard/(home)/workHistory");
+            }}
+          >
             <Text style={styles.sectionLink}>View all</Text>
           </TouchableOpacity>
         )}
       </View>
       {!data  ? (
         <Skeleton screenType="WorkHistory" styles={styles} />
-      ) : data && data.length > 0 ? (
-        data.map((item, index) => (
+      ) : displayedItems.length > 0 ? (
+        displayedItems.map((item, index) => (
           <View key={item.id}>
             <TouchableOpacity
               activeOpacity={0.7}
@@ -167,7 +174,7 @@ export default function WorkHistory({
                 </Text>
               </View>
             </TouchableOpacity>
-            {index < data.length - 1 && <View style={styles.line} />}
+            {index < displayedItems.length - 1 && <View style={styles.line} />}
           </View>
         ))
       ) : (

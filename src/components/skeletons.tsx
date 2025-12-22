@@ -270,6 +270,7 @@ export const Skeleton = ({
     | "StaffOnDuty"
     | "AppointmentsSection"
     | "WorkHistory"
+    | "WorkHistoryList"
     | "Reviews"
     | "Notifications"
     | "Team";
@@ -433,6 +434,23 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const workHistoryListSkeleton = styles ? (
+    <>
+      {[...Array(10)].map((_, index) => (
+        <View key={index}>
+          <View style={styles.workHistoryItem}>
+            <View style={{ flex: 1 }}>
+              <View style={skeletonStyles.workHistoryServiceSkeleton} />
+              <View style={skeletonStyles.workHistoryDateSkeleton} />
+            </View>
+            <View style={skeletonStyles.workHistoryPriceSkeleton} />
+          </View>
+          {index < 9 && <View style={styles.line} />}
+        </View>
+      ))}
+    </>
+  ) : null;
+
   const reviewsSkeleton = styles ? (
     <>
       <View style={styles.headerSection}>
@@ -566,6 +584,11 @@ export const Skeleton = ({
       {screenType === "WorkHistory" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {workHistorySkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "WorkHistoryList" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {workHistoryListSkeleton}
         </SkeletonPlaceholder>
       )}
       {screenType === "Reviews" && (
