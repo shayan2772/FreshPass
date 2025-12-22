@@ -94,6 +94,7 @@ export default function WorkHistoryList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   // Format date and time
   const formatDateTime = (date: string, time: string) => {
@@ -185,6 +186,11 @@ export default function WorkHistoryList() {
           setHasMore(
             response.data.meta.current_page < response.data.meta.last_page
           );
+          
+          // Mark initial load as complete after first page loads
+          if (page === 1) {
+            setInitialLoadComplete(true);
+          }
         }
       } catch (error: any) {
         console.error("Failed to fetch work history:", error);
@@ -201,12 +207,13 @@ export default function WorkHistoryList() {
   }, [fetchWorkHistory]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loadingMore && hasMore) {
+    // Only load more if initial load is complete, not currently loading, and has more data
+    if (initialLoadComplete && !loading && !loadingMore && hasMore) {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
       fetchWorkHistory(nextPage, true);
     }
-  }, [currentPage, hasMore, loadingMore, fetchWorkHistory]);
+  }, [initialLoadComplete, loading, currentPage, hasMore, loadingMore, fetchWorkHistory]);
 
   const renderItem = useCallback(
     ({ item, index }: { item: Appointment; index: number }) => {
@@ -277,7 +284,7 @@ export default function WorkHistoryList() {
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
         onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={0.3}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
