@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import SkeletonPlaceholder from "react-native-skeleton-placeholder";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import {
   heightScale,
@@ -248,14 +248,13 @@ const createSkeletonStyles = (theme: Theme) =>
       width: "70%",
       borderRadius: moderateWidthScale(4),
     },
-    memberCard2:{
+    memberCard2: {
       marginTop: moderateHeightScale(12),
       marginBottom: moderateHeightScale(12),
     },
-    memeberDivider:{
-      marginVertical:3
+    memeberDivider: {
+      marginVertical: 3,
     },
-  
   });
 
 export const Skeleton = ({
@@ -281,6 +280,10 @@ export const Skeleton = ({
     () => createSkeletonStyles(colors as Theme),
     [colors]
   );
+  const userRole = useAppSelector((state) => state.user.userRole);
+  const isStaff = userRole === "staff";
+  const isBusiness = userRole === "business";
+  const isClient = userRole === "client";
 
   const stepOneSkeleton = styles ? (
     <>
@@ -377,16 +380,18 @@ export const Skeleton = ({
 
   const summaryStatsSkeleton = styles ? (
     <>
-      <View style={styles.statsRow}>
+      <View style={isStaff ? styles.statsRowStaff : styles.statsRow}>
         <View style={styles.revenueCard} />
         <View style={styles.revenueCard} />
       </View>
 
-      <View style={styles.appointmentStatsRow}>
-        {[...Array(3)].map((_, index) => (
-          <View key={index} style={styles.appointmentStatCard} />
-        ))}
-      </View>
+      {isBusiness && (
+        <View style={styles.appointmentStatsRow}>
+          {[...Array(3)].map((_, index) => (
+            <View key={index} style={styles.appointmentStatCard} />
+          ))}
+        </View>
+      )}
     </>
   ) : null;
 
@@ -488,12 +493,10 @@ export const Skeleton = ({
         <View style={skeletonStyles.titleSkeleton} />
         <View style={skeletonStyles.subtitleSkeleton} />
       </View>
- 
-       
 
       {[...Array(5)].map((_, index) => (
         <React.Fragment key={index}>
-          <View style={[styles.memberCard,skeletonStyles.memberCard2]}>
+          <View style={[styles.memberCard, skeletonStyles.memberCard2]}>
             <View style={skeletonStyles.staffOnDutyAvatar} />
             <View
               style={{
@@ -526,7 +529,7 @@ export const Skeleton = ({
               />
             </View>
           </View>
-          {index <= 5  && <View style={styles.divider} />}
+          {index <= 5 && <View style={styles.divider} />}
         </React.Fragment>
       ))}
     </>

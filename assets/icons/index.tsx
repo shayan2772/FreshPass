@@ -902,6 +902,33 @@ export const PersonIcon: React.FC<PersonIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Circle Tick Icon SVG
+const circleTickIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM12 20C7.58 20 4 16.42 4 12C4 7.58 7.58 4 12 4C16.42 4 20 7.58 20 12C20 16.42 16.42 20 12 20Z" fill="{{COLOR}}"/>
+<path d="M16.5802 7.57999L17.9902 8.99999L9.99023 17L5.99023 13.01L7.41023 11.6L9.99023 14.17L16.5802 7.57999Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface CircleTickIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const CircleTickIcon: React.FC<CircleTickIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = circleTickIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -931,4 +958,5 @@ export default {
   CameraIcon,
   SubscriptionTicketIcon,
   PersonIcon,
+  CircleTickIcon,
 };

@@ -67,13 +67,13 @@ const createStyles = (theme: Theme) =>
   });
 
 interface DashboardStatsData {
-  monthly_revenue: number;
+  monthly_revenue?: number;
   appointments: {
     completed: number;
     upcoming: number;
-    cancelled: number;
+    cancelled?: number;
   };
-  rating: {
+  rating?: {
     overall_rating: number;
   };
 }
@@ -435,6 +435,10 @@ export default function HomeScreen() {
           />
         }
       >
+
+
+
+
         {/* Summary Statistics - All roles */}
         <View style={styles.statsContainer}>
           <SummaryStats

@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo } from "react";
 import { StyleSheet, Text, View, TouchableOpacity } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -8,7 +8,12 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { Entypo } from "@expo/vector-icons";
-import { DollarCheckIcon, StarIcon } from "@/assets/icons";
+import {
+  CalendarIcon,
+  CircleTickIcon,
+  DollarCheckIcon,
+  StarIcon,
+} from "@/assets/icons";
 import { useRouter } from "expo-router";
 import { Skeleton } from "@/src/components/skeletons";
 
@@ -20,6 +25,13 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       alignSelf: "center",
       justifyContent: "space-between",
+    },
+    statsRowStaff: {
+      flexDirection: "row",
+      width: "100%",
+      alignSelf: "center",
+      justifyContent: "space-between",
+      marginBottom: moderateHeightScale(18),
     },
     titleSec: {
       flexDirection: "row",
@@ -101,13 +113,13 @@ const createStyles = (theme: Theme) =>
   });
 
 interface DashboardStats {
-  monthly_revenue: number;
+  monthly_revenue?: number;
   appointments: {
     completed: number;
     upcoming: number;
-    cancelled: number;
+    cancelled?: number;
   };
-  rating: {
+  rating?: {
     overall_rating: number;
   };
 }
@@ -122,6 +134,10 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
+  const userRole = useAppSelector((state) => state.user.userRole);
+  const isStaff = userRole === "staff";
+  const isBusiness = userRole === "business";
+  const isClient = userRole === "client";
 
   useEffect(() => {
     callApi();
@@ -151,20 +167,32 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
   const upcomingCount = data?.appointments?.upcoming ?? 0;
   const completedCount = data?.appointments?.completed ?? 0;
   const cancelledCount = data?.appointments?.cancelled ?? 0;
+
+  
   return (
     <>
-      <View style={styles.statsRow}>
+      <View style={isStaff ? styles.statsRowStaff : styles.statsRow}>
         <View style={[styles.revenueCard, styles.shadow]}>
           <View style={styles.titleSec}>
             <Text numberOfLines={1} style={styles.revenueAmount}>
-              {formatRevenue(monthlyRevenue)}
+              {isStaff ? upcomingCount : formatRevenue(monthlyRevenue)}
             </Text>
-            <DollarCheckIcon
-              width={moderateWidthScale(18)}
-              height={moderateWidthScale(18)}
-            />
+            {isStaff ? (
+              <CalendarIcon
+                width={moderateWidthScale(18)}
+                height={moderateWidthScale(18)}
+                color={theme.white}
+              />
+            ) : (
+              <DollarCheckIcon
+                width={moderateWidthScale(18)}
+                height={moderateWidthScale(18)}
+              />
+            )}
           </View>
-          <Text style={styles.revenueLabel}>Monthly revenue</Text>
+          <Text style={styles.revenueLabel}>
+            {isStaff ? "Upcoming appointment" : "Monthly revenue"}
+          </Text>
         </View>
         <TouchableOpacity
           activeOpacity={0.8}
@@ -173,38 +201,52 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
         >
           <View style={styles.titleSec}>
             <Text numberOfLines={1} style={styles.reviewRate}>
-              {formatRating(overallRating)}
+              {isStaff ? completedCount : formatRating(overallRating)}
             </Text>
-            <StarIcon
-              width={moderateWidthScale(18)}
-              height={moderateWidthScale(18)}
-            />
+            {isStaff ? (
+              <CircleTickIcon
+                width={moderateWidthScale(18)}
+                height={moderateWidthScale(18)}
+                color={theme.darkGreen}
+              />
+            ) : (
+              <StarIcon
+                width={moderateWidthScale(18)}
+                height={moderateWidthScale(18)}
+              />
+            )}
           </View>
           <View style={styles.titleSec}>
-            <Text style={styles.reviewLabel}>User reviews rate</Text>
-            <Entypo
-              name="chevron-small-right"
-              size={18}
-              color={theme.darkGreen}
-            />
+            <Text style={styles.reviewLabel}>
+              {isStaff ? "Completed today" : "User reviews rate"}
+            </Text>
+            {isBusiness && (
+              <Entypo
+                name="chevron-small-right"
+                size={18}
+                color={theme.darkGreen}
+              />
+            )}
           </View>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.appointmentStatsRow}>
-        <View style={[styles.appointmentStatCard, styles.shadow]}>
-          <Text style={styles.appointmentStatNumber}>{upcomingCount}</Text>
-          <Text style={styles.appointmentStatLabel}>Upcoming</Text>
+      {isBusiness && (
+        <View style={styles.appointmentStatsRow}>
+          <View style={[styles.appointmentStatCard, styles.shadow]}>
+            <Text style={styles.appointmentStatNumber}>{upcomingCount}</Text>
+            <Text style={styles.appointmentStatLabel}>Upcoming</Text>
+          </View>
+          <View style={[styles.appointmentStatCard, styles.shadow]}>
+            <Text style={styles.appointmentStatNumber}>{completedCount}</Text>
+            <Text style={styles.appointmentStatLabel}>Complete</Text>
+          </View>
+          <View style={[styles.appointmentStatCard, styles.shadow]}>
+            <Text style={styles.appointmentStatNumber}>{cancelledCount}</Text>
+            <Text style={styles.appointmentStatLabel}>Canceled</Text>
+          </View>
         </View>
-        <View style={[styles.appointmentStatCard, styles.shadow]}>
-          <Text style={styles.appointmentStatNumber}>{completedCount}</Text>
-          <Text style={styles.appointmentStatLabel}>Complete</Text>
-        </View>
-        <View style={[styles.appointmentStatCard, styles.shadow]}>
-          <Text style={styles.appointmentStatNumber}>{cancelledCount}</Text>
-          <Text style={styles.appointmentStatLabel}>Canceled</Text>
-        </View>
-      </View>
+      )}
     </>
   );
 }
