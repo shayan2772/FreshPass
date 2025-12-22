@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
+  ScrollView,
 } from "react-native";
 import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -143,6 +144,18 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(20),
       alignItems: "center",
       justifyContent: "center",
+    },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen5,
+      textAlign: "center",
     },
   });
 
@@ -468,6 +481,21 @@ export default function NotificationsScreen() {
         <View style={styles.content}>
           <Skeleton screenType="Notifications" styles={styles} />
         </View>
+      ) : notifications.length === 0 ? (
+        <ScrollView
+          style={styles.content}
+          contentContainerStyle={styles.emptyStateContainer}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
+            />
+          }
+        >
+          <Text style={styles.emptyStateText}>No notifications yet</Text>
+        </ScrollView>
       ) : (
         <SectionList
           style={styles.content}
