@@ -11,6 +11,7 @@ export const staffEndpoints = {
   register: `/staff/auth/register`,
   details: `/api/staff/details`,
   profile: `/api/staff/details`,
+  availabilityHours: `/api/staff/availability-hours`,
   list: (active?: string) => {
     if (active) {
       return `/api/staff?active=${active}`;

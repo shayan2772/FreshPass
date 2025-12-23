@@ -25,6 +25,24 @@ const DAYS = [
   "Saturday",
 ];
 
+interface DayData {
+  isOpen: boolean;
+  fromHours: number;
+  fromMinutes: number;
+  tillHours: number;
+  tillMinutes: number;
+  breaks: Array<{
+    fromHours: number;
+    fromMinutes: number;
+    tillHours: number;
+    tillMinutes: number;
+  }>;
+}
+
+interface BusinessHours {
+  [key: string]: DayData;
+}
+
 const formatTime = (hours: number, minutes: number): string => {
   const period = hours >= 12 ? "PM" : "AM";
   const displayHours = hours % 12 || 12;
@@ -165,6 +183,24 @@ export default function StepTwo() {
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [bottomSheetVisible, setBottomSheetVisible] = useState(false);
   const [copySalonHours, setCopySalonHours] = useState(false);
+  // Local copy of staff hours (what user sets when "Copy business hours"
+  // checkbox is OFF). This lets us restore their custom schedule when
+  // they uncheck the box after copying salon hours.
+  const [staffBaseHours, setStaffBaseHours] = useState<BusinessHours | null>(
+    null
+  );
+
+  // Whenever businessHours change while we're NOT copying salon hours,
+  // keep staffBaseHours in sync so we can restore it later.
+  useEffect(() => {
+    if (!copySalonHours) {
+      // Deep clone to avoid accidental mutation references
+      const cloned: BusinessHours = JSON.parse(
+        JSON.stringify(businessHours)
+      ) as BusinessHours;
+      setStaffBaseHours(cloned);
+    }
+  }, [businessHours, copySalonHours]);
 
   // Copy salon business hours when checkbox is checked
   useEffect(() => {
@@ -185,22 +221,57 @@ export default function StepTwo() {
         dispatch(setDayAvailability({ day, isOpen: salonDay.isOpen }));
       });
     } else if (!copySalonHours) {
-      // Clear/close all hours when unchecked
-      DAYS.forEach((day) => {
-        dispatch(
-          setDayHours({
-            day,
-            fromHours: 0,
-            fromMinutes: 0,
-            tillHours: 0,
-            tillMinutes: 0,
-            breaks: [],
-          })
-        );
-        dispatch(setDayAvailability({ day, isOpen: false }));
-      });
+      // When unchecked, restore whatever staff hours we had before copying.
+      if (staffBaseHours && Object.keys(staffBaseHours).length > 0) {
+        DAYS.forEach((day) => {
+          const staffDay = staffBaseHours[day];
+          if (staffDay) {
+            dispatch(
+              setDayHours({
+                day,
+                fromHours: staffDay.fromHours,
+                fromMinutes: staffDay.fromMinutes,
+                tillHours: staffDay.tillHours,
+                tillMinutes: staffDay.tillMinutes,
+                breaks: staffDay.breaks || [],
+              })
+            );
+            dispatch(
+              setDayAvailability({ day, isOpen: staffDay.isOpen ?? false })
+            );
+          } else {
+            dispatch(
+              setDayHours({
+                day,
+                fromHours: 0,
+                fromMinutes: 0,
+                tillHours: 0,
+                tillMinutes: 0,
+                breaks: [],
+              })
+            );
+            dispatch(setDayAvailability({ day, isOpen: false }));
+          }
+        });
+      } else {
+        // Fallback: if for some reason we don't have staffBaseHours yet,
+        // clear/close all hours (previous behaviour).
+        DAYS.forEach((day) => {
+          dispatch(
+            setDayHours({
+              day,
+              fromHours: 0,
+              fromMinutes: 0,
+              tillHours: 0,
+              tillMinutes: 0,
+              breaks: [],
+            })
+          );
+          dispatch(setDayAvailability({ day, isOpen: false }));
+        });
+      }
     }
-  }, [copySalonHours, salonBusinessHours, dispatch]);
+  }, [copySalonHours, salonBusinessHours, staffBaseHours, dispatch]);
 
   const handleToggleDay = (day: string, value: boolean) => {
     const dayData = businessHours[day];

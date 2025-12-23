@@ -41,6 +41,7 @@ interface BusinessHoursBottomSheetProps {
     selectedDays?: string[]
   ) => void;
   initialData?: {
+    isOpen: boolean;
     fromHours: number;
     fromMinutes: number;
     tillHours: number;

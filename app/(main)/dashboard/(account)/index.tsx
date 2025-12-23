@@ -8,7 +8,7 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -82,6 +82,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const userRole = useAppSelector((state) => state.user.userRole);
 
   const handleLogout = async () => {
     Alert.alert(
@@ -161,6 +162,8 @@ export default function AccountScreen() {
       router.push("./notificationSettings");
     } else if (key === "business") {
       router.push("./(businessProfileSettings)");
+    } else if (key === "availability") {
+      router.push("./staffAvailability");
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -174,6 +177,7 @@ export default function AccountScreen() {
     key:
       | "personal"
       | "business"
+      | "availability"
       | "language"
       | "notifications"
       | "rules"
@@ -185,7 +189,9 @@ export default function AccountScreen() {
 
   const rows: Row[] = [
     { key: "personal", title: "Personal information" },
-    { key: "business", title: "Business profile settings" },
+    ...(userRole === "staff"
+      ? [{ key: "availability" as const, title: "Set availability" }]
+      : [{ key: "business" as const, title: "Business profile settings" }]),
     {
       key: "language",
       title: "Language",
