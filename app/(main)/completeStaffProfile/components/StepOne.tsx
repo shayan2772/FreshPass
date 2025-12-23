@@ -32,7 +32,7 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      gap: moderateHeightScale(20),
+      gap: moderateHeightScale(10),
       paddingHorizontal: moderateWidthScale(20),
     },
     titleSec: {
@@ -127,6 +127,8 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       minHeight: moderateHeightScale(120),
       textAlignVertical: "top",
+      // Extra right padding so text doesn't go under the clear (X) button
+      paddingRight: moderateWidthScale(40),
     },
     clearButton: {
       position: "absolute",
@@ -280,7 +282,7 @@ export default function StepOne() {
           style={styles.textArea}
           value={aboutYourself}
           onChangeText={handleAboutYourselfChange}
-          placeholder="Write about yourself (optional)"
+          placeholder="Write about yourself"
           placeholderTextColor={theme.lightGreen2}
           multiline
           numberOfLines={6}

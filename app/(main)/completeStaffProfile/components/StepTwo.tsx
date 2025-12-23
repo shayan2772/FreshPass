@@ -441,11 +441,11 @@ export default function StepTwo() {
         </View>
       )}
 
-      {/* <BusinessHoursBottomSheet
+      <BusinessHoursBottomSheet
         visible={bottomSheetVisible}
         onClose={handleCloseBottomSheet}
         day={selectedDay || ""}
-      /> */}
+      />
     </View>
   );
 }

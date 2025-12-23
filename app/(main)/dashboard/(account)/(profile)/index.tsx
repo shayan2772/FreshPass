@@ -151,6 +151,9 @@ export default function ProfileScreen() {
   const userName = user.name || "";
   const userEmail = user.email || "";
 
+
+  console.log("profileImageUri :",user?.profile_image_url)
+
   return (
     <View style={styles.container}>
       <StackHeader title="Profile" />

@@ -406,7 +406,6 @@ export default function EditProfileScreen() {
   );
   const [isUpdating, setIsUpdating] = useState(false);
 
- 
   // Phone number state
   const [countryCode, setCountryCode] = useState(initialCountryCode);
   const [countryIso, setCountryIso] = useState(initialCountryIso);
@@ -852,18 +851,27 @@ export default function EditProfileScreen() {
           phone?: string | null;
           country_code?: string | null;
           profile_image_url?: string | null;
+          description?: string | null;
+          user?: {
+            profile_image_url?: string | null;
+          };
         };
       }>(endpoint, formData, config);
 
       if (response.success) {
+        console.log("response.data :", response.data);
         // Update Redux state with new user data (for user endpoint responses)
-        if (endpoint === userEndpoints.update && response.data) {
+        if (response.data) {
           dispatch(
             setUserDetails({
               name: response.data.name,
               phone: response.data.phone,
               country_code: response.data.country_code,
-              profile_image_url: response.data.profile_image_url,
+              profile_image_url:
+                user?.userRole == "staff"
+                  ? response?.data?.user?.profile_image_url
+                  : response.data.profile_image_url,
+              description: response.data.description ?? "",
             })
           );
         }
@@ -974,12 +982,11 @@ export default function EditProfileScreen() {
 
         {user?.userRole === "staff" && (
           <View style={styles.textAreaContainer}>
-             
             <TextInput
               style={styles.textArea}
               value={aboutYourself}
               onChangeText={setAboutYourself}
-              placeholder="Write about yourself (optional)"
+              placeholder="Write about yourself"
               placeholderTextColor={theme.lightGreen2}
               multiline
               numberOfLines={6}
