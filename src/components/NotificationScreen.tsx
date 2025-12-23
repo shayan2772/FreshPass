@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -15,18 +15,23 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import { IMAGES } from "@/src/constant/images";
-import {
-  LeafLogo,
-  EnvelopeIcon,
-  MegaphoneIcon,
-  PersonScissorsIcon,
-} from "@/assets/icons";
+import { LeafLogo } from "@/assets/icons";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "@/src/components/button";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-interface Screen1Props {
+interface Feature {
+  icon: React.ComponentType<{ width: number; height: number }>;
+  title: string;
+  description: string;
+}
+
+interface NotificationScreenProps {
+  headline: string;
+  features: Feature[];
+  buttonTitle: string;
+  backgroundImage: any;
+  footerText?: string;
   onNext: () => void;
   onSkip: () => void;
 }
@@ -107,7 +112,15 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function Screen1({ onNext, onSkip }: Screen1Props) {
+export default function NotificationScreen({
+  headline,
+  features,
+  buttonTitle,
+  backgroundImage,
+  footerText,
+  onNext,
+  onSkip,
+}: NotificationScreenProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
@@ -118,7 +131,7 @@ export default function Screen1({ onNext, onSkip }: Screen1Props) {
     <View style={styles.container}>
       <StatusBar barStyle={"light-content"} />
       <ImageBackground
-        source={IMAGES.introductionBack1}
+        source={backgroundImage}
         style={styles.backgroundImage}
         resizeMode="cover"
       >
@@ -143,7 +156,7 @@ export default function Screen1({ onNext, onSkip }: Screen1Props) {
               <Text style={styles.logoText}>FRESHPASS</Text>
             </View>
 
-            <Text style={styles.headline}>Never miss a customer</Text>
+            <Text style={styles.headline}>{headline}</Text>
 
             <View
               style={{
@@ -152,67 +165,35 @@ export default function Screen1({ onNext, onSkip }: Screen1Props) {
                 alignSelf: "center",
               }}
             >
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <EnvelopeIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>
-                    Instant booking alerts
-                  </Text>
-                  <Text style={styles.featureDescription}>
-                    Get notified immediately when a new appointment is booked,
-                    so you're always prepared.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <MegaphoneIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>
-                    Modification & cancellations
-                  </Text>
-                  <Text style={styles.featureDescription}>
-                    Receive instant updates if a client reschedules or cancels,
-                    allowing you to fill the slot.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <PersonScissorsIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>Customer reminders</Text>
-                  <Text style={styles.featureDescription}>
-                    See a summary of which customers need an automatic reminder
-                    before their appointment tomorrow.
-                  </Text>
-                </View>
-              </View>
+              {features.map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <View key={index} style={styles.featureContainer}>
+                    <View style={styles.iconContainer}>
+                      <IconComponent
+                        width={moderateWidthScale(37)}
+                        height={moderateWidthScale(37)}
+                      />
+                    </View>
+                    <View style={styles.featureContent}>
+                      <Text style={styles.featureTitle}>{feature.title}</Text>
+                      <Text style={styles.featureDescription}>
+                        {feature.description}
+                      </Text>
+                    </View>
+                  </View>
+                );
+              })}
             </View>
           </View>
 
           <View style={styles.buttonContainer}>
-            <Text style={styles.footerText}>
-              Stop notifications anytime if you change you mind.
-            </Text>
+            {footerText && (
+              <Text style={styles.footerText}>{footerText}</Text>
+            )}
 
             <Button
-              title="Turn on notifications"
+              title={buttonTitle}
               onPress={onNext}
               backgroundColor={theme.orangeBrown}
               textColor={theme.black}
@@ -228,7 +209,7 @@ export default function Screen1({ onNext, onSkip }: Screen1Props) {
                 name="chevron-forward"
                 size={moderateWidthScale(16)}
                 color={theme.white}
-                style={{top:1.5}}
+                style={{ top: 1.5 }}
               />
             </TouchableOpacity>
           </View>

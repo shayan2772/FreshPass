@@ -28,9 +28,10 @@ export default function Role() {
   const handleContinue = () => {
     // Only continue if role is selected and saved in Redux
     if (selectedRole) {
-      // Show alert if client role is selected
+      // Navigate to client onboarding flow (location screen first)
       if (selectedRole === "client") {
         router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
+        return;
       }
       router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
     }

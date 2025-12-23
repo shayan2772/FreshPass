@@ -1,239 +1,454 @@
-import React, { useMemo, useCallback } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  TouchableOpacity,
-  StatusBar,
-  Platform,
-} from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import React, { useMemo, useEffect, useCallback, useState } from "react";
+import { Image, Pressable, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
+  heightScale,
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { IMAGES } from "@/src/constant/images";
-import {
-  LeafLogo,
-  EnvelopeIcon,
-  MegaphoneIcon,
-  PersonScissorsIcon,
-} from "@/assets/icons";
-import { Ionicons } from "@expo/vector-icons";
+import FloatingInput from "@/src/components/floatingInput";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { Skeleton } from "@/src/components/skeletons";
+import RetryButton from "@/src/components/retryButton";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { LeafLogo } from "@/assets/icons";
 
-interface Screen1Props {
+interface CategorySelectProps {
   onNext: () => void;
-  onSkip: () => void;
 }
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: theme.darkGreen,
+      gap: moderateHeightScale(20),
+      backgroundColor: theme.background,
     },
-    backgroundImage: {
-      flex: 1,
-    },
-    content: {
-      flex: 1,
-      paddingHorizontal: moderateWidthScale(15),
-      paddingTop: moderateHeightScale(45),
+    header: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(10),
     },
     logoContainer: {
-      marginBottom: moderateHeightScale(80),
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(6),
-    },
-    logoText: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-    },
-    headline: {
-      fontSize: fontSize.size23,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-      lineHeight: moderateHeightScale(40),
-      marginBottom: moderateHeightScale(25),
-    },
-    featureContainer: {
-      marginBottom: moderateHeightScale(20),
-      flexDirection: "row",
-      gap: moderateWidthScale(18),
-      alignItems: "center",
-    },
-    iconContainer: {},
-    featureContent: {
-      flex: 1,
-      gap: moderateHeightScale(5),
-    },
-    featureTitle: {
-      fontSize: fontSize.size17,
-      fontFamily: fonts.fontMedium,
-      color: theme.white,
-    },
-    featureDescription: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontRegular,
-      color: theme.white,
-      lineHeight: moderateHeightScale(17),
-    },
-    footerText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.white70,
-      maxWidth: "75%",
-    },
-    buttonContainer: {
-      gap: moderateHeightScale(15),
+      marginBottom: moderateHeightScale(5),
     },
     skipButton: {
-      alignItems: "center",
-      justifyContent: "center",
-      flexDirection: "row",
-      gap: moderateWidthScale(4),
+      padding: moderateWidthScale(8),
     },
     skipButtonText: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size16,
       fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    titleSec: {
+      marginTop: moderateHeightScale(8),
+      gap: moderateHeightScale(5),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    title: {
+      fontSize: fontSize.size24,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    subtitle: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    searchContainer: {
+      marginTop: moderateHeightScale(5),
+      marginHorizontal: moderateWidthScale(20),
+    },
+    lineSeparator: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
+      position: "absolute",
+    },
+    categoriesContainer: {
+      paddingVertical: moderateHeightScale(20),
+      flex: 1,
+    },
+    categoriesGrid: {
+      width: "100%",
+      flexDirection: "row",
+      flexWrap: "wrap",
+      alignItems: "center",
+      rowGap: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
+      gap: "5%",
+    },
+    categoryCard: {
+      width: "30%",
+      height: heightScale(116),
+      position: "relative",
+    },
+    categoryImage: {
+      width: "100%",
+      height: heightScale(90),
+      overflow: "hidden",
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      borderRadius: moderateWidthScale(12),
+    },
+    categoryCardSelected: {
+      borderColor: theme.selectCard,
+      borderWidth: 3,
+    },
+    categoryLabelContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(8),
+      backgroundColor: theme.background,
+    },
+    categoryLabel: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textAlign: "center",
+    },
+    selectedBadge: {
+      position: "absolute",
+      top: moderateHeightScale(4),
+      left: moderateWidthScale(4),
+      width: moderateWidthScale(24),
+      height: moderateWidthScale(24),
+      borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.darkGreen,
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1,
+    },
+    selectedBadgeText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
       color: theme.white,
+    },
+    otherCategoriesContainer: {
+      gap: moderateHeightScale(15),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    otherCategoriesTitle: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.lightGreen2,
+    },
+    otherCategoryContainer: {
+      gap: moderateHeightScale(12),
+    },
+    otherCategoryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    catSeparator: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
+    },
+    otherCategoryLabel: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      flex: 1,
+    },
+    emptyStateContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
+    },
+    buttonContainer: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingBottom: moderateHeightScale(20),
     },
   });
 
-export default function Screen1({ onNext, onSkip }: Screen1Props) {
+export default function CategorySelect({ onNext }: CategorySelectProps) {
+  const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
-  const theme = colors as Theme;
-  const insets = useSafeAreaInsets();
-  const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
+  const { showBanner } = useNotificationContext();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+  const [categories, setCategories] = useState<
+    Array<{
+      id: number;
+      name: string;
+      imageUrl: string | null;
+    }>
+  >([]);
+
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [apiError, setApiError] = useState(false);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setApiError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          imageUrl: string | null;
+        }>;
+      }>(businessEndpoints.categories);
+
+      if (response.success && response.data) {
+        setCategories(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      setApiError(true);
+      showBanner("API Failed", "API failed to fetch categories", "error", 2500);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
+
+  // Split categories into popular (first 6) and other (rest)
+  const popularCategories = useMemo(() => {
+    return categories.slice(0, 6);
+  }, [categories]);
+
+  const otherCategories = useMemo(() => {
+    return categories.slice(6);
+  }, [categories]);
+
+  const filteredPopular = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return popularCategories;
+    }
+    const term = searchTerm.toLowerCase();
+    return popularCategories.filter((category) =>
+      category.name.toLowerCase().includes(term)
+    );
+  }, [popularCategories, searchTerm]);
+
+  const filteredOther = useMemo(() => {
+    if (!searchTerm.trim()) {
+      return otherCategories;
+    }
+    const term = searchTerm.toLowerCase();
+    return otherCategories.filter((category) =>
+      category.name.toLowerCase().includes(term)
+    );
+  }, [otherCategories, searchTerm]);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+  };
+
+  const handleSelectCategory = useCallback(
+    (categoryId: number) => {
+      setSelectedCategories((prev) => {
+        if (prev.includes(categoryId)) {
+          // Deselect
+          return prev.filter((id) => id !== categoryId);
+        } else {
+          // Select (max 5)
+          if (prev.length >= 5) {
+            showBanner(
+              "Limit Reached",
+              "You can select up to 5 categories",
+              "error",
+              2000
+            );
+            return prev;
+          }
+          return [...prev, categoryId];
+        }
+      });
+    },
+    [showBanner]
+  );
+
+  const handleSkip = () => {
+    onNext();
+  };
+
+  const handleContinue = () => {
+    // Can continue even with 0 selections
+    onNext();
+  };
+
+  const hasNoData = !categoriesLoading && !apiError && categories.length === 0;
+  const showSkeleton = categoriesLoading && categories.length === 0;
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={"light-content"} />
-      <ImageBackground
-        source={IMAGES.introductionBack1}
-        style={styles.backgroundImage}
-        resizeMode="cover"
-      >
-        <View
-          style={[
-            styles.content,
-            {
-              paddingBottom: isButtonMode
-                ? moderateHeightScale(30) + insets.bottom
-                : moderateHeightScale(30),
-            },
-          ]}
+      <View style={styles.header}>
+        <View style={styles.logoContainer}>
+          <LeafLogo />
+        </View>
+        <TouchableOpacity
+          style={styles.skipButton}
+          onPress={handleSkip}
+          activeOpacity={0.7}
         >
-          <View style={{ flex: 1 }}>
-            <View style={styles.logoContainer}>
-              <LeafLogo
-                width={moderateWidthScale(25)}
-                height={moderateWidthScale(33)}
-                color1={theme.white}
-                color2={theme.white}
-              />
-              <Text style={styles.logoText}>FRESHPASS</Text>
-            </View>
+          <Text style={styles.skipButtonText}>Skip</Text>
+        </TouchableOpacity>
+      </View>
 
-            <Text style={styles.headline}>Never miss a customer</Text>
-
-            <View
-              style={{
-                gap: moderateHeightScale(10),
-                width: "92%",
-                alignSelf: "center",
-              }}
-            >
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <EnvelopeIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>
-                    Instant booking alerts
-                  </Text>
-                  <Text style={styles.featureDescription}>
-                    Get notified immediately when a new appointment is booked,
-                    so you're always prepared.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <MegaphoneIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>
-                    Modification & cancellations
-                  </Text>
-                  <Text style={styles.featureDescription}>
-                    Receive instant updates if a client reschedules or cancels,
-                    allowing you to fill the slot.
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.featureContainer}>
-                <View style={styles.iconContainer}>
-                  <PersonScissorsIcon
-                    width={moderateWidthScale(37)}
-                    height={moderateWidthScale(37)}
-                  />
-                </View>
-                <View style={styles.featureContent}>
-                  <Text style={styles.featureTitle}>Customer reminders</Text>
-                  <Text style={styles.featureDescription}>
-                    See a summary of which customers need an automatic reminder
-                    before their appointment tomorrow.
-                  </Text>
-                </View>
-              </View>
-            </View>
+      {showSkeleton ? (
+        <Skeleton screenType="StepOne" styles={styles} />
+      ) : apiError ? (
+        <View style={styles.emptyStateContainer}>
+          <RetryButton onPress={fetchCategories} loading={categoriesLoading} />
+        </View>
+      ) : hasNoData ? (
+        <View style={styles.emptyStateContainer}>
+          <Text style={styles.emptyStateText}>
+            Category data not found
+          </Text>
+        </View>
+      ) : (
+        <>
+          <View style={styles.titleSec}>
+            <Text style={styles.title}>
+              What&apos;s on your self-care radar?
+            </Text>
+            <Text style={styles.subtitle}>
+              Select up to 5 categories you&apos;re interested in, and we&apos;ll
+              show you personalized picks?
+            </Text>
           </View>
+
+          <View style={styles.searchContainer}>
+            <FloatingInput
+              label="Search"
+              value={searchTerm}
+              onChangeText={handleSearchChange}
+              placeholder="Search"
+              placeholderTextColor={(colors as Theme).lightGreen2}
+              onClear={() => setSearchTerm("")}
+              containerStyle={{
+                borderRadius: moderateWidthScale(999),
+              }}
+              inputStyle={{
+                height: heightScale(18),
+              }}
+              renderLeftAccessory={() => (
+                <Feather
+                  name="search"
+                  size={moderateWidthScale(18)}
+                  color={(colors as Theme).darkGreen}
+                />
+              )}
+            />
+          </View>
+
+          <View style={styles.categoriesContainer}>
+            <View style={[styles.lineSeparator, { top: 0 }]} />
+            <View style={styles.categoriesGrid}>
+              {filteredPopular.map((item) => {
+                const isSelected = selectedCategories.includes(item.id);
+                const selectedIndex = isSelected
+                  ? selectedCategories.indexOf(item.id) + 1
+                  : null;
+                return (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => handleSelectCategory(item.id)}
+                    style={styles.categoryCard}
+                  >
+                    {isSelected && selectedIndex && (
+                      <View style={styles.selectedBadge}>
+                        <Text style={styles.selectedBadgeText}>
+                          {selectedIndex}
+                        </Text>
+                      </View>
+                    )}
+                    <Image
+                      source={
+                        item.imageUrl
+                          ? { uri: item.imageUrl }
+                          : IMAGES.socialBackgroud
+                      }
+                      style={[
+                        styles.categoryImage,
+                        isSelected && styles.categoryCardSelected,
+                      ]}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.categoryLabelContainer}>
+                      <Text numberOfLines={2} style={styles.categoryLabel}>
+                        {item.name}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <View style={[styles.lineSeparator, { bottom: 0 }]} />
+          </View>
+
+          {filteredOther.length > 0 && (
+            <View style={styles.otherCategoriesContainer}>
+              <Text style={styles.otherCategoriesTitle}>Other categories</Text>
+
+              {filteredOther.map((category, index) => {
+                const isSelected = selectedCategories.includes(category.id);
+                const selectedIndex = isSelected
+                  ? selectedCategories.indexOf(category.id) + 1
+                  : null;
+                return (
+                  <View key={category.id} style={styles.otherCategoryContainer}>
+                    <Pressable
+                      onPress={() => handleSelectCategory(category.id)}
+                      style={[
+                        styles.otherCategoryRow,
+                        isSelected && {
+                          backgroundColor: (colors as Theme).lightBeige,
+                        },
+                      ]}
+                    >
+                      <Text style={styles.otherCategoryLabel}>
+                        {category.name}
+                        {isSelected && selectedIndex && ` (${selectedIndex})`}
+                      </Text>
+                      <Feather
+                        name="chevron-right"
+                        size={moderateWidthScale(18)}
+                        color={(colors as Theme).darkGreen}
+                      />
+                    </Pressable>
+                    {index < filteredOther.length - 1 && (
+                      <View style={styles.catSeparator} />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )}
 
           <View style={styles.buttonContainer}>
-            <Text style={styles.footerText}>
-              Stop notifications anytime if you change you mind.
-            </Text>
-
-            <Button
-              title="Turn on notifications"
-              onPress={onNext}
-              backgroundColor={theme.orangeBrown}
-              textColor={theme.black}
-            />
-
-            <TouchableOpacity
-              style={styles.skipButton}
-              onPress={onSkip}
-              activeOpacity={0.7}
-            >
-              <Text style={styles.skipButtonText}>Not now</Text>
-              <Ionicons
-                name="chevron-forward"
-                size={moderateWidthScale(16)}
-                color={theme.white}
-                style={{top:1.5}}
-              />
-            </TouchableOpacity>
+            <Button title="Continue" onPress={handleContinue} />
           </View>
-        </View>
-      </ImageBackground>
+        </>
+      )}
     </View>
   );
 }

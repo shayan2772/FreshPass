@@ -1,26 +1,45 @@
 import React, { useState, useCallback } from "react";
 import { useRouter, useFocusEffect } from "expo-router";
 import { BackHandler } from "react-native";
-import { MAIN_ROUTES } from "@/src/constant/routes";
 import { handleNotificationPermission } from "@/src/services/notificationPermissionService";
-import Screen1 from "./Screen1";
-import Screen2 from "./Screen2";
+import LocationScreen from "./LocationScreen";
+import Notification from "./Notification";
+import CoreFeature from "./CoreFeature";
+import GenderSelect from "./GenderSelect";
+import CategorySelect from "./CategorySelect";
 
-export default function Introduction() {
+type ScreenType =
+  | "location"
+  | "notification"
+  | "coreFeature"
+  | "gender"
+  | "category";
+
+export default function IntroductionClient() {
   const router = useRouter();
-  const [currentScreen, setCurrentScreen] = useState(1);
+  const [currentScreen, setCurrentScreen] = useState<ScreenType>("location");
 
-  // Disable back button on screen 2 - prevent going back to screen 1
+  // Handle back button based on current screen
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
-        if (currentScreen === 2) {
-          // Prevent going back from screen 2 to screen 1
-          return true; // Return true to prevent default back behavior
+        if (currentScreen === "location") {
+          // Allow back to role screen
+          router.back();
+          return true;
+        } else if (
+          currentScreen === "notification" ||
+          currentScreen === "coreFeature" ||
+          currentScreen === "gender"
+        ) {
+          // Prevent going back from these screens
+          return true;
+        } else if (currentScreen === "category") {
+          // Allow back to gender screen
+          setCurrentScreen("gender");
+          return true;
         }
-
-        return true;
-        // return false; // Allow back on screen 1 (will exit app or go to previous screen)
+        return false;
       };
 
       const subscription = BackHandler.addEventListener(
@@ -29,35 +48,53 @@ export default function Introduction() {
       );
 
       return () => subscription.remove();
-    }, [currentScreen])
+    }, [currentScreen, router])
   );
 
-  const handleNext = () => {
-    if (currentScreen === 1) {
-      setCurrentScreen(2);
-    } else {
-      // Navigate to dashboard home
-      router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
-    }
+  const handleLocationNext = () => {
+    setCurrentScreen("notification");
   };
 
-  const handleSkip = () => {
-    // Navigate to intro screen 2
-    setCurrentScreen(2);
-  };
-
-  const handleTurnOnNotifications = async () => {
+  const handleNotificationNext = async () => {
     const granted = await handleNotificationPermission();
-
-    // Navigate to screen 2 only if permission is granted
-    if (granted) {
-      setCurrentScreen(2);
-    }
+    // Continue to next screen regardless of permission
+    setCurrentScreen("coreFeature");
   };
 
-  if (currentScreen === 1) {
-    return <Screen1 onNext={handleTurnOnNotifications} onSkip={handleSkip} />;
-  }
+  const handleNotificationSkip = () => {
+    setCurrentScreen("coreFeature");
+  };
 
-  return <Screen2 onNext={handleNext} />;
+  const handleCoreFeatureNext = () => {
+    setCurrentScreen("gender");
+  };
+
+  const handleGenderNext = () => {
+    setCurrentScreen("category");
+  };
+
+  const handleCategoryNext = () => {
+    // Navigate to dashboard or complete profile
+    router.replace("/(main)/dashboard/(home)" as any);
+  };
+
+  switch (currentScreen) {
+    case "location":
+      return <LocationScreen onNext={handleLocationNext} />;
+    case "notification":
+      return (
+        <Notification
+          onNext={handleNotificationNext}
+          onSkip={handleNotificationSkip}
+        />
+      );
+    case "coreFeature":
+      return <CoreFeature onNext={handleCoreFeatureNext} onSkip={handleCoreFeatureNext} />;
+    case "gender":
+      return <GenderSelect onNext={handleGenderNext} />;
+    case "category":
+      return <CategorySelect onNext={handleCategoryNext} />;
+    default:
+      return <LocationScreen onNext={handleLocationNext} />;
+  }
 }

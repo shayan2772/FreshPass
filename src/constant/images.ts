@@ -5,6 +5,6 @@ export const IMAGES = {
     acceptTermBack:require("@/assets/images/acceptTermBack.png"),
     introductionBack1:require("@/assets/images/introductionBack1.png"),
     introductionBack2:require("@/assets/images/introductionBack2.png"),
-    loadingHand:require("@/assets/lotties/loadingHand.json"),
-    plusLoader:require("@/assets/lotties/plusLoader.json")
+    plusLoader:require("@/assets/lotties/plusLoader.json"),
+    location:require("@/assets/images/location.png"),
   };
