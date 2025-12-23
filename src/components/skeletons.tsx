@@ -273,7 +273,8 @@ export const Skeleton = ({
     | "WorkHistoryList"
     | "Reviews"
     | "Notifications"
-    | "Team";
+    | "Team"
+    | "Availability";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -553,6 +554,21 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const availabilitySkeleton = styles ? (
+    <>
+      <View style={styles.titleSec}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={skeletonStyles.subtitleSkeleton} />
+      </View>
+      {[...Array(7)].map((_, index) => (
+        <View key={index}>
+          <View style={styles.skeletonDayRow} />
+          {index < 6 && <View style={{ height: moderateHeightScale(2) }} />}
+        </View>
+      ))}
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -604,6 +620,11 @@ export const Skeleton = ({
       {screenType === "Team" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {teamSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "Availability" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {availabilitySkeleton}
         </SkeletonPlaceholder>
       )}
     </>

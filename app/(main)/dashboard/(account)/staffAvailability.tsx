@@ -23,7 +23,7 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { useRouter } from "expo-router";
 import BusinessHoursBottomSheet from "@/src/components/businessHoursBottomSheet";
 import CustomToggle from "@/src/components/customToggle";
-import SkeletonPlaceholder from "react-native-skeleton-placeholder";
+import { Skeleton } from "@/src/components/skeletons";
 
 const DAYS = [
   "Sunday",
@@ -359,18 +359,6 @@ const createStyles = (theme: Theme) =>
     buttonContainer: {
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(20),
-    },
-    skeletonTitle: {
-      height: moderateHeightScale(24),
-      width: "60%",
-      borderRadius: moderateWidthScale(4),
-      marginBottom: moderateHeightScale(8),
-    },
-    skeletonSubtitle: {
-      height: moderateHeightScale(16),
-      width: "80%",
-      borderRadius: moderateWidthScale(4),
-      marginBottom: moderateHeightScale(20),
     },
     skeletonDayRow: {
       height: moderateHeightScale(50),
@@ -773,41 +761,19 @@ export default function StaffAvailabilityScreen() {
     }
   };
 
-  const renderSkeleton = () => (
-    <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
-      <View style={styles.titleSec}>
-        <View style={styles.skeletonTitle} />
-        <View style={styles.skeletonSubtitle} />
-      </View>
-      {DAYS.map((_, index) => (
-        <View key={index}>
-          <View style={styles.skeletonDayRow} />
-          {index < DAYS.length - 1 && (
-            <View style={{ height: moderateHeightScale(2) }} />
-          )}
-        </View>
-      ))}
-    </SkeletonPlaceholder>
-  );
 
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Set availability" />
-      {loading ? (
-        <ScrollView
-          style={styles.content}
-          contentContainerStyle={styles.contentContainer}
-          showsVerticalScrollIndicator={false}
-        >
-          {renderSkeleton()}
-        </ScrollView>
-      ) : (
-        <>
-          <ScrollView
-            style={styles.content}
-            contentContainerStyle={styles.contentContainer}
-            showsVerticalScrollIndicator={false}
-          >
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+      >
+        {loading ? (
+          <Skeleton screenType="Availability" styles={styles} />
+        ) : (
+          <>
             <View style={styles.titleSec}>
               <Text style={styles.title}>Availability hours</Text>
               <Text style={styles.subtitle}>
@@ -890,16 +856,18 @@ export default function StaffAvailabilityScreen() {
                 </View>
               </View>
             )}
-          </ScrollView>
+          </>
+        )}
+      </ScrollView>
 
-          <View style={styles.buttonContainer}>
-            <Button
-              title="Save"
-              onPress={handleSave}
-              disabled={isUpdating}
-            />
-          </View>
-        </>
+      {!loading && (
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Save"
+            onPress={handleSave}
+            disabled={isUpdating}
+          />
+        </View>
       )}
 
       <BusinessHoursBottomSheet
