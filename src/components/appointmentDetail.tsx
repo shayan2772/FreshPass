@@ -72,118 +72,297 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.background,
     },
     contentContainer: {
-      paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(16),
+      paddingTop: moderateHeightScale(16),
       paddingBottom: moderateHeightScale(24),
     },
+    // Header Card - Compact
+    headerCard: {
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(12),
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+    },
+    headerTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(10),
+    },
+    statusRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
+    },
+    statusIcon: {
+      width: moderateWidthScale(28),
+      height: moderateHeightScale(28),
+      borderRadius: moderateWidthScale(14),
+      backgroundColor: theme.orangeBrown30,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    statusBadge: {
+      backgroundColor: theme.orangeBrown30,
+      paddingHorizontal: moderateWidthScale(10),
+      paddingVertical: moderateHeightScale(5),
+      borderRadius: moderateWidthScale(12),
+    },
+    statusText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.selectCard,
+      textTransform: "capitalize",
+    },
+    priceSection: {
+      alignItems: "flex-end",
+    },
+    priceLabel: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(2),
+    },
+    priceText: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    // Card
     card: {
       backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(12),
       paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(16),
-      marginBottom: moderateHeightScale(16),
+      paddingVertical: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(12),
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
         height: 1,
       },
-      shadowOpacity: 0.2,
-      shadowRadius: 1.41,
+      shadowOpacity: 0.08,
+      shadowRadius: 3,
       elevation: 2,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
-    sectionTitle: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(12),
-    },
-    infoRow: {
+    // Section Header - Compact
+    sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: moderateHeightScale(12),
+      paddingBottom: moderateHeightScale(10),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.lightGreen1,
+    },
+    sectionIcon: {
+      width: moderateWidthScale(24),
+      height: moderateHeightScale(24),
+      borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.lightGreen1,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(8),
+    },
+    sectionTitle: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    // Info Row - Compact
+    infoRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: moderateHeightScale(14),
+    },
+    infoRowLast: {
+      marginBottom: 0,
     },
     infoIcon: {
-      marginRight: moderateWidthScale(12),
+      width: moderateWidthScale(28),
+      height: moderateHeightScale(28),
+      borderRadius: moderateWidthScale(14),
+      backgroundColor: theme.lightGreen1,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(10),
+      marginTop: moderateHeightScale(2),
+    },
+    infoContent: {
+      flex: 1,
     },
     infoLabel: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
       marginBottom: moderateHeightScale(4),
+      textTransform: "uppercase",
+      letterSpacing: 0.3,
     },
     infoValue: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-      flex: 1,
+      flexWrap: "wrap",
     },
     infoValueBold: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      marginBottom: moderateHeightScale(2),
+      flexWrap: "wrap",
     },
-    divider: {
-      height: 1,
-      backgroundColor: theme.borderLight,
-      marginVertical: moderateHeightScale(12),
+    infoSubValue: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      flexWrap: "wrap",
     },
-    statusBadge: {
-      backgroundColor: theme.orangeBrown30,
-      paddingHorizontal: moderateWidthScale(12),
-      paddingVertical: moderateHeightScale(6),
-      borderRadius: moderateWidthScale(6),
-      alignSelf: "flex-start",
-    },
-    statusText: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontBold,
-      color: theme.selectCard,
-    },
-    priceText: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-    },
+    // Service Item - Compact
     serviceItem: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
-      paddingVertical: moderateHeightScale(8),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      alignItems: "flex-start",
+      paddingVertical: moderateHeightScale(10),
+      paddingHorizontal: moderateWidthScale(12),
+      marginHorizontal: moderateWidthScale(-16),
+      backgroundColor: theme.lightBeige,
+      borderRadius: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(8),
+      borderLeftWidth: 3,
+      borderLeftColor: theme.orangeBrown,
     },
     serviceItemLast: {
-      borderBottomWidth: 0,
+      marginBottom: 0,
+    },
+    serviceContent: {
+      flex: 1,
+      marginRight: moderateWidthScale(8),
     },
     serviceName: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      flex: 1,
+      marginBottom: moderateHeightScale(4),
+      flexWrap: "wrap",
+    },
+    serviceDescription: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(4),
+      flexWrap: "wrap",
+    },
+    serviceMeta: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
+    },
+    serviceMetaItem: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(4),
+    },
+    serviceMetaText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
     },
     servicePrice: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginLeft: moderateWidthScale(12),
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      textAlign: "right",
+      minWidth: moderateWidthScale(70),
     },
+    // Subscription Visits - Compact
+    visitsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: theme.lightBeige,
+      borderRadius: moderateWidthScale(8),
+      padding: moderateWidthScale(12),
+      borderLeftWidth: 3,
+      borderLeftColor: theme.orangeBrown,
+    },
+    visitsInfo: {
+      flex: 1,
+    },
+    visitsLabel: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(4),
+      textTransform: "uppercase",
+      letterSpacing: 0.3,
+    },
+    visitsValue: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    visitsProgress: {
+      width: moderateWidthScale(50),
+      height: moderateHeightScale(50),
+      borderRadius: moderateWidthScale(25),
+      backgroundColor: theme.orangeBrown30,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: theme.selectCard,
+    },
+    visitsProgressText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.selectCard,
+    },
+    // Notes - Compact
     notesContainer: {
       backgroundColor: theme.lightBeige,
-      borderRadius: moderateWidthScale(6),
+      borderRadius: moderateWidthScale(8),
       padding: moderateWidthScale(12),
       marginTop: moderateHeightScale(8),
+      borderLeftWidth: 3,
+      borderLeftColor: theme.orangeBrown,
     },
     notesText: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       lineHeight: moderateHeightScale(18),
+      flexWrap: "wrap",
     },
     emptyNotes: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       fontStyle: "italic",
+      textAlign: "center",
+      paddingVertical: moderateHeightScale(12),
+    },
+    emptyState: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: moderateHeightScale(40),
+    },
+    emptyStateText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
     },
   });
 
@@ -197,7 +376,9 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
       <View style={styles.container}>
         <StackHeader title="Appointment Detail" />
         <View style={styles.contentContainer}>
-          <Text style={styles.emptyNotes}>No appointment data available</Text>
+          <View style={styles.emptyState}>
+            <Text style={styles.emptyStateText}>No appointment data available</Text>
+          </View>
         </View>
       </View>
     );
@@ -218,11 +399,11 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
       const minutes = totalMinutes % 60;
 
       if (hours > 0 && minutes > 0) {
-        durationText = ` • ${hours} hour${hours > 1 ? "s" : ""} ${minutes} min`;
+        durationText = ` • ${hours}h ${minutes}m`;
       } else if (hours > 0) {
-        durationText = ` • ${hours} hour${hours > 1 ? "s" : ""}`;
+        durationText = ` • ${hours}h`;
       } else {
-        durationText = ` • ${minutes} min`;
+        durationText = ` • ${minutes}m`;
       }
     }
 
@@ -276,43 +457,58 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
-        {/* Status and Price Card */}
-        <View style={styles.card}>
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: moderateHeightScale(16),
-            }}
-          >
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>
-                {appointment.status === "scheduled"
-                  ? "On-going apt."
-                  : appointment.status}
+        {/* Header Card - Compact Design */}
+        <View style={styles.headerCard}>
+          <View style={styles.headerTop}>
+            <View style={styles.statusRow}>
+              <View style={styles.statusIcon}>
+                <Ionicons
+                  name="calendar-outline"
+                  size={moderateWidthScale(16)}
+                  color={theme.selectCard}
+                />
+              </View>
+              <View style={styles.statusBadge}>
+                <Text style={styles.statusText} numberOfLines={1}>
+                  {appointment.status === "scheduled"
+                    ? "On-going apt."
+                    : appointment.status}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.priceSection}>
+              <Text style={styles.priceLabel}>Total Amount</Text>
+              <Text style={styles.priceText} numberOfLines={1}>
+                {formatPrice(appointment.paidAmount)}
               </Text>
             </View>
-            <Text style={styles.priceText}>
-              {formatPrice(appointment.paidAmount)}
-            </Text>
           </View>
         </View>
 
         {/* Appointment Information */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Appointment Information</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIcon}>
+              <Ionicons
+                name="information-circle-outline"
+                size={moderateWidthScale(14)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <Text style={styles.sectionTitle}>Appointment Information</Text>
+          </View>
 
           <View style={styles.infoRow}>
-            <Ionicons
-              name="time-outline"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-              style={styles.infoIcon}
-            />
-            <View style={{ flex: 1 }}>
+            <View style={styles.infoIcon}>
+              <Ionicons
+                name="time-outline"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Date & Time</Text>
-              <Text style={styles.infoValue}>
+              <Text style={styles.infoValue} numberOfLines={2}>
                 {formatDateTime(
                   appointment.appointmentDate,
                   appointment.appointmentTime,
@@ -322,66 +518,92 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
             </View>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <SubscriptionTicketIcon
-              width={moderateWidthScale(18)}
-              height={moderateWidthScale(18)}
-            />
-            <View style={{ flex: 1, marginLeft: moderateWidthScale(12) }}>
-              <Text style={styles.infoLabel}>Type</Text>
-              <Text style={styles.infoValue}>
+          <View style={[styles.infoRow, styles.infoRowLast]}>
+            <View style={styles.infoIcon}>
+              <SubscriptionTicketIcon
+                width={moderateWidthScale(16)}
+                height={moderateWidthScale(16)}
+              />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Appointment Type</Text>
+              <Text style={styles.infoValueBold} numberOfLines={1}>
                 {appointment.appointmentType === "subscription"
                   ? appointment.subscription || "Subscription"
                   : "Service Base"}
               </Text>
             </View>
           </View>
+        </View>
 
-          <View style={styles.divider} />
+        {/* People Information */}
+        <View style={styles.card}>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIcon}>
+              <Ionicons
+                name="people-outline"
+                size={moderateWidthScale(14)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <Text style={styles.sectionTitle}>People</Text>
+          </View>
 
           <View style={styles.infoRow}>
-            <PersonIcon
-              width={moderateWidthScale(18)}
-              height={moderateWidthScale(18)}
-            />
-            <View style={{ flex: 1, marginLeft: moderateWidthScale(12) }}>
+            <View style={styles.infoIcon}>
+              <PersonIcon
+                width={moderateWidthScale(16)}
+                height={moderateWidthScale(16)}
+              />
+            </View>
+            <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Customer</Text>
-              <Text style={styles.infoValueBold}>{appointment.user}</Text>
-              <Text style={[styles.infoValue, { fontSize: fontSize.size12 }]}>
+              <Text style={styles.infoValueBold} numberOfLines={1}>
+                {appointment.user}
+              </Text>
+              <Text style={styles.infoSubValue} numberOfLines={1}>
                 {appointment.userEmail}
               </Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="person-outline"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-              style={styles.infoIcon}
-            />
-            <View style={{ flex: 1 }}>
-              <Text style={styles.infoLabel}>Staff</Text>
-              <Text style={styles.infoValueBold}>{appointment.staffName}</Text>
-              <Text style={[styles.infoValue, { fontSize: fontSize.size12 }]}>
+          <View style={[styles.infoRow, styles.infoRowLast]}>
+            <View style={styles.infoIcon}>
+              <Ionicons
+                name="person-outline"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <View style={styles.infoContent}>
+              <Text style={styles.infoLabel}>Assigned Staff</Text>
+              <Text style={styles.infoValueBold} numberOfLines={1}>
+                {appointment.staffName}
+              </Text>
+              <Text style={styles.infoSubValue} numberOfLines={1}>
                 {appointment.staffEmail}
               </Text>
             </View>
           </View>
         </View>
 
-        {/* Services Card */}
+        {/* Services */}
         {services.length > 0 && (
           <View style={styles.card}>
-            <Text style={styles.sectionTitle}>
-              {appointment.appointmentType === "subscription"
-                ? "Subscription Services"
-                : "Services"}
-            </Text>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionIcon}>
+                <Ionicons
+                  name="list-outline"
+                  size={moderateWidthScale(14)}
+                  color={theme.darkGreen}
+                />
+              </View>
+              <Text style={styles.sectionTitle}>
+                {appointment.appointmentType === "subscription"
+                  ? "Subscription Services"
+                  : "Services"}
+              </Text>
+            </View>
             {services.map((service, index) => {
               const durationText =
                 service.duration.hours > 0 && service.duration.minutes > 0
@@ -398,28 +620,29 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
                     index === services.length - 1 && styles.serviceItemLast,
                   ]}
                 >
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.serviceName}>{service.name}</Text>
+                  <View style={styles.serviceContent}>
+                    <Text style={styles.serviceName} numberOfLines={2}>
+                      {service.name}
+                    </Text>
                     {service.description && (
-                      <Text
-                        style={[
-                          styles.servicePrice,
-                          { fontSize: fontSize.size12, marginTop: moderateHeightScale(4) },
-                        ]}
-                      >
+                      <Text style={styles.serviceDescription} numberOfLines={2}>
                         {service.description}
                       </Text>
                     )}
-                    <Text
-                      style={[
-                        styles.servicePrice,
-                        { fontSize: fontSize.size12, marginTop: moderateHeightScale(4) },
-                      ]}
-                    >
-                      Duration: {durationText}
-                    </Text>
+                    <View style={styles.serviceMeta}>
+                      <View style={styles.serviceMetaItem}>
+                        <Ionicons
+                          name="time-outline"
+                          size={moderateWidthScale(12)}
+                          color={theme.lightGreen}
+                        />
+                        <Text style={styles.serviceMetaText}>
+                          {durationText}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <Text style={styles.servicePrice}>
+                  <Text style={styles.servicePrice} numberOfLines={1}>
                     {formatPrice(service.price)}
                   </Text>
                 </View>
@@ -428,17 +651,36 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
           </View>
         )}
 
-        {/* Subscription Visits (if subscription type) */}
+        {/* Subscription Visits */}
         {appointment.appointmentType === "subscription" &&
           appointment.subscriptionVisits && (
             <View style={styles.card}>
-              <Text style={styles.sectionTitle}>Subscription Visits</Text>
-              <View style={styles.infoRow}>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.infoLabel}>Used</Text>
-                  <Text style={styles.infoValueBold}>
+              <View style={styles.sectionHeader}>
+                <View style={styles.sectionIcon}>
+                  <Ionicons
+                    name="checkmark-circle-outline"
+                    size={moderateWidthScale(14)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+                <Text style={styles.sectionTitle}>Subscription Visits</Text>
+              </View>
+              <View style={styles.visitsContainer}>
+                <View style={styles.visitsInfo}>
+                  <Text style={styles.visitsLabel}>Visits Used</Text>
+                  <Text style={styles.visitsValue}>
                     {appointment.subscriptionVisits.used} /{" "}
                     {appointment.subscriptionVisits.total}
+                  </Text>
+                </View>
+                <View style={styles.visitsProgress}>
+                  <Text style={styles.visitsProgressText}>
+                    {Math.round(
+                      (appointment.subscriptionVisits.used /
+                        appointment.subscriptionVisits.total) *
+                        100
+                    )}
+                    %
                   </Text>
                 </View>
               </View>
@@ -447,45 +689,67 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
 
         {/* Business Information */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Business Information</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIcon}>
+              <Ionicons
+                name="business-outline"
+                size={moderateWidthScale(14)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <Text style={styles.sectionTitle}>Business Information</Text>
+          </View>
 
           <View style={styles.infoRow}>
-            <Ionicons
-              name="business-outline"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-              style={styles.infoIcon}
-            />
-            <View style={{ flex: 1 }}>
+            <View style={styles.infoIcon}>
+              <Ionicons
+                name="storefront-outline"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Business Name</Text>
-              <Text style={styles.infoValueBold}>
+              <Text style={styles.infoValueBold} numberOfLines={2}>
                 {appointment.businessTitle}
               </Text>
             </View>
           </View>
 
-          <View style={styles.divider} />
-
-          <View style={styles.infoRow}>
-            <Ionicons
-              name="location-outline"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-              style={styles.infoIcon}
-            />
-            <View style={{ flex: 1 }}>
+          <View style={[styles.infoRow, styles.infoRowLast]}>
+            <View style={styles.infoIcon}>
+              <Ionicons
+                name="location-outline"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <View style={styles.infoContent}>
               <Text style={styles.infoLabel}>Address</Text>
-              <Text style={styles.infoValue}>{appointment.businessAddress}</Text>
+              <Text style={styles.infoValue} numberOfLines={3}>
+                {appointment.businessAddress}
+              </Text>
             </View>
           </View>
         </View>
 
         {/* Notes */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Notes</Text>
+          <View style={styles.sectionHeader}>
+            <View style={styles.sectionIcon}>
+              <Ionicons
+                name="document-text-outline"
+                size={moderateWidthScale(14)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <Text style={styles.sectionTitle}>Notes</Text>
+          </View>
           {appointment.notes ? (
             <View style={styles.notesContainer}>
-              <Text style={styles.notesText}>{appointment.notes}</Text>
+              <Text style={styles.notesText} numberOfLines={10}>
+                {appointment.notes}
+              </Text>
             </View>
           ) : (
             <Text style={styles.emptyNotes}>No notes available</Text>
@@ -495,4 +759,3 @@ export default function AppointmentDetail({ appointment }: AppointmentDetailProp
     </View>
   );
 }
-
