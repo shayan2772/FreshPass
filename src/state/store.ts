@@ -41,14 +41,14 @@ const SecureStorageAdapter = {
 const generalPersistConfig = {
   key: "general",
   storage: SecureStorageAdapter,
-  whitelist: ["theme", "themeType", "language", "savedPassword","registerEmail"], // Only persist these fields
+  whitelist: ["theme", "themeType", "language", "savedPassword","registerEmail", "isVisitFirst"], // Only persist these fields
 };
 
 // ✅ Nested persist config for user slice - only persist name, id, email, tokens, userRole (businessStatus is NOT persisted)
 const userPersistConfig = {
   key: "user",
   storage: SecureStorageAdapter,
-  whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone"], // Only persist these fields (businessStatus excluded)
+  whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone", "isGuest", "location", "discover"], // Only persist these fields (businessStatus excluded)
 };
 
 // ✅ Persist the general reducer with field filtering

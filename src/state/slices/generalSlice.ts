@@ -11,6 +11,7 @@ export interface GeneralState {
   actionLoader: boolean; // Global action loader state
   toggleLoading: boolean; // Toggle loading state (not persisted)
   role: UserRole; // Selected user role
+  isVisitFirst: boolean; // Track if it's the first visit
 }
 
 const initialState: GeneralState = {
@@ -22,6 +23,7 @@ const initialState: GeneralState = {
   actionLoader: false,
   toggleLoading: false,
   role: null,
+  isVisitFirst: true,
 };
 
 const generalSlice = createSlice({
@@ -53,6 +55,9 @@ const generalSlice = createSlice({
     setRole(state, action: PayloadAction<UserRole>) {
       state.role = action.payload;
     },
+    setIsVisitFirst(state, action: PayloadAction<boolean>) {
+      state.isVisitFirst = action.payload;
+    },
     resetGeneral(state) {
       // state.theme = initialState.theme;
       // state.themeType = initialState.themeType;
@@ -72,6 +77,7 @@ export const {
   setActionLoader,
   setToggleLoading,
   setRole,
+  setIsVisitFirst,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

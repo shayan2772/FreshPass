@@ -19,6 +19,14 @@ export interface BusinessStatus {
   business_name?: string;
 }
 
+export interface Location {
+  lat: number | null;
+  long: number | null;
+  locationName: string | null;
+}
+
+export type DiscoverType = "women" | "men" | "both" | "other" | null;
+
 export interface UserState {
   id: number | null;
   name: string | null;
@@ -36,6 +44,9 @@ export interface UserState {
   // Business status loading/error states (NOT persisted)
   businessStatusLoading: boolean;
   businessStatusError: boolean;
+  isGuest: boolean;
+  location: Location;
+  discover: DiscoverType;
 }
 
 const initialState: UserState = {
@@ -54,6 +65,13 @@ const initialState: UserState = {
   unreadCount: 0,
   businessStatusLoading: false,
   businessStatusError: false,
+  isGuest: false,
+  location: {
+    lat: null,
+    long: null,
+    locationName: null,
+  },
+  discover: null,
 };
 
 const userSlice = createSlice({
@@ -147,6 +165,15 @@ const userSlice = createSlice({
     setUnreadCount(state, action: PayloadAction<number>) {
       state.unreadCount = action.payload;
     },
+    setIsGuest(state, action: PayloadAction<boolean>) {
+      state.isGuest = action.payload;
+    },
+    setLocation(state, action: PayloadAction<Location>) {
+      state.location = action.payload;
+    },
+    setDiscover(state, action: PayloadAction<DiscoverType>) {
+      state.discover = action.payload;
+    },
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -163,6 +190,9 @@ const userSlice = createSlice({
       state.unreadCount = initialState.unreadCount;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
+      state.isGuest = initialState.isGuest;
+      state.location = initialState.location;
+      state.discover = initialState.discover;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -180,6 +210,9 @@ const userSlice = createSlice({
       state.unreadCount = initialState.unreadCount;
       state.businessStatusLoading = initialState.businessStatusLoading;
       state.businessStatusError = initialState.businessStatusError;
+      state.isGuest = initialState.isGuest;
+      state.location = initialState.location;
+      state.discover = initialState.discover;
     },
   },
 });
@@ -193,6 +226,9 @@ export const {
   setBusinessStatusError,
   setUserDetails,
   setUnreadCount,
+  setIsGuest,
+  setLocation,
+  setDiscover,
   clearUser,
   resetUser,
 } = userSlice.actions;
