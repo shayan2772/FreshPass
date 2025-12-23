@@ -30,8 +30,7 @@ export default function Role() {
     if (selectedRole) {
       // Show alert if client role is selected
       if (selectedRole === "client") {
-        Alert.alert("Customer Side", "Customer side working in progress");
-        return;
+        router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
       }
       router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
     }
