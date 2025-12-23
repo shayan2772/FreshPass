@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { use, useMemo } from "react";
 import {
   StyleSheet,
   Text,
@@ -27,7 +27,7 @@ const createStyles = (theme: Theme) =>
     },
     content: {
       flex: 1,
-      paddingHorizontal: moderateWidthScale(20),
+     
     },
     contentContainer: {
       paddingVertical: moderateHeightScale(24),
@@ -41,6 +41,7 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(16),
       borderWidth: 1,
       borderColor: theme.borderLight,
+      marginHorizontal: moderateWidthScale(20),
     },
     profileImage: {
       width: "100%",
@@ -53,16 +54,37 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(5),
+      marginHorizontal: moderateWidthScale(20),
+      textAlign:"center"
     },
     emailText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(24),
+      marginHorizontal: moderateWidthScale(20),
+      textAlign:"center"
+    },
+    staffInfoCard: {
+      width: "100%",
+      backgroundColor: theme.lightGreen1,
+      paddingHorizontal: moderateWidthScale(18),
+      paddingVertical: moderateHeightScale(14),
+      marginVertical: moderateHeightScale(16),
+      borderTopWidth: 1,
+      borderBottomWidth: 1,
+      borderColor: theme.borderLight,
+    },
+    staffInfoText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: moderateHeightScale(22),
     },
     editButtonContainer: {
       width: "30%",
       marginBottom: moderateHeightScale(16),
+      marginHorizontal: moderateWidthScale(20),
     },
     editButton: {
       backgroundColor: theme.darkGreen,
@@ -85,12 +107,14 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       textAlign: "center",
       paddingHorizontal: moderateWidthScale(20),
+      marginHorizontal: moderateWidthScale(20),
     },
     changePasswordRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       width: "100%",
+      paddingHorizontal: moderateWidthScale(20),
     },
     changePasswordText: {
       fontSize: fontSize.size15,
@@ -102,6 +126,7 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       backgroundColor: theme.borderLight,
       marginVertical: moderateHeightScale(20),
+      marginHorizontal: moderateWidthScale(20),
     },
   });
 
@@ -120,12 +145,11 @@ export default function ProfileScreen() {
     router.push("./changePassword");
   };
 
-  const profileImageUri = user?.profile_image_url 
+  const profileImageUri = user?.profile_image_url
     ? process.env.EXPO_PUBLIC_API_BASE_URL + user.profile_image_url
     : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
   const userName = user.name || "";
   const userEmail = user.email || "";
- 
 
   return (
     <View style={styles.container}>
@@ -164,11 +188,24 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.privacyNote}>
-          This photo is seen by others when they view your profile, messages and
-          reviews.
+          {user?.userRole === "staff"
+            ? "This photo is seen by others when they view your profile."
+            : "This photo is seen by others when they view your business profile, messages and reviews."}
         </Text>
 
-        <View style={styles.line} />
+        {user?.userRole === "staff" && (
+          <View style={styles.staffInfoCard}>
+            <Text style={styles.staffInfoText}>
+              Staff details are optional, businesses can choose whether to list
+              staff members in their profile. There is no separate availability
+              calendar per staff member, they follow the business hours, and
+              services are just linked to specific staff to highlight their
+              expertise.
+            </Text>
+          </View>
+        )}
+
+        {user?.userRole !== "staff" && <View style={styles.line} />}
 
         <TouchableOpacity
           activeOpacity={0.7}

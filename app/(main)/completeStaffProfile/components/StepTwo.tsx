@@ -190,18 +190,6 @@ export default function StepTwo() {
     null
   );
 
-  // Whenever businessHours change while we're NOT copying salon hours,
-  // keep staffBaseHours in sync so we can restore it later.
-  useEffect(() => {
-    if (!copySalonHours) {
-      // Deep clone to avoid accidental mutation references
-      const cloned: BusinessHours = JSON.parse(
-        JSON.stringify(businessHours)
-      ) as BusinessHours;
-      setStaffBaseHours(cloned);
-    }
-  }, [businessHours, copySalonHours]);
-
   // Copy salon business hours when checkbox is checked
   useEffect(() => {
     if (copySalonHours && salonBusinessHours) {
@@ -272,6 +260,20 @@ export default function StepTwo() {
       }
     }
   }, [copySalonHours, salonBusinessHours, staffBaseHours, dispatch]);
+
+  const handleToggleCopySalonHours = () => {
+    if (!copySalonHours) {
+      // Snapshot current staff hours BEFORE copying salon hours
+      const cloned: BusinessHours = JSON.parse(
+        JSON.stringify(businessHours)
+      ) as BusinessHours;
+      setStaffBaseHours(cloned);
+      setCopySalonHours(true);
+    } else {
+      // Turning off copy – restoration will be handled by the effect above
+      setCopySalonHours(false);
+    }
+  };
 
   const handleToggleDay = (day: string, value: boolean) => {
     const dayData = businessHours[day];
@@ -409,7 +411,7 @@ export default function StepTwo() {
         <View style={styles.copyCheckboxContainer}>
           <View style={styles.copyHoursSection}>
             <TouchableOpacity
-              onPress={() => setCopySalonHours(!copySalonHours)}
+              onPress={handleToggleCopySalonHours}
             >
               <View
                 style={[
@@ -439,11 +441,11 @@ export default function StepTwo() {
         </View>
       )}
 
-      <BusinessHoursBottomSheet
+      {/* <BusinessHoursBottomSheet
         visible={bottomSheetVisible}
         onClose={handleCloseBottomSheet}
         day={selectedDay || ""}
-      />
+      /> */}
     </View>
   );
 }

@@ -150,6 +150,9 @@ export default function StepOne() {
   const { fullName, profileImageUri, aboutYourself } = useAppSelector(
     (state) => state.completeProfile
   );
+
+ 
+
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [aboutYourselfError, setAboutYourselfError] = useState<string | null>(null);

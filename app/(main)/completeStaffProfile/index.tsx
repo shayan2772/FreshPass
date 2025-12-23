@@ -29,6 +29,7 @@ import {
   validateDescription,
 } from "@/src/services/validationService";
 import AcceptTermsModal from "@/src/components/acceptTermsModal";
+import { setUserDetails } from "@/src/state/slices/userSlice";
 
 export default function CompleteStaffProfile() {
   const router = useRouter();
@@ -106,6 +107,8 @@ export default function CompleteStaffProfile() {
             type: mimeType,
             name: fileName,
           } as any);
+        }else{
+          formData.append("remove_image", "true");
         }
 
         requestBody = formData;
@@ -152,8 +155,15 @@ export default function CompleteStaffProfile() {
       }>(staffEndpoints.details, requestBody, config);
 
       if (response.success) {
-        // Move to next step on success
         if (currentStep <= 1) {
+          dispatch(
+            setUserDetails({
+              name: response.data?.name ?? null,
+              description: response.data?.description ?? "",
+              profile_image_url:
+                (response.data as any)?.profile_image_url ?? null,
+            })
+          );
           dispatch(goToNextStep());
         } else if (currentStep > 1) {
           // Show accept terms modal when step 2 is completed

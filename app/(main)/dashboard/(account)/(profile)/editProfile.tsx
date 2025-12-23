@@ -21,7 +21,7 @@ import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { ApiService } from "@/src/services/api";
-import { userEndpoints } from "@/src/services/endpoints";
+import { staffEndpoints, userEndpoints } from "@/src/services/endpoints";
 import { setUserDetails } from "@/src/state/slices/userSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -34,7 +34,11 @@ import StackHeader from "@/src/components/StackHeader";
 import FloatingInput from "@/src/components/floatingInput";
 import Button from "@/src/components/button";
 import ImagePickerModal from "@/src/components/imagePickerModal";
-import { validateEmail, validateName } from "@/src/services/validationService";
+import {
+  validateDescription,
+  validateEmail,
+  validateName,
+} from "@/src/services/validationService";
 import { CloseIcon } from "@/assets/icons";
 import {
   CountryCode as PhoneCountryCode,
@@ -224,6 +228,31 @@ const createStyles = (theme: Theme) =>
     disabledInputContainer: {
       backgroundColor: theme.lightGreen07,
     },
+    textAreaContainer: {
+      marginBottom: moderateHeightScale(20),
+      position: "relative",
+    },
+    textArea: {
+      borderRadius: moderateWidthScale(12),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      backgroundColor: theme.white,
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(12),
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      minHeight: moderateHeightScale(120),
+      textAlignVertical: "top",
+      // Extra right padding so text doesn't go under the clear (X) button
+      paddingRight: moderateWidthScale(40),
+    },
+    clearButton: {
+      position: "absolute",
+      top: moderateHeightScale(12),
+      right: moderateWidthScale(12),
+      zIndex: 1,
+    },
   });
 
 const FALLBACK_PHONE_PLACEHOLDERS: Record<string, string> = {
@@ -371,8 +400,13 @@ export default function EditProfileScreen() {
   const [showImagePickerModal, setShowImagePickerModal] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [fullNameError, setFullNameError] = useState<string | null>(null);
+  const [aboutYourself, setAboutYourself] = useState(user?.description ?? "");
+  const [aboutYourselfError, setAboutYourselfError] = useState<string | null>(
+    null
+  );
   const [isUpdating, setIsUpdating] = useState(false);
 
+ 
   // Phone number state
   const [countryCode, setCountryCode] = useState(initialCountryCode);
   const [countryIso, setCountryIso] = useState(initialCountryIso);
@@ -430,6 +464,16 @@ export default function EditProfileScreen() {
       setFullNameError(null);
     }
   }, [fullName]);
+
+  // Validate about yourself for staff (optional field - only validate if content exists)
+  useEffect(() => {
+    if (user.userRole === "staff" && aboutYourself.trim().length > 0) {
+      const validation = validateDescription(aboutYourself.trim(), 10, 1000);
+      setAboutYourselfError(validation.error);
+    } else {
+      setAboutYourselfError(null);
+    }
+  }, [aboutYourself, user.userRole]);
 
   // Initialize phone placeholder when country changes
   useEffect(() => {
@@ -677,11 +721,20 @@ export default function EditProfileScreen() {
     const isFullNameValid =
       fullName.trim().length > 0 && fullNameValidation.isValid;
 
-    // Phone is optional, but if provided, it must be valid
+    if (user.userRole === "staff") {
+      const aboutYourselfProvided = aboutYourself.trim().length > 0;
+      const aboutYourselfValidation = aboutYourselfProvided
+        ? validateDescription(aboutYourself.trim(), 10, 1000)
+        : { isValid: true, error: null };
+
+      return isFullNameValid && aboutYourselfValidation.isValid;
+    }
+
+    // Phone is optional, but if provided, it must be valid (non-staff users)
     const isPhoneValid = phoneNumber.length === 0 || phoneIsValid;
 
     return isFullNameValid && isPhoneValid;
-  }, [fullName, phoneNumber, phoneIsValid]);
+  }, [aboutYourself, fullName, phoneIsValid, phoneNumber, user.userRole]);
 
   const handleUpdateProfile = async () => {
     // Validate all fields before submitting
@@ -689,11 +742,24 @@ export default function EditProfileScreen() {
 
     setFullNameError(fullNameValidation.error);
 
-    if (
-      !fullNameValidation.isValid ||
-      !(phoneNumber.length === 0 || phoneIsValid)
-    ) {
-      return;
+    if (user.userRole === "staff") {
+      const aboutYourselfProvided = aboutYourself.trim().length > 0;
+      const aboutYourselfValidation = aboutYourselfProvided
+        ? validateDescription(aboutYourself.trim(), 10, 1000)
+        : { isValid: true, error: null };
+
+      setAboutYourselfError(aboutYourselfValidation.error);
+
+      if (!fullNameValidation.isValid || !aboutYourselfValidation.isValid) {
+        return;
+      }
+    } else {
+      if (
+        !fullNameValidation.isValid ||
+        !(phoneNumber.length === 0 || phoneIsValid)
+      ) {
+        return;
+      }
     }
 
     setIsUpdating(true);
@@ -704,16 +770,26 @@ export default function EditProfileScreen() {
       // Add name
       formData.append("name", fullName.trim());
 
-      // Add phone number and country code separately
-      if (phoneNumber && phoneIsValid) {
-        // Remove any spaces from phone number
-        const cleanPhoneNumber = phoneNumber.replace(/\s+/g, "");
-        formData.append("phone", cleanPhoneNumber);
-        formData.append("country_code", countryCode);
-      } else if (phoneNumber.length === 0) {
-        // If phone is empty, send empty string to clear it
-        formData.append("phone", "");
-        formData.append("country_code", countryCode);
+      let endpoint: string = userEndpoints.update;
+
+      if (user.userRole === "staff") {
+        // Staff: description is optional
+        formData.append(
+          "description",
+          aboutYourself.trim().length > 0 ? aboutYourself.trim() : ""
+        );
+      } else {
+        // Non-staff: Add phone number and country code separately
+        if (phoneNumber && phoneIsValid) {
+          // Remove any spaces from phone number
+          const cleanPhoneNumber = phoneNumber.replace(/\s+/g, "");
+          formData.append("phone", cleanPhoneNumber);
+          formData.append("country_code", countryCode);
+        } else if (phoneNumber.length === 0) {
+          // If phone is empty, send empty string to clear it
+          formData.append("phone", "");
+          formData.append("country_code", countryCode);
+        }
       }
 
       // Add profile image if it has changed
@@ -738,16 +814,27 @@ export default function EditProfileScreen() {
               ? "image/webp"
               : "image/jpeg";
 
-          formData.append("avatar", {
+          // Use staff-specific field name when updating staff profile
+          const imageFieldName =
+            user.userRole === "staff" ? "profile_image" : "avatar";
+
+          formData.append(imageFieldName, {
             uri: profileImageUri,
             type: mimeType,
             name: fileName,
           } as any);
         } else if (profileImageUri === "") {
           // User wants to remove avatar
-          formData.append("remove_avatar", "true");
+          if (user.userRole !== "staff") {
+            formData.append("remove_avatar", "true");
+          }
         }
         // If it's a remote URL and hasn't changed, we don't need to send it
+      }
+
+      // Staff profile uses staff endpoints
+      if (user.userRole === "staff") {
+        endpoint = staffEndpoints.details;
       }
 
       // API call with FormData
@@ -761,16 +848,16 @@ export default function EditProfileScreen() {
         success: boolean;
         message: string;
         data?: {
-          name: string;
-          phone: string | null;
-          country_code: string | null;
-          profile_image_url: string | null;
+          name?: string;
+          phone?: string | null;
+          country_code?: string | null;
+          profile_image_url?: string | null;
         };
-      }>(userEndpoints.update, formData, config);
+      }>(endpoint, formData, config);
 
       if (response.success) {
-        // Update Redux state with new user data
-        if (response.data) {
+        // Update Redux state with new user data (for user endpoint responses)
+        if (endpoint === userEndpoints.update && response.data) {
           dispatch(
             setUserDetails({
               name: response.data.name,
@@ -885,71 +972,100 @@ export default function EditProfileScreen() {
           )}
         </View>
 
-        <View style={styles.phoneField}>
-          <View style={styles.phoneFieldContainer}>
-            <Text style={styles.inputLabel}>Phone number</Text>
-            <View style={styles.phoneInputContainer}>
+        {user?.userRole === "staff" && (
+          <View style={styles.textAreaContainer}>
+             
+            <TextInput
+              style={styles.textArea}
+              value={aboutYourself}
+              onChangeText={setAboutYourself}
+              placeholder="Write about yourself (optional)"
+              placeholderTextColor={theme.lightGreen2}
+              multiline
+              numberOfLines={6}
+            />
+            {aboutYourself.length > 0 && (
               <Pressable
-                onPress={() => setPickerVisible(true)}
-                style={styles.countrySelector}
-                hitSlop={moderateWidthScale(10)}
+                onPress={() => setAboutYourself("")}
+                style={styles.clearButton}
+                hitSlop={moderateWidthScale(8)}
               >
-                <Text style={styles.countryCodeText}>{countryCode}</Text>
-                <AntDesign
-                  name="caret-down"
-                  size={moderateWidthScale(12)}
-                  color={theme.darkGreen}
-                />
+                <CloseIcon color={theme.darkGreen} />
               </Pressable>
-              <View style={styles.segmentWrapper}>
-                <TextInput
-                  ref={phoneInputRef}
-                  style={styles.hiddenInput}
-                  value={formattedPhoneValue}
-                  onChangeText={handlePhoneChange}
-                  onSelectionChange={handleSelectionChange}
-                  selection={selection}
-                  keyboardType="phone-pad"
-                  returnKeyType="done"
-                  maxLength={phonePlaceholder.length}
-                  showSoftInputOnFocus={true}
-                  caretHidden={false}
-                />
-                <View style={styles.segInputWrapper} pointerEvents="none">
-                  {segmentNodes}
-                </View>
-              </View>
-              {!!phoneNumber && (
+            )}
+            {aboutYourselfError && (
+              <Text style={styles.errorText}>{aboutYourselfError}</Text>
+            )}
+          </View>
+        )}
+
+        {user?.userRole !== "staff" && (
+          <View style={styles.phoneField}>
+            <View style={styles.phoneFieldContainer}>
+              <Text style={styles.inputLabel}>Phone number</Text>
+              <View style={styles.phoneInputContainer}>
                 <Pressable
-                  onPress={() => {
-                    previousDigitCountRef.current = 0;
-                    setPhoneNumber("");
-                    setPhoneIsValid(false);
-                  }}
+                  onPress={() => setPickerVisible(true)}
+                  style={styles.countrySelector}
                   hitSlop={moderateWidthScale(10)}
                 >
-                  <CloseIcon color={theme.darkGreen} />
+                  <Text style={styles.countryCodeText}>{countryCode}</Text>
+                  <AntDesign
+                    name="caret-down"
+                    size={moderateWidthScale(12)}
+                    color={theme.darkGreen}
+                  />
                 </Pressable>
-              )}
+                <View style={styles.segmentWrapper}>
+                  <TextInput
+                    ref={phoneInputRef}
+                    style={styles.hiddenInput}
+                    value={formattedPhoneValue}
+                    onChangeText={handlePhoneChange}
+                    onSelectionChange={handleSelectionChange}
+                    selection={selection}
+                    keyboardType="phone-pad"
+                    returnKeyType="done"
+                    maxLength={phonePlaceholder.length}
+                    showSoftInputOnFocus={true}
+                    caretHidden={false}
+                  />
+                  <View style={styles.segInputWrapper} pointerEvents="none">
+                    {segmentNodes}
+                  </View>
+                </View>
+                {!!phoneNumber && (
+                  <Pressable
+                    onPress={() => {
+                      previousDigitCountRef.current = 0;
+                      setPhoneNumber("");
+                      setPhoneIsValid(false);
+                    }}
+                    hitSlop={moderateWidthScale(10)}
+                  >
+                    <CloseIcon color={theme.darkGreen} />
+                  </Pressable>
+                )}
+              </View>
             </View>
+            {isPhoneInvalid && (
+              <Text style={styles.errorText}>Enter a valid phone number</Text>
+            )}
+            <CountryPicker
+              show={pickerVisible}
+              pickerButtonOnPress={handleCountrySelect}
+              onBackdropPress={() => setPickerVisible(false)}
+              onRequestClose={() => setPickerVisible(false)}
+              inputPlaceholder="Search country"
+              inputPlaceholderTextColor={theme.lightGreen2}
+              searchMessage="No country found"
+              style={pickerStyles}
+              popularCountries={["US", "NG", "GB", "CA", "PK", "IN"]}
+              enableModalAvoiding
+              lang="en"
+            />
           </View>
-          {isPhoneInvalid && (
-            <Text style={styles.errorText}>Enter a valid phone number</Text>
-          )}
-          <CountryPicker
-            show={pickerVisible}
-            pickerButtonOnPress={handleCountrySelect}
-            onBackdropPress={() => setPickerVisible(false)}
-            onRequestClose={() => setPickerVisible(false)}
-            inputPlaceholder="Search country"
-            inputPlaceholderTextColor={theme.lightGreen2}
-            searchMessage="No country found"
-            style={pickerStyles}
-            popularCountries={["US", "NG", "GB", "CA", "PK", "IN"]}
-            enableModalAvoiding
-            lang="en"
-          />
-        </View>
+        )}
       </ScrollView>
 
       <View style={styles.updateButtonContainer}>

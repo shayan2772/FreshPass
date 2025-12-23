@@ -22,6 +22,7 @@ export interface BusinessStatus {
 export interface UserState {
   id: number | null;
   name: string | null;
+  description: string;
   email: string | null;
   phone: string | null;
   country_code: string | null;
@@ -40,6 +41,7 @@ export interface UserState {
 const initialState: UserState = {
   id: null,
   name: null,
+  description: "",
   email: null,
   phone: null,
   country_code: null,
@@ -63,7 +65,11 @@ const userSlice = createSlice({
       action: PayloadAction<{
         id: number;
         name: string;
+        description?: string;
         email?: string;
+        phone?: string;
+        country_code?: string;
+        profile_image_url?: string;
         accessToken: string;
         refreshToken?: string;
         userRole?: UserRole;
@@ -71,7 +77,12 @@ const userSlice = createSlice({
     ) {
       state.id = action.payload.id;
       state.name = action.payload.name;
+      state.description = action.payload.description || "";
       state.email = action.payload.email || null;
+       // Optional contact/profile fields from login response
+      state.phone = action.payload.phone || null;
+      state.country_code = action.payload.country_code || null;
+      state.profile_image_url = action.payload.profile_image_url || null;
       state.accessToken = action.payload.accessToken;
       state.refreshToken = action.payload.refreshToken || null;
       state.userRole = action.payload.userRole || null;
@@ -103,6 +114,7 @@ const userSlice = createSlice({
       state,
       action: PayloadAction<{
         name?: string | null;
+        description?: string;
         email?: string | null;
         phone?: string | null;
         country_code?: string | null;
@@ -112,6 +124,9 @@ const userSlice = createSlice({
     ) {
       if (action.payload.name !== undefined) {
         state.name = action.payload.name;
+      }
+      if (action.payload.description !== undefined) {
+        state.description = action.payload.description;
       }
       if (action.payload.email !== undefined) {
         state.email = action.payload.email;
@@ -135,6 +150,7 @@ const userSlice = createSlice({
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
+      state.description = initialState.description;
       state.email = initialState.email;
       state.phone = initialState.phone;
       state.country_code = initialState.country_code;
@@ -151,6 +167,7 @@ const userSlice = createSlice({
     resetUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
+      state.description = initialState.description;
       state.email = initialState.email;
       state.phone = initialState.phone;
       state.country_code = initialState.country_code;

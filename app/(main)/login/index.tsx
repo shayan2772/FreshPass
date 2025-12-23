@@ -35,8 +35,10 @@ import {
   setSavedPassword,
 } from "@/src/state/slices/generalSlice";
 import {
+  setAboutYourself,
   setBusinessName,
   setFullName,
+  setProfileImageUri,
   setSalonBusinessHours,
 } from "@/src/state/slices/completeProfileSlice";
 
@@ -218,6 +220,10 @@ export default function Login() {
               id: user.id,
               name: user?.name || "",
               email: user.email || email.trim(),
+              description: user?.description || "",
+              phone: user?.phone || "",
+              country_code: user?.country_code || "",
+              profile_image_url: user?.profile_image_url || "",
               accessToken: token,
               userRole: user?.role?.toLowerCase() || null,
             })
@@ -295,6 +301,7 @@ export default function Login() {
               dispatch(setSalonBusinessHours(parsedBusinessHours));
             }
             dispatch(setFullName(user?.name || ""));
+            dispatch(setAboutYourself(user?.description || ""));
             dispatch(setBusinessName(user?.business_name || ""));
 
             if (user?.is_onboarded) {

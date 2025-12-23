@@ -258,7 +258,9 @@ const completeProfileSlice = createSlice({
           state.appointmentVolume = null;
         }
 
-        if (nextStep < 2) {
+        // Don't clear Step 1 data when navigating back from Step 2 to Step 1.
+        // Only reset these fields when jumping back from later steps.
+        if (nextStep < 2 && state.currentStep > 2) {
           state.businessName = "";
           state.fullName = "";
           state.countryCode = "+1";
