@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
 import { StyleSheet, View, StatusBar } from "react-native";
-import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
+import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import DashboardHeader from "../../DashboardHeader";
+import DashboardHeaderClient from "../../DashboardHeaderClient";
+import DashboardContent from "./DashboardContent";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -10,23 +11,17 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.background,
     },
-    line: {
-      width: "100%",
-      height: 1,
-      backgroundColor: theme.borderLight,
-    },
   });
 
 export default function HomeScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const dispatch = useAppDispatch();
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <DashboardHeader />
+      <DashboardHeaderClient />
+      <DashboardContent />
     </View>
   );
 }

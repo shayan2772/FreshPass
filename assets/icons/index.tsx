@@ -1159,6 +1159,58 @@ export const CheckRealTimeAvailabilityIcon: React.FC<CheckRealTimeAvailabilityIc
   return <SvgXml xml={svgXml} />;
 };
 
+// Location Pin Icon SVG
+const locationPinIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.0007 10.0003C9.08398 10.0003 8.33398 9.25033 8.33398 8.33366C8.33398 7.41699 9.08398 6.66699 10.0007 6.66699C10.9173 6.66699 11.6673 7.41699 11.6673 8.33366C11.6673 9.25033 10.9173 10.0003 10.0007 10.0003ZM15.0007 8.50033C15.0007 5.47533 12.7923 3.33366 10.0007 3.33366C7.20898 3.33366 5.00065 5.47533 5.00065 8.50033C5.00065 10.4503 6.62565 13.0337 10.0007 16.117C13.3757 13.0337 15.0007 10.4503 15.0007 8.50033ZM10.0007 1.66699C13.5007 1.66699 16.6673 4.35033 16.6673 8.50033C16.6673 11.267 14.4423 14.542 10.0007 18.3337C5.55898 14.542 3.33398 11.267 3.33398 8.50033C3.33398 4.35033 6.50065 1.66699 10.0007 1.66699Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface LocationPinIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const LocationPinIcon: React.FC<LocationPinIconProps> = ({
+  width = 20,
+  height = 20,
+  color = "#283618",
+}) => {
+  const svgXml = locationPinIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Chevron Down Icon SVG
+const chevronDownIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6 6L11 1" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface ChevronDownIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const ChevronDownIcon: React.FC<ChevronDownIconProps> = ({
+  width = 12,
+  height = 8,
+  color = "#283618",
+}) => {
+  const svgXml = chevronDownIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1195,4 +1247,6 @@ export default {
   FindNearbySalonsIcon,
   FlexiblePaymentOptionsIcon,
   CheckRealTimeAvailabilityIcon,
+  LocationPinIcon,
+  ChevronDownIcon,
 };

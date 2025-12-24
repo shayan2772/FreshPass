@@ -10,6 +10,7 @@ export const themes = {
     green: "#91E630",
     toggleActive: "#27C840",
     darkGreen: "#283618",
+    darkGreenLight:"rgba(96, 108, 56, 1)",
     lightGreen: "rgba(40, 54, 24, 0.7)",
     lightGreen5: "rgba(40, 54, 24, 0.5)",
     lightGreen2: "rgba(40, 54, 24, 0.3)",
