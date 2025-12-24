@@ -3,8 +3,9 @@ import { StyleSheet, View, StatusBar } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import DashboardHeaderClient from "../../DashboardHeaderClient";
-import DashboardContent from "./DashboardContent";
-import SearchBar from "./SearchBar";
+import SearchBar from "./components/SearchBar";
+import DashboardContent from "./components/DashboardContent";
+ 
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

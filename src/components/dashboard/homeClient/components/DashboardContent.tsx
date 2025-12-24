@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   Text,
@@ -7,7 +7,9 @@ import {
   TouchableOpacity,
   Image,
   Animated,
+  Dimensions,
 } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -50,38 +52,60 @@ const ChevronDown = ({ width = 12, height = 8, color = "#283618" }) => {
   return <SvgXml xml={svgXml} />;
 };
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: theme.background,
     },
+    tabsContainer: {
+      backgroundColor: theme.background,
+    },
+    contentContainer: {
+      flex: 1,
+    },
+    swipeableContent: {
+      flexDirection: "row",
+    },
+    tabContent: {
+      width: SCREEN_WIDTH,
+      overflow: "hidden",
+    },
     segmentedControl: {
       flexDirection: "row",
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.darkGreen,
+      borderRadius: moderateWidthScale(999),
       padding: moderateWidthScale(4),
       marginHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(16),
-      marginBottom: moderateHeightScale(16),
+      marginBottom: moderateHeightScale(10),
     },
     segment: {
       flex: 1,
       paddingVertical: moderateHeightScale(10),
       alignItems: "center",
       justifyContent: "center",
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(999),
     },
     segmentActive: {
-      backgroundColor: theme.buttonBack,
+      backgroundColor: theme.orangeBrown,
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.buttonBack,
     },
     segmentInactive: {
-      backgroundColor: theme.orangeBrown,
+      backgroundColor: "transparent",
     },
     segmentText: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
+      fontSize: fontSize.size14,
+    },
+    segmentTextActive: {
+      color: theme.darkGreen,
+      fontFamily: fonts.fontMedium,
+    },
+    segmentTextInactive: {
+      color: theme.segmentInactiveTabText,
+      fontFamily: fonts.fontRegular,
     },
     categoriesContainer: {
       marginTop: moderateHeightScale(8),
@@ -93,26 +117,35 @@ const createStyles = (theme: Theme) =>
     categoryItem: {
       alignItems: "center",
       marginRight: moderateWidthScale(16),
+      width: widthScale(60),
     },
     categoryImage: {
-      width: widthScale(80),
-      height: heightScale(80),
-      borderRadius: moderateWidthScale(12),
+      width: widthScale(60),
+      height: heightScale(60),
+      borderRadius: moderateWidthScale(8),
       backgroundColor: theme.lightGreen2,
+      borderColor: theme.borderLight,
+    },
+    categoryImageActive: {
+      borderColor: theme.selectCard,
     },
     categoryText: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
-      marginTop: moderateHeightScale(8),
+      color: theme.darkGreen,
+      marginTop: moderateHeightScale(4),
       textAlign: "center",
+      flexWrap: "wrap",
+      width: widthScale(60),
     },
     categoryTextActive: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontBold,
-      color: theme.orangeBrown,
-      marginTop: moderateHeightScale(8),
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.selectCard,
+      marginTop: moderateHeightScale(4),
       textAlign: "center",
+      flexWrap: "wrap",
+      width: widthScale(60),
     },
     categoryTabs: {
       flexDirection: "row",
@@ -350,11 +383,26 @@ const categories = [
   { id: 3, name: "Nail Salon", image: null },
   { id: 4, name: "Brows & Lashes", image: null },
   { id: 5, name: "Massage", image: null },
+  { id: 6, name: "Nail Salon", image: null },
+  { id: 7, name: "Brows & Lashes", image: null },
+  { id: 8, name: "Massage", image: null },
 ];
 
-const serviceFilters = ["List >", "Beard Trim", "Haircut", "Blow dry", "Packages"];
+const serviceFilters = [
+  "List >",
+  "Beard Trim",
+  "Haircut",
+  "Blow dry",
+  "Packages",
+];
 
-const membershipFilters = ["List >", "All", "Classic Care", "Gold Glam", "VIP Elite"];
+const membershipFilters = [
+  "List >",
+  "All",
+  "Classic Care",
+  "Gold Glam",
+  "VIP Elite",
+];
 
 const services = [
   {
@@ -407,11 +455,53 @@ export default function DashboardContent() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
-    "individual"
+    "subscriptions"
   );
-  const [selectedCategory, setSelectedCategory] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState(
+    categories.length > 0 ? categories[0].id : 1
+  );
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+  const horizontalScrollViewRef = useRef<ScrollView>(null);
+  const isManualScrollRef = useRef(false);
+  const categoryScrollRef = useRef<ScrollView>(null);
+  const isCategoryScrollingRef = useRef(false);
+
+  // Initialize scroll position to subscriptions (index 0)
+  useEffect(() => {
+    // Set initial position without animation
+    horizontalScrollViewRef.current?.scrollTo({
+      x: 0,
+      animated: false,
+    });
+  }, []);
+
+  // Set first category as selected by default when categories data is available
+  useEffect(() => {
+    if (categories.length > 0) {
+      setSelectedCategory(categories[0].id);
+    }
+  }, []);
+
+  // Update horizontal scroll position when tab changes (only when clicking, not swiping)
+  useEffect(() => {
+    // Only scroll if this was a manual tab change (click), not from swipe
+    if (isManualScrollRef.current) {
+      const tabIndex = activeTab === "subscriptions" ? 0 : 1;
+      const targetX = tabIndex * SCREEN_WIDTH;
+
+      // Update ScrollView position
+      horizontalScrollViewRef.current?.scrollTo({
+        x: targetX,
+        animated: true,
+      });
+
+      // Reset flag after animation completes
+      setTimeout(() => {
+        isManualScrollRef.current = false;
+      }, 500);
+    }
+  }, [activeTab]);
 
   const handleScroll = Animated.event(
     [{ nativeEvent: { contentOffset: { y: scrollY } } }],
@@ -428,60 +518,90 @@ export default function DashboardContent() {
     }
   );
 
-  return (
+  const handleHorizontalScrollEnd = (event: any) => {
+    // Only update tab when scroll ends (prevents flickering during animation)
+    if (!isManualScrollRef.current) {
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const newTabIndex = Math.round(offsetX / SCREEN_WIDTH);
+      // Index 0 = subscriptions, Index 1 = individual
+      const newTab = newTabIndex === 0 ? "subscriptions" : "individual";
+
+      if (newTab !== activeTab) {
+        setActiveTab(newTab);
+      }
+    }
+  };
+
+  const handleTabPress = (tab: "subscriptions" | "individual") => {
+    isManualScrollRef.current = true;
+    setActiveTab(tab);
+  };
+
+  const renderTabContent = (tab: "subscriptions" | "individual") => (
     <ScrollView
-      style={styles.container}
+      style={styles.tabContent}
       onScroll={handleScroll}
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
-      {/* Segmented Control */}
-      <View style={styles.segmentedControl}>
-        <TouchableOpacity
-          style={[
-            styles.segment,
-            activeTab === "subscriptions"
-              ? styles.segmentActive
-              : styles.segmentInactive,
-          ]}
-          onPress={() => setActiveTab("subscriptions")}
-        >
-          <Text style={styles.segmentText}>Subscriptions list</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.segment,
-            activeTab === "individual"
-              ? styles.segmentActive
-              : styles.segmentInactive,
-          ]}
-          onPress={() => setActiveTab("individual")}
-        >
-          <Text style={styles.segmentText}>Individual services</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Categories - Show images by default, tabs on scroll */}
       {!showCategoryTabs ? (
         <ScrollView
+          ref={categoryScrollRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesScroll}
+          nestedScrollEnabled={true}
+          onTouchStart={() => {
+            isCategoryScrollingRef.current = true;
+          }}
+          onTouchEnd={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
+          }}
+          onScrollBeginDrag={() => {
+            isCategoryScrollingRef.current = true;
+          }}
+          onScrollEndDrag={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
+          }}
+          onMomentumScrollEnd={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
+          }}
         >
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
               style={styles.categoryItem}
               onPress={() => setSelectedCategory(category.id)}
+              activeOpacity={0.8}
             >
-              <View style={styles.categoryImage} />
+              <Image
+                source={{
+                  uri:
+                    category?.image ||
+                    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                }}
+                style={[
+                  styles.categoryImage,
+                  selectedCategory === category.id && styles.categoryImageActive,
+                  { borderWidth: moderateWidthScale(selectedCategory === category.id? 3:1),}
+                ]}
+                resizeMode="cover"
+              />
               <Text
                 style={
                   selectedCategory === category.id
                     ? styles.categoryTextActive
                     : styles.categoryText
                 }
+                numberOfLines={2}
               >
                 {category.name}
               </Text>
@@ -529,7 +649,7 @@ export default function DashboardContent() {
           <Text style={styles.sortByText}>Sort by:</Text>
           <TouchableOpacity style={styles.sortByValue}>
             <Text style={styles.sortByValueText}>
-              {activeTab === "individual" ? "Nearest to you" : "Recommended"}
+              {tab === "individual" ? "Nearest to you" : "Recommended"}
             </Text>
             <ChevronDown
               width={widthScale(12)}
@@ -541,7 +661,7 @@ export default function DashboardContent() {
       </View>
 
       {/* Service Filters (for Individual Services) */}
-      {activeTab === "individual" && (
+      {tab === "individual" && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -556,7 +676,7 @@ export default function DashboardContent() {
       )}
 
       {/* Membership Filters (for Subscriptions) */}
-      {activeTab === "subscriptions" && (
+      {tab === "subscriptions" && (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -571,7 +691,7 @@ export default function DashboardContent() {
       )}
 
       {/* Platform Verified Salon (Individual Services only) */}
-      {activeTab === "individual" && (
+      {tab === "individual" && (
         <View style={styles.verifiedSalonCard}>
           <View style={styles.verifiedBadge}>
             <Text style={styles.verifiedBadgeText}>Platform verified</Text>
@@ -630,7 +750,7 @@ export default function DashboardContent() {
           </Text>
         </TouchableOpacity>
       </View>
-      {activeTab === "individual" ? (
+      {tab === "individual" ? (
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -641,7 +761,9 @@ export default function DashboardContent() {
               <Text style={styles.serviceTitle}>{service.title}</Text>
               <View style={styles.servicePrice}>
                 <Text style={styles.priceCurrent}>${service.price}</Text>
-                <Text style={styles.priceOriginal}>${service.originalPrice}</Text>
+                <Text style={styles.priceOriginal}>
+                  ${service.originalPrice}
+                </Text>
               </View>
               <Text style={styles.serviceDescription}>
                 {service.description}
@@ -675,9 +797,7 @@ export default function DashboardContent() {
                   <Text style={styles.offerText}>{subscription.offer2}</Text>
                 </View>
               )}
-              <Text style={styles.subscriptionTitle}>
-                {subscription.title}
-              </Text>
+              <Text style={styles.subscriptionTitle}>{subscription.title}</Text>
               {subscription.inclusions.map((inclusion, index) => (
                 <Text
                   key={index}
@@ -695,5 +815,71 @@ export default function DashboardContent() {
       )}
     </ScrollView>
   );
-}
 
+  return (
+    <View style={styles.container}>
+      {/* Fixed Segmented Control */}
+      <View style={styles.tabsContainer}>
+        <View style={styles.segmentedControl}>
+          <TouchableOpacity
+            style={[
+              styles.segment,
+              activeTab === "subscriptions"
+                ? styles.segmentActive
+                : styles.segmentInactive,
+            ]}
+            onPress={() => handleTabPress("subscriptions")}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                activeTab === "subscriptions"
+                  ? styles.segmentTextActive
+                  : styles.segmentTextInactive,
+              ]}
+            >
+              Subscriptions list
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.segment,
+              activeTab === "individual"
+                ? styles.segmentActive
+                : styles.segmentInactive,
+            ]}
+            onPress={() => handleTabPress("individual")}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                activeTab === "individual"
+                  ? styles.segmentTextActive
+                  : styles.segmentTextInactive,
+              ]}
+            >
+              Individual services
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Swipeable Content */}
+      <GestureHandlerRootView style={styles.contentContainer}>
+        <ScrollView
+          ref={horizontalScrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={handleHorizontalScrollEnd}
+          scrollEnabled={!isCategoryScrollingRef.current}
+          style={styles.contentContainer}
+          contentContainerStyle={styles.swipeableContent}
+        >
+          {renderTabContent("subscriptions")}
+          {renderTabContent("individual")}
+        </ScrollView>
+      </GestureHandlerRootView>
+    </View>
+  );
+}

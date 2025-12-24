@@ -4,7 +4,6 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput,
 } from "react-native";
 import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";

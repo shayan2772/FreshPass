@@ -104,6 +104,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.lightGreen2,
       borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.lightGreen2,
     },
     categoryCardSelected: {
       borderColor: theme.selectCard,

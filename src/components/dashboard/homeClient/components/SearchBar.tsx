@@ -2,7 +2,6 @@ import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   StyleSheet,
   View,
-  Text,
   TouchableOpacity,
   TextInput,
   Animated,
@@ -93,9 +92,9 @@ const createStyles = (theme: Theme) =>
       overflow: "hidden",
     },
     separator: {
-      height: 0.5,
+      height: 0.6,
       backgroundColor: theme.lightGreen22,
-      marginTop: moderateHeightScale(12),
+      marginVertical: moderateHeightScale(12),
     },
   });
 
