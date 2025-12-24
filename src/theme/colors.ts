@@ -16,6 +16,7 @@ export const themes = {
     lightGreen4: "rgba(40, 54, 24, 0.4)",
     lightGreen07: "rgba(40, 54, 24, 0.07)",
     lightGreen1: "rgba(40, 54, 24, 0.1)",
+    lightGreen015: "rgba(40, 54, 24, 0.15)",
     lightGreen16: "rgba(40, 54, 24, 0.16)",
     lightGreen13: "rgba(40, 54, 24, 0.13)",
     lightGreen20: "rgba(40, 54, 24, 0.20)",

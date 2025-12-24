@@ -16,7 +16,7 @@ interface RadioOptionProps<T extends string> {
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     optionCard: {
-      backgroundColor: theme.lightGreen1,
+      backgroundColor: theme.lightGreen015,
       borderRadius: moderateWidthScale(8),
       padding: moderateWidthScale(14),
       flexDirection: "row",

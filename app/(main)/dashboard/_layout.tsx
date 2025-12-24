@@ -65,8 +65,13 @@ export default function DashboardLayout() {
   const theme = colors as Theme;
   const insets = useSafeAreaInsets();
   const isButtonMode = Platform.OS === "android" && insets.bottom > 30;
+  const user = useAppSelector((state) => state.user);
   const segments = useSegments() as string[];
-  const unreadCount = useAppSelector((state) => state.user.unreadCount);
+  const unreadCount = user.unreadCount;
+  const accessToken = user.accessToken;
+  const isGuest = user.isGuest;
+  const userRole = user.userRole;
+
   const isUserReviewsScreen =
     Array.isArray(segments) &&
     segments.includes("(home)") &&
@@ -108,7 +113,7 @@ export default function DashboardLayout() {
 
   return (
     <Tabs
-      initialRouteName="(home)"
+      initialRouteName={isGuest   ? "(homeClient)" : "(home)"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
@@ -136,7 +141,7 @@ export default function DashboardLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name={isGuest ? "(homeClient)" : "(home)"}
         options={{
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (

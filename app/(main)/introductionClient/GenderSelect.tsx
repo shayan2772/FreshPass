@@ -87,10 +87,10 @@ export default function GenderSelect({ onNext }: GenderSelectProps) {
       <View
         style={{
           flex:1,
-          paddingBottom:
-            Platform.OS === "android" && insets.bottom > 30
-              ? moderateHeightScale(30) + insets.bottom
-              : moderateHeightScale(30),
+          // paddingBottom:
+          //   Platform.OS === "android" && insets.bottom > 30
+          //     ? moderateHeightScale(30) + insets.bottom
+          //     : moderateHeightScale(30),
         }}
       >
         <View style={styles.logoContainer}>

@@ -19,8 +19,8 @@ export default function SessionExpiredHandler() {
         4000
       );
 
-      // Navigate to social login screen
-      router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+      // // Navigate to social login screen
+      // router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
     });
 
     // Set up toast handler for API service (timeout, no internet, etc.)

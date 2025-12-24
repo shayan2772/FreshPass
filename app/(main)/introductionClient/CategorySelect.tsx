@@ -83,6 +83,15 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(20),
     },
+    categoriesGridSkeleton: {
+      width: "100%",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(20),
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: "5%",
+      rowGap: moderateHeightScale(12),
+    },
     categoryCard: {
       width: "30%",
       height: heightScale(118),
@@ -195,7 +204,7 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
   const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
-    //  fetchCategories();
+      fetchCategories();
   }, []);
 
   const fetchCategories = async () => {

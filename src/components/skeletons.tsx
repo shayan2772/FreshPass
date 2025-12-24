@@ -27,6 +27,12 @@ const createSkeletonStyles = (theme: Theme) =>
     searchSkeleton: {
       height: heightScale(18),
       borderRadius: moderateWidthScale(999),
+      width: "100%",
+    },
+    searchSkeletonS: {
+      height: heightScale(46),
+      borderRadius: moderateWidthScale(999),
+      width: "100%",
     },
     categoryImageSkeleton: {
       width: "100%",
@@ -274,7 +280,8 @@ export const Skeleton = ({
     | "Reviews"
     | "Notifications"
     | "Team"
-    | "Availability";
+    | "Availability"
+    | "CategorySelect";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -571,29 +578,21 @@ export const Skeleton = ({
 
   const categorySelectSkeleton = styles ? (
     <>
-      <View style={styles.searchContainer}>
-        <View style={skeletonStyles.searchSkeleton} />
-      </View>
+      <View style={{ flex: 1, gap: moderateHeightScale(60) }}>
+        <View style={styles.searchContainer}>
+          <View style={skeletonStyles.searchSkeletonS} />
+        </View>
 
-      <View style={styles.categoriesContainer}>
-        <View style={[styles.lineSeparator, { top: 0 }]} />
-        <View
-          style={[
-            styles.categoriesGrid,
-            {
-              flexDirection: "row",
-              flexWrap: "wrap",
-              gap: "5%",
-              rowGap: moderateHeightScale(12),
-            },
-          ]}
-        >
-          {[...Array(9)].map((_, index) => (
-            <View key={index} style={styles.categoryCard}>
-              <View style={skeletonStyles.categoryImageSkeleton} />
-              <View style={skeletonStyles.categoryLabelSkeleton} />
-            </View>
-          ))}
+        <View style={styles.categoriesContainer}>
+          <View style={[styles.lineSeparator, { top: 0 }]} />
+          <View style={styles.categoriesGridSkeleton}>
+            {[...Array(9)].map((_, index) => (
+              <View key={index} style={styles.categoryCard}>
+                <View style={skeletonStyles.categoryImageSkeleton} />
+                <View style={skeletonStyles.categoryLabelSkeleton} />
+              </View>
+            ))}
+          </View>
         </View>
       </View>
     </>
@@ -655,6 +654,11 @@ export const Skeleton = ({
       {screenType === "Availability" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {availabilitySkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "CategorySelect" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {categorySelectSkeleton}
         </SkeletonPlaceholder>
       )}
     </>

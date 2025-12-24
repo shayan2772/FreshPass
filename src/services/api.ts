@@ -11,6 +11,8 @@ import { setTokens, resetUser } from "@/src/state/slices/userSlice";
 import { resetGeneral } from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
 import { Platform } from "react-native";
+import { router } from "expo-router";
+import { MAIN_ROUTES } from "../constant/routes";
 // Get base URL from environment
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
 
@@ -179,6 +181,7 @@ const handleLogout = async () => {
   
   // Clear all persisted data from SecureStore (redux-persist)
   await persistor.purge();
+  router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
 };
 
 /**
@@ -269,7 +272,7 @@ apiClient.interceptors.response.use(
     // Handle 401 Unauthorized - Session expired
     if (error.response?.status === 401) {
       // Clear user data and tokens
-      await handleLogout();
+        // await handleLogout();
 
       // Call session expired handler (for toast and navigation)
       if (onSessionExpired) {
