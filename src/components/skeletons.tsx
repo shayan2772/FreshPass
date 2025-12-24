@@ -569,6 +569,36 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const categorySelectSkeleton = styles ? (
+    <>
+      <View style={styles.searchContainer}>
+        <View style={skeletonStyles.searchSkeleton} />
+      </View>
+
+      <View style={styles.categoriesContainer}>
+        <View style={[styles.lineSeparator, { top: 0 }]} />
+        <View
+          style={[
+            styles.categoriesGrid,
+            {
+              flexDirection: "row",
+              flexWrap: "wrap",
+              gap: "5%",
+              rowGap: moderateHeightScale(12),
+            },
+          ]}
+        >
+          {[...Array(9)].map((_, index) => (
+            <View key={index} style={styles.categoryCard}>
+              <View style={skeletonStyles.categoryImageSkeleton} />
+              <View style={skeletonStyles.categoryLabelSkeleton} />
+            </View>
+          ))}
+        </View>
+      </View>
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
