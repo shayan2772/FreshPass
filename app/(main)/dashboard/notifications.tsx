@@ -66,11 +66,28 @@ const createStyles = (theme: Theme) =>
     listContent: {
       paddingBottom: moderateHeightScale(20),
     },
+    sectionHeaderContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: moderateHeightScale(12),
+    },
     sectionHeader: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
-      marginBottom: moderateHeightScale(12),
+    },
+    markAllAsReadText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.lightGreen,
+    },
+    markAllAsReadContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(6),
     },
     sectionContainer: {
       marginBottom: moderateHeightScale(24),
@@ -181,6 +198,7 @@ export default function NotificationsScreen() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [refreshing, setRefreshing] = useState(false);
+  const [markAllAsReadLoading, setMarkAllAsReadLoading] = useState(false);
 
   // Determine icon type from title
   const getIconType = (title: string): NotificationIconType => {
@@ -251,7 +269,7 @@ export default function NotificationsScreen() {
             total: number;
             last_page: number;
           };
-        }>(notificationsEndpoints.list({ page, per_page: 8 }));
+        }>(notificationsEndpoints.list({ page, per_page: 16 }));
 
         if (response.success && response.data) {
           const mappedNotifications =
@@ -326,12 +344,34 @@ export default function NotificationsScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchNotifications(1, false);
-  }, []);
+  // Mark all notifications as read
+  const handleMarkAllAsRead = async () => {
+    setMarkAllAsReadLoading(true);
+    try {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+      }>(notificationsEndpoints.markAllAsRead);
+
+      if (response.success) {
+        fetchNotifications(1, false);
+        handleFetchUnreadCount();
+      }
+    } catch (error: any) {
+      showBanner(
+        "API Failed",
+        error?.message || "Failed to mark all notifications as read",
+        "error",
+        2500
+      );
+    } finally {
+      setMarkAllAsReadLoading(false);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
+      fetchNotifications(1, false);
       handleFetchUnreadCount();
     }, [handleFetchUnreadCount])
   );
@@ -477,7 +517,7 @@ export default function NotificationsScreen() {
   return (
     <View style={styles.container}>
       <DashboardHeader />
-      {loading ? (
+      {loading && notifications.length === 0 ? (
         <View style={styles.content}>
           <Skeleton screenType="Notifications" styles={styles} />
         </View>
@@ -511,9 +551,35 @@ export default function NotificationsScreen() {
               colors={[theme.primary]}
             />
           }
-          renderSectionHeader={({ section }) => (
-            <Text style={styles.sectionHeader}>{section.title}</Text>
-          )}
+          renderSectionHeader={({ section }) => {
+            const sectionIndex = sections.findIndex(
+              (s) => s.title === section.title
+            );
+            return (
+              <View style={styles.sectionHeaderContainer}>
+                <Text style={styles.sectionHeader}>{section.title}</Text>
+                {sectionIndex === 0 && (
+                  <TouchableOpacity
+                    onPress={handleMarkAllAsRead}
+                    disabled={markAllAsReadLoading}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.markAllAsReadContainer}>
+                      {markAllAsReadLoading && (
+                        <ActivityIndicator
+                          size="small"
+                          color={theme.darkGreen}
+                        />
+                      )}
+                      <Text style={styles.markAllAsReadText}>
+                        Mark all as read
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+              </View>
+            );
+          }}
           renderItem={({ item }) => (
             <TouchableOpacity
               style={styles.notificationRow}

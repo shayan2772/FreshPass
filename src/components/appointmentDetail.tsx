@@ -74,7 +74,7 @@ const createStyles = (theme: Theme) =>
     contentContainer: {
       paddingHorizontal: moderateWidthScale(16),
       paddingTop: moderateHeightScale(16),
-      paddingBottom: moderateHeightScale(24),
+      paddingBottom: moderateHeightScale(50),
     },
     // Header Card - Compact
     headerCard: {
