@@ -56,7 +56,7 @@ const createStyles = (theme: Theme) =>
     label: {
       position: "absolute",
       left: 0,
-      color: theme.lightGreen2,
+      color: theme.lightGreen,
       fontFamily: fonts.fontRegular,
     },
     inputWrapper: {
