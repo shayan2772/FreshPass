@@ -1,5 +1,13 @@
-import React, { useMemo } from "react";
-import { StyleSheet, View, Text, TouchableOpacity } from "react-native";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import {
+  StyleSheet,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Animated,
+  Pressable,
+} from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -9,7 +17,7 @@ import {
   widthScale,
   heightScale,
 } from "@/src/theme/dimensions";
-import { SearchIcon, FilterIcon } from "@/assets/icons";
+import { SearchIcon, FilterIcon, CloseIcon } from "@/assets/icons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -42,17 +50,38 @@ const createStyles = (theme: Theme) =>
     textContainer: {
       flex: 1,
       justifyContent: "center",
+      position: "relative",
+      minHeight: heightScale(32),
     },
-    placeholderText: {
-      fontSize: fontSize.size13,
+    label: {
+      position: "absolute",
+      left: 0,
+      color: theme.lightGreen2,
       fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
     },
-    locationText: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontMedium,
+    inputWrapper: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    input: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
+      padding: 0,
+      margin: 0,
+      textAlignVertical: "center",
+      includeFontPadding: false,
+      height: heightScale(20),
     },
+    inputWithValue: {
+      fontFamily: fonts.fontMedium,
+    },
+    rightButtonsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
+    },
+    clearButton: {},
     filterButton: {
       width: widthScale(30),
       height: heightScale(30),
@@ -74,47 +103,131 @@ interface SearchBarProps {
   onSearchPress?: () => void;
   onFilterPress?: () => void;
   location?: string;
+  onLocationChange?: (location: string) => void;
 }
 
 export default function SearchBar({
   onSearchPress,
   onFilterPress,
-  location = "San Francisco",
+  location: initialLocation = "",
+  onLocationChange,
 }: SearchBarProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const [location, setLocation] = useState(initialLocation);
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
+  const hasValue = Boolean(location && location.length > 0);
+  const labelAnimation = useRef(new Animated.Value(hasValue ? 1 : 0)).current;
+
+  const shouldShowLabel = hasValue || isFocused;
+
+  useEffect(() => {
+    Animated.timing(labelAnimation, {
+      toValue: shouldShowLabel ? 1 : 0,
+      duration: 140,
+      useNativeDriver: false,
+    }).start();
+  }, [labelAnimation, shouldShowLabel]);
+
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
+  const handleBlur = () => {
+    setIsFocused(false);
+  };
+
+  const handleChangeText = (text: string) => {
+    setLocation(text);
+    onLocationChange?.(text);
+  };
+
+  const handleClear = () => {
+    setLocation("");
+    onLocationChange?.("");
+    setIsFocused(false);
+    inputRef.current?.blur();
+  };
+
+  const labelAnimatedStyle = {
+    top: labelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [moderateHeightScale(0), moderateHeightScale(-2)],
+    }),
+    fontSize: labelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [fontSize.size13, fontSize.size11],
+    }),
+    opacity: labelAnimation,
+  };
+
+  const inputWrapperAnimatedStyle = {
+    paddingTop: labelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, moderateHeightScale(12)],
+    }),
+    paddingBottom: labelAnimation.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, moderateHeightScale(4)],
+    }),
+  };
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.searchBar, styles.shadow]}
-        onPress={onSearchPress}
-        activeOpacity={0.8}
-      >
+      <View style={[styles.searchBar, styles.shadow]}>
         <View style={styles.searchIconContainer}>
           <SearchIcon
             width={widthScale(20)}
             height={heightScale(20)}
-            color={theme.buttonBack}
+            color={theme.darkGreen}
           />
         </View>
         <View style={styles.textContainer}>
-          <Text style={styles.placeholderText}>Find services to book in</Text>
-          <Text style={styles.locationText}>{location}</Text>
+          {shouldShowLabel && (
+            <Animated.Text style={[styles.label, labelAnimatedStyle]}>
+              Find services to book in
+            </Animated.Text>
+          )}
+          <Animated.View
+            style={[styles.inputWrapper, inputWrapperAnimatedStyle]}
+          >
+            <TextInput
+              ref={inputRef}
+              style={[styles.input, hasValue && styles.inputWithValue]}
+              value={location}
+              onChangeText={handleChangeText}
+              onFocus={handleFocus}
+              onBlur={handleBlur}
+              placeholder={!shouldShowLabel ? "Find services to book in" : ""}
+              placeholderTextColor={theme.lightGreen2}
+            />
+          </Animated.View>
         </View>
-        <TouchableOpacity
-          style={styles.filterButton}
-          onPress={onFilterPress}
-          activeOpacity={0.7}
-        >
-          <FilterIcon
-            width={widthScale(17)}
-            height={heightScale(17)}
-            color={theme.darkGreen}
-          />
-        </TouchableOpacity>
-      </TouchableOpacity>
+        <View style={styles.rightButtonsContainer}>
+          {hasValue && (
+            <Pressable
+              style={styles.clearButton}
+              onPress={handleClear}
+              hitSlop={moderateWidthScale(8)}
+            >
+              <CloseIcon color={theme.darkGreen} />
+            </Pressable>
+          )}
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={onFilterPress}
+            activeOpacity={0.7}
+          >
+            <FilterIcon
+              width={widthScale(17)}
+              height={heightScale(17)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
       <View style={styles.separator} />
     </View>
   );
