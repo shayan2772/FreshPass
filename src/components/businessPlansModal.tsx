@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Text,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
@@ -14,6 +15,8 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
+  widthScale,
+  heightScale,
 } from "@/src/theme/dimensions";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ApiService } from "@/src/services/api";
@@ -170,6 +173,33 @@ const createStyles = (theme: Theme) =>
       color: theme.text,
       textAlign: "center",
     },
+    processingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    processingContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(16),
+      padding: moderateWidthScale(24),
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: widthScale(120),
+      minHeight: heightScale(120),
+    },
+    processingText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+      marginTop: moderateHeightScale(16),
+      textAlign: "center",
+    },
   });
 
 function BusinessPlansModalContent({
@@ -190,6 +220,7 @@ function BusinessPlansModalContent({
   const [subscribingPlanId, setSubscribingPlanId] = useState<number | null>(
     null
   );
+  const [processingPayment, setProcessingPayment] = useState(false);
   const dispatch = useAppDispatch();
 
   const [localBanner, setLocalBanner] = useState<{
@@ -324,14 +355,22 @@ function BusinessPlansModalContent({
         return;
       }
 
-      showBanner(
-        "Success",
-        "Payment successful! Your subscription will be activated shortly.",
-        "success",
-        4000
-      );
-      onClose();
-      dispatch(fetchUserStatus({ showError: true })).unwrap();
+      // Show processing loader
+      setProcessingPayment(true);
+
+      // Wait 2-3 seconds before showing success and closing
+      setTimeout(() => {
+        setProcessingPayment(false);
+        showBanner(
+          "Success",
+          "Payment successful! Your subscription will be activated shortly.",
+          "success",
+          4000
+        );
+        onClose();
+        
+        dispatch(fetchUserStatus({ showError: true })).unwrap();
+      }, 2500);
     } catch (err: any) {
       // Extract clean error message
       let errorMessage = "Failed to process payment";
@@ -472,6 +511,17 @@ function BusinessPlansModalContent({
           setLocalBanner((prev) => ({ ...prev, visible: false }))
         }
       />
+
+      {processingPayment && (
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={styles.processingText}>
+              Processing payment...
+            </Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
