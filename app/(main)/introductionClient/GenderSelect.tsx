@@ -15,7 +15,7 @@ import {
 } from "@/src/theme/dimensions";
 import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import RadioOption from "@/src/components/radioOption";
 import { setDiscover, DiscoverType } from "@/src/state/slices/userSlice";
 
@@ -37,7 +37,7 @@ const createStyles = (theme: Theme) =>
     },
     titleContainer: {
       alignItems: "flex-start",
-      marginBottom: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(40),
     },
     titleText: {
       fontSize: fontSize.size32,
@@ -49,14 +49,17 @@ const createStyles = (theme: Theme) =>
       color: theme.orangeBrown,
     },
     subtitle: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
     optionsContainer: {
-      flex: 1,
-      justifyContent: "center",
-      gap: moderateHeightScale(14),
+        gap: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(60),
+      flex:1,
+      alignItems:"flex-end",
+      justifyContent:"flex-end",
+     
     },
   });
 
@@ -73,15 +76,17 @@ export default function GenderSelect({ onNext }: GenderSelectProps) {
 
   const handleContinue = () => {
     if (selectedGender) {
+      dispatch(setDiscover(selectedGender));
       onNext();
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <View
         style={{
+          flex:1,
           paddingBottom:
             Platform.OS === "android" && insets.bottom > 30
               ? moderateHeightScale(30) + insets.bottom
@@ -141,6 +146,6 @@ export default function GenderSelect({ onNext }: GenderSelectProps) {
           disabled={!selectedGender}
         />
       </View>
-    </View>
+    </SafeAreaView>
   );
 }

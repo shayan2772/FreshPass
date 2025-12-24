@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useCallback, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View, TouchableOpacity } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View, TouchableOpacity, FlatList } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -18,6 +18,8 @@ import RetryButton from "@/src/components/retryButton";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
 import { LeafLogo } from "@/assets/icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { setSelectBsnsCategory, setIsGuest } from "@/src/state/slices/userSlice";
 
 interface CategorySelectProps {
   onNext: () => void;
@@ -36,7 +38,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       paddingHorizontal: moderateWidthScale(20),
       paddingTop: moderateHeightScale(20),
-      marginBottom: moderateHeightScale(10),
+      // marginBottom: moderateHeightScale(10),
     },
     logoContainer: {
       marginBottom: moderateHeightScale(5),
@@ -50,7 +52,6 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     titleSec: {
-      marginTop: moderateHeightScale(8),
       gap: moderateHeightScale(5),
       paddingHorizontal: moderateWidthScale(20),
     },
@@ -75,21 +76,16 @@ const createStyles = (theme: Theme) =>
       position: "absolute",
     },
     categoriesContainer: {
-      paddingVertical: moderateHeightScale(20),
       flex: 1,
     },
     categoriesGrid: {
       width: "100%",
-      flexDirection: "row",
-      flexWrap: "wrap",
-      alignItems: "center",
-      rowGap: moderateHeightScale(12),
       paddingHorizontal: moderateWidthScale(20),
-      gap: "5%",
+      paddingVertical: moderateHeightScale(20),
     },
     categoryCard: {
       width: "30%",
-      height: heightScale(116),
+      height: heightScale(118),
       position: "relative",
     },
     categoryImage: {
@@ -119,8 +115,8 @@ const createStyles = (theme: Theme) =>
     },
     selectedBadge: {
       position: "absolute",
-      top: moderateHeightScale(4),
-      left: moderateWidthScale(4),
+      bottom: moderateHeightScale(45),
+      left: moderateWidthScale(8),
       width: moderateWidthScale(24),
       height: moderateWidthScale(24),
       borderRadius: moderateWidthScale(12),
@@ -199,13 +195,18 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
   const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    //  fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
       setApiError(false);
+      
+      // Get guest token from environment variables
+      const guestToken = process.env.EXPO_PUBLIC_AUTH_TOKEN || "";
+      
+      // Use guest token for guest API call
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -214,7 +215,11 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
           name: string;
           imageUrl: string | null;
         }>;
-      }>(businessEndpoints.categories);
+      }>(businessEndpoints.categories, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+      });
 
       if (response.success && response.data) {
         setCategories(response.data);
@@ -228,34 +233,16 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
     }
   };
 
-  // Split categories into popular (first 6) and other (rest)
-  const popularCategories = useMemo(() => {
-    return categories.slice(0, 6);
-  }, [categories]);
-
-  const otherCategories = useMemo(() => {
-    return categories.slice(6);
-  }, [categories]);
-
-  const filteredPopular = useMemo(() => {
+  // Filter all categories based on search term
+  const filteredCategories = useMemo(() => {
     if (!searchTerm.trim()) {
-      return popularCategories;
+      return categories;
     }
     const term = searchTerm.toLowerCase();
-    return popularCategories.filter((category) =>
+    return categories.filter((category) =>
       category.name.toLowerCase().includes(term)
     );
-  }, [popularCategories, searchTerm]);
-
-  const filteredOther = useMemo(() => {
-    if (!searchTerm.trim()) {
-      return otherCategories;
-    }
-    const term = searchTerm.toLowerCase();
-    return otherCategories.filter((category) =>
-      category.name.toLowerCase().includes(term)
-    );
-  }, [otherCategories, searchTerm]);
+  }, [categories, searchTerm]);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -285,20 +272,79 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
     [showBanner]
   );
 
+  const renderCategoryItem = useCallback(
+    ({ item }: { item: { id: number; name: string; imageUrl: string | null } }) => {
+      const isSelected = selectedCategories.includes(item.id);
+      const selectedIndex = isSelected
+        ? selectedCategories.indexOf(item.id) + 1
+        : null;
+      return (
+        <Pressable
+          onPress={() => handleSelectCategory(item.id)}
+          style={styles.categoryCard}
+        >
+          {isSelected && selectedIndex && (
+            <View style={styles.selectedBadge}>
+              <Text style={styles.selectedBadgeText}>
+                {selectedIndex}
+              </Text>
+            </View>
+          )}
+          <Image
+            source={
+              item.imageUrl
+                ? { uri: item.imageUrl }
+                : IMAGES.socialBackgroud
+            }
+            style={[
+              styles.categoryImage,
+              isSelected && styles.categoryCardSelected,
+            ]}
+            resizeMode="cover"
+          />
+          <View style={styles.categoryLabelContainer}>
+            <Text numberOfLines={2} style={styles.categoryLabel}>
+              {item.name}
+            </Text>
+          </View>
+        </Pressable>
+      );
+    },
+    [selectedCategories, handleSelectCategory]
+  );
+
   const handleSkip = () => {
     onNext();
   };
 
   const handleContinue = () => {
-    // Can continue even with 0 selections
+    // Map selected category IDs to the format needed for Redux
+    const selectedCategoriesData = selectedCategories
+      .map((categoryId) => {
+        const category = categories.find((cat) => cat.id === categoryId);
+        return category
+          ? {
+              id: category.id,
+              name: category.name,
+            }
+          : null;
+      })
+      .filter((cat) => cat !== null) as Array<{
+      id: number;
+      name: string;
+    }>;
+
+    // Dispatch selected categories and set isGuest to true
+    dispatch(setSelectBsnsCategory(selectedCategoriesData));
+    dispatch(setIsGuest(true));
+
     onNext();
   };
 
   const hasNoData = !categoriesLoading && !apiError && categories.length === 0;
-  const showSkeleton = categoriesLoading && categories.length === 0;
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <View style={styles.logoContainer}>
           <LeafLogo />
@@ -312,8 +358,18 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
         </TouchableOpacity>
       </View>
 
-      {showSkeleton ? (
-        <Skeleton screenType="StepOne" styles={styles} />
+      <View style={styles.titleSec}>
+        <Text style={styles.title}>
+          What&apos;s on your self-care radar?
+        </Text>
+        <Text style={styles.subtitle}>
+          Select up to 5 categories you&apos;re interested in, and we&apos;ll
+          show you personalized picks?
+        </Text>
+      </View>
+
+      {categoriesLoading ? (
+        <Skeleton screenType="CategorySelect" styles={styles} />
       ) : apiError ? (
         <View style={styles.emptyStateContainer}>
           <RetryButton onPress={fetchCategories} loading={categoriesLoading} />
@@ -326,16 +382,6 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
         </View>
       ) : (
         <>
-          <View style={styles.titleSec}>
-            <Text style={styles.title}>
-              What&apos;s on your self-care radar?
-            </Text>
-            <Text style={styles.subtitle}>
-              Select up to 5 categories you&apos;re interested in, and we&apos;ll
-              show you personalized picks?
-            </Text>
-          </View>
-
           <View style={styles.searchContainer}>
             <FloatingInput
               label="Search"
@@ -362,93 +408,26 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
 
           <View style={styles.categoriesContainer}>
             <View style={[styles.lineSeparator, { top: 0 }]} />
-            <View style={styles.categoriesGrid}>
-              {filteredPopular.map((item) => {
-                const isSelected = selectedCategories.includes(item.id);
-                const selectedIndex = isSelected
-                  ? selectedCategories.indexOf(item.id) + 1
-                  : null;
-                return (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => handleSelectCategory(item.id)}
-                    style={styles.categoryCard}
-                  >
-                    {isSelected && selectedIndex && (
-                      <View style={styles.selectedBadge}>
-                        <Text style={styles.selectedBadgeText}>
-                          {selectedIndex}
-                        </Text>
-                      </View>
-                    )}
-                    <Image
-                      source={
-                        item.imageUrl
-                          ? { uri: item.imageUrl }
-                          : IMAGES.socialBackgroud
-                      }
-                      style={[
-                        styles.categoryImage,
-                        isSelected && styles.categoryCardSelected,
-                      ]}
-                      resizeMode="cover"
-                    />
-                    <View style={styles.categoryLabelContainer}>
-                      <Text numberOfLines={2} style={styles.categoryLabel}>
-                        {item.name}
-                      </Text>
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-            <View style={[styles.lineSeparator, { bottom: 0 }]} />
+            <FlatList
+              data={filteredCategories}
+              renderItem={renderCategoryItem}
+              keyExtractor={(item) => item.id.toString()}
+              numColumns={3}
+              columnWrapperStyle={{
+                gap: "5%",
+                marginBottom: moderateHeightScale(12),
+              }}
+              contentContainerStyle={styles.categoriesGrid}
+              showsVerticalScrollIndicator={false}
+            />
+            
           </View>
-
-          {filteredOther.length > 0 && (
-            <View style={styles.otherCategoriesContainer}>
-              <Text style={styles.otherCategoriesTitle}>Other categories</Text>
-
-              {filteredOther.map((category, index) => {
-                const isSelected = selectedCategories.includes(category.id);
-                const selectedIndex = isSelected
-                  ? selectedCategories.indexOf(category.id) + 1
-                  : null;
-                return (
-                  <View key={category.id} style={styles.otherCategoryContainer}>
-                    <Pressable
-                      onPress={() => handleSelectCategory(category.id)}
-                      style={[
-                        styles.otherCategoryRow,
-                        isSelected && {
-                          backgroundColor: (colors as Theme).lightBeige,
-                        },
-                      ]}
-                    >
-                      <Text style={styles.otherCategoryLabel}>
-                        {category.name}
-                        {isSelected && selectedIndex && ` (${selectedIndex})`}
-                      </Text>
-                      <Feather
-                        name="chevron-right"
-                        size={moderateWidthScale(18)}
-                        color={(colors as Theme).darkGreen}
-                      />
-                    </Pressable>
-                    {index < filteredOther.length - 1 && (
-                      <View style={styles.catSeparator} />
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )}
 
           <View style={styles.buttonContainer}>
             <Button title="Continue" onPress={handleContinue} />
           </View>
         </>
       )}
-    </View>
+    </SafeAreaView>
   );
 }

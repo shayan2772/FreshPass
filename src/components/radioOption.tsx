@@ -2,24 +2,23 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { moderateWidthScale } from "@/src/theme/dimensions";
-import { UserRole } from "@/src/state/slices/generalSlice";
 import React, { useMemo } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 
-interface RadioOptionProps {
+interface RadioOptionProps<T extends string> {
   title: string;
   subtitle: string;
-  option: Exclude<UserRole, null>; // Only accept "business" | "client" | "staff", not null
-  selectedOption: UserRole; // Can be null when nothing is selected
-  onPress: (option: Exclude<UserRole, null>) => void;
+  option: T;
+  selectedOption: T | null;
+  onPress: (option: T) => void;
 }
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     optionCard: {
-      backgroundColor: theme.darkGreen15,
+      backgroundColor: theme.lightGreen1,
       borderRadius: moderateWidthScale(8),
-      padding: moderateWidthScale(12),
+      padding: moderateWidthScale(14),
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(12),
@@ -49,7 +48,7 @@ const createStyles = (theme: Theme) =>
       gap: 2,
     },
     optionTitle: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
@@ -60,13 +59,13 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function RadioOption({
+export default function RadioOption<T extends string>({
   title,
   subtitle,
   option,
   selectedOption,
   onPress,
-}: RadioOptionProps) {
+}: RadioOptionProps<T>) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const isSelected = selectedOption === option;
@@ -89,7 +88,7 @@ export default function RadioOption({
       </View>
       <View style={styles.optionContent}>
         <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionSubtitle}>{subtitle}</Text>
+        {subtitle ? <Text style={styles.optionSubtitle}>{subtitle}</Text> : null}
       </View>
     </TouchableOpacity>
   );

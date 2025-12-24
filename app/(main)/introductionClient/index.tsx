@@ -75,7 +75,7 @@ export default function IntroductionClient() {
 
   const handleCategoryNext = () => {
     // Navigate to dashboard or complete profile
-    router.replace("/(main)/dashboard/(home)" as any);
+    // router.replace("/(main)/dashboard/(home)" as any);
   };
 
   switch (currentScreen) {
@@ -89,7 +89,7 @@ export default function IntroductionClient() {
         />
       );
     case "coreFeature":
-      return <CoreFeature onNext={handleCoreFeatureNext} onSkip={handleCoreFeatureNext} />;
+      return <CoreFeature onNext={handleCoreFeatureNext}  />;
     case "gender":
       return <GenderSelect onNext={handleGenderNext} />;
     case "category":

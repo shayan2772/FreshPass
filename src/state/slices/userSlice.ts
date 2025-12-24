@@ -47,6 +47,10 @@ export interface UserState {
   isGuest: boolean;
   location: Location;
   discover: DiscoverType;
+  selectBsnsCategory: {
+    id: number;
+    name: string;
+  }[];
 }
 
 const initialState: UserState = {
@@ -72,6 +76,7 @@ const initialState: UserState = {
     locationName: null,
   },
   discover: null,
+  selectBsnsCategory: [],
 };
 
 const userSlice = createSlice({
@@ -174,6 +179,17 @@ const userSlice = createSlice({
     setDiscover(state, action: PayloadAction<DiscoverType>) {
       state.discover = action.payload;
     },
+    setSelectBsnsCategory(
+      state,
+      action: PayloadAction<
+        {
+          id: number;
+          name: string;
+        }[]
+      >
+    ) {
+      state.selectBsnsCategory = action.payload;
+    },
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -193,6 +209,7 @@ const userSlice = createSlice({
       state.isGuest = initialState.isGuest;
       state.location = initialState.location;
       state.discover = initialState.discover;
+      state.selectBsnsCategory = initialState.selectBsnsCategory;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -213,6 +230,7 @@ const userSlice = createSlice({
       state.isGuest = initialState.isGuest;
       state.location = initialState.location;
       state.discover = initialState.discover;
+      state.selectBsnsCategory = initialState.selectBsnsCategory;
     },
   },
 });
@@ -229,6 +247,7 @@ export const {
   setIsGuest,
   setLocation,
   setDiscover,
+  setSelectBsnsCategory,
   clearUser,
   resetUser,
 } = userSlice.actions;

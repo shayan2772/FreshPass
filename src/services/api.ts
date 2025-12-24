@@ -239,9 +239,12 @@ const getErrorMessage = (error: AxiosError): string => {
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     try {
-      const token = getAccessToken();
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+      // Only add token if Authorization header is not already set (for guest calls)
+      if (!config.headers?.Authorization) {
+        const token = getAccessToken();
+        if (token && config.headers) {
+          config.headers.Authorization = `Bearer ${token}`;
+        }
       }
     } catch (error) {
       console.error("❌ Failed to add token to request:", error);

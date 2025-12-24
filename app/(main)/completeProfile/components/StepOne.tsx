@@ -67,7 +67,7 @@ export const createStyles = (theme: Theme) =>
     },
     categoryCard: {
       width: "30%",
-      height: heightScale(116),
+      height: heightScale(118),
     },
     categoryImage: {
       width: "100%",
