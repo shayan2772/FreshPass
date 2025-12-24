@@ -113,7 +113,7 @@ export default function DashboardLayout() {
 
   return (
     <Tabs
-      initialRouteName={isGuest   ? "(homeClient)" : "(home)"}
+      initialRouteName={isGuest ? "(homeClient)" : "(home)"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
@@ -141,9 +141,29 @@ export default function DashboardLayout() {
       }}
     >
       <Tabs.Screen
-        name={isGuest ? "(homeClient)" : "(home)"}
+        name="(home)"
         options={{
           title: "Home",
+          href: isGuest ? null : undefined,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[styles.iconContainer, focused && styles.iconBackground]}
+            >
+              <HomeIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="(homeClient)"
+        options={{
+          title: "Home",
+          href: isGuest ? undefined : null,
           tabBarIcon: ({ color, size, focused }) => (
             <View
               style={[styles.iconContainer, focused && styles.iconBackground]}
@@ -163,6 +183,7 @@ export default function DashboardLayout() {
         name="(calendar)"
         options={{
           title: "Calendar",
+          href: isGuest ? null : undefined,
           tabBarIcon: ({ color, size, focused }) => (
             <View
               style={[styles.iconContainer, focused && styles.iconBackground]}
@@ -177,6 +198,27 @@ export default function DashboardLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="(booking)"
+        options={{
+          title: "Booking",
+          href: isGuest ? undefined : null,
+          tabBarIcon: ({ color, size, focused }) => (
+            <View
+              style={[styles.iconContainer, focused && styles.iconBackground]}
+            >
+              <CalendarIcon
+                width={size}
+                height={size}
+                color={color}
+                focused={focused}
+              />
+            </View>
+          ),
+        }}
+      />
+
       <Tabs.Screen
         name="notifications"
         options={{

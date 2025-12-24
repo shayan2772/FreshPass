@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
-import { StyleSheet, View, StatusBar } from "react-native";
-import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
+import { StyleSheet, View } from "react-native";
+import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import DashboardHeader from "../../DashboardHeader";
+import DashboardHeader from "@/src/components/DashboardHeader";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -10,22 +11,19 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.background,
     },
-    line: {
-      width: "100%",
-      height: 1,
-      backgroundColor: theme.borderLight,
+    content: {
+      flex: 1,
     },
   });
 
-export default function HomeScreen() {
+export default function CalendarScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const dispatch = useAppDispatch();
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" />
       <DashboardHeader />
     </View>
   );
