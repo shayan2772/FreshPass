@@ -4,6 +4,7 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import DashboardHeaderClient from "../../DashboardHeaderClient";
 import DashboardContent from "./DashboardContent";
+import SearchBar from "./SearchBar";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -21,6 +22,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <DashboardHeaderClient />
+      <SearchBar />
       <DashboardContent />
     </View>
   );

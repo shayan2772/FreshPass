@@ -13,6 +13,7 @@ export const themes = {
     darkGreenLight:"rgba(96, 108, 56, 1)",
     lightGreen: "rgba(40, 54, 24, 0.7)",
     lightGreen5: "rgba(40, 54, 24, 0.5)",
+    lightGreen22: "rgba(40, 54, 24, 0.2)",
     lightGreen2: "rgba(40, 54, 24, 0.3)",
     lightGreen4: "rgba(40, 54, 24, 0.4)",
     lightGreen07: "rgba(40, 54, 24, 0.07)",

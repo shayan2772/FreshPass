@@ -37,8 +37,8 @@ const createStyles = (theme: Theme) =>
       justifyContent: "center",
       alignItems: "center",
       marginRight: moderateWidthScale(8),
-      borderWidth: 1,
-      borderColor: theme.borderLight,
+      borderWidth: 0.5,
+      borderColor: theme.lightGreen22,
     },
     locationLeft: {
       flexDirection: "row",
@@ -68,8 +68,8 @@ const createStyles = (theme: Theme) =>
     whenButton: {
       flexDirection: "row",
       alignItems: "center",
-      borderWidth: 1,
-      borderColor: theme.borderLight,
+      borderWidth: 0.5,
+      borderColor: theme.lightGreen22,
       borderRadius: moderateWidthScale(6),
       paddingHorizontal: moderateWidthScale(5),
       paddingVertical: moderateHeightScale(5),
