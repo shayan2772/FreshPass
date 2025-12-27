@@ -416,6 +416,10 @@ const categories = [
   { id: 6, name: "Nail Salon", image: null },
   { id: 7, name: "Brows & Lashes", image: null },
   { id: 8, name: "Massage", image: null },
+  { id: 9, name: "Spa", image: null },
+  { id: 10, name: "Makeup Studio", image: null },
+  { id: 11, name: "Skincare", image: null },
+  { id: 12, name: "Wellness Center", image: null },
 ];
 
 const serviceFilters = [
