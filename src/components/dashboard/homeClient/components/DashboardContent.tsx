@@ -77,13 +77,13 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(999),
-      padding: moderateWidthScale(4),
+      padding: moderateWidthScale(3),
       marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(10),
+      marginBottom: moderateHeightScale(12),
     },
     segment: {
       flex: 1,
-      paddingVertical: moderateHeightScale(10),
+      paddingVertical: moderateHeightScale(6),
       alignItems: "center",
       justifyContent: "center",
       borderRadius: moderateWidthScale(999),
@@ -108,8 +108,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
     },
     categoriesContainer: {
-      marginTop: moderateHeightScale(8),
-      marginBottom: moderateHeightScale(16),
+      marginTop: moderateHeightScale(4),
     },
     categoriesScroll: {
       paddingHorizontal: moderateWidthScale(20),
@@ -150,61 +149,92 @@ const createStyles = (theme: Theme) =>
     categoryTabs: {
       flexDirection: "row",
       paddingHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(8),
-      marginBottom: moderateHeightScale(16),
+      alignItems: "center",
+      // backgroundColor: "red",
+    },
+    categoryTabsSticky: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      zIndex: 10,
+      backgroundColor: theme.background,
+      borderBottomWidth: moderateWidthScale(1),
+      borderBottomColor: theme.lightGreen1,
     },
     categoryTab: {
-      paddingHorizontal: moderateWidthScale(16),
+      paddingHorizontal: moderateWidthScale(12),
       paddingVertical: moderateHeightScale(8),
-      marginRight: moderateWidthScale(12),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.white,
+      // marginRight: moderateWidthScale(1),
+      alignItems: "center",
+      position: "relative",
     },
     categoryTabActive: {
-      backgroundColor: theme.orangeBrown,
+      // No background change for active
     },
     categoryTabText: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.text,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
     },
     categoryTabTextActive: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    categoryTabUnderline: {
+      position: "absolute",
+      bottom: moderateHeightScale(0),
+      left: moderateWidthScale(12),
+      right: moderateWidthScale(12),
+      height: moderateHeightScale(2),
+      backgroundColor: theme.selectCard,
+      borderRadius: moderateWidthScale(1),
     },
     resultsHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
+      alignItems: "flex-start",
       paddingHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(16),
-      marginBottom: moderateHeightScale(12),
+      paddingVertical: moderateHeightScale(12),
+      marginVertical: moderateHeightScale(12),
+      backgroundColor: theme.mapCircleFill,
+      width: "100%",
+      gap: moderateWidthScale(12),
+    },
+    resultsTextContainer: {
+      flex: 1,
+      flexShrink: 1,
     },
     resultsText: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.darkGreen,
+      flexWrap: "wrap",
+    },
+    resultsTextBold: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
     },
     sortByContainer: {
       flexDirection: "row",
       alignItems: "center",
+      flexShrink: 0,
     },
     sortByText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
-      marginRight: moderateWidthScale(4),
+      color: theme.lightGreen,
     },
     sortByValue: {
       flexDirection: "row",
-      alignItems: "center",
+       alignItems: "center",
     },
     sortByValueText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginRight: moderateWidthScale(4),
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginRight: moderateWidthScale(2),
     },
     verifiedSalonCard: {
       backgroundColor: theme.white,
@@ -457,7 +487,7 @@ export default function DashboardContent() {
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
     "subscriptions"
   );
-  const [selectedCategory, setSelectedCategory] = useState(
+  const [selectedCategory, setSelectedCategory] = useState<string | number>(
     categories.length > 0 ? categories[0].id : 1
   );
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
@@ -466,6 +496,10 @@ export default function DashboardContent() {
   const isManualScrollRef = useRef(false);
   const categoryScrollRef = useRef<ScrollView>(null);
   const isCategoryScrollingRef = useRef(false);
+  const categorySectionHeight = useRef(0);
+  const categorySectionRef = useRef<View>(null);
+  const tabsContainerHeight = useRef(0);
+  const tabsContainerRef = useRef<View>(null);
 
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
@@ -509,9 +543,12 @@ export default function DashboardContent() {
       useNativeDriver: false,
       listener: (event: any) => {
         const offsetY = event.nativeEvent.contentOffset.y;
-        if (offsetY > 100 && !showCategoryTabs) {
+        // Show category tabs when scrolled a bit (around 50-80px)
+        const threshold = moderateHeightScale(50);
+
+        if (offsetY > threshold && !showCategoryTabs) {
           setShowCategoryTabs(true);
-        } else if (offsetY <= 100 && showCategoryTabs) {
+        } else if (offsetY <= threshold && showCategoryTabs) {
           setShowCategoryTabs(false);
         }
       },
@@ -537,6 +574,14 @@ export default function DashboardContent() {
     setActiveTab(tab);
   };
 
+  const getCategoryName = () => {
+    if (selectedCategory === "all") {
+      return "All Salons/Shops";
+    }
+    const category = categories.find((cat) => cat.id === selectedCategory);
+    return category ? category.name : "Hair Salon";
+  };
+
   const renderTabContent = (tab: "subscriptions" | "individual") => (
     <ScrollView
       style={styles.tabContent}
@@ -544,117 +589,110 @@ export default function DashboardContent() {
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
-      {/* Categories - Show images by default, tabs on scroll */}
-      {!showCategoryTabs ? (
-        <ScrollView
-          ref={categoryScrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categoriesScroll}
-          nestedScrollEnabled={true}
-          onTouchStart={() => {
-            isCategoryScrollingRef.current = true;
-          }}
-          onTouchEnd={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
-          }}
-          onScrollBeginDrag={() => {
-            isCategoryScrollingRef.current = true;
-          }}
-          onScrollEndDrag={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
-          }}
-          onMomentumScrollEnd={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
+      {/* Spacer for sticky tabs */}
+      {showCategoryTabs && (
+        <View style={{ height: moderateHeightScale(100) }} />
+      )}
+
+      {/* Categories - Show images only when not scrolled */}
+      {!showCategoryTabs && (
+        <View
+          ref={categorySectionRef}
+          onLayout={(event) => {
+            const { height } = event.nativeEvent.layout;
+            if (height > 0) {
+              categorySectionHeight.current = height;
+            }
           }}
         >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={styles.categoryItem}
-              onPress={() => setSelectedCategory(category.id)}
-              activeOpacity={0.8}
-            >
-              <Image
-                source={{
-                  uri:
-                    category?.image ||
-                    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-                }}
-                style={[
-                  styles.categoryImage,
-                  selectedCategory === category.id && styles.categoryImageActive,
-                  { borderWidth: moderateWidthScale(selectedCategory === category.id? 3:1),}
-                ]}
-                resizeMode="cover"
-              />
-              <Text
-                style={
-                  selectedCategory === category.id
-                    ? styles.categoryTextActive
-                    : styles.categoryText
-                }
-                numberOfLines={2}
+          <ScrollView
+            ref={categoryScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoriesContainer}
+            contentContainerStyle={styles.categoriesScroll}
+            nestedScrollEnabled={true}
+            onTouchStart={() => {
+              isCategoryScrollingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+            onScrollBeginDrag={() => {
+              isCategoryScrollingRef.current = true;
+            }}
+            onScrollEndDrag={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+            onMomentumScrollEnd={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+          >
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryItem}
+                onPress={() => setSelectedCategory(category.id)}
+                activeOpacity={0.8}
               >
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoryTabs}
-        >
-          <TouchableOpacity style={styles.categoryTab}>
-            <Text style={styles.categoryTabText}>All Salons/Shops</Text>
-          </TouchableOpacity>
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={[
-                styles.categoryTab,
-                selectedCategory === category.id && styles.categoryTabActive,
-              ]}
-              onPress={() => setSelectedCategory(category.id)}
-            >
-              <Text
-                style={
-                  selectedCategory === category.id
-                    ? styles.categoryTabTextActive
-                    : styles.categoryTabText
-                }
-              >
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Image
+                  source={{
+                    uri:
+                      category?.image ||
+                      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                  }}
+                  style={[
+                    styles.categoryImage,
+                    selectedCategory === category.id &&
+                      styles.categoryImageActive,
+                    {
+                      borderWidth: moderateWidthScale(
+                        selectedCategory === category.id ? 3 : 1
+                      ),
+                    },
+                  ]}
+                  resizeMode="cover"
+                />
+                <Text
+                  style={
+                    selectedCategory === category.id
+                      ? styles.categoryTextActive
+                      : styles.categoryText
+                  }
+                  numberOfLines={2}
+                >
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       {/* Results Summary */}
       <View style={styles.resultsHeader}>
-        <Text style={styles.resultsText}>
-          Showing: 870 results for Hair Salon
-        </Text>
+        <View style={styles.resultsTextContainer}>
+          <Text style={styles.resultsText}>
+            Showing: <Text style={styles.resultsTextBold}>870 results</Text> for {getCategoryName()}
+          </Text>
+        </View>
+
         <View style={styles.sortByContainer}>
-          <Text style={styles.sortByText}>Sort by:</Text>
+          <Text style={styles.sortByText}>Sort by: </Text>
           <TouchableOpacity style={styles.sortByValue}>
             <Text style={styles.sortByValueText}>
               {tab === "individual" ? "Nearest to you" : "Recommended"}
             </Text>
             <ChevronDown
-              width={widthScale(12)}
-              height={heightScale(8)}
-              color={theme.darkGreen}
+              width={widthScale(8)}
+              height={heightScale(4)}
+              color={theme.lightGreen}
             />
           </TouchableOpacity>
         </View>
@@ -819,7 +857,16 @@ export default function DashboardContent() {
   return (
     <View style={styles.container}>
       {/* Fixed Segmented Control */}
-      <View style={styles.tabsContainer}>
+      <View
+        ref={tabsContainerRef}
+        style={styles.tabsContainer}
+        onLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          if (height > 0) {
+            tabsContainerHeight.current = height;
+          }
+        }}
+      >
         <View style={styles.segmentedControl}>
           <TouchableOpacity
             style={[
@@ -863,6 +910,59 @@ export default function DashboardContent() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Sticky Category Tabs - Fixed at top when scrolled (Image 2 design) */}
+      {showCategoryTabs && (
+        <View
+          style={[
+            styles.categoryTabsSticky,
+            { top: tabsContainerHeight.current },
+          ]}
+        >
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryTabs}
+          >
+            <TouchableOpacity
+              style={styles.categoryTab}
+              onPress={() => setSelectedCategory("all")}
+            >
+              <Text
+                style={[
+                  styles.categoryTabText,
+                  selectedCategory === "all" && styles.categoryTabTextActive,
+                ]}
+              >
+                All Salons/Shops
+              </Text>
+              {selectedCategory === "all" && (
+                <View style={styles.categoryTabUnderline} />
+              )}
+            </TouchableOpacity>
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryTab}
+                onPress={() => setSelectedCategory(category.id)}
+              >
+                <Text
+                  style={
+                    selectedCategory === category.id
+                      ? styles.categoryTabTextActive
+                      : styles.categoryTabText
+                  }
+                >
+                  {category.name}
+                </Text>
+                {selectedCategory === category.id && (
+                  <View style={styles.categoryTabUnderline} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Swipeable Content */}
       <GestureHandlerRootView style={styles.contentContainer}>
