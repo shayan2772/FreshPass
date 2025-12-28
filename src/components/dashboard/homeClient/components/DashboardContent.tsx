@@ -36,6 +36,13 @@ const chevronDownSvg = `
 </svg>
 `;
 
+// Chevron Right Icon
+const chevronRightSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6 6L1 11" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
 const StarIcon = ({ width = 16, height = 16, color = "#DDA15E" }) => {
   const svgXml = starIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
@@ -46,6 +53,14 @@ const StarIcon = ({ width = 16, height = 16, color = "#DDA15E" }) => {
 
 const ChevronDown = ({ width = 12, height = 8, color = "#283618" }) => {
   const svgXml = chevronDownSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+const ChevronRight = ({ width = 8, height = 12, color = "#FFFFFF" }) => {
+  const svgXml = chevronRightSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString())
     .replace(/{{COLOR}}/g, color);
@@ -292,21 +307,53 @@ const createStyles = (theme: Theme) =>
       color: theme.white,
     },
     filtersContainer: {
-      flexDirection: "row",
-      paddingHorizontal: moderateWidthScale(20),
       marginBottom: moderateHeightScale(16),
+      marginTop: moderateHeightScale(8),
     },
     filterItem: {
       paddingHorizontal: moderateWidthScale(16),
       paddingVertical: moderateHeightScale(8),
-      marginRight: moderateWidthScale(12),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(999),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    filterItemPrimary: {
+      backgroundColor: theme.darkGreen,
+    },
+    filterItemInactive: {
+      backgroundColor: theme.background,
+      borderWidth: 0.5,
+      borderColor: theme.serviceBorder,
+    },
+    filterItemActive: {
+      backgroundColor: theme.lightGreen015,
+      borderWidth: 1,
+      borderColor: theme.serviceBorder,
     },
     filterText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.darkGreen,
+    },
+    filterTextPrimary: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.background,
+    },
+    filterTextInactive: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
+    filterTextActive: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
+    filterIcon: {
+      marginLeft: moderateWidthScale(5),
+      top:1
     },
     sectionTitle: {
       fontSize: fontSize.size18,
@@ -423,19 +470,19 @@ const categories = [
 ];
 
 const serviceFilters = [
-  "List >",
-  "Beard Trim",
-  "Haircut",
-  "Blow dry",
-  "Packages",
+  { id: "services", label: "Services", isPrimary: true },
+  { id: "beard-trim", label: "Beard Trim", isPrimary: false },
+  { id: "haircut", label: "Haircut", isPrimary: false },
+  { id: "blow-dry", label: "Blow dry", isPrimary: false },
+  { id: "pad", label: "Pad", isPrimary: false },
 ];
 
 const membershipFilters = [
-  "List >",
-  "All",
-  "Classic Care",
-  "Gold Glam",
-  "VIP Elite",
+  { id: "list", label: "List", isPrimary: true },
+  { id: "all", label: "All", isPrimary: false },
+  { id: "classic-care", label: "Classic Care", isPrimary: false },
+  { id: "gold-glam", label: "Gold Glam", isPrimary: false },
+  { id: "vip-elite", label: "VIP Elite", isPrimary: false },
 ];
 
 const services = [
@@ -449,35 +496,90 @@ const services = [
   },
   {
     id: 2,
-    title: "Wet Haircut",
-    price: 45.99,
-    originalPrice: 50.99,
-    description: "This service includes we wash and cut",
-    duration: "45 mins",
+    title: "Beard Trim & Style",
+    price: 25.99,
+    originalPrice: 30.99,
+    description: "Professional beard trimming and styling service",
+    duration: "30 mins",
+  },
+  {
+    id: 3,
+    title: "Blow Dry & Style",
+    price: 35.99,
+    originalPrice: 40.99,
+    description: "Complete blow dry and styling service",
+    duration: "40 mins",
+  },
+  {
+    id: 4,
+    title: "Haircut & Beard Trim",
+    price: 55.99,
+    originalPrice: 65.99,
+    description: "Combined haircut and beard trim package",
+    duration: "60 mins",
+  },
+  {
+    id: 5,
+    title: "Premium Haircut",
+    price: 65.99,
+    originalPrice: 75.99,
+    description: "Premium haircut with styling consultation",
+    duration: "50 mins",
   },
 ];
 
 const subscriptions = [
   {
     id: 1,
-    title: "The Full Luxury Experience",
+    title: "Classic Care Membership",
     offer: "15% Off All Products",
     offer2: "Get 1 free facial per month",
     inclusions: [
-      "1. 2 Premium Haircuts",
+      "1. 2 Premium Haircuts per month",
       "2. 1 Free Styling Service",
+      "3. 10% discount on all products",
       "+3 more",
     ],
     image: null,
   },
   {
     id: 2,
-    title: "The Full Luxury Experience",
+    title: "Gold Glam Membership",
     offer: "Save 20%",
     offer2: "LIMITED TIME OFFER",
     inclusions: [
-      "1. 2 Premium Haircuts",
-      "2. 1 Free Styling Service",
+      "1. 4 Premium Haircuts per month",
+      "2. 2 Free Styling Services",
+      "3. 15% discount on all products",
+      "4. Priority booking",
+      "+2 more",
+    ],
+    image: null,
+  },
+  {
+    id: 3,
+    title: "VIP Elite Membership",
+    offer: "Save 30%",
+    offer2: "PREMIUM PACKAGE",
+    inclusions: [
+      "1. Unlimited Premium Haircuts",
+      "2. Unlimited Styling Services",
+      "3. 20% discount on all products",
+      "4. Priority booking & VIP lounge access",
+      "5. Free monthly grooming products",
+      "+5 more",
+    ],
+    image: null,
+  },
+  {
+    id: 4,
+    title: "Classic Care Plus",
+    offer: "Save 18%",
+    offer2: "NEW MEMBERS ONLY",
+    inclusions: [
+      "1. 3 Premium Haircuts per month",
+      "2. 1 Free Beard Trim",
+      "3. 12% discount on all products",
       "+2 more",
     ],
     image: null,
@@ -495,7 +597,14 @@ export default function DashboardContent() {
     categories.length > 0 ? categories[0].id : 1
   );
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
+  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>(
+    "haircut"
+  );
+  const [selectedMembershipFilter, setSelectedMembershipFilter] =
+    useState<string>("all");
   const scrollY = useRef(new Animated.Value(0)).current;
+  const stickyTabsOpacity = useRef(new Animated.Value(0)).current;
+  const stickyTabsTranslateY = useRef(new Animated.Value(-20)).current;
   const horizontalScrollViewRef = useRef<ScrollView>(null);
   const isManualScrollRef = useRef(false);
   const categoryScrollRef = useRef<ScrollView>(null);
@@ -520,6 +629,37 @@ export default function DashboardContent() {
       setSelectedCategory(categories[0].id);
     }
   }, []);
+
+  // Animate sticky tabs when showCategoryTabs changes
+  useEffect(() => {
+    if (showCategoryTabs) {
+      Animated.parallel([
+        Animated.timing(stickyTabsOpacity, {
+          toValue: 1,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+        Animated.timing(stickyTabsTranslateY, {
+          toValue: 0,
+          duration: 250,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.timing(stickyTabsOpacity, {
+          toValue: 0,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+        Animated.timing(stickyTabsTranslateY, {
+          toValue: -20,
+          duration: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [showCategoryTabs]);
 
   // Update horizontal scroll position when tab changes (only when clicking, not swiping)
   useEffect(() => {
@@ -585,6 +725,62 @@ export default function DashboardContent() {
     const category = categories.find((cat) => cat.id === selectedCategory);
     return category ? category.name : "Hair Salon";
   };
+
+  const renderFilters = (
+    filters: Array<{ id: string; label: string; isPrimary: boolean }>,
+    selectedFilter: string,
+    onFilterSelect: (id: string) => void
+  ) => (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.filtersContainer}
+      contentContainerStyle={{
+        paddingHorizontal: moderateWidthScale(20),
+        flexDirection: "row",
+      }}
+      nestedScrollEnabled={true}
+    >
+      {filters.map((filter, index) => (
+        <TouchableOpacity
+          key={filter.id}
+          style={[
+            styles.filterItem,
+            filter.isPrimary
+              ? styles.filterItemPrimary
+              : selectedFilter === filter.id
+              ? styles.filterItemActive
+              : styles.filterItemInactive,
+            index < filters.length - 1 && {
+              marginRight: moderateWidthScale(12),
+            },
+          ]}
+          onPress={() => !filter.isPrimary && onFilterSelect(filter.id)}
+        >
+          <Text
+            style={[
+              filter.isPrimary
+                ? styles.filterTextPrimary
+                : selectedFilter === filter.id
+                ? styles.filterTextActive
+                : styles.filterTextInactive,
+            ]}
+          >
+            {filter.label}
+          </Text>
+          {filter.isPrimary && (
+            <View style={styles.filterIcon}>
+              <ChevronRight
+                width={widthScale(6)}
+                height={heightScale(9)}
+                color={theme.background}
+              />
+            </View>
+          )}
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
+  );
 
   const renderTabContent = (tab: "subscriptions" | "individual") => (
     <ScrollView
@@ -703,34 +899,20 @@ export default function DashboardContent() {
       </View>
 
       {/* Service Filters (for Individual Services) */}
-      {tab === "individual" && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-        >
-          {serviceFilters.map((filter, index) => (
-            <TouchableOpacity key={index} style={styles.filterItem}>
-              <Text style={styles.filterText}>{filter}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+      {tab === "individual" &&
+        renderFilters(
+          serviceFilters,
+          selectedServiceFilter,
+          setSelectedServiceFilter
+        )}
 
       {/* Membership Filters (for Subscriptions) */}
-      {tab === "subscriptions" && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.filtersContainer}
-        >
-          {membershipFilters.map((filter, index) => (
-            <TouchableOpacity key={index} style={styles.filterItem}>
-              <Text style={styles.filterText}>{filter}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
+      {tab === "subscriptions" &&
+        renderFilters(
+          membershipFilters,
+          selectedMembershipFilter,
+          setSelectedMembershipFilter
+        )}
 
       {/* Platform Verified Salon (Individual Services only) */}
       {tab === "individual" && (
@@ -916,57 +1098,60 @@ export default function DashboardContent() {
       </View>
 
       {/* Sticky Category Tabs - Fixed at top when scrolled (Image 2 design) */}
-      {showCategoryTabs && (
-        <View
-          style={[
-            styles.categoryTabsSticky,
-            { top: tabsContainerHeight.current },
-          ]}
+      <Animated.View
+        style={[
+          styles.categoryTabsSticky,
+          {
+            top: tabsContainerHeight.current,
+            opacity: stickyTabsOpacity,
+            transform: [{ translateY: stickyTabsTranslateY }],
+          },
+        ]}
+        pointerEvents={showCategoryTabs ? "auto" : "none"}
+      >
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryTabs}
         >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.categoryTabs}
+          <TouchableOpacity
+            style={styles.categoryTab}
+            onPress={() => setSelectedCategory("all")}
           >
+            <Text
+              style={[
+                styles.categoryTabText,
+                selectedCategory === "all" && styles.categoryTabTextActive,
+              ]}
+            >
+              All Salons/Shops
+            </Text>
+            {selectedCategory === "all" && (
+              <View style={styles.categoryTabUnderline} />
+            )}
+          </TouchableOpacity>
+          {categories.map((category) => (
             <TouchableOpacity
+              key={category.id}
               style={styles.categoryTab}
-              onPress={() => setSelectedCategory("all")}
+              onPress={() => setSelectedCategory(category.id)}
             >
               <Text
-                style={[
-                  styles.categoryTabText,
-                  selectedCategory === "all" && styles.categoryTabTextActive,
-                ]}
+                style={
+                  selectedCategory === category.id
+                    ? styles.categoryTabTextActive
+                    : styles.categoryTabText
+                }
               >
-                All Salons/Shops
+                {category.name}
               </Text>
-              {selectedCategory === "all" && (
+              {selectedCategory === category.id && (
                 <View style={styles.categoryTabUnderline} />
               )}
             </TouchableOpacity>
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryTab}
-                onPress={() => setSelectedCategory(category.id)}
-              >
-                <Text
-                  style={
-                    selectedCategory === category.id
-                      ? styles.categoryTabTextActive
-                      : styles.categoryTabText
-                  }
-                >
-                  {category.name}
-                </Text>
-                {selectedCategory === category.id && (
-                  <View style={styles.categoryTabUnderline} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+          ))}
+        </ScrollView>
+      </Animated.View>
 
       {/* Swipeable Content */}
       <GestureHandlerRootView style={styles.contentContainer}>
