@@ -605,6 +605,8 @@ export default function DashboardContent() {
   const scrollY = useRef(new Animated.Value(0)).current;
   const stickyTabsOpacity = useRef(new Animated.Value(0)).current;
   const stickyTabsTranslateY = useRef(new Animated.Value(-20)).current;
+  const categorySectionOpacity = useRef(new Animated.Value(1)).current;
+  const categorySectionTranslateY = useRef(new Animated.Value(0)).current;
   const horizontalScrollViewRef = useRef<ScrollView>(null);
   const isManualScrollRef = useRef(false);
   const categoryScrollRef = useRef<ScrollView>(null);
@@ -630,10 +632,11 @@ export default function DashboardContent() {
     }
   }, []);
 
-  // Animate sticky tabs when showCategoryTabs changes
+  // Animate sticky tabs and category section when showCategoryTabs changes
   useEffect(() => {
     if (showCategoryTabs) {
       Animated.parallel([
+        // Sticky tabs animation
         Animated.timing(stickyTabsOpacity, {
           toValue: 1,
           duration: 250,
@@ -644,19 +647,46 @@ export default function DashboardContent() {
           duration: 250,
           useNativeDriver: true,
         }),
+        // Category section hide animation
+        Animated.parallel([
+          Animated.timing(categorySectionOpacity, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+          Animated.timing(categorySectionTranslateY, {
+            toValue: -20,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+        ]),
       ]).start();
     } else {
       Animated.parallel([
+        // Sticky tabs hide animation
         Animated.timing(stickyTabsOpacity, {
           toValue: 0,
-          duration: 150,
+          duration: 250,
           useNativeDriver: true,
         }),
         Animated.timing(stickyTabsTranslateY, {
           toValue: -20,
-          duration: 150,
+          duration: 250,
           useNativeDriver: true,
         }),
+        // Category section show animation
+        Animated.parallel([
+          Animated.timing(categorySectionOpacity, {
+            toValue: 1,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+          Animated.timing(categorySectionTranslateY, {
+            toValue: 0,
+            duration: 250,
+            useNativeDriver: true,
+          }),
+        ]),
       ]).start();
     }
   }, [showCategoryTabs]);
@@ -794,86 +824,97 @@ export default function DashboardContent() {
         <View style={{ height: moderateHeightScale(100) }} />
       )}
 
-      {/* Categories - Show images only when not scrolled */}
-      {!showCategoryTabs && (
-        <View
-          ref={categorySectionRef}
-          onLayout={(event) => {
-            const { height } = event.nativeEvent.layout;
-            if (height > 0) {
-              categorySectionHeight.current = height;
-            }
+      {/* Categories - Show images with smooth animation */}
+      <Animated.View
+        ref={categorySectionRef}
+        onLayout={(event) => {
+          const { height } = event.nativeEvent.layout;
+          if (height > 0) {
+            categorySectionHeight.current = height;
+          }
+        }}
+        style={[
+          {
+            opacity: categorySectionOpacity,
+            transform: [{ translateY: categorySectionTranslateY }],
+          },
+          showCategoryTabs && {
+            position: "absolute",
+            width: "100%",
+            height: 0,
+            overflow: "hidden",
+          },
+        ]}
+        pointerEvents={!showCategoryTabs ? "auto" : "none"}
+      >
+        <ScrollView
+          ref={categoryScrollRef}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.categoriesContainer}
+          contentContainerStyle={styles.categoriesScroll}
+          nestedScrollEnabled={true}
+          onTouchStart={() => {
+            isCategoryScrollingRef.current = true;
+          }}
+          onTouchEnd={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
+          }}
+          onScrollBeginDrag={() => {
+            isCategoryScrollingRef.current = true;
+          }}
+          onScrollEndDrag={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
+          }}
+          onMomentumScrollEnd={() => {
+            setTimeout(() => {
+              isCategoryScrollingRef.current = false;
+            }, 100);
           }}
         >
-          <ScrollView
-            ref={categoryScrollRef}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.categoriesContainer}
-            contentContainerStyle={styles.categoriesScroll}
-            nestedScrollEnabled={true}
-            onTouchStart={() => {
-              isCategoryScrollingRef.current = true;
-            }}
-            onTouchEnd={() => {
-              setTimeout(() => {
-                isCategoryScrollingRef.current = false;
-              }, 100);
-            }}
-            onScrollBeginDrag={() => {
-              isCategoryScrollingRef.current = true;
-            }}
-            onScrollEndDrag={() => {
-              setTimeout(() => {
-                isCategoryScrollingRef.current = false;
-              }, 100);
-            }}
-            onMomentumScrollEnd={() => {
-              setTimeout(() => {
-                isCategoryScrollingRef.current = false;
-              }, 100);
-            }}
-          >
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category.id}
-                style={styles.categoryItem}
-                onPress={() => setSelectedCategory(category.id)}
-                activeOpacity={0.8}
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category.id}
+              style={styles.categoryItem}
+              onPress={() => setSelectedCategory(category.id)}
+              activeOpacity={0.8}
+            >
+              <Image
+                source={{
+                  uri:
+                    category?.image ||
+                    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                }}
+                style={[
+                  styles.categoryImage,
+                  selectedCategory === category.id &&
+                    styles.categoryImageActive,
+                  {
+                    borderWidth: moderateWidthScale(
+                      selectedCategory === category.id ? 3 : 1
+                    ),
+                  },
+                ]}
+                resizeMode="cover"
+              />
+              <Text
+                style={
+                  selectedCategory === category.id
+                    ? styles.categoryTextActive
+                    : styles.categoryText
+                }
+                numberOfLines={2}
               >
-                <Image
-                  source={{
-                    uri:
-                      category?.image ||
-                      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-                  }}
-                  style={[
-                    styles.categoryImage,
-                    selectedCategory === category.id &&
-                      styles.categoryImageActive,
-                    {
-                      borderWidth: moderateWidthScale(
-                        selectedCategory === category.id ? 3 : 1
-                      ),
-                    },
-                  ]}
-                  resizeMode="cover"
-                />
-                <Text
-                  style={
-                    selectedCategory === category.id
-                      ? styles.categoryTextActive
-                      : styles.categoryText
-                  }
-                  numberOfLines={2}
-                >
-                  {category.name}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-      )}
+                {category.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Animated.View>
 
       {/* Results Summary */}
       <View style={styles.resultsHeader}>
