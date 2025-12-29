@@ -969,7 +969,7 @@ export default function DashboardContent() {
         </View>
       </View>
 
-      {/* Platform Verified Salon  */}
+      {/* Platform Verified Salon*/}
       <View style={styles.verifiedSalonCard}>
         <View style={styles.verifiedCardTopRow}>
           <View style={styles.verifiedBadge}>
