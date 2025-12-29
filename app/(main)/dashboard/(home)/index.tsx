@@ -4,12 +4,13 @@ import HomeScreen from "@/src/components/dashboard/home";
 import HomeClientScreen from "@/src/components/dashboard/homeClient";
 
 export default function Home() {
-  const userRole = useAppSelector((state) => state.user.userRole);
-
-  if (userRole === "staff") {
+  const user = useAppSelector((state) => state.user);
+  const userRole = user.userRole;
+  const isGuest = user.isGuest;
+   
+  if (userRole === "staff" || isGuest) {
     return <HomeClientScreen />;
   }
 
   return <HomeScreen />;
 }
-
