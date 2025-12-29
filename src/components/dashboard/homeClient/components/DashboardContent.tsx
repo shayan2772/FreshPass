@@ -21,6 +21,7 @@ import {
 } from "@/src/theme/dimensions";
 import Button from "@/src/components/button";
 import { SvgXml } from "react-native-svg";
+import { PersonIcon, MonitorIcon } from "@/assets/icons";
 
 // Star Icon SVG
 const starIconSvg = `
@@ -243,7 +244,7 @@ const createStyles = (theme: Theme) =>
     },
     sortByValue: {
       flexDirection: "row",
-       alignItems: "center",
+      alignItems: "center",
     },
     sortByValueText: {
       fontSize: fontSize.size12,
@@ -252,59 +253,88 @@ const createStyles = (theme: Theme) =>
       marginRight: moderateWidthScale(2),
     },
     verifiedSalonCard: {
-      backgroundColor: theme.white,
+      backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(16),
       marginHorizontal: moderateWidthScale(20),
       marginBottom: moderateHeightScale(16),
     },
-    verifiedBadge: {
-      backgroundColor: theme.buttonBack,
-      paddingHorizontal: moderateWidthScale(8),
-      paddingVertical: moderateHeightScale(4),
-      borderRadius: moderateWidthScale(4),
-      alignSelf: "flex-start",
-      marginBottom: moderateHeightScale(8),
-    },
-    verifiedBadgeText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-    },
-    salonName: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
-    },
-    salonAddress: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginBottom: moderateHeightScale(8),
-    },
-    salonRating: {
+    verifiedCardTopRow: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: moderateHeightScale(12),
+      gap: moderateWidthScale(4),
     },
-    ratingText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginLeft: moderateWidthScale(4),
-    },
-    viewDetailButton: {
+    verifiedBadge: {
       backgroundColor: theme.orangeBrown,
-      paddingVertical: moderateHeightScale(10),
-      paddingHorizontal: moderateWidthScale(16),
-      borderRadius: moderateWidthScale(8),
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(999),
       alignSelf: "flex-start",
     },
-    viewDetailText: {
-      fontSize: fontSize.size14,
+    verifiedBadgeText: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    dateTimeBadge: {
+      backgroundColor: theme.darkGreenLight,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(999),
+      alignSelf: "flex-start",
+    },
+    dateTimeBadgeText: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+    },
+    verifiedCardContent: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: moderateWidthScale(12),
+    },
+    verifiedCardImage: {
+      width: widthScale(67),
+      height: heightScale(67),
+      borderRadius: moderateWidthScale(999),
+      backgroundColor: theme.lightGreen2,
+    },
+    verifiedCardTextContainer: {
+      flex: 1,
+      gap: moderateHeightScale(4),
+    },
+    salonName: {
+      fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.white,
+    },
+    verifiedCardInfoRow: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    verifiedCardInfoRow2: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width:"100%"
+    },
+    verifiedCardInfoText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.white80,
+      marginLeft: moderateWidthScale(6),
+    },
+    viewDetailLink: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-end",
+      gap: moderateWidthScale(4),
+    },
+    viewDetailText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.orangeBrown,
     },
     filtersContainer: {
       marginBottom: moderateHeightScale(16),
@@ -353,7 +383,7 @@ const createStyles = (theme: Theme) =>
     },
     filterIcon: {
       marginLeft: moderateWidthScale(5),
-      top:1
+      top: 1,
     },
     sectionTitle: {
       fontSize: fontSize.size18,
@@ -597,9 +627,8 @@ export default function DashboardContent() {
     categories.length > 0 ? categories[0].id : 1
   );
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
-  const [selectedServiceFilter, setSelectedServiceFilter] = useState<string>(
-    "haircut"
-  );
+  const [selectedServiceFilter, setSelectedServiceFilter] =
+    useState<string>("haircut");
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState<string>("all");
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -920,7 +949,8 @@ export default function DashboardContent() {
       <View style={styles.resultsHeader}>
         <View style={styles.resultsTextContainer}>
           <Text style={styles.resultsText}>
-            Showing: <Text style={styles.resultsTextBold}>870 results</Text> for {getCategoryName()}
+            Showing: <Text style={styles.resultsTextBold}>870 results</Text> for{" "}
+            {getCategoryName()}
           </Text>
         </View>
 
@@ -939,6 +969,64 @@ export default function DashboardContent() {
         </View>
       </View>
 
+      {/* Platform Verified Salon  */}
+      <View style={styles.verifiedSalonCard}>
+        <View style={styles.verifiedCardTopRow}>
+          <View style={styles.verifiedBadge}>
+            <Text style={styles.verifiedBadgeText}>Upcoming appointment</Text>
+          </View>
+          <View style={styles.dateTimeBadge}>
+            <Text style={styles.dateTimeBadgeText}>Tue, Oct 15 at 3:00 PM</Text>
+          </View>
+        </View>
+        <View style={styles.verifiedCardContent}>
+          <Image
+            source={{
+              uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+            }}
+            style={styles.verifiedCardImage}
+            resizeMode="cover"
+          />
+          <View style={styles.verifiedCardTextContainer}>
+            <Text numberOfLines={1} style={styles.salonName}>Premium Haircut & Styling</Text>
+            <View style={styles.verifiedCardInfoRow}>
+              <MonitorIcon
+                width={widthScale(16)}
+                height={heightScale(16)}
+                color={theme.white}
+              />
+              <Text style={styles.verifiedCardInfoText}>
+                Golder member • 2 visit left
+              </Text>
+            </View>
+            <View style={styles.verifiedCardInfoRow2}>
+              <View
+                style={[
+                  styles.verifiedCardInfoRow,
+                  { width: "58%" },
+                ]}
+              >
+                <PersonIcon
+                  width={widthScale(16)}
+                  height={heightScale(16)}
+                  color={theme.white}
+                />
+                <Text numberOfLines={1} style={styles.verifiedCardInfoText}>Sanna Granqvist</Text>
+              </View>
+
+              <TouchableOpacity style={styles.viewDetailLink}>
+                <Text style={styles.viewDetailText}>View detail</Text>
+                <ChevronRight
+                  width={widthScale(4)}
+                  height={heightScale(8)}
+                  color={theme.orangeBrown}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </View>
+
       {/* Service Filters (for Individual Services) */}
       {tab === "individual" &&
         renderFilters(
@@ -954,30 +1042,6 @@ export default function DashboardContent() {
           selectedMembershipFilter,
           setSelectedMembershipFilter
         )}
-
-      {/* Platform Verified Salon (Individual Services only) */}
-      {tab === "individual" && (
-        <View style={styles.verifiedSalonCard}>
-          <View style={styles.verifiedBadge}>
-            <Text style={styles.verifiedBadgeText}>Platform verified</Text>
-          </View>
-          <Text style={styles.salonName}>Ra Benjamin Styles LLC</Text>
-          <Text style={styles.salonAddress}>
-            9853 E Fern ST, Palmetto Bay, 33157
-          </Text>
-          <View style={styles.salonRating}>
-            <StarIcon
-              width={widthScale(16)}
-              height={heightScale(16)}
-              color={theme.orangeBrown}
-            />
-            <Text style={styles.ratingText}>4.9/64 reviews</Text>
-          </View>
-          <TouchableOpacity style={styles.viewDetailButton}>
-            <Text style={styles.viewDetailText}>View detail</Text>
-          </TouchableOpacity>
-        </View>
-      )}
 
       {/* Nearest to you Section */}
       <View
@@ -1015,6 +1079,7 @@ export default function DashboardContent() {
           </Text>
         </TouchableOpacity>
       </View>
+
       {tab === "individual" ? (
         <ScrollView
           horizontal

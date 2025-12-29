@@ -30,6 +30,7 @@ export const themes = {
     orangeBrown30: "rgba(221, 161, 94, 0.3)",
     lightBeige: "rgba(40, 54, 24, 0.05)",
     white: "#FFFFFF",
+    white80: "rgba(255, 255, 255, 0.8)",
     white70: "rgba(255, 255, 255, 0.7)",
     black: "#000000",
     buttonBack: "#606C38",
