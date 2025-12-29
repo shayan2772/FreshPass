@@ -75,7 +75,7 @@ export default function IntroductionClient() {
 
   const handleCategoryNext = () => {
     // Navigate to dashboard or complete profile
-    router.replace("/(main)/dashboard/(homeClient)" as any);
+    router.replace("/(main)/dashboard/(home)" as any);
   };
 
   switch (currentScreen) {

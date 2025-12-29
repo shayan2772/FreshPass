@@ -31,7 +31,7 @@ export default function Index() {
     return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
  
   if(isGuest)
-    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(homeClient)` as any} />;
+    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
   
   return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;
  

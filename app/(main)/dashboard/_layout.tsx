@@ -113,7 +113,7 @@ export default function DashboardLayout() {
 
   return (
     <Tabs
-      initialRouteName={isGuest ? "(homeClient)" : "(home)"}
+      initialRouteName={"(home)"}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: theme.buttonBack,
@@ -141,10 +141,9 @@ export default function DashboardLayout() {
       }}
     >
       <Tabs.Screen
-        name="(home)"
+        name= "(home)"
         options={{
           title: "Home",
-          href: isGuest ? null : undefined,
           tabBarIcon: ({ color, size, focused }) => (
             <View
               style={[styles.iconContainer, focused && styles.iconBackground]}
@@ -159,26 +158,7 @@ export default function DashboardLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="(homeClient)"
-        options={{
-          title: "Home",
-          href: isGuest ? undefined : null,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View
-              style={[styles.iconContainer, focused && styles.iconBackground]}
-            >
-              <HomeIcon
-                width={size}
-                height={size}
-                color={color}
-                focused={focused}
-              />
-            </View>
-          ),
-        }}
-      />
-
+   
       <Tabs.Screen
         name="(calendar)"
         options={{

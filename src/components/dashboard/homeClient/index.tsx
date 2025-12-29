@@ -22,6 +22,7 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
+     <StatusBar barStyle="dark-content" />
       <DashboardHeaderClient />
       <SearchBar />
       <DashboardContent />
