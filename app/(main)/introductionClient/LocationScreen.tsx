@@ -15,6 +15,7 @@ import { handleLocationPermission } from "@/src/services/locationPermissionServi
 import { useAppDispatch } from "@/src/hooks/hooks";
 import { setLocation } from "@/src/state/slices/userSlice";
 import * as Location from "expo-location";
+import { tryGetPosition } from "@/src/constant/functions";
 
 interface LocationScreenProps {
   onNext: () => void;
@@ -102,9 +103,28 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
       }
 
       // Get current location coordinates directly
-      const cachedPosition = await Location.getLastKnownPositionAsync();
-      const currentPosition =
-        cachedPosition ?? (await Location.getCurrentPositionAsync({}));
+      let currentPosition: Location.LocationObject | null = null;
+      
+      try {
+        // Try to get cached position first (faster)
+        const cachedPosition = await Location.getLastKnownPositionAsync({
+          maxAge: 60000, // Use cached position if less than 1 minute old
+        });
+        
+        if (cachedPosition) {
+          currentPosition = cachedPosition;
+        } else {
+          // If no cached position, try to get current position with retries
+          currentPosition = await tryGetPosition();
+        }
+      } catch (error) {
+        console.error("Error getting location position:", error);
+        throw new Error("Unable to get your current location. Please make sure location services are enabled and try again.");
+      }
+
+      if (!currentPosition) {
+        throw new Error("Unable to get your current location. Please make sure location services are enabled and try again.");
+      }
 
       const coordinates = {
         latitude: currentPosition.coords.latitude,
@@ -145,7 +165,10 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
       onNext();
     } catch (error) {
       console.error("Error getting location:", error);
-      setErrorMessage("Unable to get your location. Please try again.");
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : "Unable to get your location. Please make sure location services are enabled and try again.";
+      setErrorMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
