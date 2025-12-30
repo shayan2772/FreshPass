@@ -672,7 +672,6 @@ const createStyles = (theme: Theme) =>
     },
     serviceCard: {
       backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
       marginBottom: moderateHeightScale(12),
       borderBottomWidth: moderateWidthScale(1),
       borderBottomColor: theme.borderLight,
