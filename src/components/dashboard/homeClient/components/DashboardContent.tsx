@@ -386,6 +386,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(6),
+      alignSelf: "flex-start",
     },
     platformVerifiedText: {
       fontSize: fontSize.size10,
