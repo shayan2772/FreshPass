@@ -1338,6 +1338,59 @@ export const OpenFullIcon: React.FC<OpenFullIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Map Pin Icon SVG (for shop location)
+const mapPinIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 21 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M10.049 23.9988L9.35191 23.4013C8.39091 22.5966 0 15.3499 0 10.049C0 4.49911 4.49911 0 10.049 0C15.5989 0 20.098 4.49911 20.098 10.049C20.098 15.3499 11.7071 22.5966 10.7501 23.4052L10.049 23.9988ZM10.049 2.17289C5.70122 2.17782 2.17786 5.70118 2.17294 10.049C2.17294 13.3791 7.33537 18.6988 10.049 21.1337C12.7627 18.6979 17.9251 13.3751 17.9251 10.049C17.9202 5.70118 14.3968 2.17786 10.049 2.17289Z" fill="{{COLOR}}"/>
+<path d="M10.0497 14.0331C7.84982 14.0331 6.06641 12.2497 6.06641 10.0498C6.06641 7.84982 7.84982 6.06641 10.0497 6.06641C12.2497 6.06641 14.0331 7.84982 14.0331 10.0498C14.0331 12.2497 12.2497 14.0331 10.0497 14.0331ZM10.0497 8.05804C8.94974 8.05804 8.05808 8.94974 8.05808 10.0497C8.05808 11.1497 8.94974 12.0414 10.0497 12.0414C11.1497 12.0414 12.0414 11.1497 12.0414 10.0497C12.0414 8.94974 11.1497 8.05804 10.0497 8.05804Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface MapPinIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const MapPinIcon: React.FC<MapPinIconProps> = ({
+  width = 21,
+  height = 24,
+  color = "#2459FF",
+}) => {
+  const svgXml = mapPinIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Phone Icon SVG (for contact section)
+const phoneIconContactSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M2 7H4V14H2V7ZM20 10H22V17H20V10ZM16 2.01L8 2C6.9 2 6 2.9 6 4V20C6 21.1 6.9 22 8 22H16C17.1 22 18 21.1 18 20V4C18 2.9 17.1 2.01 16 2.01ZM16 20H8V19H16V20ZM16 17H8V7H16V17ZM8 5V4H16V5H8Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface PhoneIconContactProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const PhoneIconContact: React.FC<PhoneIconContactProps> = ({
+  width = 24,
+  height = 24,
+  color = "#283618",
+}) => {
+  const svgXml = phoneIconContactSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1381,4 +1434,6 @@ export default {
   FilterIcon,
   PlatformVerifiedStarIcon,
   OpenFullIcon,
+  MapPinIcon,
+  PhoneIconContact,
 };

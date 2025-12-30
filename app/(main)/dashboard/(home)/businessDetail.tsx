@@ -26,6 +26,8 @@ import {
   PlatformVerifiedStarIcon,
   LeafLogo,
   OpenFullIcon,
+  MapPinIcon,
+  PhoneIconContact,
 } from "@/assets/icons";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -76,13 +78,6 @@ const phoneIconSvg = `
 const peopleIconSvg = `
 <svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 <path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Map Pin Icon SVG (for shop location)
-const mapPinIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="{{COLOR}}"/>
 </svg>
 `;
 
@@ -156,8 +151,8 @@ const PeopleIcon = ({ width = 16, height = 16, color = "#FFFFFF" }) => {
   return <SvgXml xml={svgXml} />;
 };
 
-const MapPinIcon = ({ width = 24, height = 24, color = "#4285F4" }) => {
-  const svgXml = mapPinIconSvg
+const PhoneIconWhite = ({ width = 20, height = 20, color = "#FFFFFF" }) => {
+  const svgXml = phoneIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString())
     .replace(/{{COLOR}}/g, color);
@@ -391,29 +386,34 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       backgroundColor: theme.background,
-      paddingHorizontal: moderateWidthScale(20),
       paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(40),
     },
+    sectionContent: {
+      paddingHorizontal: moderateWidthScale(20),
+    },
     sectionTitle: {
-      fontSize: fontSize.size19,
+      fontSize: fontSize.size17,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(12),
     },
     aboutText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.lightGreen,
       lineHeight: moderateHeightScale(20),
       marginBottom: moderateHeightScale(8),
     },
     readMoreLink: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontBold,
       color: theme.orangeBrown,
-      textDecorationLine: "underline",
-      textDecorationColor: theme.orangeBrown,
+    },
+    sectionDivider: {
+      borderTopWidth: moderateWidthScale(1),
+      borderTopColor:theme.borderLight,
+      marginTop: moderateHeightScale(24),
     },
     shopLocationRow: {
       flexDirection: "row",
@@ -424,39 +424,51 @@ const createStyles = (theme: Theme) =>
     shopLocationText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.lightGreen,
       flex: 1,
+      maxWidth: "75%",
     },
     mapIconContainer: {
-      width: widthScale(40),
-      height: heightScale(40),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.background,
+      width: 50,
+      height: 50,
+      borderRadius: 50 / 2,
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.lightGreen2,
       alignItems: "center",
       justifyContent: "center",
+    },
+    phoneIconContainer: {
+      width: 50,
+      height: 50,
+      borderRadius: 50 / 2,
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.lightGreen2,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(8),
     },
     contactRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(20),
     },
     contactPhoneRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       flex: 1,
+      marginLeft: moderateWidthScale(8),
     },
     phoneText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.text,
-      marginLeft: moderateWidthScale(8),
     },
     callNowButton: {
-      backgroundColor: theme.darkGreen,
+      backgroundColor: theme.darkGreenLight,
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(10),
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(999),
     },
     callNowButtonText: {
       fontSize: fontSize.size14,
@@ -471,27 +483,30 @@ const createStyles = (theme: Theme) =>
     },
     viewAllLink: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontRegular,
       color: theme.orangeBrown,
-      textDecorationLine: "underline",
-      textDecorationColor: theme.orangeBrown,
+    },
+    hoursCardsContainer: {
+      flexDirection: "row",
+      gap: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(20),
     },
     hoursCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(16),
-      marginBottom: moderateHeightScale(12),
+      minWidth: widthScale(120),
     },
     hoursDay: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
     },
     hoursTime: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.lightGreen,
     },
     imageModal: {
       flex: 1,
@@ -531,6 +546,7 @@ export default function BusinessDetailScreen() {
   const [currentHeroImage, setCurrentHeroImage] = useState<string>(
     "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80"
   );
+  const [isAboutExpanded, setIsAboutExpanded] = useState(false);
 
   // Dummy data with different images
   const thumbnails = [
@@ -559,78 +575,146 @@ export default function BusinessDetailScreen() {
     setCurrentHeroImage(image);
   };
 
-  const renderDetailsContent = () => (
-    <View style={styles.contentContainer}>
-      {/* About me */}
-      <Text style={styles.sectionTitle}>About me</Text>
-      <Text style={styles.aboutText}>
-        *** I'm go-to destination for premium grooming services tailored
-        exclusively for men. Whether you're here for a sharp haircut, a flawless
-        fade, or a relaxing beard treatment, our expert barbers deliver style
-        and precision in every service. Experience a modern blend of tradition,
-        comfort, and class—
-      </Text>
-      <TouchableOpacity>
-        <Text style={styles.readMoreLink}>Read more salon</Text>
-      </TouchableOpacity>
+  // Business hours data
+  const businessHours = [
+    { day: "Monday", time: "9:00 AM - 6:00 PM" },
+    { day: "Tuesday", time: "9:00 AM - 6:00 PM" },
+    { day: "Wednesday", time: "10:00 AM - 7:30 PM" },
+    { day: "Thursday", time: "10:00 AM - 7:30 PM" },
+    { day: "Friday", time: "10:00 AM - 8:00 PM" },
+    { day: "Saturday", time: "10:00 AM - 7:30 PM" },
+    { day: "Sunday", time: "Holiday/Closed" },
+  ];
 
-      {/* Shop location */}
-      <Text
-        style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
-      >
-        Shop location
-      </Text>
-      <View style={styles.shopLocationRow}>
-        <Text style={styles.shopLocationText}>
-          240 E Exchange Blvd, Columbia, SC 29209, United States
-        </Text>
-        <TouchableOpacity style={styles.mapIconContainer}>
-          <MapPinIcon width={widthScale(20)} height={heightScale(20)} />
-        </TouchableOpacity>
-      </View>
+  // Get current day name
+  const getCurrentDayName = () => {
+    const days = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return days[new Date().getDay()];
+  };
 
-      {/* Contact */}
-      <Text
-        style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
-      >
-        Contact
-      </Text>
-      <View style={styles.contactRow}>
-        <PhoneIcon width={widthScale(20)} height={heightScale(20)} />
-        <View style={styles.contactPhoneRow}>
-          <Text style={styles.phoneText}>(619) 315-5437</Text>
-          <TouchableOpacity style={styles.callNowButton}>
-            <Text style={styles.callNowButtonText}>Call now</Text>
-          </TouchableOpacity>
+  const renderDetailsContent = () => {
+    const aboutText =
+      "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
+    const shouldShowReadMore = aboutText.length > 220;
+    const displayText = isAboutExpanded
+      ? aboutText
+      : shouldShowReadMore
+      ? aboutText.substring(0, 220) + "..."
+      : aboutText;
+
+    // Sort business hours so current day appears first
+    const currentDay = getCurrentDayName();
+    const sortedBusinessHours = [...businessHours].sort((a, b) => {
+      if (a.day === currentDay) return -1;
+      if (b.day === currentDay) return 1;
+      return 0;
+    });
+
+    return (
+      <View style={styles.contentContainer}>
+        {/* About me */}
+        <View style={styles.sectionContent}>
+          <Text style={styles.sectionTitle}>About me</Text>
+          <Text style={styles.aboutText}>
+            {displayText}
+            {shouldShowReadMore && !isAboutExpanded && (
+              <Text
+                style={styles.readMoreLink}
+                onPress={() => setIsAboutExpanded(true)}
+              >
+                {" "}
+                Read more salon
+              </Text>
+            )}
+          </Text>
         </View>
-      </View>
 
-      {/* Business hours */}
-      <View
-        style={[
-          styles.businessHoursHeader,
-          { marginTop: moderateHeightScale(24) },
-        ]}
-      >
-        <Text style={styles.sectionTitle}>Business hours</Text>
-        <TouchableOpacity>
-          <Text style={styles.viewAllLink}>View all</Text>
-        </TouchableOpacity>
+        {/* Shop location */}
+        <View style={styles.sectionDivider} />
+        <View style={styles.sectionContent}>
+          <Text
+            style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
+          >
+            Shop location
+          </Text>
+          <View style={styles.shopLocationRow}>
+            <Text style={styles.shopLocationText}>
+              240 E Exchange Blvd, Columbia, SC 29209, United States
+            </Text>
+            <TouchableOpacity style={styles.mapIconContainer}>
+              <MapPinIcon
+                width={widthScale(15)}
+                height={heightScale(15)}
+                color={theme.primary}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Contact */}
+        <View style={styles.sectionDivider} />
+        <View style={styles.sectionContent}>
+          <Text
+            style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
+          >
+            Contact
+          </Text>
+          <View style={styles.contactRow}>
+            <View style={styles.phoneIconContainer}>
+              <PhoneIconContact
+                width={widthScale(18)}
+                height={heightScale(18)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <View style={styles.contactPhoneRow}>
+              <Text style={styles.phoneText}>(619) 315-5437</Text>
+              <TouchableOpacity style={styles.callNowButton}>
+                <Text style={styles.callNowButtonText}>Call now</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
+        {/* Business hours */}
+        <View style={styles.sectionDivider} />
+        <View style={styles.sectionContent}>
+          <View
+            style={[
+              styles.businessHoursHeader,
+              { marginTop: moderateHeightScale(24) },
+            ]}
+          >
+            <Text style={styles.sectionTitle}>Business hours</Text>
+            
+          </View>
+        </View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.hoursCardsContainer}
+        >
+          {sortedBusinessHours.map((item, index) => {
+            const displayDay = item.day === currentDay ? "Today" : item.day;
+            return (
+              <View key={index} style={styles.hoursCard}>
+                <Text style={styles.hoursDay}>{displayDay}</Text>
+                <Text style={styles.hoursTime}>{item.time}</Text>
+              </View>
+            );
+          })}
+        </ScrollView>
       </View>
-      <View style={styles.hoursCard}>
-        <Text style={styles.hoursDay}>Today</Text>
-        <Text style={styles.hoursTime}>10:00 AM - 7:30 PM</Text>
-      </View>
-      <View style={styles.hoursCard}>
-        <Text style={styles.hoursDay}>Saturday</Text>
-        <Text style={styles.hoursTime}>10:00 AM - 7:30 PM</Text>
-      </View>
-      <View style={styles.hoursCard}>
-        <Text style={styles.hoursDay}>Sunday</Text>
-        <Text style={styles.hoursTime}>Holiday/Closed</Text>
-      </View>
-    </View>
-  );
+    );
+  };
 
   const renderServiceContent = () => (
     <View style={styles.contentContainer}>
