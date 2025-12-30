@@ -517,6 +517,8 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateWidthScale(12),
       marginBottom: moderateHeightScale(12),
       width: widthScale(225),
+      height: heightScale(120),
+      justifyContent: "space-between",
     },
     shadow: {
       shadowColor: theme.shadow,
@@ -556,9 +558,9 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(8),
     },
     line: {
-      borderTopWidth: 0.5,
-      borderColor: theme.borderLight,
-      marginVertical: moderateHeightScale(6),
+      height: 0.5,
+      width: "100%",
+      backgroundColor: theme.borderLight,
     },
     serviceBottomRow: {
       flexDirection: "row",
@@ -583,6 +585,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       width: widthScale(200),
+      height: heightScale(330),
       overflow: "hidden",
     },
     subscriptionImage: {
@@ -597,7 +600,7 @@ const createStyles = (theme: Theme) =>
     offerBadgesContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: moderateWidthScale(6),
+      gap: moderateWidthScale(4),
     },
     offerBadge: {
       paddingHorizontal: moderateWidthScale(8),
@@ -628,7 +631,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-      marginBottom: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(2),
     },
     moreText: {
       fontSize: fontSize.size12,
@@ -676,7 +679,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginVertical: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(8),
     },
     subscriptionPriceContainer: {
       flexDirection: "row",
@@ -1470,7 +1473,7 @@ export default function DashboardContent() {
                     style={[
                       styles.serviceCard,
                       styles.shadow,
-                      index < section?.services?.length - 1 && {
+                      index < (section?.services?.length ?? 0) - 1 && {
                         marginRight: moderateWidthScale(15),
                       },
                     ]}
@@ -1484,12 +1487,15 @@ export default function DashboardContent() {
                     >
                       <View
                         style={{
-                          gap: moderateHeightScale(4),
+                          gap: moderateHeightScale(8),
                           width: "70%",
                         }}
                       >
                         <Text style={styles.serviceTitle}>{service.title}</Text>
-                        <Text style={styles.serviceDescription}>
+                        <Text
+                          numberOfLines={2}
+                          style={styles.serviceDescription}
+                        >
                           {service.description}
                         </Text>
                       </View>
@@ -1534,7 +1540,7 @@ export default function DashboardContent() {
                       style={[
                         styles.subscriptionCard,
                         styles.shadow,
-                        index < section?.subscriptions?.length - 1 && {
+                        index < (section?.subscriptions?.length ?? 0) - 1 && {
                           marginRight: moderateWidthScale(15),
                         },
                       ]}
@@ -1549,7 +1555,11 @@ export default function DashboardContent() {
                         resizeMode="cover"
                       />
                       <View
-                        style={{ paddingHorizontal: moderateWidthScale(8) }}
+                        style={{
+                          paddingHorizontal: moderateWidthScale(8),
+                          flex: 1,
+                          justifyContent: "space-between",
+                        }}
                       >
                         <View style={styles.offerBadgesContainer}>
                           {subscription.offer && (
@@ -1582,47 +1592,52 @@ export default function DashboardContent() {
                             </View>
                           )}
                         </View>
-                        <Text
-                          numberOfLines={1}
-                          style={styles.subscriptionTitle}
-                        >
-                          {subscription.title}
-                        </Text>
-                        {subscription.inclusions.length > 2 ? (
-                          <>
-                            {subscription.inclusions
-                              .slice(0, 2)
-                              .map((inclusion, index) => (
-                                <Text
-                                  numberOfLines={1}
-                                  key={index}
-                                  style={styles.inclusionItem}
-                                >
-                                  {inclusion}
+                        <View>
+                          <Text
+                            numberOfLines={1}
+                            style={styles.subscriptionTitle}
+                          >
+                            {subscription.title}
+                          </Text>
+                          {subscription.inclusions.length > 2 ? (
+                            <>
+                              {subscription.inclusions
+                                .slice(0, 2)
+                                .map((inclusion, index) => (
+                                  <Text
+                                    numberOfLines={1}
+                                    key={index}
+                                    style={styles.inclusionItem}
+                                  >
+                                    {inclusion}
+                                  </Text>
+                                ))}
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setSelectedInclusions(
+                                    subscription.inclusions
+                                  );
+                                  setInclusionsModalVisible(true);
+                                }}
+                              >
+                                <Text style={styles.moreText}>
+                                  and +{subscription.inclusions.length - 2} more
                                 </Text>
-                              ))}
-                            <TouchableOpacity
-                              onPress={() => {
-                                setSelectedInclusions(subscription.inclusions);
-                                setInclusionsModalVisible(true);
-                              }}
-                            >
-                              <Text style={styles.moreText}>
-                                and +{subscription.inclusions.length - 2} more
+                              </TouchableOpacity>
+                            </>
+                          ) : (
+                            subscription.inclusions.map((inclusion, index) => (
+                              <Text
+                                numberOfLines={1}
+                                key={index}
+                                style={styles.inclusionItem}
+                              >
+                                {inclusion}
                               </Text>
-                            </TouchableOpacity>
-                          </>
-                        ) : (
-                          subscription.inclusions.map((inclusion, index) => (
-                            <Text
-                              numberOfLines={1}
-                              key={index}
-                              style={styles.inclusionItem}
-                            >
-                              {inclusion}
-                            </Text>
-                          ))
-                        )}
+                            ))
+                          )}
+                        </View>
+                        <View style={styles.line} />
                         <View style={styles.subscriptionPrice}>
                           <View style={styles.subscriptionPriceContainer}>
                             <Text style={styles.priceCurrent}>
