@@ -616,6 +616,15 @@ const createStyles = (theme: Theme) =>
     },
     membershipCardContent: {
       padding: moderateWidthScale(16),
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    membershipCardLeft: {
+      flex: 1,
+    },
+    membershipCardRight: {
+      alignItems: "flex-end",
+      justifyContent: "space-between",
     },
     membershipTitle: {
       fontSize: fontSize.size15,
@@ -644,14 +653,10 @@ const createStyles = (theme: Theme) =>
       color: theme.primary,
       textDecorationLine: "underline",
     },
-    membershipPriceContainer: {
-      flexDirection: "row",
-      alignItems: "flex-end",
-      justifyContent: "space-between",
-      marginTop: moderateHeightScale(8),
-    },
     membershipPriceLeft: {
       flexDirection: "column",
+      alignItems: "flex-end",
+      marginBottom: moderateHeightScale(12),
     },
     membershipPrice: {
       fontSize: fontSize.size17,
@@ -738,8 +743,8 @@ const createStyles = (theme: Theme) =>
     },
     bookNowButtonText: {
       fontSize: fontSize.size13,
-      fontFamily: fonts.fontMedium,
-      color: theme.white,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
     },
     inclusionsModalOverlay: {
       flex: 1,
@@ -1152,52 +1157,54 @@ export default function BusinessDetailScreen() {
                 ]}
               >
                 <View style={styles.membershipCardContent}>
-                  <Text style={styles.membershipTitle}>{subscription.title}</Text>
-                  <Text style={styles.membershipVisits}>
-                    {subscription.visits}
-                  </Text>
-                  <View style={styles.membershipInclusions}>
-                  {subscription.inclusions.length > 2 ? (
-                    <>
-                      {subscription.inclusions
-                        .slice(0, 2)
-                        .map((inclusion, index) => (
+                  <View style={styles.membershipCardLeft}>
+                    <Text style={styles.membershipTitle}>{subscription.title}</Text>
+                    <Text style={styles.membershipVisits}>
+                      {subscription.visits}
+                    </Text>
+                    <View style={styles.membershipInclusions}>
+                      {subscription.inclusions.length > 2 ? (
+                        <>
+                          {subscription.inclusions
+                            .slice(0, 2)
+                            .map((inclusion, index) => (
+                              <Text key={index} style={styles.inclusionItem}>
+                                {inclusion}
+                              </Text>
+                            ))}
+                          <TouchableOpacity
+                            onPress={() => {
+                              setSelectedInclusions(subscription.inclusions);
+                              setInclusionsModalVisible(true);
+                            }}
+                          >
+                            <Text style={styles.moreText}>
+                              and +{subscription.inclusions.length - 2} more
+                            </Text>
+                          </TouchableOpacity>
+                        </>
+                      ) : (
+                        subscription.inclusions.map((inclusion, index) => (
                           <Text key={index} style={styles.inclusionItem}>
                             {inclusion}
                           </Text>
-                        ))}
-                      <TouchableOpacity
-                        onPress={() => {
-                          setSelectedInclusions(subscription.inclusions);
-                          setInclusionsModalVisible(true);
-                        }}
-                      >
-                        <Text style={styles.moreText}>
-                          and +{subscription.inclusions.length - 2} more
-                        </Text>
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    subscription.inclusions.map((inclusion, index) => (
-                      <Text key={index} style={styles.inclusionItem}>
-                        {inclusion}
-                      </Text>
-                    ))
-                  )}
-                </View>
-                <View style={styles.membershipPriceContainer}>
-                  <View style={styles.membershipPriceLeft}>
-                    <Text style={styles.membershipPrice}>
-                      ${subscription.price.toFixed(2)} USD
-                    </Text>
-                    <Text style={styles.membershipOriginalPrice}>
-                      ${subscription.originalPrice.toFixed(2)}
-                    </Text>
+                        ))
+                      )}
+                    </View>
                   </View>
-                  <TouchableOpacity style={styles.bookNowButton}>
-                    <Text style={styles.bookNowButtonText}>Book Now</Text>
-                  </TouchableOpacity>
-                </View>
+                  <View style={styles.membershipCardRight}>
+                    <View style={styles.membershipPriceLeft}>
+                      <Text style={styles.membershipPrice}>
+                        ${subscription.price.toFixed(2)} USD
+                      </Text>
+                      <Text style={styles.membershipOriginalPrice}>
+                        ${subscription.originalPrice.toFixed(2)}
+                      </Text>
+                    </View>
+                    <TouchableOpacity style={styles.bookNowButton}>
+                      <Text style={styles.bookNowButtonText}>Book Now</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))}
