@@ -570,6 +570,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+      maxWidth: "65%",
     },
     serviceButtonContainer: {
       alignSelf: "flex-end",
@@ -1504,7 +1505,7 @@ export default function DashboardContent() {
 
                     <View style={styles.line} />
                     <View style={styles.serviceBottomRow}>
-                      <Text style={styles.serviceDuration}>
+                      <Text numberOfLines={1} style={styles.serviceDuration}>
                         {service.duration}
                       </Text>
                       <View style={styles.serviceButtonContainer}>
