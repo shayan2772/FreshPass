@@ -1312,6 +1312,32 @@ export const FilterIcon: React.FC<FilterIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Open Full Icon SVG
+const openFullIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M15.75 8.25V2.25H9.75L12.2175 4.7175L4.7175 12.2175L2.25 9.75V15.75H8.25L5.7825 13.2825L13.2825 5.7825L15.75 8.25Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface OpenFullIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const OpenFullIcon: React.FC<OpenFullIconProps> = ({
+  width = 18,
+  height = 18,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = openFullIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1354,4 +1380,5 @@ export default {
   SearchIcon,
   FilterIcon,
   PlatformVerifiedStarIcon,
+  OpenFullIcon,
 };

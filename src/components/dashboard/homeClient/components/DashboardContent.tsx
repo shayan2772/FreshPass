@@ -1285,7 +1285,7 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointments.length > 0
+        {appointments.length > 9
           ? appointments.map((appointment, index) => (
               <View
                 key={appointment.id}
@@ -1347,7 +1347,12 @@ export default function DashboardContent() {
                         </Text>
                       </View>
 
-                      <TouchableOpacity style={styles.viewDetailLink}>
+                      <TouchableOpacity
+                        style={styles.viewDetailLink}
+                        onPress={() => {
+                          router.push("/(main)/dashboard/(home)/businessDetail" as any);
+                        }}
+                      >
                         <Text style={styles.viewDetailText}>View detail</Text>
                         <ChevronRight
                           width={widthScale(4)}
@@ -1410,7 +1415,12 @@ export default function DashboardContent() {
                         {salon.rating}/ {salon.reviewCount} reviews
                       </Text>
                     </View>
-                    <TouchableOpacity style={styles.verifiedSalonViewDetail}>
+                    <TouchableOpacity
+                      style={styles.verifiedSalonViewDetail}
+                      onPress={() => {
+                        router.push("/(main)/dashboard/(home)/businessDetail" as any);
+                      }}
+                    >
                       <Text style={styles.verifiedSalonViewDetailText}>
                         View detail
                       </Text>

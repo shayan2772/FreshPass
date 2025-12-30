@@ -114,6 +114,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(home)") &&
     segments.includes("businessList");
+  const isBusinessDetailScreen =
+    Array.isArray(segments) &&
+    segments.includes("(home)") &&
+    segments.includes("businessDetail");
 
   return (
     <Tabs
@@ -139,7 +143,8 @@ export default function DashboardLayout() {
             isChatBoxScreen ||
             isWorkHistoryScreen ||
             isStaffAvailabilityScreen ||
-            isBusinessListScreen) && { display: "none" },
+            isBusinessListScreen ||
+            isBusinessDetailScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
