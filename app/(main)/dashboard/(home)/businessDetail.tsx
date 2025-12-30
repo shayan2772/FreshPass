@@ -805,12 +805,12 @@ const createStyles = (theme: Theme) =>
     },
     staffProfileImage: {
       width: 35,
-      height:35,
-      borderRadius:  35/2,
+      height: 35,
+      borderRadius: 35 / 2,
       backgroundColor: theme.emptyProfileImage,
-      borderWidth:1,
-      borderColor:theme.borderLight,
-      overflow:"hidden",
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
     },
     staffInfo: {
       flex: 1,
@@ -835,8 +835,8 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.selectCard,
-      textDecorationLine:"underline",
-      textDecorationColor:theme.selectCard,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.selectCard,
     },
   });
 
@@ -1383,9 +1383,13 @@ export default function BusinessDetailScreen() {
 
   const renderRatingsContent = () => (
     <View style={styles.contentContainer}>
-      <Text style={styles.sectionTitle}>Ratings</Text>
-      <Text style={styles.aboutText}>
-        Ratings content will be displayed here.
+      <Text
+        style={[
+          styles.sectionTitle,
+          { paddingHorizontal: moderateWidthScale(20) },
+        ]}
+      >
+        What other say
       </Text>
     </View>
   );
