@@ -881,11 +881,11 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(16),
       borderWidth: 1,
       borderColor: theme.lightGreen2,
-      width: widthScale(280),
-      minHeight: heightScale(200),
     },
     reviewCardHorizontal: {
+      width: widthScale(280),
       marginRight: moderateWidthScale(12),
+      minHeight: heightScale(200),
     },
     reviewCardHeaderRow: {
       flexDirection: "row",
@@ -932,8 +932,10 @@ const createStyles = (theme: Theme) =>
       marginRight: moderateWidthScale(4),
     },
     reviewCardTextContainer: {
-      minHeight: heightScale(100),
       justifyContent: "flex-start",
+    },
+    reviewCardTextContainerHorizontal: {
+      minHeight: heightScale(100),
     },
     reviewCardText: {
       fontSize: fontSize.size14,
@@ -972,15 +974,16 @@ const createStyles = (theme: Theme) =>
     allReviewsModalContainer: {
       backgroundColor: theme.background,
       borderRadius: moderateWidthScale(12),
-      width: widthScale(350),
-      maxHeight: heightScale(600),
-      padding: moderateWidthScale(20),
+      width: "85%",
+      height:"80%",
+      alignSelf: "center",
+      paddingVertical: moderateWidthScale(20),
     },
     allReviewsModalHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(10),
     },
     allReviewsModalTitle: {
       fontSize: fontSize.size18,
@@ -996,7 +999,11 @@ const createStyles = (theme: Theme) =>
       justifyContent: "center",
     },
     allReviewsModalContent: {
-      maxHeight: heightScale(500),
+      flex: 1,
+    },
+    allReviewsModalContentContainer: {
+      paddingVertical: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(20),
     },
     fullReviewModalContainer: {
       backgroundColor: theme.background,
@@ -1806,8 +1813,16 @@ export default function BusinessDetailScreen() {
         </View>
 
         {reviewText && (
-          <View style={styles.reviewCardTextContainer}>
-            <Text style={styles.reviewCardText} numberOfLines={4}>
+          <View
+            style={[
+              styles.reviewCardTextContainer,
+              isHorizontal && styles.reviewCardTextContainerHorizontal,
+            ]}
+          >
+            <Text
+              style={styles.reviewCardText}
+              numberOfLines={isHorizontal ? 4 : undefined}
+            >
               {shouldShowSeeMore
                 ? `${reviewText.slice(0, textWrapLength).trim()}...`
                 : reviewText}
@@ -2165,19 +2180,18 @@ export default function BusinessDetailScreen() {
                 <CloseIcon width={widthScale(20)} height={heightScale(20)} />
               </TouchableOpacity>
             </View>
-            <ScrollView
-              style={styles.allReviewsModalContent}
-              showsVerticalScrollIndicator={false}
-            >
-              {reviews.map((review) => (
-                <View
-                  key={review.id}
-                  style={{ marginBottom: moderateHeightScale(16) }}
-                >
-                  {renderReviewCard(review, false)}
+            <FlatList
+              data={reviews}
+              renderItem={({ item }) => (
+                <View style={{ marginBottom: moderateHeightScale(16) }}>
+                  {renderReviewCard(item, false)}
                 </View>
-              ))}
-            </ScrollView>
+              )}
+              keyExtractor={(item) => item.id.toString()}
+              style={styles.allReviewsModalContent}
+              contentContainerStyle={styles.allReviewsModalContentContainer}
+              showsVerticalScrollIndicator={false}
+            />
           </Pressable>
         </Pressable>
       </Modal>
