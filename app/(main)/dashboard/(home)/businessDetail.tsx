@@ -642,13 +642,13 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(12),
     },
     inclusionItem: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       marginBottom: moderateHeightScale(4),
     },
     moreText: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.primary,
       textDecorationLine: "underline",
@@ -659,13 +659,13 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(12),
     },
     membershipPrice: {
-      fontSize: fontSize.size17,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
     },
     membershipOriginalPrice: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textDecorationLine: "line-through",
@@ -686,53 +686,55 @@ const createStyles = (theme: Theme) =>
     },
     serviceLabel: {
       alignSelf: "flex-start",
-      backgroundColor: theme.darkGreen,
+      backgroundColor: theme.darkGreenLight,
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
-      borderRadius: moderateWidthScale(4),
+      borderRadius: moderateWidthScale(999),
       marginBottom: moderateHeightScale(8),
     },
     serviceLabelText: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontMedium,
       color: theme.white,
     },
     serviceName: {
-      fontSize: fontSize.size17,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
     },
     serviceDescription: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       marginBottom: moderateHeightScale(8),
     },
     servicePriceContainer: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-end",
       gap: moderateWidthScale(8),
       marginBottom: moderateHeightScale(4),
     },
     servicePrice: {
-      fontSize: fontSize.size17,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     serviceOriginalPrice: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textDecorationLine: "line-through",
     },
     serviceDuration: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+      marginBottom: moderateHeightScale(8),
     },
     serviceCardRight: {
-      justifyContent: "flex-end",
+      alignItems: "flex-end",
+      justifyContent: "flex-start",
     },
     bookNowButton: {
       backgroundColor: theme.orangeBrown,
@@ -1286,17 +1288,17 @@ export default function BusinessDetailScreen() {
                   <Text style={styles.serviceDescription}>
                     {service.description}
                   </Text>
-                  <View style={styles.servicePriceContainer}>
-                    <Text style={styles.serviceOriginalPrice}>
-                      ${service.originalPrice.toFixed(2)}
-                    </Text>
-                    <Text style={styles.servicePrice}>
-                      ${service.price.toFixed(2)} USD
-                    </Text>
-                  </View>
-                  <Text style={styles.serviceDuration}>{service.duration}</Text>
                   </View>
                   <View style={styles.serviceCardRight}>
+                    <View style={styles.servicePriceContainer}>
+                      <Text style={styles.serviceOriginalPrice}>
+                        ${service.originalPrice.toFixed(2)}
+                      </Text>
+                      <Text style={styles.servicePrice}>
+                        ${service.price.toFixed(2)} USD
+                      </Text>
+                    </View>
+                    <Text style={styles.serviceDuration}>{service.duration}</Text>
                     <TouchableOpacity style={styles.bookNowButton}>
                       <Text style={styles.bookNowButtonText}>Book Now</Text>
                     </TouchableOpacity>
