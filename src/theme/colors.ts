@@ -50,7 +50,8 @@ export const themes = {
     acceptTermsBackground: "rgba(96, 108, 56, 1)",
     acceptTermsCheckbox: "rgba(188, 108, 37, 1)",
     segmentInactiveTabText:"#FEFAE0",
-    serviceBorder:"#606C38"
+    serviceBorder:"#606C38",
+    bookNowButton:"#DDBD5E"
   },
   dark: {},
   blue: {},

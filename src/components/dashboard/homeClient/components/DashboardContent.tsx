@@ -8,6 +8,8 @@ import {
   Image,
   Animated,
   Dimensions,
+  Modal,
+  Pressable,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useTheme } from "@/src/hooks/hooks";
@@ -491,11 +493,16 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
       marginTop: moderateHeightScale(5),
     },
+    sectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingHorizontal: moderateWidthScale(20),
+    },
     sectionSubTitle: {
       fontSize: fontSize.size16,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      maxWidth:"75%"
+      maxWidth: "75%",
     },
     sectionViewMore: {
       fontSize: fontSize.size14,
@@ -507,45 +514,57 @@ const createStyles = (theme: Theme) =>
     serviceCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
-      marginRight: moderateWidthScale(12),
+      paddingVertical: moderateWidthScale(12),
       marginBottom: moderateHeightScale(12),
-      width: widthScale(280),
+      width: widthScale(225),
+    },
+    shadow: {
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+
+      elevation: 1,
     },
     serviceTitle: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    servicePrice: {
+      alignItems: "flex-end",
+      gap: moderateWidthScale(4),
+    },
+    priceCurrent: {
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(8),
-    },
-    servicePrice: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: moderateHeightScale(8),
-    },
-    priceCurrent: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginRight: moderateWidthScale(8),
     },
     priceOriginal: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
+      color: theme.lightGreen4,
       textDecorationLine: "line-through",
     },
     serviceDescription: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       marginBottom: moderateHeightScale(8),
+    },
+    line: {
+      borderTopWidth: 0.5,
+      borderColor: theme.borderLight,
+      marginVertical: moderateHeightScale(6),
     },
     serviceBottomRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginTop: moderateHeightScale(8),
+      paddingHorizontal: moderateWidthScale(12),
     },
     serviceDuration: {
       fontSize: fontSize.size13,
@@ -562,73 +581,124 @@ const createStyles = (theme: Theme) =>
     subscriptionCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
-      marginRight: moderateWidthScale(12),
-      marginBottom: moderateHeightScale(12),
-      width: widthScale(280),
+      width: widthScale(200),
+      overflow: "hidden",
     },
     subscriptionImage: {
       width: "100%",
-      height: heightScale(180),
-      borderRadius: moderateWidthScale(8),
+      height: heightScale(140),
+      borderTopLeftRadius: moderateWidthScale(8),
+      borderTopRightRadius: moderateWidthScale(8),
       marginBottom: moderateHeightScale(12),
       backgroundColor: theme.lightGreen2,
+      overflow: "hidden",
     },
     offerBadgesContainer: {
       flexDirection: "row",
       flexWrap: "wrap",
-      gap: moderateWidthScale(8),
-      marginBottom: moderateHeightScale(12),
+      gap: moderateWidthScale(6),
     },
     offerBadge: {
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
-      borderRadius: moderateWidthScale(4),
+      borderRadius: moderateWidthScale(999),
       alignSelf: "flex-start",
     },
     offerBadgeOrange: {
-      backgroundColor: theme.orangeBrown,
+      backgroundColor: theme.selectCard,
     },
     offerBadgeGreen: {
-      backgroundColor: theme.buttonBack,
+      borderWidth: 1,
+      borderColor: theme.lightGreen,
+      borderRadius: moderateWidthScale(999),
     },
     offerText: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontBold,
       color: theme.white,
     },
     subscriptionTitle: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(8),
+      marginVertical: moderateHeightScale(8),
     },
     inclusionItem: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.text,
+      color: theme.lightGreen,
       marginBottom: moderateHeightScale(4),
     },
     moreText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
       color: theme.primary,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.primary,
+    },
+    inclusionsModalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inclusionsModalContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(20),
+      width: widthScale(300),
+      maxHeight: heightScale(400),
+      shadowColor: "#000",
+      shadowOffset: {
+        width: 0,
+        height: moderateHeightScale(2),
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: moderateWidthScale(3.84),
+      elevation: 5,
+    },
+    inclusionsModalTitle: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(16),
+    },
+    inclusionsModalList: {
+      gap: moderateHeightScale(8),
+    },
+    inclusionsModalItem: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
     },
     subscriptionPrice: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      marginTop: moderateHeightScale(8),
+      marginVertical: moderateHeightScale(8),
     },
     subscriptionPriceContainer: {
       flexDirection: "row",
       alignItems: "center",
+      gap: moderateWidthScale(4),
     },
     subscriptionButtonContainer: {
       alignSelf: "flex-end",
     },
+    button: {
+      backgroundColor: theme.bookNowButton,
+      paddingHorizontal: moderateWidthScale(10),
+      paddingVertical: moderateHeightScale(6),
+      height: moderateHeightScale(28),
+      borderRadius: moderateWidthScale(999),
+    },
+    buttonText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
     sectionContainer: {
-      marginBottom: moderateHeightScale(24),
+      // marginBottom: moderateHeightScale(24),
     },
   });
 
@@ -687,7 +757,6 @@ interface SubscriptionItem {
 
 interface ServiceSection {
   id: number;
-  sectionTitle: string;
   businessName: string;
   type: "individual" | "subscription";
   services?: ServiceItem[];
@@ -697,7 +766,6 @@ interface ServiceSection {
 const serviceSections: ServiceSection[] = [
   {
     id: 1,
-    sectionTitle: "Nearest to you",
     businessName: "Ra Benjamin Styles LLC",
     type: "individual",
     services: [
@@ -721,12 +789,11 @@ const serviceSections: ServiceSection[] = [
   },
   {
     id: 2,
-    sectionTitle: "Nearest to you",
     businessName: "Beach Club Salon & Spa",
     type: "individual",
     services: [
       {
-        id: 3,
+        id: 113,
         title: "Wet Haircut",
         price: 45.99,
         originalPrice: 50.99,
@@ -734,7 +801,7 @@ const serviceSections: ServiceSection[] = [
         duration: "45 mins",
       },
       {
-        id: 4,
+        id: 114,
         title: "Wet Haircut",
         price: 45.99,
         originalPrice: 50.99,
@@ -748,7 +815,6 @@ const serviceSections: ServiceSection[] = [
 const subscriptionSections: ServiceSection[] = [
   {
     id: 1,
-    sectionTitle: "Nearest to you",
     businessName: "Ra Benjamin Styles LLC",
     type: "subscription",
     subscriptions: [
@@ -762,21 +828,43 @@ const subscriptionSections: ServiceSection[] = [
         inclusions: [
           "1. 2 Premium Haircuts",
           "2. 1 Free Styling Service",
-          "and +3 more",
+          "3. 1 Free Facial per month",
         ],
         image: null,
       },
       {
         id: 2,
-        title: "The Full Luxury Experience",
-        price: 29.99,
-        originalPrice: 40.99,
-        offer: "Save 20%",
-        offer2: "LIMITED TIME OFFER",
+        title: "Premium Care Package",
+        price: 89.99,
+        originalPrice: 99.99,
+        offer: "20% Off First Month",
+        offer2: "Free Consultation",
         inclusions: [
-          "1. 2 Premium Haircuts",
-          "2. 1 Free Styling Service",
-          "and +2 more",
+          "1. 4 Premium Haircuts",
+          "2. 2 Free Styling Services",
+          "3. 2 Free Facials per month",
+          "4. Free Hair Products",
+        ],
+        image: null,
+      },
+    ],
+  },
+  {
+    id: 2,
+    businessName: "Beach Club Salon & Spa",
+    type: "subscription",
+    subscriptions: [
+      {
+        id: 3,
+        title: "Elite Spa Membership",
+        price: 129.99,
+        originalPrice: 149.99,
+        offer: "25% Off All Services",
+        inclusions: [
+          "1. Unlimited Haircuts",
+          "2. Monthly Spa Treatment",
+          "3. Free Hair Products",
+          "4. Priority Booking",
         ],
         image: null,
       },
@@ -843,6 +931,8 @@ export default function DashboardContent() {
     useState<string>("haircut");
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState<string>("all");
+  const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
+  const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const scrollY = useRef(new Animated.Value(0)).current;
   const stickyTabsOpacity = useRef(new Animated.Value(0)).current;
   const stickyTabsTranslateY = useRef(new Animated.Value(-20)).current;
@@ -1196,7 +1286,7 @@ export default function DashboardContent() {
                 style={[
                   styles.verifiedSalonCard,
                   index < appointments.length - 1 && {
-                    marginRight: moderateWidthScale(12),
+                    marginRight: moderateWidthScale(15),
                   },
                 ]}
               >
@@ -1270,7 +1360,7 @@ export default function DashboardContent() {
                 style={[
                   styles.verifiedSalonCardNew,
                   index < verifiedSalons.length - 1 && {
-                    marginRight: moderateWidthScale(12),
+                    marginRight: moderateWidthScale(15),
                   },
                 ]}
               >
@@ -1348,16 +1438,16 @@ export default function DashboardContent() {
           <View key={section.id} style={styles.sectionContainer}>
             {/* Section Header */}
             <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                paddingHorizontal: moderateWidthScale(20),
-                marginTop:
-                  sectionIndex === 0
-                    ? moderateHeightScale(16)
-                    : moderateHeightScale(24),
-                marginBottom: moderateHeightScale(12),
-              }}
+              style={[
+                styles.sectionHeader,
+                {
+                  marginTop:
+                    sectionIndex === 0
+                      ? moderateHeightScale(16)
+                      : moderateHeightScale(24),
+                  marginBottom: moderateHeightScale(10),
+                },
+              ]}
             >
               <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
               <TouchableOpacity>
@@ -1367,125 +1457,197 @@ export default function DashboardContent() {
 
             {/* Services or Subscriptions */}
             {tab === "individual" && section.services ? (
-    <ScrollView
-      horizontal
-      nestedScrollEnabled
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.servicesScroll}
-    >
-      {section.services.map((service) => (
-        <View key={service.id} style={styles.serviceCard}>
-          <Text style={styles.serviceTitle}>{service.title}</Text>
-          <View style={styles.servicePrice}>
-            <Text style={styles.priceCurrent}>${service.price}</Text>
-            <Text style={styles.priceOriginal}>
-              ${service.originalPrice}
-            </Text>
-          </View>
-          <Text style={styles.serviceDescription}>
-            {service.description}
-          </Text>
-          <View style={styles.serviceBottomRow}>
-            <Text style={styles.serviceDuration}>
-              {service.duration}
-            </Text>
-            <View style={styles.serviceButtonContainer}>
-              <Button
-                title="Book Now"
-                onPress={() => {}}
-                containerStyle={{
-                  backgroundColor: theme.orangeBrown,
-                  paddingHorizontal: moderateWidthScale(16),
-                  paddingVertical: moderateHeightScale(8),
-                  height: moderateHeightScale(36),
-                }}
-                textColor={theme.white}
-              />
-            </View>
-          </View>
-        </View>
-      ))}
-    </ScrollView>
-  ) : (
-    section.subscriptions && (
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.servicesScroll}
-      >
-        {section.subscriptions.map((subscription) => (
-          <View
-            key={subscription.id}
-            style={styles.subscriptionCard}
-          >
-            <View style={styles.subscriptionImage} />
-            <View style={styles.offerBadgesContainer}>
-              <View
-                style={[
-                  styles.offerBadge,
-                  styles.offerBadgeOrange,
-                ]}
+              <ScrollView
+                horizontal
+                nestedScrollEnabled
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.servicesScroll}
               >
-                <Text style={styles.offerText}>
-                  {subscription.offer}
-                </Text>
-              </View>
-              {subscription.offer2 && (
-                <View
-                  style={[
-                    styles.offerBadge,
-                    styles.offerBadgeGreen,
-                  ]}
+                {section.services.map((service, index) => (
+                  <View
+                    key={service.id}
+                    style={[
+                      styles.serviceCard,
+                      styles.shadow,
+                      index < section?.services?.length - 1 && {
+                        marginRight: moderateWidthScale(15),
+                      },
+                    ]}
+                  >
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        paddingHorizontal: moderateWidthScale(12),
+                      }}
+                    >
+                      <View
+                        style={{
+                          gap: moderateHeightScale(4),
+                          width: "70%",
+                        }}
+                      >
+                        <Text style={styles.serviceTitle}>{service.title}</Text>
+                        <Text style={styles.serviceDescription}>
+                          {service.description}
+                        </Text>
+                      </View>
+                      <View style={styles.servicePrice}>
+                        <Text style={styles.priceCurrent}>
+                          ${service.price}
+                        </Text>
+                        <Text style={styles.priceOriginal}>
+                          ${service.originalPrice}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View style={styles.line} />
+                    <View style={styles.serviceBottomRow}>
+                      <Text style={styles.serviceDuration}>
+                        {service.duration}
+                      </Text>
+                      <View style={styles.serviceButtonContainer}>
+                        <Button
+                          title="Book Now"
+                          onPress={() => {}}
+                          containerStyle={styles.button}
+                          textStyle={styles.buttonText}
+                        />
+                      </View>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              section.subscriptions && (
+                <ScrollView
+                  horizontal
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.servicesScroll}
                 >
-                  <Text style={styles.offerText}>
-                    {subscription.offer2}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <Text style={styles.subscriptionTitle}>
-              {subscription.title}
-            </Text>
-            {subscription.inclusions.map((inclusion, index) => (
-              <Text
-                key={index}
-                style={[
-                  styles.inclusionItem,
-                  inclusion.startsWith("and +") && styles.moreText,
-                ]}
-              >
-                {inclusion}
-              </Text>
-            ))}
-            <View style={styles.subscriptionPrice}>
-              <View style={styles.subscriptionPriceContainer}>
-                <Text style={styles.priceCurrent}>
-                  ${subscription.price}
-                </Text>
-                <Text style={styles.priceOriginal}>
-                  ${subscription.originalPrice}
-                </Text>
-              </View>
-              <View style={styles.subscriptionButtonContainer}>
-                <Button
-                  title="Book Now"
-                  onPress={() => {}}
-                  containerStyle={{
-                    backgroundColor: theme.orangeBrown,
-                    paddingHorizontal: moderateWidthScale(16),
-                    paddingVertical: moderateHeightScale(8),
-                    height: moderateHeightScale(36),
-                  }}
-                  textColor={theme.darkGreen}
-                />
-              </View>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-    )
-  )}
+                  {section.subscriptions.map((subscription, index) => (
+                    <View
+                      key={subscription.id}
+                      style={[
+                        styles.subscriptionCard,
+                        styles.shadow,
+                        index < section?.subscriptions?.length - 1 && {
+                          marginRight: moderateWidthScale(15),
+                        },
+                      ]}
+                    >
+                      <Image
+                        source={{
+                          uri:
+                            subscription.image ||
+                            "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                        }}
+                        style={styles.subscriptionImage}
+                        resizeMode="cover"
+                      />
+                      <View
+                        style={{ paddingHorizontal: moderateWidthScale(8) }}
+                      >
+                        <View style={styles.offerBadgesContainer}>
+                          {subscription.offer && (
+                            <View
+                              style={[
+                                styles.offerBadge,
+                                styles.offerBadgeOrange,
+                              ]}
+                            >
+                              <Text style={styles.offerText}>
+                                {subscription.offer}
+                              </Text>
+                            </View>
+                          )}
+                          {subscription.offer2 && (
+                            <View
+                              style={[
+                                styles.offerBadge,
+                                styles.offerBadgeGreen,
+                              ]}
+                            >
+                              <Text
+                                style={[
+                                  styles.offerText,
+                                  { color: theme.darkGreen },
+                                ]}
+                              >
+                                {subscription.offer2}
+                              </Text>
+                            </View>
+                          )}
+                        </View>
+                        <Text
+                          numberOfLines={1}
+                          style={styles.subscriptionTitle}
+                        >
+                          {subscription.title}
+                        </Text>
+                        {subscription.inclusions.length > 2 ? (
+                          <>
+                            {subscription.inclusions
+                              .slice(0, 2)
+                              .map((inclusion, index) => (
+                                <Text
+                                  numberOfLines={1}
+                                  key={index}
+                                  style={styles.inclusionItem}
+                                >
+                                  {inclusion}
+                                </Text>
+                              ))}
+                            <TouchableOpacity
+                              onPress={() => {
+                                setSelectedInclusions(subscription.inclusions);
+                                setInclusionsModalVisible(true);
+                              }}
+                            >
+                              <Text style={styles.moreText}>
+                                and +{subscription.inclusions.length - 2} more
+                              </Text>
+                            </TouchableOpacity>
+                          </>
+                        ) : (
+                          subscription.inclusions.map((inclusion, index) => (
+                            <Text
+                              numberOfLines={1}
+                              key={index}
+                              style={styles.inclusionItem}
+                            >
+                              {inclusion}
+                            </Text>
+                          ))
+                        )}
+                        <View style={styles.subscriptionPrice}>
+                          <View style={styles.subscriptionPriceContainer}>
+                            <Text style={styles.priceCurrent}>
+                              ${subscription.price}
+                            </Text>
+                            {subscription.originalPrice && (
+                              <Text style={styles.priceOriginal}>
+                                ${subscription.originalPrice}
+                              </Text>
+                            )}
+                          </View>
+                          <View style={styles.subscriptionButtonContainer}>
+                            <Button
+                              title="Book Now"
+                              onPress={() => {}}
+                              containerStyle={styles.button}
+                              textStyle={styles.buttonText}
+                            />
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  ))}
+                </ScrollView>
+              )
+            )}
           </View>
         )
       )}
@@ -1621,6 +1783,33 @@ export default function DashboardContent() {
           {renderTabContent("individual")}
         </ScrollView>
       </GestureHandlerRootView>
+
+      {/* Inclusions Modal */}
+      <Modal
+        visible={inclusionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInclusionsModalVisible(false)}
+      >
+        <Pressable
+          style={styles.inclusionsModalOverlay}
+          onPress={() => setInclusionsModalVisible(false)}
+        >
+          <Pressable
+            style={styles.inclusionsModalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.inclusionsModalTitle}>All Inclusions</Text>
+            <ScrollView style={styles.inclusionsModalList}>
+              {selectedInclusions.map((inclusion, index) => (
+                <Text key={index} style={styles.inclusionsModalItem}>
+                  {inclusion}
+                </Text>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }

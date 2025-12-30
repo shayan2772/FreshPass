@@ -3,7 +3,7 @@ import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { moderateWidthScale, moderateHeightScale } from "@/src/theme/dimensions";
 import React, { useMemo } from "react";
-import { Text, TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator } from "react-native";
+import { Text, TouchableOpacity, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from "react-native";
 
 interface ButtonProps {
   title: string;
@@ -11,6 +11,7 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   containerStyle?: ViewStyle;
+  textStyle?: TextStyle;
   textColor?: string;
   backgroundColor?: string;
 }
@@ -42,6 +43,7 @@ export default function Button({
   disabled = false,
   loading = false,
   containerStyle,
+  textStyle,
   textColor,
   backgroundColor,
 }: ButtonProps) {
@@ -66,7 +68,7 @@ export default function Button({
       {loading ? (
         <ActivityIndicator size="small" color={textColor || (colors as Theme).buttonText} />
       ) : (
-        <Text style={styles.buttonText}>{title}</Text>
+        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
       )}
     </TouchableOpacity>
   );
