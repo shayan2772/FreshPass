@@ -1366,7 +1366,126 @@ export default function DashboardContent() {
             </View>
 
             {/* Services or Subscriptions */}
-            
+            {tab === "individual" && section.services ? (
+    <ScrollView
+      horizontal
+      nestedScrollEnabled
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.servicesScroll}
+    >
+      {section.services.map((service) => (
+        <View key={service.id} style={styles.serviceCard}>
+          <Text style={styles.serviceTitle}>{service.title}</Text>
+          <View style={styles.servicePrice}>
+            <Text style={styles.priceCurrent}>${service.price}</Text>
+            <Text style={styles.priceOriginal}>
+              ${service.originalPrice}
+            </Text>
+          </View>
+          <Text style={styles.serviceDescription}>
+            {service.description}
+          </Text>
+          <View style={styles.serviceBottomRow}>
+            <Text style={styles.serviceDuration}>
+              {service.duration}
+            </Text>
+            <View style={styles.serviceButtonContainer}>
+              <Button
+                title="Book Now"
+                onPress={() => {}}
+                containerStyle={{
+                  backgroundColor: theme.orangeBrown,
+                  paddingHorizontal: moderateWidthScale(16),
+                  paddingVertical: moderateHeightScale(8),
+                  height: moderateHeightScale(36),
+                }}
+                textColor={theme.white}
+              />
+            </View>
+          </View>
+        </View>
+      ))}
+    </ScrollView>
+  ) : (
+    section.subscriptions && (
+      <ScrollView
+        horizontal
+        nestedScrollEnabled
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.servicesScroll}
+      >
+        {section.subscriptions.map((subscription) => (
+          <View
+            key={subscription.id}
+            style={styles.subscriptionCard}
+          >
+            <View style={styles.subscriptionImage} />
+            <View style={styles.offerBadgesContainer}>
+              <View
+                style={[
+                  styles.offerBadge,
+                  styles.offerBadgeOrange,
+                ]}
+              >
+                <Text style={styles.offerText}>
+                  {subscription.offer}
+                </Text>
+              </View>
+              {subscription.offer2 && (
+                <View
+                  style={[
+                    styles.offerBadge,
+                    styles.offerBadgeGreen,
+                  ]}
+                >
+                  <Text style={styles.offerText}>
+                    {subscription.offer2}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.subscriptionTitle}>
+              {subscription.title}
+            </Text>
+            {subscription.inclusions.map((inclusion, index) => (
+              <Text
+                key={index}
+                style={[
+                  styles.inclusionItem,
+                  inclusion.startsWith("and +") && styles.moreText,
+                ]}
+              >
+                {inclusion}
+              </Text>
+            ))}
+            <View style={styles.subscriptionPrice}>
+              <View style={styles.subscriptionPriceContainer}>
+                <Text style={styles.priceCurrent}>
+                  ${subscription.price}
+                </Text>
+                <Text style={styles.priceOriginal}>
+                  ${subscription.originalPrice}
+                </Text>
+              </View>
+              <View style={styles.subscriptionButtonContainer}>
+                <Button
+                  title="Book Now"
+                  onPress={() => {}}
+                  containerStyle={{
+                    backgroundColor: theme.orangeBrown,
+                    paddingHorizontal: moderateWidthScale(16),
+                    paddingVertical: moderateHeightScale(8),
+                    height: moderateHeightScale(36),
+                  }}
+                  textColor={theme.darkGreen}
+                />
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
+    )
+  )}
           </View>
         )
       )}
