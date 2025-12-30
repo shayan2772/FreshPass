@@ -11,6 +11,9 @@ import {
   StatusBar,
   Dimensions,
   FlatList,
+  Linking,
+  Platform,
+  Alert,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
@@ -1103,6 +1106,53 @@ export default function BusinessDetailScreen() {
   const staffSectionRef = useRef<View>(null);
   const sectionPositions = useRef<{ [key: string]: number }>({});
 
+  // Dummy business data
+  const businessPhone = "(619) 315-5437";
+  const businessName = "Ra Benjamin Styles LLC";
+  const businessLatitude = 34.0522; // Dummy latitude (Los Angeles area)
+  const businessLongitude = -118.2437; // Dummy longitude
+  const businessAddress = "240 E Exchange Blvd, Columbia, SC 29209, United States";
+
+  // Handle phone call
+  const handleCallNow = async () => {
+    const phoneNumber = businessPhone.replace(/[^\d+]/g, ""); // Remove non-digit characters except +
+    const phoneUrl = `tel:${phoneNumber}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(phoneUrl);
+      if (canOpen) {
+        await Linking.openURL(phoneUrl);
+      } else {
+        Alert.alert("Error", "Unable to make phone call");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Unable to make phone call");
+    }
+  };
+
+  // Handle location navigation to Google Maps
+  const handleLocationPress = async () => {
+    const encodedName = encodeURIComponent(businessName);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${businessLatitude},${businessLongitude}&query_place_id=${encodedName}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(googleMapsUrl);
+      if (canOpen) {
+        await Linking.openURL(googleMapsUrl);
+      } else {
+        // Fallback to Apple Maps on iOS if Google Maps not available
+        if (Platform.OS === "ios") {
+          const appleMapsUrl = `http://maps.apple.com/?ll=${businessLatitude},${businessLongitude}&q=${encodedName}`;
+          await Linking.openURL(appleMapsUrl);
+        } else {
+          Alert.alert("Error", "Unable to open maps");
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Unable to open maps");
+    }
+  };
+
   // Dummy data with different images
   const thumbnails = [
     "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80",
@@ -1515,10 +1565,11 @@ export default function BusinessDetailScreen() {
             Shop location
           </Text>
           <View style={styles.shopLocationRow}>
-            <Text style={styles.shopLocationText}>
-              240 E Exchange Blvd, Columbia, SC 29209, United States
-            </Text>
-            <TouchableOpacity style={styles.mapIconContainer}>
+            <Text style={styles.shopLocationText}>{businessAddress}</Text>
+            <TouchableOpacity
+              style={styles.mapIconContainer}
+              onPress={handleLocationPress}
+            >
               <MapPinIcon
                 width={widthScale(15)}
                 height={heightScale(15)}
@@ -1548,8 +1599,11 @@ export default function BusinessDetailScreen() {
               />
             </View>
             <View style={styles.contactPhoneRow}>
-              <Text style={styles.phoneText}>(619) 315-5437</Text>
-              <TouchableOpacity style={styles.callNowButton}>
+              <Text style={styles.phoneText}>{businessPhone}</Text>
+              <TouchableOpacity
+                style={styles.callNowButton}
+                onPress={handleCallNow}
+              >
                 <Text style={styles.callNowButtonText}>Call now</Text>
               </TouchableOpacity>
             </View>
