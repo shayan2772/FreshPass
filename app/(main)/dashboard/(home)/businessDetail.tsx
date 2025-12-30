@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -268,7 +268,7 @@ const createStyles = (theme: Theme) =>
     },
     heroImageContainer: {
       width: SCREEN_WIDTH,
-      height: heightScale(220),
+      height: heightScale(250),
       position: "relative",
       backgroundColor: theme.darkGreen,
     },
@@ -422,9 +422,11 @@ const createStyles = (theme: Theme) =>
     contentContainer: {
       backgroundColor: theme.background,
       paddingTop: moderateHeightScale(20),
-      paddingBottom: moderateHeightScale(40),
     },
     sectionContent: {
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    sectionContentFullWidth: {
       paddingHorizontal: moderateWidthScale(20),
     },
     sectionTitle: {
@@ -449,6 +451,11 @@ const createStyles = (theme: Theme) =>
       borderTopWidth: moderateWidthScale(1),
       borderTopColor: theme.borderLight,
       marginTop: moderateHeightScale(24),
+    },
+    divider: {
+      borderTopWidth: moderateWidthScale(1),
+      borderTopColor: theme.borderLight,
+      marginVertical: moderateHeightScale(16),
     },
     shopLocationRow: {
       flexDirection: "row",
@@ -525,6 +532,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       gap: moderateWidthScale(12),
       paddingHorizontal: moderateWidthScale(20),
+      paddingBottom: moderateHeightScale(12),
     },
     hoursCard: {
       backgroundColor: theme.white,
@@ -847,7 +855,6 @@ const createStyles = (theme: Theme) =>
     },
     ratingSummaryContainer: {
       marginBottom: moderateHeightScale(20),
-      paddingHorizontal: moderateWidthScale(20),
     },
     ratingBadgeContainer: {
       flexDirection: "row",
@@ -975,7 +982,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.background,
       borderRadius: moderateWidthScale(12),
       width: "85%",
-      height:"80%",
+      height: "80%",
       alignSelf: "center",
       paddingVertical: moderateWidthScale(20),
     },
@@ -1057,6 +1064,15 @@ export default function BusinessDetailScreen() {
   const [selectedReview, setSelectedReview] = useState<
     (typeof reviews)[0] | null
   >(null);
+
+  // Refs for scroll positions
+  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollContentRef = useRef<View>(null);
+  const detailsSectionRef = useRef<View>(null);
+  const serviceSectionRef = useRef<View>(null);
+  const ratingsSectionRef = useRef<View>(null);
+  const staffSectionRef = useRef<View>(null);
+  const sectionPositions = useRef<{ [key: string]: number }>({});
 
   // Dummy data with different images
   const thumbnails = [
@@ -1386,6 +1402,35 @@ export default function BusinessDetailScreen() {
   const totalReviews = reviews.length;
   const textWrapLength = 115;
 
+  const handleTabPress = (tab: "Details" | "Service" | "Ratings" | "Staff") => {
+    setActiveTab(tab);
+    const sectionKey = tab.toLowerCase();
+    const position = sectionPositions.current[sectionKey];
+    if (position !== undefined && scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({
+        y: Math.max(0, position - moderateHeightScale(80)), // Offset for tabs and header
+        animated: true,
+      });
+    }
+  };
+
+  const measureSectionPosition = (
+    sectionRef: React.RefObject<View | null>,
+    key: string
+  ) => {
+    if (sectionRef.current && scrollContentRef.current) {
+      sectionRef.current.measureLayout(
+        scrollContentRef.current,
+        (x, y) => {
+          sectionPositions.current[key] = y;
+        },
+        () => {
+          // Fallback - use onLayout position if measureLayout fails
+        }
+      );
+    }
+  };
+
   const renderDetailsContent = () => {
     const aboutText =
       "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
@@ -1405,9 +1450,15 @@ export default function BusinessDetailScreen() {
     });
 
     return (
-      <View style={styles.contentContainer}>
+      <View
+        ref={detailsSectionRef}
+        onLayout={() => {
+          measureSectionPosition(detailsSectionRef, "details");
+        }}
+        style={styles.contentContainer}
+      >
         {/* About me */}
-        <View style={styles.sectionContent}>
+        <View style={styles.sectionContentFullWidth}>
           <Text style={styles.sectionTitle}>About me</Text>
           <Text style={styles.aboutText}>
             {displayText}
@@ -1425,7 +1476,7 @@ export default function BusinessDetailScreen() {
 
         {/* Shop location */}
         <View style={styles.sectionDivider} />
-        <View style={styles.sectionContent}>
+        <View style={styles.sectionContentFullWidth}>
           <Text
             style={[
               styles.sectionTitle,
@@ -1450,7 +1501,7 @@ export default function BusinessDetailScreen() {
 
         {/* Contact */}
         <View style={styles.sectionDivider} />
-        <View style={styles.sectionContent}>
+        <View style={styles.sectionContentFullWidth}>
           <Text
             style={[
               styles.sectionTitle,
@@ -1478,7 +1529,7 @@ export default function BusinessDetailScreen() {
 
         {/* Business hours */}
         <View style={styles.sectionDivider} />
-        <View style={styles.sectionContent}>
+        <View style={styles.sectionContentFullWidth}>
           <View
             style={[
               styles.businessHoursHeader,
@@ -1496,7 +1547,7 @@ export default function BusinessDetailScreen() {
           {sortedBusinessHours.map((item, index) => {
             const displayDay = item.day === currentDay ? "Today" : item.day;
             return (
-              <View key={index} style={styles.hoursCard}>
+              <View key={index} style={[styles.hoursCard, styles.shadow]}>
                 <Text style={styles.hoursDay}>{displayDay}</Text>
                 <Text style={styles.hoursTime}>{item.time}</Text>
               </View>
@@ -1509,6 +1560,10 @@ export default function BusinessDetailScreen() {
 
   const renderServiceContent = () => (
     <View
+      ref={serviceSectionRef}
+      onLayout={() => {
+        measureSectionPosition(serviceSectionRef, "service");
+      }}
       style={[
         styles.contentContainer,
         { paddingHorizontal: moderateWidthScale(20) },
@@ -1850,18 +1905,24 @@ export default function BusinessDetailScreen() {
     const hasMoreReviews = reviews.length > 5;
 
     return (
-      <View style={styles.contentContainer}>
+      <View
+        ref={ratingsSectionRef}
+        onLayout={() => {
+          measureSectionPosition(ratingsSectionRef, "ratings");
+        }}
+        style={styles.contentContainer}
+      >
         <View style={styles.ratingsSectionContent}>
-          <Text
+          <View style={styles.sectionContentFullWidth}>
+            <Text style={styles.sectionTitle}>What other say</Text>
+          </View>
+          {/* Rating Summary */}
+          <View
             style={[
-              styles.sectionTitle,
-              { paddingHorizontal: moderateWidthScale(20) },
+              styles.ratingSummaryContainer,
+              styles.sectionContentFullWidth,
             ]}
           >
-            What other say
-          </Text>
-          {/* Rating Summary */}
-          <View style={styles.ratingSummaryContainer}>
             <View style={styles.ratingBadgeContainer}>
               <StarIcon
                 width={widthScale(12)}
@@ -1908,6 +1969,8 @@ export default function BusinessDetailScreen() {
               </Text>
             </TouchableOpacity>
           )}
+
+          <View style={styles.divider} />
         </View>
       </View>
     );
@@ -1920,8 +1983,14 @@ export default function BusinessDetailScreen() {
     const hasMoreStaff = staffMembers.length > 6;
 
     return (
-      <View style={styles.contentContainer}>
-        <View style={styles.sectionContent}>
+      <View
+        ref={staffSectionRef}
+        onLayout={() => {
+          measureSectionPosition(staffSectionRef, "staff");
+        }}
+        style={styles.contentContainer}
+      >
+        <View style={styles.sectionContentFullWidth}>
           <Text style={styles.staffSectionTitle}>
             Staff members ({staffMembers.length})
           </Text>
@@ -1961,168 +2030,189 @@ export default function BusinessDetailScreen() {
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
-              <BackArrowIcon width={widthScale(16)} height={heightScale(16)} />
-            </TouchableOpacity>
-            <View style={styles.logoContainer}>
-              <LeafLogo
-                width={widthScale(22)}
-                height={heightScale(22)}
-                color1={theme.white}
-                color2={theme.white}
-              />
-              <Text style={styles.logoText}>FRESHPASS</Text>
-            </View>
-          </View>
-          <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.iconButton}>
-              <ShareIcon
-                width={widthScale(16)}
-                height={heightScale(16)}
-                color={theme.darkGreen}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
-              <BookmarkIcon
-                width={widthScale(16)}
-                height={heightScale(16)}
-                color={theme.darkGreen}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Hero Image */}
-        <TouchableOpacity
-          style={styles.heroImageContainer}
-          onPress={handleOpenFullImage}
-          activeOpacity={1}
-        >
-          <Image
-            source={{ uri: currentHeroImage }}
-            style={styles.heroImage}
-            resizeMode="cover"
-          />
-          <TouchableOpacity
-            style={styles.openFullButton}
-            onPress={handleOpenFullImage}
-          >
-            <OpenFullIcon
-              width={widthScale(14)}
-              height={heightScale(14)}
-              color={theme.white}
-            />
-            <Text style={styles.openFullButtonText}>Open in full</Text>
-          </TouchableOpacity>
-        </TouchableOpacity>
-
-        {/* Thumbnail Carousel */}
-        <View style={styles.thumbnailContainer}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.thumbnailScroll}
-          >
-            {thumbnails.map((thumbnail, index) => (
+      <ScrollView
+        ref={scrollViewRef}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        contentContainerStyle={{ paddingBottom: moderateHeightScale(40) }}
+      >
+        <View ref={scrollContentRef}>
+          {/* Header */}
+          <View style={styles.header}>
+            <View style={styles.headerLeft}>
               <TouchableOpacity
-                key={index}
-                onPress={() => handleThumbnailSelect(thumbnail)}
-                // onLongPress={() => handleThumbnailPress(thumbnail)}
+                style={styles.backButton}
+                onPress={() => router.back()}
               >
-                <Image
-                  source={{ uri: thumbnail }}
-                  style={[
-                    styles.thumbnail,
-                    currentHeroImage !== thumbnail && {
-                      borderColor: theme.borderLight,
-                    },
-                    currentHeroImage === thumbnail && {
-                      borderColor: theme.selectCard,
-                    },
-                  ]}
-                  resizeMode="cover"
+                <BackArrowIcon
+                  width={widthScale(16)}
+                  height={heightScale(16)}
                 />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
+              <View style={styles.logoContainer}>
+                <LeafLogo
+                  width={widthScale(22)}
+                  height={heightScale(22)}
+                  color1={theme.white}
+                  color2={theme.white}
+                />
+                <Text style={styles.logoText}>FRESHPASS</Text>
+              </View>
+            </View>
+            <View style={styles.headerRight}>
+              <TouchableOpacity style={styles.iconButton}>
+                <ShareIcon
+                  width={widthScale(16)}
+                  height={heightScale(16)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.iconButton}>
+                <BookmarkIcon
+                  width={widthScale(16)}
+                  height={heightScale(16)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {/* Business Info Section */}
-        <View style={styles.infoSection}>
-          <View style={styles.badgeRow}>
-            <View style={styles.platformVerifiedBadge}>
-              <PlatformVerifiedStarIcon
+          {/* Hero Image */}
+          <TouchableOpacity
+            style={styles.heroImageContainer}
+            onPress={handleOpenFullImage}
+            activeOpacity={1}
+          >
+            <Image
+              source={{ uri: currentHeroImage }}
+              style={styles.heroImage}
+              resizeMode="cover"
+            />
+            <TouchableOpacity
+              style={styles.openFullButton}
+              onPress={handleOpenFullImage}
+            >
+              <OpenFullIcon
+                width={widthScale(14)}
+                height={heightScale(14)}
+                color={theme.white}
+              />
+              <Text style={styles.openFullButtonText}>Open in full</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+
+          {/* Thumbnail Carousel */}
+          <View style={styles.thumbnailContainer}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.thumbnailScroll}
+            >
+              {thumbnails.map((thumbnail, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => handleThumbnailSelect(thumbnail)}
+                  // onLongPress={() => handleThumbnailPress(thumbnail)}
+                >
+                  <Image
+                    source={{ uri: thumbnail }}
+                    style={[
+                      styles.thumbnail,
+                      currentHeroImage !== thumbnail && {
+                        borderColor: theme.borderLight,
+                      },
+                      currentHeroImage === thumbnail && {
+                        borderColor: theme.selectCard,
+                      },
+                    ]}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+
+          {/* Business Info Section */}
+          <View style={styles.infoSection}>
+            <View style={styles.badgeRow}>
+              <View style={styles.platformVerifiedBadge}>
+                <PlatformVerifiedStarIcon
+                  width={widthScale(12)}
+                  height={heightScale(12)}
+                />
+                <Text style={styles.platformVerifiedText}>
+                  Platform verified
+                </Text>
+              </View>
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountBadgeText}>
+                  15% Off All Products
+                </Text>
+              </View>
+            </View>
+            <View style={styles.ratingBadge}>
+              <StarIcon
                 width={widthScale(12)}
                 height={heightScale(12)}
+                color={theme.selectCard}
               />
-              <Text style={styles.platformVerifiedText}>Platform verified</Text>
+              <Text style={styles.ratingText}>4.9/ 64 reviews</Text>
             </View>
-            <View style={styles.discountBadge}>
-              <Text style={styles.discountBadgeText}>15% Off All Products</Text>
-            </View>
-          </View>
-          <View style={styles.ratingBadge}>
-            <StarIcon
-              width={widthScale(12)}
-              height={heightScale(12)}
-              color={theme.selectCard}
-            />
-            <Text style={styles.ratingText}>4.9/ 64 reviews</Text>
-          </View>
-          <Text style={styles.businessName}>Ra Benjamin Styles LLC</Text>
-          <View style={styles.addressRow}>
-            <LocationPinIcon
-              width={widthScale(12)}
-              height={heightScale(12)}
-              color={theme.selectCard}
-            />
-            <Text style={styles.addressText}>
-              240 E Exchange Blvd, Columbia, SC 29209, United States{" "}
-              <Text style={{ fontFamily: fonts.fontBold }}>• 10 min away</Text>
-            </Text>
-          </View>
-          <View style={styles.staffRow}>
-            <PeopleIcon
-              width={widthScale(12)}
-              height={heightScale(12)}
-              color={theme.selectCard}
-            />
-            <Text style={styles.staffText}>16 staff members</Text>
-          </View>
-        </View>
-
-        {/* Tabs */}
-        <View style={styles.tabsContainer}>
-          {(["Details", "Service", "Ratings", "Staff"] as const).map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={styles.tab}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text
-                style={
-                  activeTab === tab ? styles.tabTextActive : styles.tabText
-                }
-              >
-                {tab}
+            <Text style={styles.businessName}>Ra Benjamin Styles LLC</Text>
+            <View style={styles.addressRow}>
+              <LocationPinIcon
+                width={widthScale(12)}
+                height={heightScale(12)}
+                color={theme.selectCard}
+              />
+              <Text style={styles.addressText}>
+                240 E Exchange Blvd, Columbia, SC 29209, United States{" "}
+                <Text style={{ fontFamily: fonts.fontBold }}>
+                  • 10 min away
+                </Text>
               </Text>
-              {activeTab === tab && <View style={styles.tabUnderline} />}
-            </TouchableOpacity>
-          ))}
-        </View>
+            </View>
+            <View style={styles.staffRow}>
+              <PeopleIcon
+                width={widthScale(12)}
+                height={heightScale(12)}
+                color={theme.selectCard}
+              />
+              <Text style={styles.staffText}>16 staff members</Text>
+            </View>
+          </View>
 
-        {/* Tab Content */}
-        {activeTab === "Details" && renderDetailsContent()}
-        {activeTab === "Service" && renderServiceContent()}
-        {activeTab === "Ratings" && renderRatingsContent()}
-        {activeTab === "Staff" && renderStaffContent()}
+          {/* Tabs */}
+          <View style={styles.tabsContainer}>
+            {(["Details", "Service", "Staff", "Ratings"] as const).map(
+              (tab) => (
+                <TouchableOpacity
+                  key={tab}
+                  style={styles.tab}
+                  onPress={() => handleTabPress(tab)}
+                >
+                  <Text
+                    style={
+                      activeTab === tab ? styles.tabTextActive : styles.tabText
+                    }
+                  >
+                    {tab}
+                  </Text>
+                  {activeTab === tab && <View style={styles.tabUnderline} />}
+                </TouchableOpacity>
+              )
+            )}
+          </View>
+
+          {/* Tab Content - All sections in one scroll */}
+          {renderDetailsContent()}
+          <View style={styles.divider} />
+          {renderServiceContent()}
+          <View style={styles.divider} />
+          {renderStaffContent()}
+          <View style={styles.divider} />
+          {renderRatingsContent()}
+        </View>
       </ScrollView>
 
       {/* Image Modal */}
