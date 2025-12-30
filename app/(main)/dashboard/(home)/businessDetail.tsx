@@ -13,7 +13,7 @@ import {
   FlatList,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import dayjs, { length } from "dayjs";
+import dayjs from "dayjs";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -32,6 +32,8 @@ import {
   MapPinIcon,
   PhoneIconContact,
 } from "@/assets/icons";
+import InclusionsModal from "@/src/components/inclusionsModal";
+import Button from "@/src/components/button";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -880,6 +882,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.lightGreen2,
       width: widthScale(280),
+      minHeight: heightScale(200),
     },
     reviewCardHorizontal: {
       marginRight: moderateWidthScale(12),
@@ -899,7 +902,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(12),
-      backgroundColor:theme.lightGreen2,
+      backgroundColor: theme.lightGreen2,
     },
     reviewAvatarImage: {
       width: "100%",
@@ -928,6 +931,10 @@ const createStyles = (theme: Theme) =>
     reviewStarIcon: {
       marginRight: moderateWidthScale(4),
     },
+    reviewCardTextContainer: {
+      minHeight: heightScale(100),
+      justifyContent: "flex-start",
+    },
     reviewCardText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
@@ -936,21 +943,24 @@ const createStyles = (theme: Theme) =>
     },
     reviewSeeMoreText: {
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.selectCard,
       textDecorationLine: "underline",
       textDecorationColor: theme.selectCard,
-      marginTop: moderateHeightScale(8),
+      marginTop: moderateHeightScale(12),
+    },
+    writeReviewButtonContainer: {
+      paddingHorizontal: moderateWidthScale(20),
+      marginTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(12),
     },
     showAllReviewsButton: {
       alignItems: "center",
-      marginTop: moderateHeightScale(20),
-      paddingVertical: moderateHeightScale(8),
       paddingHorizontal: moderateWidthScale(20),
     },
     showAllReviewsText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     allReviewsModalOverlay: {
@@ -988,6 +998,29 @@ const createStyles = (theme: Theme) =>
     allReviewsModalContent: {
       maxHeight: heightScale(500),
     },
+    fullReviewModalContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      width: "85%",
+      alignSelf: "center",
+      maxHeight: heightScale(600),
+      padding: moderateWidthScale(20),
+    },
+    fullReviewModalContent: {
+      maxHeight: heightScale(500),
+    },
+    fullReviewCardHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(16),
+    },
+    fullReviewText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: moderateHeightScale(22),
+      marginTop: moderateHeightScale(12),
+    },
   });
 
 export default function BusinessDetailScreen() {
@@ -1013,9 +1046,10 @@ export default function BusinessDetailScreen() {
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const [showAllStaff, setShowAllStaff] = useState(false);
   const [allReviewsModalVisible, setAllReviewsModalVisible] = useState(false);
-  const [expandedReviews, setExpandedReviews] = useState<
-    Record<string, boolean>
-  >({});
+  const [fullReviewModalVisible, setFullReviewModalVisible] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<
+    (typeof reviews)[0] | null
+  >(null);
 
   // Dummy data with different images
   const thumbnails = [
@@ -1343,7 +1377,7 @@ export default function BusinessDetailScreen() {
     "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
   const averageRating = 4.9;
   const totalReviews = reviews.length;
-  const textWrapLength = 145;
+  const textWrapLength = 115;
 
   const renderDetailsContent = () => {
     const aboutText =
@@ -1734,8 +1768,7 @@ export default function BusinessDetailScreen() {
     isHorizontal = false
   ) => {
     const reviewText = review.comment || "";
-    const isExpanded = expandedReviews[review.id.toString()];
-    const shouldShowSeeMore = reviewText.length > textWrapLength && !isExpanded;
+    const shouldShowSeeMore = reviewText.length > textWrapLength;
 
     return (
       <View
@@ -1773,27 +1806,25 @@ export default function BusinessDetailScreen() {
         </View>
 
         {reviewText && (
-          <>
-            <Text style={styles.reviewCardText}>
-              {isExpanded || reviewText.length <= textWrapLength
-                ? reviewText
-                : `${reviewText.slice(0, textWrapLength).trim()}...`}
+          <View style={styles.reviewCardTextContainer}>
+            <Text style={styles.reviewCardText} numberOfLines={4}>
+              {shouldShowSeeMore
+                ? `${reviewText.slice(0, textWrapLength).trim()}...`
+                : reviewText}
             </Text>
 
             {shouldShowSeeMore && (
               <Text
                 style={styles.reviewSeeMoreText}
-                onPress={() =>
-                  setExpandedReviews((prev) => ({
-                    ...prev,
-                    [review.id.toString()]: true,
-                  }))
-                }
+                onPress={() => {
+                  setSelectedReview(review);
+                  setFullReviewModalVisible(true);
+                }}
               >
                 See more
               </Text>
             )}
-          </>
+          </View>
         )}
       </View>
     );
@@ -1841,6 +1872,15 @@ export default function BusinessDetailScreen() {
               <View key={review.id}>{renderReviewCard(review, true)}</View>
             ))}
           </ScrollView>
+
+          {/* Write a Review Button */}
+          <View style={styles.writeReviewButtonContainer}>
+            <Button
+              backgroundColor={theme.darkGreen}
+              title="Write a review"
+              onPress={() => {}}
+            />
+          </View>
 
           {/* Show All Reviews Button */}
           {hasMoreReviews && (
@@ -2095,31 +2135,11 @@ export default function BusinessDetailScreen() {
       </Modal>
 
       {/* Inclusions Modal */}
-      <Modal
+      <InclusionsModal
         visible={inclusionsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setInclusionsModalVisible(false)}
-      >
-        <Pressable
-          style={styles.inclusionsModalOverlay}
-          onPress={() => setInclusionsModalVisible(false)}
-        >
-          <Pressable
-            style={styles.inclusionsModalContainer}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={styles.inclusionsModalTitle}>All Inclusions</Text>
-            <ScrollView style={styles.inclusionsModalList}>
-              {selectedInclusions.map((inclusion, index) => (
-                <Text key={index} style={styles.inclusionsModalItem}>
-                  {inclusion}
-                </Text>
-              ))}
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setInclusionsModalVisible(false)}
+        inclusions={selectedInclusions}
+      />
 
       {/* All Reviews Modal */}
       <Modal
@@ -2158,6 +2178,81 @@ export default function BusinessDetailScreen() {
                 </View>
               ))}
             </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* Full Review Modal */}
+      <Modal
+        visible={fullReviewModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setFullReviewModalVisible(false)}
+      >
+        <Pressable
+          style={styles.allReviewsModalOverlay}
+          onPress={() => setFullReviewModalVisible(false)}
+        >
+          <Pressable
+            style={styles.fullReviewModalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.allReviewsModalHeader}>
+              <Text style={styles.allReviewsModalTitle}>Review</Text>
+              <TouchableOpacity
+                style={styles.allReviewsModalCloseButton}
+                onPress={() => setFullReviewModalVisible(false)}
+              >
+                <CloseIcon width={widthScale(20)} height={heightScale(20)} />
+              </TouchableOpacity>
+            </View>
+            {selectedReview && (
+              <ScrollView
+                style={styles.fullReviewModalContent}
+                showsVerticalScrollIndicator={false}
+              >
+                <View style={styles.fullReviewCardHeaderRow}>
+                  <View style={styles.reviewAvatar}>
+                    <Image
+                      source={{
+                        uri: getProfileImageUrl(
+                          selectedReview.user.profile_image_url
+                        ),
+                      }}
+                      style={styles.reviewAvatarImage}
+                    />
+                  </View>
+                  <View style={styles.reviewUserInfo}>
+                    <Text style={styles.reviewNameText}>
+                      {selectedReview.user.name || "User"}
+                    </Text>
+                    <Text style={styles.reviewDateText}>
+                      {formatDate(selectedReview.created_at)}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.reviewStarsRow}>
+                  {getStars(parseFloat(selectedReview.overall_rating)).map(
+                    (icon, index) => (
+                      <MaterialIcons
+                        key={`${selectedReview.id}-star-${index}`}
+                        name={icon}
+                        size={moderateWidthScale(18)}
+                        color={theme.darkGreen}
+                        style={styles.reviewStarIcon}
+                      />
+                    )
+                  )}
+                </View>
+
+                {selectedReview.comment && (
+                  <Text style={styles.fullReviewText}>
+                    {selectedReview.comment}
+                  </Text>
+                )}
+              </ScrollView>
+            )}
           </Pressable>
         </Pressable>
       </Modal>

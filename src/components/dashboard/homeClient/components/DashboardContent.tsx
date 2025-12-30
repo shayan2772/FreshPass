@@ -29,6 +29,7 @@ import {
   MonitorIcon,
   PlatformVerifiedStarIcon,
 } from "@/assets/icons";
+import InclusionsModal from "@/src/components/inclusionsModal";
 
 // Star Icon SVG
 const starIconSvg = `
@@ -1828,31 +1829,11 @@ export default function DashboardContent() {
       </GestureHandlerRootView>
 
       {/* Inclusions Modal */}
-      <Modal
+      <InclusionsModal
         visible={inclusionsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setInclusionsModalVisible(false)}
-      >
-        <Pressable
-          style={styles.inclusionsModalOverlay}
-          onPress={() => setInclusionsModalVisible(false)}
-        >
-          <Pressable
-            style={styles.inclusionsModalContainer}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <Text style={styles.inclusionsModalTitle}>All Inclusions</Text>
-            <ScrollView style={styles.inclusionsModalList}>
-              {selectedInclusions.map((inclusion, index) => (
-                <Text key={index} style={styles.inclusionsModalItem}>
-                  {inclusion}
-                </Text>
-              ))}
-            </ScrollView>
-          </Pressable>
-        </Pressable>
-      </Modal>
+        onClose={() => setInclusionsModalVisible(false)}
+        inclusions={selectedInclusions}
+      />
     </View>
   );
 }
