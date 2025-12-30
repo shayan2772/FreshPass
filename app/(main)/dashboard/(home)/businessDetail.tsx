@@ -114,6 +114,13 @@ const chevronDownSvg = `
 </svg>
 `;
 
+// Chevron Right Icon SVG
+const chevronRightSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6 6L1 11" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
 const ShareIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
   const svgXml = shareIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
@@ -204,6 +211,14 @@ const ChevronUpIcon = ({ width = 12, height = 8, color = "#283618" }) => {
 
 const ChevronDownIcon = ({ width = 12, height = 8, color = "#283618" }) => {
   const svgXml = chevronDownSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+const ChevronRightIcon = ({ width = 8, height = 12, color = "#283618" }) => {
+  const svgXml = chevronRightSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString())
     .replace(/{{COLOR}}/g, color);
@@ -969,6 +984,20 @@ const createStyles = (theme: Theme) =>
     },
     showAllReviewsText: {
       fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    policyItem: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(16),
+      borderBottomWidth: moderateWidthScale(1),
+      borderColor: theme.borderLight,
+    },
+    policyItemText: {
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
@@ -1970,7 +1999,35 @@ export default function BusinessDetailScreen() {
             </TouchableOpacity>
           )}
 
-          <View style={styles.divider} />
+          {/* Payment & Cancelation Policy */}
+          <TouchableOpacity
+            style={[
+              styles.policyItem,
+              {
+                borderTopWidth: moderateWidthScale(1),
+                marginTop: moderateHeightScale(24),
+              },
+            ]}
+          >
+            <Text style={styles.policyItemText}>
+              Payment & cancelation policy
+            </Text>
+            <ChevronRightIcon
+              width={widthScale(6)}
+              height={heightScale(10)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
+
+          {/* Report */}
+          <TouchableOpacity style={styles.policyItem}>
+            <Text style={styles.policyItemText}>Report</Text>
+            <ChevronRightIcon
+              width={widthScale(6)}
+              height={heightScale(10)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
         </View>
       </View>
     );
