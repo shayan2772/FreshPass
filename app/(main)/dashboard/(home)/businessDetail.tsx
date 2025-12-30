@@ -442,7 +442,7 @@ const createStyles = (theme: Theme) =>
     },
     sectionDivider: {
       borderTopWidth: moderateWidthScale(1),
-      borderTopColor:theme.borderLight,
+      borderTopColor: theme.borderLight,
       marginTop: moderateHeightScale(24),
     },
     shopLocationRow: {
@@ -565,21 +565,15 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       marginBottom: moderateHeightScale(16),
-      padding: moderateWidthScale(16),
-      shadowColor: theme.shadow,
-      shadowOffset: {
-        width: 0,
-        height: moderateHeightScale(2),
-      },
-      shadowOpacity: 0.1,
-      shadowRadius: moderateWidthScale(3.84),
-      elevation: 3,
+      paddingVertical: moderateWidthScale(16),
     },
     serviceSectionHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(12),
+
     },
     serviceSectionTitle: {
       fontSize: fontSize.size15,
@@ -590,6 +584,9 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       gap: moderateWidthScale(8),
       marginBottom: moderateHeightScale(16),
+      backgroundColor:theme.lightGreen05,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(12),
     },
     filterButton: {
       paddingHorizontal: moderateWidthScale(16),
@@ -597,7 +594,6 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(999),
       borderWidth: moderateWidthScale(1),
       borderColor: theme.borderLight,
-      backgroundColor: theme.white,
     },
     filterButtonActive: {
       backgroundColor: theme.lightGreen015,
@@ -613,10 +609,13 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     membershipCard: {
-      backgroundColor: theme.background,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
+      backgroundColor: theme.white,
       marginBottom: moderateHeightScale(12),
+      borderBottomWidth: moderateWidthScale(1),
+      borderBottomColor: theme.borderLight,
+    },
+    membershipCardContent: {
+      padding: moderateWidthScale(16),
     },
     membershipTitle: {
       fontSize: fontSize.size15,
@@ -647,27 +646,34 @@ const createStyles = (theme: Theme) =>
     },
     membershipPriceContainer: {
       flexDirection: "row",
-      alignItems: "center",
+      alignItems: "flex-end",
       justifyContent: "space-between",
       marginTop: moderateHeightScale(8),
+    },
+    membershipPriceLeft: {
+      flexDirection: "column",
     },
     membershipPrice: {
       fontSize: fontSize.size17,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
     },
     membershipOriginalPrice: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textDecorationLine: "line-through",
-      marginLeft: moderateWidthScale(8),
     },
     serviceCard: {
-      backgroundColor: theme.background,
+      backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
       marginBottom: moderateHeightScale(12),
+      borderBottomWidth: moderateWidthScale(1),
+      borderBottomColor: theme.borderLight,
+    },
+    serviceCardContent: {
+      padding: moderateWidthScale(16),
       flexDirection: "row",
       justifyContent: "space-between",
     },
@@ -780,7 +786,8 @@ export default function BusinessDetailScreen() {
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
   const [isMembershipExpanded, setIsMembershipExpanded] = useState(true);
   const [isIndividualExpanded, setIsIndividualExpanded] = useState(true);
-  const [selectedMembershipFilter, setSelectedMembershipFilter] = useState("All");
+  const [selectedMembershipFilter, setSelectedMembershipFilter] =
+    useState("All");
   const [selectedServiceFilter, setSelectedServiceFilter] = useState("All");
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
@@ -937,8 +944,20 @@ export default function BusinessDetailScreen() {
     },
   ];
 
-  const membershipFilters = ["All", "Classic Care", "Gold Glam", "VIP Elite", "Platinum"];
-  const serviceFilters = ["All", "Beard Trim", "Hair blow dry", "Haircut", "Manicure"];
+  const membershipFilters = [
+    "All",
+    "Classic Care",
+    "Gold Glam",
+    "VIP Elite",
+    "Platinum",
+  ];
+  const serviceFilters = [
+    "All",
+    "Beard Trim",
+    "Hair blow dry",
+    "Haircut",
+    "Manicure",
+  ];
 
   const renderDetailsContent = () => {
     const aboutText =
@@ -959,11 +978,11 @@ export default function BusinessDetailScreen() {
     });
 
     return (
-      <View style={styles.contentContainer}>
-        {/* About me */}
+    <View style={styles.contentContainer}>
+      {/* About me */}
         <View style={styles.sectionContent}>
-          <Text style={styles.sectionTitle}>About me</Text>
-          <Text style={styles.aboutText}>
+      <Text style={styles.sectionTitle}>About me</Text>
+      <Text style={styles.aboutText}>
             {displayText}
             {shouldShowReadMore && !isAboutExpanded && (
               <Text
@@ -972,42 +991,48 @@ export default function BusinessDetailScreen() {
               >
                 {" "}
                 Read more salon
-              </Text>
+      </Text>
             )}
           </Text>
         </View>
 
-        {/* Shop location */}
+      {/* Shop location */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-          <Text
-            style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
-          >
-            Shop location
-          </Text>
-          <View style={styles.shopLocationRow}>
-            <Text style={styles.shopLocationText}>
-              240 E Exchange Blvd, Columbia, SC 29209, United States
-            </Text>
-            <TouchableOpacity style={styles.mapIconContainer}>
+      <Text
+            style={[
+              styles.sectionTitle,
+              { marginTop: moderateHeightScale(24) },
+            ]}
+      >
+        Shop location
+      </Text>
+      <View style={styles.shopLocationRow}>
+        <Text style={styles.shopLocationText}>
+          240 E Exchange Blvd, Columbia, SC 29209, United States
+        </Text>
+        <TouchableOpacity style={styles.mapIconContainer}>
               <MapPinIcon
                 width={widthScale(15)}
                 height={heightScale(15)}
                 color={theme.primary}
               />
-            </TouchableOpacity>
+        </TouchableOpacity>
           </View>
-        </View>
+      </View>
 
-        {/* Contact */}
+      {/* Contact */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-          <Text
-            style={[styles.sectionTitle, { marginTop: moderateHeightScale(24) }]}
-          >
-            Contact
-          </Text>
-          <View style={styles.contactRow}>
+      <Text
+            style={[
+              styles.sectionTitle,
+              { marginTop: moderateHeightScale(24) },
+            ]}
+      >
+        Contact
+      </Text>
+      <View style={styles.contactRow}>
             <View style={styles.phoneIconContainer}>
               <PhoneIconContact
                 width={widthScale(18)}
@@ -1015,28 +1040,27 @@ export default function BusinessDetailScreen() {
                 color={theme.darkGreen}
               />
             </View>
-            <View style={styles.contactPhoneRow}>
-              <Text style={styles.phoneText}>(619) 315-5437</Text>
-              <TouchableOpacity style={styles.callNowButton}>
-                <Text style={styles.callNowButtonText}>Call now</Text>
-              </TouchableOpacity>
+        <View style={styles.contactPhoneRow}>
+          <Text style={styles.phoneText}>(619) 315-5437</Text>
+          <TouchableOpacity style={styles.callNowButton}>
+            <Text style={styles.callNowButtonText}>Call now</Text>
+          </TouchableOpacity>
             </View>
-          </View>
         </View>
+      </View>
 
-        {/* Business hours */}
+      {/* Business hours */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-          <View
-            style={[
-              styles.businessHoursHeader,
-              { marginTop: moderateHeightScale(24) },
-            ]}
-          >
-            <Text style={styles.sectionTitle}>Business hours</Text>
-            
-          </View>
-        </View>
+      <View
+        style={[
+          styles.businessHoursHeader,
+          { marginTop: moderateHeightScale(24) },
+        ]}
+      >
+        <Text style={styles.sectionTitle}>Business hours</Text>
+      </View>
+      </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -1048,16 +1072,21 @@ export default function BusinessDetailScreen() {
               <View key={index} style={styles.hoursCard}>
                 <Text style={styles.hoursDay}>{displayDay}</Text>
                 <Text style={styles.hoursTime}>{item.time}</Text>
-              </View>
+      </View>
             );
           })}
         </ScrollView>
-      </View>
-    );
+    </View>
+  );
   };
 
   const renderServiceContent = () => (
-    <View style={[styles.contentContainer,{paddingHorizontal: moderateWidthScale(20)}]}>
+    <View
+      style={[
+        styles.contentContainer,
+        { paddingHorizontal: moderateWidthScale(20) },
+      ]}
+    >
       {/* Membership Subscriptions Section */}
       <View style={styles.serviceSection}>
         <TouchableOpacity
@@ -1066,7 +1095,7 @@ export default function BusinessDetailScreen() {
         >
           <Text style={styles.serviceSectionTitle}>
             Membership subscriptions list
-          </Text>
+      </Text>
           {isMembershipExpanded ? (
             <ChevronUpIcon
               width={widthScale(12)}
@@ -1112,20 +1141,31 @@ export default function BusinessDetailScreen() {
               ))}
             </ScrollView>
 
-            {membershipSubscriptions.map((subscription) => (
-              <View key={subscription.id} style={styles.membershipCard}>
-                <Text style={styles.membershipTitle}>{subscription.title}</Text>
-                <Text style={styles.membershipVisits}>
-                  {subscription.visits}
-                </Text>
-                <View style={styles.membershipInclusions}>
+            {membershipSubscriptions.map((subscription, index) => (
+              <View
+                key={subscription.id}
+                style={[
+                  styles.membershipCard,
+                  index === membershipSubscriptions.length - 1 && {
+                    borderBottomWidth: 0,
+                  },
+                ]}
+              >
+                <View style={styles.membershipCardContent}>
+                  <Text style={styles.membershipTitle}>{subscription.title}</Text>
+                  <Text style={styles.membershipVisits}>
+                    {subscription.visits}
+                  </Text>
+                  <View style={styles.membershipInclusions}>
                   {subscription.inclusions.length > 2 ? (
                     <>
-                      {subscription.inclusions.slice(0, 2).map((inclusion, index) => (
-                        <Text key={index} style={styles.inclusionItem}>
-                          {inclusion}
-                        </Text>
-                      ))}
+                      {subscription.inclusions
+                        .slice(0, 2)
+                        .map((inclusion, index) => (
+                          <Text key={index} style={styles.inclusionItem}>
+                            {inclusion}
+                          </Text>
+                        ))}
                       <TouchableOpacity
                         onPress={() => {
                           setSelectedInclusions(subscription.inclusions);
@@ -1146,7 +1186,7 @@ export default function BusinessDetailScreen() {
                   )}
                 </View>
                 <View style={styles.membershipPriceContainer}>
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <View style={styles.membershipPriceLeft}>
                     <Text style={styles.membershipPrice}>
                       ${subscription.price.toFixed(2)} USD
                     </Text>
@@ -1157,6 +1197,7 @@ export default function BusinessDetailScreen() {
                   <TouchableOpacity style={styles.bookNowButton}>
                     <Text style={styles.bookNowButtonText}>Book Now</Text>
                   </TouchableOpacity>
+                </View>
                 </View>
               </View>
             ))}
@@ -1216,9 +1257,18 @@ export default function BusinessDetailScreen() {
               ))}
             </ScrollView>
 
-            {individualServices.map((service) => (
-              <View key={service.id} style={styles.serviceCard}>
-                <View style={styles.serviceCardLeft}>
+            {individualServices.map((service, index) => (
+              <View
+                key={service.id}
+                style={[
+                  styles.serviceCard,
+                  index === individualServices.length - 1 && {
+                    borderBottomWidth: 0,
+                  },
+                ]}
+              >
+                <View style={styles.serviceCardContent}>
+                  <View style={styles.serviceCardLeft}>
                   {service.label && (
                     <View style={styles.serviceLabel}>
                       <Text style={styles.serviceLabelText}>
@@ -1231,26 +1281,26 @@ export default function BusinessDetailScreen() {
                     {service.description}
                   </Text>
                   <View style={styles.servicePriceContainer}>
-                    <Text style={styles.servicePrice}>
-                      ${service.price.toFixed(2)} USD
-                    </Text>
                     <Text style={styles.serviceOriginalPrice}>
                       ${service.originalPrice.toFixed(2)}
                     </Text>
+                    <Text style={styles.servicePrice}>
+                      ${service.price.toFixed(2)} USD
+                    </Text>
                   </View>
                   <Text style={styles.serviceDuration}>{service.duration}</Text>
-                </View>
-                <View style={styles.serviceCardRight}>
-                  <TouchableOpacity style={styles.bookNowButton}>
-                    <Text style={styles.bookNowButtonText}>Book Now</Text>
-                  </TouchableOpacity>
+                  </View>
+                  <View style={styles.serviceCardRight}>
+                    <TouchableOpacity style={styles.bookNowButton}>
+                      <Text style={styles.bookNowButtonText}>Book Now</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
             ))}
           </>
         )}
       </View>
-
     </View>
   );
 
