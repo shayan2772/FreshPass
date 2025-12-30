@@ -95,6 +95,20 @@ const backArrowIconSvg = `
 </svg>
 `;
 
+// Chevron Up Icon SVG
+const chevronUpSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 7L6 2L11 7" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+// Chevron Down Icon SVG
+const chevronDownSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6 6L11 1" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
 const ShareIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
   const svgXml = shareIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
@@ -169,6 +183,22 @@ const CloseIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
 
 const BackArrowIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
   const svgXml = backArrowIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+const ChevronUpIcon = ({ width = 12, height = 8, color = "#283618" }) => {
+  const svgXml = chevronUpSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+const ChevronDownIcon = ({ width = 12, height = 8, color = "#283618" }) => {
+  const svgXml = chevronDownSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString())
     .replace(/{{COLOR}}/g, color);
@@ -531,6 +561,207 @@ const createStyles = (theme: Theme) =>
       height: SCREEN_HEIGHT,
       resizeMode: "contain",
     },
+    serviceSection: {
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(12),
+      marginBottom: moderateHeightScale(16),
+      padding: moderateWidthScale(16),
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: moderateHeightScale(2),
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: moderateWidthScale(3.84),
+      elevation: 3,
+    },
+    serviceSectionHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(16),
+    },
+    serviceSectionTitle: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    filterContainer: {
+      flexDirection: "row",
+      gap: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(16),
+    },
+    filterButton: {
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(8),
+      borderRadius: moderateWidthScale(999),
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.borderLight,
+      backgroundColor: theme.white,
+    },
+    filterButtonActive: {
+      backgroundColor: theme.lightGreen015,
+      borderColor: theme.darkGreen,
+    },
+    filterButtonText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+    },
+    filterButtonTextActive: {
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    membershipCard: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(12),
+    },
+    membershipTitle: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    membershipVisits: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    membershipInclusions: {
+      marginBottom: moderateHeightScale(12),
+    },
+    inclusionItem: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    moreText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.primary,
+      textDecorationLine: "underline",
+    },
+    membershipPriceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: moderateHeightScale(8),
+    },
+    membershipPrice: {
+      fontSize: fontSize.size17,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    membershipOriginalPrice: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textDecorationLine: "line-through",
+      marginLeft: moderateWidthScale(8),
+    },
+    serviceCard: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(12),
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    serviceCardLeft: {
+      flex: 1,
+    },
+    serviceLabel: {
+      alignSelf: "flex-start",
+      backgroundColor: theme.darkGreen,
+      paddingHorizontal: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(4),
+      borderRadius: moderateWidthScale(4),
+      marginBottom: moderateHeightScale(8),
+    },
+    serviceLabelText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+    },
+    serviceName: {
+      fontSize: fontSize.size17,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    serviceDescription: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    servicePriceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(4),
+    },
+    servicePrice: {
+      fontSize: fontSize.size17,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    serviceOriginalPrice: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textDecorationLine: "line-through",
+    },
+    serviceDuration: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    serviceCardRight: {
+      justifyContent: "flex-end",
+    },
+    bookNowButton: {
+      backgroundColor: theme.orangeBrown,
+      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(10),
+      borderRadius: moderateWidthScale(999),
+    },
+    bookNowButtonText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+    },
+    inclusionsModalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    inclusionsModalContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(20),
+      width: widthScale(300),
+      maxHeight: heightScale(400),
+    },
+    inclusionsModalTitle: {
+      fontSize: fontSize.size17,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(16),
+    },
+    inclusionsModalList: {
+      gap: moderateHeightScale(8),
+    },
+    inclusionsModalItem: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+    },
   });
 
 export default function BusinessDetailScreen() {
@@ -547,6 +778,12 @@ export default function BusinessDetailScreen() {
     "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80"
   );
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
+  const [isMembershipExpanded, setIsMembershipExpanded] = useState(true);
+  const [isIndividualExpanded, setIsIndividualExpanded] = useState(true);
+  const [selectedMembershipFilter, setSelectedMembershipFilter] = useState("All");
+  const [selectedServiceFilter, setSelectedServiceFilter] = useState("All");
+  const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
+  const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
 
   // Dummy data with different images
   const thumbnails = [
@@ -599,6 +836,109 @@ export default function BusinessDetailScreen() {
     ];
     return days[new Date().getDay()];
   };
+
+  // Service data
+  const membershipSubscriptions = [
+    {
+      id: 1,
+      title: "The Full Luxury Experience",
+      visits: "8 visit per month",
+      price: 300.99,
+      originalPrice: 50.99,
+      inclusions: [
+        "1. 2 Premium Haircuts",
+        "2. 1 Free Styling Service",
+        "3. 1 Free Facial per month",
+        "4. Free Hair Products",
+        "5. Priority Booking",
+      ],
+    },
+    {
+      id: 2,
+      title: "The Full Luxury Experience",
+      visits: "5 visit per month",
+      price: 145.99,
+      originalPrice: 50.99,
+      inclusions: [
+        "1. 2 Premium Haircuts",
+        "2. 1 Free Styling Service",
+        "3. 1 Free Facial per month",
+        "4. Free Hair Products",
+      ],
+    },
+    {
+      id: 3,
+      title: "The Full Luxury Experience",
+      visits: "3 visit per month",
+      price: 45.99,
+      originalPrice: 50.99,
+      inclusions: [
+        "1. 2 Premium Haircuts",
+        "2. 1 Free Styling Service",
+        "3. 1 Free Facial per month",
+      ],
+    },
+  ];
+
+  const individualServices = [
+    {
+      id: 1,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: "Save $20",
+    },
+    {
+      id: 2,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: "NEW",
+    },
+    {
+      id: 3,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: null,
+    },
+    {
+      id: 4,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: null,
+    },
+    {
+      id: 5,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: "Single sessions",
+    },
+    {
+      id: 6,
+      name: "Wet Haircut",
+      description: "This service includes we wash and cut",
+      price: 45.99,
+      originalPrice: 50.89,
+      duration: "45 Mins",
+      label: "Best value",
+    },
+  ];
+
+  const membershipFilters = ["All", "Classic Care", "Gold Glam", "VIP Elite", "Platinum"];
+  const serviceFilters = ["All", "Beard Trim", "Hair blow dry", "Haircut", "Manicure"];
 
   const renderDetailsContent = () => {
     const aboutText =
@@ -717,11 +1057,200 @@ export default function BusinessDetailScreen() {
   };
 
   const renderServiceContent = () => (
-    <View style={styles.contentContainer}>
-      <Text style={styles.sectionTitle}>Services</Text>
-      <Text style={styles.aboutText}>
-        Service content will be displayed here.
-      </Text>
+    <View style={[styles.contentContainer,{paddingHorizontal: moderateWidthScale(20)}]}>
+      {/* Membership Subscriptions Section */}
+      <View style={styles.serviceSection}>
+        <TouchableOpacity
+          style={styles.serviceSectionHeader}
+          onPress={() => setIsMembershipExpanded(!isMembershipExpanded)}
+        >
+          <Text style={styles.serviceSectionTitle}>
+            Membership subscriptions list
+          </Text>
+          {isMembershipExpanded ? (
+            <ChevronUpIcon
+              width={widthScale(12)}
+              height={heightScale(8)}
+              color={theme.darkGreen}
+            />
+          ) : (
+            <ChevronDownIcon
+              width={widthScale(12)}
+              height={heightScale(8)}
+              color={theme.darkGreen}
+            />
+          )}
+        </TouchableOpacity>
+
+        {isMembershipExpanded && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterContainer}
+            >
+              {membershipFilters.map((filter) => (
+                <TouchableOpacity
+                  key={filter}
+                  style={[
+                    styles.filterButton,
+                    selectedMembershipFilter === filter &&
+                      styles.filterButtonActive,
+                  ]}
+                  onPress={() => setSelectedMembershipFilter(filter)}
+                >
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      selectedMembershipFilter === filter &&
+                        styles.filterButtonTextActive,
+                    ]}
+                  >
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {membershipSubscriptions.map((subscription) => (
+              <View key={subscription.id} style={styles.membershipCard}>
+                <Text style={styles.membershipTitle}>{subscription.title}</Text>
+                <Text style={styles.membershipVisits}>
+                  {subscription.visits}
+                </Text>
+                <View style={styles.membershipInclusions}>
+                  {subscription.inclusions.length > 2 ? (
+                    <>
+                      {subscription.inclusions.slice(0, 2).map((inclusion, index) => (
+                        <Text key={index} style={styles.inclusionItem}>
+                          {inclusion}
+                        </Text>
+                      ))}
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedInclusions(subscription.inclusions);
+                          setInclusionsModalVisible(true);
+                        }}
+                      >
+                        <Text style={styles.moreText}>
+                          and +{subscription.inclusions.length - 2} more
+                        </Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    subscription.inclusions.map((inclusion, index) => (
+                      <Text key={index} style={styles.inclusionItem}>
+                        {inclusion}
+                      </Text>
+                    ))
+                  )}
+                </View>
+                <View style={styles.membershipPriceContainer}>
+                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                    <Text style={styles.membershipPrice}>
+                      ${subscription.price.toFixed(2)} USD
+                    </Text>
+                    <Text style={styles.membershipOriginalPrice}>
+                      ${subscription.originalPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity style={styles.bookNowButton}>
+                    <Text style={styles.bookNowButtonText}>Book Now</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </>
+        )}
+      </View>
+
+      {/* Individual Services Section */}
+      <View style={styles.serviceSection}>
+        <TouchableOpacity
+          style={styles.serviceSectionHeader}
+          onPress={() => setIsIndividualExpanded(!isIndividualExpanded)}
+        >
+          <Text style={styles.serviceSectionTitle}>Individual services</Text>
+          {isIndividualExpanded ? (
+            <ChevronUpIcon
+              width={widthScale(12)}
+              height={heightScale(8)}
+              color={theme.darkGreen}
+            />
+          ) : (
+            <ChevronDownIcon
+              width={widthScale(12)}
+              height={heightScale(8)}
+              color={theme.darkGreen}
+            />
+          )}
+        </TouchableOpacity>
+
+        {isIndividualExpanded && (
+          <>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.filterContainer}
+            >
+              {serviceFilters.map((filter) => (
+                <TouchableOpacity
+                  key={filter}
+                  style={[
+                    styles.filterButton,
+                    selectedServiceFilter === filter &&
+                      styles.filterButtonActive,
+                  ]}
+                  onPress={() => setSelectedServiceFilter(filter)}
+                >
+                  <Text
+                    style={[
+                      styles.filterButtonText,
+                      selectedServiceFilter === filter &&
+                        styles.filterButtonTextActive,
+                    ]}
+                  >
+                    {filter}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+
+            {individualServices.map((service) => (
+              <View key={service.id} style={styles.serviceCard}>
+                <View style={styles.serviceCardLeft}>
+                  {service.label && (
+                    <View style={styles.serviceLabel}>
+                      <Text style={styles.serviceLabelText}>
+                        {service.label}
+                      </Text>
+                    </View>
+                  )}
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <Text style={styles.serviceDescription}>
+                    {service.description}
+                  </Text>
+                  <View style={styles.servicePriceContainer}>
+                    <Text style={styles.servicePrice}>
+                      ${service.price.toFixed(2)} USD
+                    </Text>
+                    <Text style={styles.serviceOriginalPrice}>
+                      ${service.originalPrice.toFixed(2)}
+                    </Text>
+                  </View>
+                  <Text style={styles.serviceDuration}>{service.duration}</Text>
+                </View>
+                <View style={styles.serviceCardRight}>
+                  <TouchableOpacity style={styles.bookNowButton}>
+                    <Text style={styles.bookNowButtonText}>Book Now</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </>
+        )}
+      </View>
+
     </View>
   );
 
@@ -932,6 +1461,33 @@ export default function BusinessDetailScreen() {
             />
           )}
         </View>
+      </Modal>
+
+      {/* Inclusions Modal */}
+      <Modal
+        visible={inclusionsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setInclusionsModalVisible(false)}
+      >
+        <Pressable
+          style={styles.inclusionsModalOverlay}
+          onPress={() => setInclusionsModalVisible(false)}
+        >
+          <Pressable
+            style={styles.inclusionsModalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <Text style={styles.inclusionsModalTitle}>All Inclusions</Text>
+            <ScrollView style={styles.inclusionsModalList}>
+              {selectedInclusions.map((inclusion, index) => (
+                <Text key={index} style={styles.inclusionsModalItem}>
+                  {inclusion}
+                </Text>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
       </Modal>
     </View>
   );
