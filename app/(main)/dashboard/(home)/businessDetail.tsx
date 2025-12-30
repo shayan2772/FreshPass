@@ -10,7 +10,10 @@ import {
   Pressable,
   StatusBar,
   Dimensions,
+  FlatList,
 } from "react-native";
+import { MaterialIcons } from "@expo/vector-icons";
+import dayjs, { length } from "dayjs";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -423,7 +426,7 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
     },
     sectionTitle: {
-      fontSize: fontSize.size17,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(12),
@@ -571,7 +574,6 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(12),
     },
     serviceSectionTitle: {
@@ -838,6 +840,154 @@ const createStyles = (theme: Theme) =>
       textDecorationLine: "underline",
       textDecorationColor: theme.selectCard,
     },
+    ratingsSectionContent: {
+      // No padding here - let scroll be full width
+    },
+    ratingSummaryContainer: {
+      marginBottom: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    ratingBadgeContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(6),
+      alignSelf: "flex-start",
+      marginBottom: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(999),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+    },
+    ratingBadgeText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    averageRatingText: {
+      fontSize: fontSize.size26,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    reviewsHorizontalScroll: {
+      paddingHorizontal: moderateWidthScale(20),
+      gap: moderateWidthScale(12),
+    },
+    reviewCard: {
+      borderRadius: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(16),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      width: widthScale(280),
+    },
+    reviewCardHorizontal: {
+      marginRight: moderateWidthScale(12),
+    },
+    reviewCardHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(8),
+    },
+    reviewAvatar: {
+      width: widthScale(42),
+      height: widthScale(42),
+      borderRadius: moderateWidthScale(4),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(12),
+      backgroundColor:theme.lightGreen2,
+    },
+    reviewAvatarImage: {
+      width: "100%",
+      height: "100%",
+      overflow: "hidden",
+      borderRadius: moderateWidthScale(4),
+    },
+    reviewUserInfo: {
+      flex: 1,
+    },
+    reviewNameText: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    reviewDateText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginTop: moderateHeightScale(4),
+    },
+    reviewStarsRow: {
+      flexDirection: "row",
+      marginBottom: moderateHeightScale(12),
+    },
+    reviewStarIcon: {
+      marginRight: moderateWidthScale(4),
+    },
+    reviewCardText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: moderateHeightScale(20),
+    },
+    reviewSeeMoreText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.selectCard,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.selectCard,
+      marginTop: moderateHeightScale(8),
+    },
+    showAllReviewsButton: {
+      alignItems: "center",
+      marginTop: moderateHeightScale(20),
+      paddingVertical: moderateHeightScale(8),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    showAllReviewsText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
+    allReviewsModalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    allReviewsModalContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(12),
+      width: widthScale(350),
+      maxHeight: heightScale(600),
+      padding: moderateWidthScale(20),
+    },
+    allReviewsModalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(20),
+    },
+    allReviewsModalTitle: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    allReviewsModalCloseButton: {
+      width: widthScale(32),
+      height: heightScale(32),
+      borderRadius: moderateWidthScale(16),
+      backgroundColor: theme.lightGreen015,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    allReviewsModalContent: {
+      maxHeight: heightScale(500),
+    },
   });
 
 export default function BusinessDetailScreen() {
@@ -862,6 +1012,10 @@ export default function BusinessDetailScreen() {
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const [showAllStaff, setShowAllStaff] = useState(false);
+  const [allReviewsModalVisible, setAllReviewsModalVisible] = useState(false);
+  const [expandedReviews, setExpandedReviews] = useState<
+    Record<string, boolean>
+  >({});
 
   // Dummy data with different images
   const thumbnails = [
@@ -1030,6 +1184,167 @@ export default function BusinessDetailScreen() {
     "Manicure",
   ];
 
+  // Dummy reviews data
+  const reviews = [
+    {
+      id: 1,
+      user: {
+        name: "Ofir Kiran",
+        profile_image_url: null,
+      },
+      overall_rating: "5",
+      comment:
+        "Super professional and right on time. Loved the attention to detail. From booking to the cut—it's a smooth experience every time.",
+      created_at: "2023-09-28T10:00:00Z",
+    },
+    {
+      id: 2,
+      user: {
+        name: "John Smith",
+        profile_image_url: null,
+      },
+      overall_rating: "4.5",
+      comment:
+        "Great service and friendly staff. The haircut was exactly what I wanted. Will definitely come back again!",
+      created_at: "2023-10-15T14:30:00Z",
+    },
+    {
+      id: 3,
+      user: {
+        name: "Sarah Johnson",
+        profile_image_url: null,
+      },
+      overall_rating: "5",
+      comment:
+        "Amazing experience! The stylist was very professional and took time to understand what I wanted. Highly recommend!",
+      created_at: "2023-10-20T11:00:00Z",
+    },
+    {
+      id: 4,
+      user: {
+        name: "Michael Brown",
+        profile_image_url: null,
+      },
+      overall_rating: "4",
+      comment:
+        "Good service overall. The place is clean and well-maintained. Staff is courteous and professional.",
+      created_at: "2023-10-25T16:00:00Z",
+    },
+    {
+      id: 5,
+      user: {
+        name: "Emily Davis",
+        profile_image_url: null,
+      },
+      overall_rating: "5",
+      comment:
+        "Best salon experience I've had! The attention to detail is incredible. Worth every penny!",
+      created_at: "2023-11-01T09:00:00Z",
+    },
+    {
+      id: 6,
+      user: {
+        name: "David Wilson",
+        profile_image_url: null,
+      },
+      overall_rating: "4.5",
+      comment:
+        "Very satisfied with the service. The staff is knowledgeable and the atmosphere is relaxing.",
+      created_at: "2023-11-05T13:00:00Z",
+    },
+    {
+      id: 7,
+      user: {
+        name: "Lisa Anderson",
+        profile_image_url: null,
+      },
+      overall_rating: "5",
+      comment:
+        "Excellent service! The stylist really listened to what I wanted and delivered perfectly. Will be back!",
+      created_at: "2023-11-08T10:00:00Z",
+    },
+  ];
+
+  // Dummy staff data
+  const staffMembers = [
+    {
+      id: 1,
+      name: "Umut Hasanoglu",
+      experience: null,
+      image:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
+    },
+    {
+      id: 2,
+      name: "Sanna Granqvist",
+      experience: 6,
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+    },
+    {
+      id: 3,
+      name: "Suman Pramanik",
+      experience: 12,
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    },
+    {
+      id: 4,
+      name: "Md Biplob Um Hos...",
+      experience: 11,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
+    },
+    {
+      id: 5,
+      name: "Safayet Hossain",
+      experience: 4,
+      image:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
+    },
+    {
+      id: 6,
+      name: "Md Shariful Islam K...",
+      experience: 19,
+      image:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
+    },
+    {
+      id: 7,
+      name: "John Smith",
+      experience: 8,
+      image:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
+    },
+    {
+      id: 8,
+      name: "Sarah Johnson",
+      experience: 5,
+      image:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
+    },
+    {
+      id: 9,
+      name: "Michael Brown",
+      experience: 15,
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    },
+    {
+      id: 10,
+      name: "Emily Davis",
+      experience: 3,
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+    },
+  ];
+
+  const DEFAULT_AVATAR_URL =
+    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  const averageRating = 4.9;
+  const totalReviews = reviews.length;
+  const textWrapLength = 145;
+
   const renderDetailsContent = () => {
     const aboutText =
       "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
@@ -1159,9 +1474,12 @@ export default function BusinessDetailScreen() {
       ]}
     >
       {/* Membership Subscriptions Section */}
-      <View style={styles.serviceSection}>
+      <View style={[styles.serviceSection, styles.shadow]}>
         <TouchableOpacity
-          style={styles.serviceSectionHeader}
+          style={[
+            styles.serviceSectionHeader,
+            isMembershipExpanded && { marginBottom: moderateHeightScale(16) },
+          ]}
           onPress={() => setIsMembershipExpanded(!isMembershipExpanded)}
         >
           <Text style={styles.serviceSectionTitle}>
@@ -1169,14 +1487,14 @@ export default function BusinessDetailScreen() {
           </Text>
           {isMembershipExpanded ? (
             <ChevronUpIcon
-              width={widthScale(12)}
-              height={heightScale(8)}
+              width={widthScale(10)}
+              height={heightScale(6)}
               color={theme.darkGreen}
             />
           ) : (
             <ChevronDownIcon
-              width={widthScale(12)}
-              height={heightScale(8)}
+              width={widthScale(10)}
+              height={heightScale(6)}
               color={theme.darkGreen}
             />
           )}
@@ -1281,22 +1599,26 @@ export default function BusinessDetailScreen() {
       </View>
 
       {/* Individual Services Section */}
-      <View style={styles.serviceSection}>
+      <View style={[styles.serviceSection, styles.shadow]}>
         <TouchableOpacity
-          style={styles.serviceSectionHeader}
+          style={[
+            styles.serviceSectionHeader,
+            isIndividualExpanded && { marginBottom: moderateHeightScale(16) },
+            styles.shadow,
+          ]}
           onPress={() => setIsIndividualExpanded(!isIndividualExpanded)}
         >
           <Text style={styles.serviceSectionTitle}>Individual services</Text>
           {isIndividualExpanded ? (
             <ChevronUpIcon
-              width={widthScale(12)}
-              height={heightScale(8)}
+              width={widthScale(10)}
+              height={heightScale(6)}
               color={theme.darkGreen}
             />
           ) : (
             <ChevronDownIcon
-              width={widthScale(12)}
-              height={heightScale(8)}
+              width={widthScale(10)}
+              height={heightScale(6)}
               color={theme.darkGreen}
             />
           )}
@@ -1381,92 +1703,160 @@ export default function BusinessDetailScreen() {
     </View>
   );
 
-  const renderRatingsContent = () => (
-    <View style={styles.contentContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          { paddingHorizontal: moderateWidthScale(20) },
-        ]}
-      >
-        What other say
-      </Text>
-    </View>
-  );
+  const getStars = (rating: number) => {
+    const stars: ("star" | "star-half" | "star-border")[] = [];
+    const ratingNum = parseFloat(rating.toString());
+    for (let i = 1; i <= 5; i += 1) {
+      if (ratingNum >= i) {
+        stars.push("star");
+      } else if (ratingNum >= i - 0.5) {
+        stars.push("star-half");
+      } else {
+        stars.push("star-border");
+      }
+    }
+    return stars;
+  };
 
-  // Dummy staff data
-  const staffMembers = [
-    {
-      id: 1,
-      name: "Umut Hasanoglu",
-      experience: null,
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-    },
-    {
-      id: 2,
-      name: "Sanna Granqvist",
-      experience: 6,
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-    },
-    {
-      id: 3,
-      name: "Suman Pramanik",
-      experience: 12,
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-    },
-    {
-      id: 4,
-      name: "Md Biplob Um Hos...",
-      experience: 11,
-      image:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
-    },
-    {
-      id: 5,
-      name: "Safayet Hossain",
-      experience: 4,
-      image:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
-    },
-    {
-      id: 6,
-      name: "Md Shariful Islam K...",
-      experience: 19,
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
-    },
-    {
-      id: 7,
-      name: "John Smith",
-      experience: 8,
-      image:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
-    },
-    {
-      id: 8,
-      name: "Sarah Johnson",
-      experience: 5,
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-    },
-    {
-      id: 9,
-      name: "Michael Brown",
-      experience: 15,
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-    },
-    {
-      id: 10,
-      name: "Emily Davis",
-      experience: 3,
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-    },
-  ];
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).format("MMMM D, YYYY");
+  };
+
+  const getProfileImageUrl = (profileImageUrl: string | null) => {
+    if (profileImageUrl) {
+      return `${process.env.EXPO_PUBLIC_API_BASE_URL}${profileImageUrl}`;
+    }
+    return DEFAULT_AVATAR_URL;
+  };
+
+  const renderReviewCard = (
+    review: (typeof reviews)[0],
+    isHorizontal = false
+  ) => {
+    const reviewText = review.comment || "";
+    const isExpanded = expandedReviews[review.id.toString()];
+    const shouldShowSeeMore = reviewText.length > textWrapLength && !isExpanded;
+
+    return (
+      <View
+        style={[styles.reviewCard, isHorizontal && styles.reviewCardHorizontal]}
+      >
+        <View style={styles.reviewCardHeaderRow}>
+          <View style={styles.reviewAvatar}>
+            <Image
+              source={{
+                uri: getProfileImageUrl(review.user.profile_image_url),
+              }}
+              style={styles.reviewAvatarImage}
+            />
+          </View>
+          <View style={styles.reviewUserInfo}>
+            <Text style={styles.reviewNameText}>
+              {review.user.name || "User"}
+            </Text>
+            <Text style={styles.reviewDateText}>
+              {formatDate(review.created_at)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.reviewStarsRow}>
+          {getStars(parseFloat(review.overall_rating)).map((icon, index) => (
+            <MaterialIcons
+              key={`${review.id}-star-${index}`}
+              name={icon}
+              size={moderateWidthScale(18)}
+              color={theme.darkGreen}
+              style={styles.reviewStarIcon}
+            />
+          ))}
+        </View>
+
+        {reviewText && (
+          <>
+            <Text style={styles.reviewCardText}>
+              {isExpanded || reviewText.length <= textWrapLength
+                ? reviewText
+                : `${reviewText.slice(0, textWrapLength).trim()}...`}
+            </Text>
+
+            {shouldShowSeeMore && (
+              <Text
+                style={styles.reviewSeeMoreText}
+                onPress={() =>
+                  setExpandedReviews((prev) => ({
+                    ...prev,
+                    [review.id.toString()]: true,
+                  }))
+                }
+              >
+                See more
+              </Text>
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
+
+  const renderRatingsContent = () => {
+    const displayedReviews = reviews.slice(0, 5);
+    const hasMoreReviews = reviews.length > 5;
+
+    return (
+      <View style={styles.contentContainer}>
+        <View style={styles.ratingsSectionContent}>
+          <Text
+            style={[
+              styles.sectionTitle,
+              { paddingHorizontal: moderateWidthScale(20) },
+            ]}
+          >
+            What other say
+          </Text>
+          {/* Rating Summary */}
+          <View style={styles.ratingSummaryContainer}>
+            <View style={styles.ratingBadgeContainer}>
+              <StarIcon
+                width={widthScale(12)}
+                height={heightScale(12)}
+                color={theme.selectCard}
+              />
+              <Text style={styles.ratingBadgeText}>
+                {averageRating}/ {totalReviews} reviews
+              </Text>
+            </View>
+            <Text style={styles.averageRatingText}>
+              {averageRating} Average
+            </Text>
+          </View>
+
+          {/* Horizontal Scroll Reviews */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.reviewsHorizontalScroll}
+          >
+            {displayedReviews.map((review) => (
+              <View key={review.id}>{renderReviewCard(review, true)}</View>
+            ))}
+          </ScrollView>
+
+          {/* Show All Reviews Button */}
+          {hasMoreReviews && (
+            <TouchableOpacity
+              style={styles.showAllReviewsButton}
+              onPress={() => setAllReviewsModalVisible(true)}
+            >
+              <Text style={styles.showAllReviewsText}>
+                Show all {totalReviews} reviews
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   const renderStaffContent = () => {
     const displayedStaff = showAllStaff
@@ -1725,6 +2115,47 @@ export default function BusinessDetailScreen() {
                 <Text key={index} style={styles.inclusionsModalItem}>
                   {inclusion}
                 </Text>
+              ))}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* All Reviews Modal */}
+      <Modal
+        visible={allReviewsModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAllReviewsModalVisible(false)}
+      >
+        <Pressable
+          style={styles.allReviewsModalOverlay}
+          onPress={() => setAllReviewsModalVisible(false)}
+        >
+          <Pressable
+            style={styles.allReviewsModalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.allReviewsModalHeader}>
+              <Text style={styles.allReviewsModalTitle}>All Reviews</Text>
+              <TouchableOpacity
+                style={styles.allReviewsModalCloseButton}
+                onPress={() => setAllReviewsModalVisible(false)}
+              >
+                <CloseIcon width={widthScale(20)} height={heightScale(20)} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={styles.allReviewsModalContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {reviews.map((review) => (
+                <View
+                  key={review.id}
+                  style={{ marginBottom: moderateHeightScale(16) }}
+                >
+                  {renderReviewCard(review, false)}
+                </View>
               ))}
             </ScrollView>
           </Pressable>
