@@ -1080,8 +1080,8 @@ export default function BusinessDetailScreen() {
     "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80"
   );
   const [isAboutExpanded, setIsAboutExpanded] = useState(false);
-  const [isMembershipExpanded, setIsMembershipExpanded] = useState(true);
-  const [isIndividualExpanded, setIsIndividualExpanded] = useState(true);
+  const [isMembershipExpanded, setIsMembershipExpanded] = useState(false);
+  const [isIndividualExpanded, setIsIndividualExpanded] = useState(false);
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState("All");
   const [selectedServiceFilter, setSelectedServiceFilter] = useState("All");
