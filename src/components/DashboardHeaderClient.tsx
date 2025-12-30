@@ -1,9 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
   View,
   TouchableOpacity,
+  Pressable,
 } from "react-native";
 import { useTheme, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -16,6 +17,7 @@ import {
 } from "@/src/theme/dimensions";
 import { LeafLogo, CalendarIcon, LocationPinIcon, ChevronDownIcon } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import LocationModal from "@/src/components/locationModal";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -87,59 +89,69 @@ export default function DashboardHeaderClient() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
   const location = useAppSelector((state) => state.user.location);
+  const [locationModalVisible, setLocationModalVisible] = useState(false);
 
   const locationName = location?.locationName || "Miami-Dade County, FL";
 
   return (
-    <View
-      style={[
-        styles.headerContainer,
-        { paddingTop: insets.top + moderateHeightScale(12) },
-      ]}
-    >
-      <View style={styles.locationContainer}>
-        <View style={styles.logoContainer}>
-          <LeafLogo
-            width={widthScale(26)}
-            height={heightScale(32)}
-            color1={theme.orangeBrown}
-            color2={theme.darkGreen}
-          />
-        </View>
-        <View style={styles.locationLeft}>
-          <View style={styles.locationContent}>
-            <Text style={styles.locationLabel}>Location</Text>
-            <View style={styles.locationValue}>
-              <LocationPinIcon
-                width={widthScale(18)}
-                height={heightScale(18)}
-                color={theme.darkGreen}
-              />
-              <Text numberOfLines={1} style={styles.locationText}>
-                {locationName}
-              </Text>
-              <ChevronDownIcon
-                width={widthScale(9)}
-                height={heightScale(5)}
-                color={theme.darkGreen}
-              />
-            </View>
+    <>
+      <View
+        style={[
+          styles.headerContainer,
+          { paddingTop: insets.top + moderateHeightScale(12) },
+        ]}
+      >
+        <View style={styles.locationContainer}>
+          <View style={styles.logoContainer}>
+            <LeafLogo
+              width={widthScale(26)}
+              height={heightScale(32)}
+              color1={theme.orangeBrown}
+              color2={theme.darkGreen}
+            />
           </View>
+          <Pressable
+            style={styles.locationLeft}
+            onPress={() => setLocationModalVisible(true)}
+          >
+            <View style={styles.locationContent}>
+              <Text style={styles.locationLabel}>Location</Text>
+              <View style={styles.locationValue}>
+                <LocationPinIcon
+                  width={widthScale(18)}
+                  height={heightScale(18)}
+                  color={theme.darkGreen}
+                />
+                <Text numberOfLines={1} style={styles.locationText}>
+                  {locationName}
+                </Text>
+                <ChevronDownIcon
+                  width={widthScale(9)}
+                  height={heightScale(5)}
+                  color={theme.darkGreen}
+                />
+              </View>
+            </View>
+          </Pressable>
+          <TouchableOpacity style={styles.whenButton}>
+            <CalendarIcon
+              width={widthScale(13.33)}
+              height={heightScale(14.67)}
+              color={theme.darkGreenLight}
+            />
+            <Text style={styles.whenText}>When?</Text>
+            <ChevronDownIcon
+              width={widthScale(8)}
+              height={heightScale(4)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.whenButton}>
-          <CalendarIcon
-            width={widthScale(13.33)}
-            height={heightScale(14.67)}
-            color={theme.darkGreenLight}
-          />
-          <Text style={styles.whenText}>When?</Text>
-          <ChevronDownIcon
-            width={widthScale(8)}
-            height={heightScale(4)}
-            color={theme.darkGreen}
-          />
-        </TouchableOpacity>
       </View>
-    </View>
+      <LocationModal
+        visible={locationModalVisible}
+        onClose={() => setLocationModalVisible(false)}
+      />
+    </>
   );
 }
