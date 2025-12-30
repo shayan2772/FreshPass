@@ -485,15 +485,30 @@ const createStyles = (theme: Theme) =>
       top: 1,
     },
     sectionTitle: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size19,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      paddingHorizontal: moderateWidthScale(20),
+      marginTop: moderateHeightScale(5),
+    },
+    sectionSubTitle: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      maxWidth:"75%"
+    },
+    sectionViewMore: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.orangeBrown,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.orangeBrown,
     },
     serviceCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(16),
-      marginHorizontal: moderateWidthScale(20),
+      marginRight: moderateWidthScale(12),
       marginBottom: moderateHeightScale(12),
       width: widthScale(280),
     },
@@ -501,12 +516,12 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(8),
     },
     servicePrice: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(8),
     },
     priceCurrent: {
       fontSize: fontSize.size18,
@@ -526,20 +541,29 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       marginBottom: moderateHeightScale(8),
     },
+    serviceBottomRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginTop: moderateHeightScale(8),
+    },
     serviceDuration: {
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-      marginBottom: moderateHeightScale(12),
+    },
+    serviceButtonContainer: {
+      alignSelf: "flex-end",
     },
     servicesScroll: {
+      paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(16),
     },
     subscriptionCard: {
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(16),
-      marginHorizontal: moderateWidthScale(20),
+      marginRight: moderateWidthScale(12),
       marginBottom: moderateHeightScale(12),
       width: widthScale(280),
     },
@@ -550,13 +574,23 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(12),
       backgroundColor: theme.lightGreen2,
     },
+    offerBadgesContainer: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: moderateWidthScale(8),
+      marginBottom: moderateHeightScale(12),
+    },
     offerBadge: {
-      backgroundColor: theme.orangeBrown,
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
       alignSelf: "flex-start",
-      marginBottom: moderateHeightScale(8),
+    },
+    offerBadgeOrange: {
+      backgroundColor: theme.orangeBrown,
+    },
+    offerBadgeGreen: {
+      backgroundColor: theme.buttonBack,
     },
     offerText: {
       fontSize: fontSize.size12,
@@ -579,6 +613,22 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.primary,
+    },
+    subscriptionPrice: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: moderateHeightScale(8),
+    },
+    subscriptionPriceContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    subscriptionButtonContainer: {
+      alignSelf: "flex-end",
+    },
+    sectionContainer: {
+      marginBottom: moderateHeightScale(24),
     },
   });
 
@@ -614,104 +664,123 @@ const membershipFilters = [
   { id: "vip-elite", label: "VIP Elite", isPrimary: false },
 ];
 
-const services = [
+// Section-based data structure
+interface ServiceItem {
+  id: number;
+  title: string;
+  price: number;
+  originalPrice: number;
+  description: string;
+  duration: string;
+}
+
+interface SubscriptionItem {
+  id: number;
+  title: string;
+  price: number;
+  originalPrice: number;
+  offer: string;
+  offer2?: string;
+  inclusions: string[];
+  image: string | null;
+}
+
+interface ServiceSection {
+  id: number;
+  sectionTitle: string;
+  businessName: string;
+  type: "individual" | "subscription";
+  services?: ServiceItem[];
+  subscriptions?: SubscriptionItem[];
+}
+
+const serviceSections: ServiceSection[] = [
   {
     id: 1,
-    title: "Wet Haircut",
-    price: 45.99,
-    originalPrice: 50.99,
-    description: "This service includes we wash and cut",
-    duration: "45 mins",
+    sectionTitle: "Nearest to you",
+    businessName: "Ra Benjamin Styles LLC",
+    type: "individual",
+    services: [
+      {
+        id: 1,
+        title: "Wet Haircut",
+        price: 45.99,
+        originalPrice: 50.99,
+        description: "This service includes we wash and cut",
+        duration: "45 mins",
+      },
+      {
+        id: 2,
+        title: "Wet Haircut",
+        price: 45.99,
+        originalPrice: 50.99,
+        description: "This service includes we wash and cut",
+        duration: "45 mins",
+      },
+    ],
   },
   {
     id: 2,
-    title: "Beard Trim & Style",
-    price: 25.99,
-    originalPrice: 30.99,
-    description: "Professional beard trimming and styling service",
-    duration: "30 mins",
-  },
-  {
-    id: 3,
-    title: "Blow Dry & Style",
-    price: 35.99,
-    originalPrice: 40.99,
-    description: "Complete blow dry and styling service",
-    duration: "40 mins",
-  },
-  {
-    id: 4,
-    title: "Haircut & Beard Trim",
-    price: 55.99,
-    originalPrice: 65.99,
-    description: "Combined haircut and beard trim package",
-    duration: "60 mins",
-  },
-  {
-    id: 5,
-    title: "Premium Haircut",
-    price: 65.99,
-    originalPrice: 75.99,
-    description: "Premium haircut with styling consultation",
-    duration: "50 mins",
+    sectionTitle: "Nearest to you",
+    businessName: "Beach Club Salon & Spa",
+    type: "individual",
+    services: [
+      {
+        id: 3,
+        title: "Wet Haircut",
+        price: 45.99,
+        originalPrice: 50.99,
+        description: "This service includes we wash and cut",
+        duration: "45 mins",
+      },
+      {
+        id: 4,
+        title: "Wet Haircut",
+        price: 45.99,
+        originalPrice: 50.99,
+        description: "This service includes we wash and cut",
+        duration: "45 mins",
+      },
+    ],
   },
 ];
 
-const subscriptions = [
+const subscriptionSections: ServiceSection[] = [
   {
     id: 1,
-    title: "Classic Care Membership",
-    offer: "15% Off All Products",
-    offer2: "Get 1 free facial per month",
-    inclusions: [
-      "1. 2 Premium Haircuts per month",
-      "2. 1 Free Styling Service",
-      "3. 10% discount on all products",
-      "+3 more",
+    sectionTitle: "Nearest to you",
+    businessName: "Ra Benjamin Styles LLC",
+    type: "subscription",
+    subscriptions: [
+      {
+        id: 1,
+        title: "The Full Luxury Experience",
+        price: 45.99,
+        originalPrice: 50.99,
+        offer: "15% Off All Products",
+        offer2: "Get 1 free facial per month",
+        inclusions: [
+          "1. 2 Premium Haircuts",
+          "2. 1 Free Styling Service",
+          "and +3 more",
+        ],
+        image: null,
+      },
+      {
+        id: 2,
+        title: "The Full Luxury Experience",
+        price: 29.99,
+        originalPrice: 40.99,
+        offer: "Save 20%",
+        offer2: "LIMITED TIME OFFER",
+        inclusions: [
+          "1. 2 Premium Haircuts",
+          "2. 1 Free Styling Service",
+          "and +2 more",
+        ],
+        image: null,
+      },
     ],
-    image: null,
-  },
-  {
-    id: 2,
-    title: "Gold Glam Membership",
-    offer: "Save 20%",
-    offer2: "LIMITED TIME OFFER",
-    inclusions: [
-      "1. 4 Premium Haircuts per month",
-      "2. 2 Free Styling Services",
-      "3. 15% discount on all products",
-      "4. Priority booking",
-      "+2 more",
-    ],
-    image: null,
-  },
-  {
-    id: 3,
-    title: "VIP Elite Membership",
-    offer: "Save 30%",
-    offer2: "PREMIUM PACKAGE",
-    inclusions: [
-      "1. Unlimited Premium Haircuts",
-      "2. Unlimited Styling Services",
-      "3. 20% discount on all products",
-      "4. Priority booking & VIP lounge access",
-      "5. Free monthly grooming products",
-      "+5 more",
-    ],
-    image: null,
-  },
-  {
-    id: 4,
-    title: "Classic Care Plus",
-    offer: "Save 18%",
-    offer2: "NEW MEMBERS ONLY",
-    inclusions: [
-      "1. 3 Premium Haircuts per month",
-      "2. 1 Free Beard Trim",
-      "3. 12% discount on all products",
-      "+2 more",
-    ],
-    image: null,
   },
 ];
 
@@ -1112,7 +1181,7 @@ export default function DashboardContent() {
         </View>
       </View>
 
-      {/*Booking appointment card*/}
+      {/*Booking appointment card or Platform Verified Salon*/}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -1120,144 +1189,140 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointments.map((appointment, index) => (
-          <View
-            key={appointment.id}
-            style={[
-              styles.verifiedSalonCard,
-              index < appointments.length - 1 && {
-                marginRight: moderateWidthScale(12),
-              },
-            ]}
-          >
-            <View style={styles.verifiedCardTopRow}>
-              <View style={styles.verifiedBadge}>
-                <Text style={styles.verifiedBadgeText}>
-                  {appointment.badgeText}
-                </Text>
-              </View>
-              <View style={styles.dateTimeBadge}>
-                <Text style={styles.dateTimeBadgeText}>
-                  {appointment.dateTime}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.verifiedCardContent}>
-              <Image
-                source={{
-                  uri: appointment.image,
-                }}
-                style={styles.verifiedCardImage}
-                resizeMode="cover"
-              />
-              <View style={styles.verifiedCardTextContainer}>
-                <Text numberOfLines={1} style={styles.salonName}>
-                  {appointment.salonName}
-                </Text>
-                <View style={styles.verifiedCardInfoRow}>
-                  <MonitorIcon
-                    width={widthScale(16)}
-                    height={heightScale(16)}
-                    color={theme.white}
-                  />
-                  <Text style={styles.verifiedCardInfoText}>
-                    {appointment.membershipInfo}
-                  </Text>
-                </View>
-                <View style={styles.verifiedCardInfoRow2}>
-                  <View style={[styles.verifiedCardInfoRow, { width: "58%" }]}>
-                    <PersonIcon
-                      width={widthScale(16)}
-                      height={heightScale(16)}
-                      color={theme.white}
-                    />
-                    <Text numberOfLines={1} style={styles.verifiedCardInfoText}>
-                      {appointment.stylistName}
+        {appointments.length > 0
+          ? appointments.map((appointment, index) => (
+              <View
+                key={appointment.id}
+                style={[
+                  styles.verifiedSalonCard,
+                  index < appointments.length - 1 && {
+                    marginRight: moderateWidthScale(12),
+                  },
+                ]}
+              >
+                <View style={styles.verifiedCardTopRow}>
+                  <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedBadgeText}>
+                      {appointment.badgeText}
                     </Text>
                   </View>
-
-                  <TouchableOpacity style={styles.viewDetailLink}>
-                    <Text style={styles.viewDetailText}>View detail</Text>
-                    <ChevronRight
-                      width={widthScale(4)}
-                      height={heightScale(8)}
-                      color={theme.orangeBrown}
-                    />
-                  </TouchableOpacity>
+                  <View style={styles.dateTimeBadge}>
+                    <Text style={styles.dateTimeBadgeText}>
+                      {appointment.dateTime}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </View>
-          </View>
-        ))}
-      </ScrollView>
-
-      {/*Platform Verified Salon*/}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.appCard}
-        contentContainerStyle={styles.appointmentsScroll}
-        nestedScrollEnabled={true}
-      >
-        {verifiedSalons.map((salon, index) => (
-          <View
-            key={salon.id}
-            style={[
-              styles.verifiedSalonCardNew,
-              index < verifiedSalons.length - 1 && {
-                marginRight: moderateWidthScale(12),
-              },
-            ]}
-          >
-            <Image
-              source={{
-                uri: salon.image,
-              }}
-              style={styles.verifiedSalonImage}
-              resizeMode="cover"
-            />
-
-            <View style={styles.verifiedSalonContent}>
-              <View style={styles.platformVerifiedBadge}>
-                <PlatformVerifiedStarIcon
-                  width={widthScale(10)}
-                  height={heightScale(10)}
-                />
-                <Text style={styles.platformVerifiedText}>
-                  Platform verified
-                </Text>
-              </View>
-              <View style={{ gap: moderateHeightScale(6) }}>
-                <Text
-                  numberOfLines={1}
-                  style={styles.verifiedSalonBusinessName}
-                >
-                  {salon.businessName}
-                </Text>
-                <Text numberOfLines={1} style={styles.verifiedSalonAddress}>
-                  {salon.address}
-                </Text>
-              </View>
-              <View style={styles.verifiedSalonBottomRow}>
-                <View style={styles.verifiedSalonRatingButton}>
-                  <StarIcon
-                    width={widthScale(12)}
-                    height={heightScale(12)}
-                    color={theme.orangeBrown}
+                <View style={styles.verifiedCardContent}>
+                  <Image
+                    source={{
+                      uri: appointment.image,
+                    }}
+                    style={styles.verifiedCardImage}
+                    resizeMode="cover"
                   />
-                  <Text style={styles.verifiedSalonRatingText}>
-                    {salon.rating}/ {salon.reviewCount} reviews
-                  </Text>
+                  <View style={styles.verifiedCardTextContainer}>
+                    <Text numberOfLines={1} style={styles.salonName}>
+                      {appointment.salonName}
+                    </Text>
+                    <View style={styles.verifiedCardInfoRow}>
+                      <MonitorIcon
+                        width={widthScale(16)}
+                        height={heightScale(16)}
+                        color={theme.white}
+                      />
+                      <Text style={styles.verifiedCardInfoText}>
+                        {appointment.membershipInfo}
+                      </Text>
+                    </View>
+                    <View style={styles.verifiedCardInfoRow2}>
+                      <View
+                        style={[styles.verifiedCardInfoRow, { width: "58%" }]}
+                      >
+                        <PersonIcon
+                          width={widthScale(16)}
+                          height={heightScale(16)}
+                          color={theme.white}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={styles.verifiedCardInfoText}
+                        >
+                          {appointment.stylistName}
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity style={styles.viewDetailLink}>
+                        <Text style={styles.viewDetailText}>View detail</Text>
+                        <ChevronRight
+                          width={widthScale(4)}
+                          height={heightScale(8)}
+                          color={theme.orangeBrown}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </View>
-                <TouchableOpacity style={styles.verifiedSalonViewDetail}>
-                  <Text style={styles.verifiedSalonViewDetailText}>
-                    View detail
-                  </Text>
-                </TouchableOpacity>
               </View>
-            </View>
-          </View>
-        ))}
+            ))
+          : verifiedSalons.map((salon, index) => (
+              <View
+                key={salon.id}
+                style={[
+                  styles.verifiedSalonCardNew,
+                  index < verifiedSalons.length - 1 && {
+                    marginRight: moderateWidthScale(12),
+                  },
+                ]}
+              >
+                <Image
+                  source={{
+                    uri: salon.image,
+                  }}
+                  style={styles.verifiedSalonImage}
+                  resizeMode="cover"
+                />
+
+                <View style={styles.verifiedSalonContent}>
+                  <View style={styles.platformVerifiedBadge}>
+                    <PlatformVerifiedStarIcon
+                      width={widthScale(10)}
+                      height={heightScale(10)}
+                    />
+                    <Text style={styles.platformVerifiedText}>
+                      Platform verified
+                    </Text>
+                  </View>
+                  <View style={{ gap: moderateHeightScale(6) }}>
+                    <Text
+                      numberOfLines={1}
+                      style={styles.verifiedSalonBusinessName}
+                    >
+                      {salon.businessName}
+                    </Text>
+                    <Text numberOfLines={1} style={styles.verifiedSalonAddress}>
+                      {salon.address}
+                    </Text>
+                  </View>
+                  <View style={styles.verifiedSalonBottomRow}>
+                    <View style={styles.verifiedSalonRatingButton}>
+                      <StarIcon
+                        width={widthScale(12)}
+                        height={heightScale(12)}
+                        color={theme.orangeBrown}
+                      />
+                      <Text style={styles.verifiedSalonRatingText}>
+                        {salon.rating}/ {salon.reviewCount} reviews
+                      </Text>
+                    </View>
+                    <TouchableOpacity style={styles.verifiedSalonViewDetail}>
+                      <Text style={styles.verifiedSalonViewDetailText}>
+                        View detail
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ))}
       </ScrollView>
 
       {/* Service Filters (for Individual Services) */}
@@ -1276,105 +1341,34 @@ export default function DashboardContent() {
           setSelectedMembershipFilter
         )}
 
-      {/* Nearest to you Section */}
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "space-between",
-          alignItems: "center",
-          paddingHorizontal: moderateWidthScale(20),
-          marginTop: moderateHeightScale(16),
-          marginBottom: moderateHeightScale(12),
-        }}
-      >
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={styles.sectionTitle}>Nearest to you</Text>
-          <Text
-            style={{
-              fontSize: fontSize.size18,
-              fontFamily: fonts.fontBold,
-              color: theme.darkGreen,
-              marginLeft: moderateWidthScale(8),
-            }}
-          >
-            Ra Benjamin Styles LLC
-          </Text>
-        </View>
-        <TouchableOpacity>
-          <Text
-            style={{
-              fontSize: fontSize.size14,
-              fontFamily: fonts.fontBold,
-              color: theme.primary,
-            }}
-          >
-            View more
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {/* Sections */}
+      <Text style={styles.sectionTitle}>Nearest to you</Text>
+      {(tab === "individual" ? serviceSections : subscriptionSections).map(
+        (section, sectionIndex) => (
+          <View key={section.id} style={styles.sectionContainer}>
+            {/* Section Header */}
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                paddingHorizontal: moderateWidthScale(20),
+                marginTop:
+                  sectionIndex === 0
+                    ? moderateHeightScale(16)
+                    : moderateHeightScale(24),
+                marginBottom: moderateHeightScale(12),
+              }}
+            >
+              <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
+              <TouchableOpacity>
+                <Text style={styles.sectionViewMore}>View more</Text>
+              </TouchableOpacity>
+            </View>
 
-      {tab === "individual" ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.servicesScroll}
-        >
-          {services.map((service) => (
-            <View key={service.id} style={styles.serviceCard}>
-              <Text style={styles.serviceTitle}>{service.title}</Text>
-              <View style={styles.servicePrice}>
-                <Text style={styles.priceCurrent}>${service.price}</Text>
-                <Text style={styles.priceOriginal}>
-                  ${service.originalPrice}
-                </Text>
-              </View>
-              <Text style={styles.serviceDescription}>
-                {service.description}
-              </Text>
-              <Text style={styles.serviceDuration}>{service.duration}</Text>
-              <Button
-                title="Book Now"
-                onPress={() => {}}
-                containerStyle={{
-                  backgroundColor: theme.orangeBrown,
-                }}
-                textColor={theme.white}
-              />
-            </View>
-          ))}
-        </ScrollView>
-      ) : (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.servicesScroll}
-        >
-          {subscriptions.map((subscription) => (
-            <View key={subscription.id} style={styles.subscriptionCard}>
-              <View style={styles.subscriptionImage} />
-              <View style={styles.offerBadge}>
-                <Text style={styles.offerText}>{subscription.offer}</Text>
-              </View>
-              {subscription.offer2 && (
-                <View style={styles.offerBadge}>
-                  <Text style={styles.offerText}>{subscription.offer2}</Text>
-                </View>
-              )}
-              <Text style={styles.subscriptionTitle}>{subscription.title}</Text>
-              {subscription.inclusions.map((inclusion, index) => (
-                <Text
-                  key={index}
-                  style={[
-                    styles.inclusionItem,
-                    inclusion.startsWith("+") && styles.moreText,
-                  ]}
-                >
-                  {inclusion}
-                </Text>
-              ))}
-            </View>
-          ))}
-        </ScrollView>
+            {/* Services or Subscriptions */}
+            
+          </View>
+        )
       )}
     </ScrollView>
   );
