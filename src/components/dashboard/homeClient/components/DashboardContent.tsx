@@ -21,7 +21,11 @@ import {
 } from "@/src/theme/dimensions";
 import Button from "@/src/components/button";
 import { SvgXml } from "react-native-svg";
-import { PersonIcon, MonitorIcon } from "@/assets/icons";
+import {
+  PersonIcon,
+  MonitorIcon,
+  PlatformVerifiedStarIcon,
+} from "@/assets/icons";
 
 // Star Icon SVG
 const starIconSvg = `
@@ -252,18 +256,27 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       marginRight: moderateWidthScale(2),
     },
+    appCard: {
+      height: heightScale(165),
+    },
+    appointmentsScroll: {
+      paddingHorizontal: moderateWidthScale(20),
+    },
     verifiedSalonCard: {
       backgroundColor: theme.darkGreen,
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(16),
-      marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(16),
+      height: heightScale(140),
+      width: widthScale(310),
+      alignItems: "center",
+      justifyContent: "center",
     },
     verifiedCardTopRow: {
       flexDirection: "row",
       alignItems: "center",
       marginBottom: moderateHeightScale(12),
       gap: moderateWidthScale(4),
+      width: "100%",
     },
     verifiedBadge: {
       backgroundColor: theme.orangeBrown,
@@ -300,6 +313,15 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(999),
       backgroundColor: theme.lightGreen2,
     },
+    verifiedCardImageNew: {
+      width: widthScale(105),
+      height: heightScale(120),
+      borderRadius: moderateWidthScale(999),
+      backgroundColor: theme.lightGreen2,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+    },
     verifiedCardTextContainer: {
       flex: 1,
       gap: moderateHeightScale(4),
@@ -317,7 +339,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      width:"100%"
+      width: "100%",
     },
     verifiedCardInfoText: {
       fontSize: fontSize.size11,
@@ -335,6 +357,82 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.orangeBrown,
+    },
+    verifiedSalonCardNew: {
+      backgroundColor: theme.darkGreen,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      height: heightScale(140),
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(12),
+      width: widthScale(310),
+    },
+
+    verifiedSalonImage: {
+      width: widthScale(100),
+      height: heightScale(110),
+      borderRadius: moderateWidthScale(6),
+      backgroundColor: theme.lightGreen2,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+    },
+    platformVerifiedBadge: {
+      backgroundColor: theme.darkGreenLight,
+      paddingHorizontal: moderateWidthScale(10),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(999),
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(6),
+    },
+    platformVerifiedText: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+    },
+    verifiedSalonContent: {
+      gap: moderateHeightScale(12),
+      width: "60%",
+    },
+    verifiedSalonBusinessName: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+    },
+    verifiedSalonAddress: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontRegular,
+      color: theme.white80,
+    },
+    verifiedSalonBottomRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    verifiedSalonRatingButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(6),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(999),
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.white70,
+      gap: moderateWidthScale(6),
+    },
+    verifiedSalonRatingText: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontRegular,
+      color: theme.white,
+    },
+    verifiedSalonViewDetail: {},
+    verifiedSalonViewDetailText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.orangeBrown,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.orangeBrown,
     },
     filtersContainer: {
       marginBottom: moderateHeightScale(16),
@@ -613,6 +711,50 @@ const subscriptions = [
       "+2 more",
     ],
     image: null,
+  },
+];
+
+const appointments = [
+  {
+    id: 1,
+    badgeText: "Upcoming appointment",
+    dateTime: "Tue, Oct 15 at 3:00 PM",
+    image:
+      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+    salonName: "Premium Haircut & Styling",
+    membershipInfo: "Golder member • 2 visit left",
+    stylistName: "Sanna Granqvist",
+  },
+  {
+    id: 2,
+    badgeText: "Upcoming appointment",
+    dateTime: "Wed, Oct 16 at 2:30 PM",
+    image:
+      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+    salonName: "Elite Hair Studio",
+    membershipInfo: "Silver member • 5 visit left",
+    stylistName: "John Anderson",
+  },
+];
+
+const verifiedSalons = [
+  {
+    id: 1,
+    businessName: "Ra Benjamin Styles LLC",
+    address: "9853 E Fern ST, Palmetto Bay, 33157",
+    rating: 4.9,
+    reviewCount: 64,
+    image:
+      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+  },
+  {
+    id: 2,
+    businessName: "Elite Hair Studio",
+    address: "123 Main St, Miami, 33101",
+    rating: 4.8,
+    reviewCount: 120,
+    image:
+      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
   },
 ];
 
@@ -969,63 +1111,153 @@ export default function DashboardContent() {
         </View>
       </View>
 
-      {/* Platform Verified Salon*/}
-      <View style={styles.verifiedSalonCard}>
-        <View style={styles.verifiedCardTopRow}>
-          <View style={styles.verifiedBadge}>
-            <Text style={styles.verifiedBadgeText}>Upcoming appointment</Text>
-          </View>
-          <View style={styles.dateTimeBadge}>
-            <Text style={styles.dateTimeBadgeText}>Tue, Oct 15 at 3:00 PM</Text>
-          </View>
-        </View>
-        <View style={styles.verifiedCardContent}>
-          <Image
-            source={{
-              uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-            }}
-            style={styles.verifiedCardImage}
-            resizeMode="cover"
-          />
-          <View style={styles.verifiedCardTextContainer}>
-            <Text numberOfLines={1} style={styles.salonName}>Premium Haircut & Styling</Text>
-            <View style={styles.verifiedCardInfoRow}>
-              <MonitorIcon
-                width={widthScale(16)}
-                height={heightScale(16)}
-                color={theme.white}
-              />
-              <Text style={styles.verifiedCardInfoText}>
-                Golder member • 2 visit left
-              </Text>
-            </View>
-            <View style={styles.verifiedCardInfoRow2}>
-              <View
-                style={[
-                  styles.verifiedCardInfoRow,
-                  { width: "58%" },
-                ]}
-              >
-                <PersonIcon
-                  width={widthScale(16)}
-                  height={heightScale(16)}
-                  color={theme.white}
-                />
-                <Text numberOfLines={1} style={styles.verifiedCardInfoText}>Sanna Granqvist</Text>
+      {/*Booking appointment card*/}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.appCard}
+        contentContainerStyle={styles.appointmentsScroll}
+        nestedScrollEnabled={true}
+      >
+        {appointments.map((appointment, index) => (
+          <View
+            key={appointment.id}
+            style={[
+              styles.verifiedSalonCard,
+              index < appointments.length - 1 && {
+                marginRight: moderateWidthScale(12),
+              },
+            ]}
+          >
+            <View style={styles.verifiedCardTopRow}>
+              <View style={styles.verifiedBadge}>
+                <Text style={styles.verifiedBadgeText}>
+                  {appointment.badgeText}
+                </Text>
               </View>
+              <View style={styles.dateTimeBadge}>
+                <Text style={styles.dateTimeBadgeText}>
+                  {appointment.dateTime}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.verifiedCardContent}>
+              <Image
+                source={{
+                  uri: appointment.image,
+                }}
+                style={styles.verifiedCardImage}
+                resizeMode="cover"
+              />
+              <View style={styles.verifiedCardTextContainer}>
+                <Text numberOfLines={1} style={styles.salonName}>
+                  {appointment.salonName}
+                </Text>
+                <View style={styles.verifiedCardInfoRow}>
+                  <MonitorIcon
+                    width={widthScale(16)}
+                    height={heightScale(16)}
+                    color={theme.white}
+                  />
+                  <Text style={styles.verifiedCardInfoText}>
+                    {appointment.membershipInfo}
+                  </Text>
+                </View>
+                <View style={styles.verifiedCardInfoRow2}>
+                  <View style={[styles.verifiedCardInfoRow, { width: "58%" }]}>
+                    <PersonIcon
+                      width={widthScale(16)}
+                      height={heightScale(16)}
+                      color={theme.white}
+                    />
+                    <Text numberOfLines={1} style={styles.verifiedCardInfoText}>
+                      {appointment.stylistName}
+                    </Text>
+                  </View>
 
-              <TouchableOpacity style={styles.viewDetailLink}>
-                <Text style={styles.viewDetailText}>View detail</Text>
-                <ChevronRight
-                  width={widthScale(4)}
-                  height={heightScale(8)}
-                  color={theme.orangeBrown}
-                />
-              </TouchableOpacity>
+                  <TouchableOpacity style={styles.viewDetailLink}>
+                    <Text style={styles.viewDetailText}>View detail</Text>
+                    <ChevronRight
+                      width={widthScale(4)}
+                      height={heightScale(8)}
+                      color={theme.orangeBrown}
+                    />
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
-        </View>
-      </View>
+        ))}
+      </ScrollView>
+
+      {/*Platform Verified Salon*/}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.appCard}
+        contentContainerStyle={styles.appointmentsScroll}
+        nestedScrollEnabled={true}
+      >
+        {verifiedSalons.map((salon, index) => (
+          <View
+            key={salon.id}
+            style={[
+              styles.verifiedSalonCardNew,
+              index < verifiedSalons.length - 1 && {
+                marginRight: moderateWidthScale(12),
+              },
+            ]}
+          >
+            <Image
+              source={{
+                uri: salon.image,
+              }}
+              style={styles.verifiedSalonImage}
+              resizeMode="cover"
+            />
+
+            <View style={styles.verifiedSalonContent}>
+              <View style={styles.platformVerifiedBadge}>
+                <PlatformVerifiedStarIcon
+                  width={widthScale(10)}
+                  height={heightScale(10)}
+                />
+                <Text style={styles.platformVerifiedText}>
+                  Platform verified
+                </Text>
+              </View>
+              <View style={{ gap: moderateHeightScale(6) }}>
+                <Text
+                  numberOfLines={1}
+                  style={styles.verifiedSalonBusinessName}
+                >
+                  {salon.businessName}
+                </Text>
+                <Text numberOfLines={1} style={styles.verifiedSalonAddress}>
+                  {salon.address}
+                </Text>
+              </View>
+              <View style={styles.verifiedSalonBottomRow}>
+                <View style={styles.verifiedSalonRatingButton}>
+                  <StarIcon
+                    width={widthScale(12)}
+                    height={heightScale(12)}
+                    color={theme.orangeBrown}
+                  />
+                  <Text style={styles.verifiedSalonRatingText}>
+                    {salon.rating}/ {salon.reviewCount} reviews
+                  </Text>
+                </View>
+                <TouchableOpacity style={styles.verifiedSalonViewDetail}>
+                  <Text style={styles.verifiedSalonViewDetailText}>
+                    View detail
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ))}
+      </ScrollView>
 
       {/* Service Filters (for Individual Services) */}
       {tab === "individual" &&

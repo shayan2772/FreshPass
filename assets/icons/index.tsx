@@ -747,6 +747,29 @@ export const UserAvatarIcon: React.FC<UserAvatarIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Platform Verified Star Icon SVG
+const platformVerifiedStarIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M6.99352 1.16699C3.77352 1.16699 1.16602 3.78033 1.16602 7.00033C1.16602 10.2203 3.77352 12.8337 6.99352 12.8337C10.2193 12.8337 12.8327 10.2203 12.8327 7.00033C12.8327 3.78033 10.2193 1.16699 6.99352 1.16699ZM11.3568 5.34366L8.43435 5.09283L7.26768 2.34533C9.14018 2.45616 10.7152 3.66949 11.3568 5.34366ZM8.39935 8.99533L6.99935 8.15533L5.60518 8.99533L5.97268 7.40866L4.74185 6.34116L6.36352 6.20116L6.99935 4.70199L7.63518 6.19533L9.25685 6.33533L8.02602 7.40283L8.39935 8.99533ZM6.73102 2.34533L5.56435 5.09866L2.63602 5.34949C3.27768 3.66949 4.85268 2.45033 6.73102 2.34533ZM2.33268 7.00033C2.33268 6.62699 2.37935 6.26533 2.46685 5.91533L4.67768 7.82866L4.03018 10.5995C2.99185 9.74199 2.33268 8.44699 2.33268 7.00033ZM4.57268 10.9787L6.99935 9.51449L9.42602 10.9728C8.71435 11.4103 7.88602 11.667 6.99352 11.667C6.10685 11.667 5.27852 11.4103 4.57268 10.9787ZM9.96852 10.5995L9.32102 7.82866L11.5318 5.91533C11.6135 6.25949 11.666 6.62699 11.666 7.00033C11.666 8.44699 11.001 9.74199 9.96852 10.5995Z" fill="white"/>
+</svg>
+`;
+
+interface PlatformVerifiedStarIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const PlatformVerifiedStarIcon: React.FC<PlatformVerifiedStarIconProps> = ({
+  width = 14,
+  height = 14,
+}) => {
+  const svgXml = platformVerifiedStarIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
 // Notification Bell Outline Icon (for "Notification" title)
 const notificationBellOutlineSvg = `
 <svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1330,4 +1353,5 @@ export default {
   ChevronDownIcon,
   SearchIcon,
   FilterIcon,
+  PlatformVerifiedStarIcon,
 };
