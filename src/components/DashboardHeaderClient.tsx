@@ -18,6 +18,8 @@ import {
 import { LeafLogo, CalendarIcon, LocationPinIcon, ChevronDownIcon } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import LocationModal from "@/src/components/locationModal";
+import DatePickerModal from "@/src/components/datePickerModal";
+import dayjs from "dayjs";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -90,8 +92,14 @@ export default function DashboardHeaderClient() {
   const insets = useSafeAreaInsets();
   const location = useAppSelector((state) => state.user.location);
   const [locationModalVisible, setLocationModalVisible] = useState(false);
+  const [dateModalVisible, setDateModalVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(dayjs());
 
   const locationName = location?.locationName || "Miami-Dade County, FL";
+  
+  const formatDate = (date: dayjs.Dayjs) => {
+    return date.format("MMM D");
+  };
 
   return (
     <>
@@ -133,13 +141,16 @@ export default function DashboardHeaderClient() {
               </View>
             </View>
           </Pressable>
-          <TouchableOpacity style={styles.whenButton}>
+          <TouchableOpacity 
+            style={styles.whenButton}
+            onPress={() => setDateModalVisible(true)}
+          >
             <CalendarIcon
               width={widthScale(13.33)}
               height={heightScale(14.67)}
               color={theme.darkGreenLight}
             />
-            <Text style={styles.whenText}>When?</Text>
+            <Text style={styles.whenText}>{formatDate(selectedDate)}</Text>
             <ChevronDownIcon
               width={widthScale(8)}
               height={heightScale(4)}
@@ -151,6 +162,14 @@ export default function DashboardHeaderClient() {
       <LocationModal
         visible={locationModalVisible}
         onClose={() => setLocationModalVisible(false)}
+      />
+      <DatePickerModal
+        visible={dateModalVisible}
+        onClose={() => setDateModalVisible(false)}
+        selectedDate={selectedDate}
+        onDateSelect={(date) => {
+          setSelectedDate(date);
+        }}
       />
     </>
   );
