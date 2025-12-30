@@ -573,7 +573,6 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       marginBottom: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(12),
-
     },
     serviceSectionTitle: {
       fontSize: fontSize.size15,
@@ -584,7 +583,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       gap: moderateWidthScale(8),
       marginBottom: moderateHeightScale(16),
-      backgroundColor:theme.lightGreen05,
+      backgroundColor: theme.lightGreen05,
       paddingHorizontal: moderateWidthScale(12),
       paddingVertical: moderateHeightScale(12),
     },
@@ -774,6 +773,71 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.text,
     },
+    staffSectionTitle: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(16),
+    },
+    staffGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: moderateWidthScale(12),
+    },
+    staffCard: {
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(12),
+      flexDirection: "row",
+      alignItems: "center",
+      width: (SCREEN_WIDTH - moderateWidthScale(52)) / 2,
+      gap: moderateWidthScale(12),
+    },
+    shadow: {
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+      elevation: 1,
+    },
+    staffProfileImage: {
+      width: 35,
+      height:35,
+      borderRadius:  35/2,
+      backgroundColor: theme.emptyProfileImage,
+      borderWidth:1,
+      borderColor:theme.borderLight,
+      overflow:"hidden",
+    },
+    staffInfo: {
+      flex: 1,
+    },
+    staffName: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(2),
+    },
+    staffExperience: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    loadMoreButton: {
+      alignItems: "center",
+      marginTop: moderateHeightScale(20),
+      paddingVertical: moderateHeightScale(8),
+    },
+    loadMoreText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.selectCard,
+      textDecorationLine:"underline",
+      textDecorationColor:theme.selectCard,
+    },
   });
 
 export default function BusinessDetailScreen() {
@@ -797,6 +861,7 @@ export default function BusinessDetailScreen() {
   const [selectedServiceFilter, setSelectedServiceFilter] = useState("All");
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
+  const [showAllStaff, setShowAllStaff] = useState(false);
 
   // Dummy data with different images
   const thumbnails = [
@@ -984,11 +1049,11 @@ export default function BusinessDetailScreen() {
     });
 
     return (
-    <View style={styles.contentContainer}>
-      {/* About me */}
+      <View style={styles.contentContainer}>
+        {/* About me */}
         <View style={styles.sectionContent}>
-      <Text style={styles.sectionTitle}>About me</Text>
-      <Text style={styles.aboutText}>
+          <Text style={styles.sectionTitle}>About me</Text>
+          <Text style={styles.aboutText}>
             {displayText}
             {shouldShowReadMore && !isAboutExpanded && (
               <Text
@@ -997,48 +1062,48 @@ export default function BusinessDetailScreen() {
               >
                 {" "}
                 Read more salon
-      </Text>
+              </Text>
             )}
           </Text>
         </View>
 
-      {/* Shop location */}
+        {/* Shop location */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-      <Text
+          <Text
             style={[
               styles.sectionTitle,
               { marginTop: moderateHeightScale(24) },
             ]}
-      >
-        Shop location
-      </Text>
-      <View style={styles.shopLocationRow}>
-        <Text style={styles.shopLocationText}>
-          240 E Exchange Blvd, Columbia, SC 29209, United States
-        </Text>
-        <TouchableOpacity style={styles.mapIconContainer}>
+          >
+            Shop location
+          </Text>
+          <View style={styles.shopLocationRow}>
+            <Text style={styles.shopLocationText}>
+              240 E Exchange Blvd, Columbia, SC 29209, United States
+            </Text>
+            <TouchableOpacity style={styles.mapIconContainer}>
               <MapPinIcon
                 width={widthScale(15)}
                 height={heightScale(15)}
                 color={theme.primary}
               />
-        </TouchableOpacity>
+            </TouchableOpacity>
           </View>
-      </View>
+        </View>
 
-      {/* Contact */}
+        {/* Contact */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-      <Text
+          <Text
             style={[
               styles.sectionTitle,
               { marginTop: moderateHeightScale(24) },
             ]}
-      >
-        Contact
-      </Text>
-      <View style={styles.contactRow}>
+          >
+            Contact
+          </Text>
+          <View style={styles.contactRow}>
             <View style={styles.phoneIconContainer}>
               <PhoneIconContact
                 width={widthScale(18)}
@@ -1046,27 +1111,27 @@ export default function BusinessDetailScreen() {
                 color={theme.darkGreen}
               />
             </View>
-        <View style={styles.contactPhoneRow}>
-          <Text style={styles.phoneText}>(619) 315-5437</Text>
-          <TouchableOpacity style={styles.callNowButton}>
-            <Text style={styles.callNowButtonText}>Call now</Text>
-          </TouchableOpacity>
+            <View style={styles.contactPhoneRow}>
+              <Text style={styles.phoneText}>(619) 315-5437</Text>
+              <TouchableOpacity style={styles.callNowButton}>
+                <Text style={styles.callNowButtonText}>Call now</Text>
+              </TouchableOpacity>
             </View>
+          </View>
         </View>
-      </View>
 
-      {/* Business hours */}
+        {/* Business hours */}
         <View style={styles.sectionDivider} />
         <View style={styles.sectionContent}>
-      <View
-        style={[
-          styles.businessHoursHeader,
-          { marginTop: moderateHeightScale(24) },
-        ]}
-      >
-        <Text style={styles.sectionTitle}>Business hours</Text>
-      </View>
-      </View>
+          <View
+            style={[
+              styles.businessHoursHeader,
+              { marginTop: moderateHeightScale(24) },
+            ]}
+          >
+            <Text style={styles.sectionTitle}>Business hours</Text>
+          </View>
+        </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -1078,12 +1143,12 @@ export default function BusinessDetailScreen() {
               <View key={index} style={styles.hoursCard}>
                 <Text style={styles.hoursDay}>{displayDay}</Text>
                 <Text style={styles.hoursTime}>{item.time}</Text>
-      </View>
+              </View>
             );
           })}
         </ScrollView>
-    </View>
-  );
+      </View>
+    );
   };
 
   const renderServiceContent = () => (
@@ -1101,7 +1166,7 @@ export default function BusinessDetailScreen() {
         >
           <Text style={styles.serviceSectionTitle}>
             Membership subscriptions list
-      </Text>
+          </Text>
           {isMembershipExpanded ? (
             <ChevronUpIcon
               width={widthScale(12)}
@@ -1159,7 +1224,9 @@ export default function BusinessDetailScreen() {
               >
                 <View style={styles.membershipCardContent}>
                   <View style={styles.membershipCardLeft}>
-                    <Text style={styles.membershipTitle}>{subscription.title}</Text>
+                    <Text style={styles.membershipTitle}>
+                      {subscription.title}
+                    </Text>
                     <Text style={styles.membershipVisits}>
                       {subscription.visits}
                     </Text>
@@ -1277,17 +1344,17 @@ export default function BusinessDetailScreen() {
               >
                 <View style={styles.serviceCardContent}>
                   <View style={styles.serviceCardLeft}>
-                  {service.label && (
-                    <View style={styles.serviceLabel}>
-                      <Text style={styles.serviceLabelText}>
-                        {service.label}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.serviceName}>{service.name}</Text>
-                  <Text style={styles.serviceDescription}>
-                    {service.description}
-                  </Text>
+                    {service.label && (
+                      <View style={styles.serviceLabel}>
+                        <Text style={styles.serviceLabelText}>
+                          {service.label}
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={styles.serviceName}>{service.name}</Text>
+                    <Text style={styles.serviceDescription}>
+                      {service.description}
+                    </Text>
                   </View>
                   <View style={styles.serviceCardRight}>
                     <View style={styles.servicePriceContainer}>
@@ -1298,7 +1365,9 @@ export default function BusinessDetailScreen() {
                         ${service.price.toFixed(2)} USD
                       </Text>
                     </View>
-                    <Text style={styles.serviceDuration}>{service.duration}</Text>
+                    <Text style={styles.serviceDuration}>
+                      {service.duration}
+                    </Text>
                     <TouchableOpacity style={styles.bookNowButton}>
                       <Text style={styles.bookNowButtonText}>Book Now</Text>
                     </TouchableOpacity>
@@ -1321,14 +1390,124 @@ export default function BusinessDetailScreen() {
     </View>
   );
 
-  const renderStaffContent = () => (
-    <View style={styles.contentContainer}>
-      <Text style={styles.sectionTitle}>Staff</Text>
-      <Text style={styles.aboutText}>
-        Staff content will be displayed here.
-      </Text>
-    </View>
-  );
+  // Dummy staff data
+  const staffMembers = [
+    {
+      id: 1,
+      name: "Umut Hasanoglu",
+      experience: null,
+      image:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
+    },
+    {
+      id: 2,
+      name: "Sanna Granqvist",
+      experience: 6,
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+    },
+    {
+      id: 3,
+      name: "Suman Pramanik",
+      experience: 12,
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    },
+    {
+      id: 4,
+      name: "Md Biplob Um Hos...",
+      experience: 11,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
+    },
+    {
+      id: 5,
+      name: "Safayet Hossain",
+      experience: 4,
+      image:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
+    },
+    {
+      id: 6,
+      name: "Md Shariful Islam K...",
+      experience: 19,
+      image:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
+    },
+    {
+      id: 7,
+      name: "John Smith",
+      experience: 8,
+      image:
+        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
+    },
+    {
+      id: 8,
+      name: "Sarah Johnson",
+      experience: 5,
+      image:
+        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
+    },
+    {
+      id: 9,
+      name: "Michael Brown",
+      experience: 15,
+      image:
+        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+    },
+    {
+      id: 10,
+      name: "Emily Davis",
+      experience: 3,
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+    },
+  ];
+
+  const renderStaffContent = () => {
+    const displayedStaff = showAllStaff
+      ? staffMembers
+      : staffMembers.slice(0, 6);
+    const hasMoreStaff = staffMembers.length > 6;
+
+    return (
+      <View style={styles.contentContainer}>
+        <View style={styles.sectionContent}>
+          <Text style={styles.staffSectionTitle}>
+            Staff members ({staffMembers.length})
+          </Text>
+          <View style={styles.staffGrid}>
+            {displayedStaff.map((staff) => (
+              <View key={staff.id} style={[styles.staffCard, styles.shadow]}>
+                <Image
+                  source={{ uri: staff.image }}
+                  style={styles.staffProfileImage}
+                />
+                <View style={styles.staffInfo}>
+                  <Text style={styles.staffName} numberOfLines={1}>
+                    {staff.name}
+                  </Text>
+                  {staff.experience !== null && (
+                    <Text numberOfLines={1} style={styles.staffExperience}>
+                      {staff.experience} years of exp.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
+          </View>
+          {hasMoreStaff && !showAllStaff && (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => setShowAllStaff(true)}
+            >
+              <Text style={styles.loadMoreText}>Load more staff members</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
