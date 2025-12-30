@@ -15,6 +15,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
+import { useRouter } from "expo-router";
 import {
   heightScale,
   moderateHeightScale,
@@ -924,6 +925,7 @@ export default function DashboardContent() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
     "subscriptions"
   );
@@ -1454,7 +1456,22 @@ export default function DashboardContent() {
               ]}
             >
               <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
-              <TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => {
+                  router.push({
+                    pathname: "/(main)/dashboard/(home)/businessList",
+                    params: {
+                      data: JSON.stringify({
+                        businessName: section.businessName,
+                        type: section.type,
+                        services: section.services,
+                        subscriptions: section.subscriptions,
+                      }),
+                    },
+                  });
+                }}
+              >
                 <Text style={styles.sectionViewMore}>View more</Text>
               </TouchableOpacity>
             </View>
