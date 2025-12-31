@@ -909,7 +909,6 @@ const createStyles = (theme: Theme) =>
     },
     reviewCardHorizontal: {
       width: widthScale(280),
-      marginRight: moderateWidthScale(12),
       minHeight: heightScale(200),
     },
     reviewCardHeaderRow: {
@@ -1013,7 +1012,7 @@ const createStyles = (theme: Theme) =>
     allReviewsModalContainer: {
       backgroundColor: theme.background,
       borderRadius: moderateWidthScale(12),
-      width: "85%",
+      width: "94%",
       height: "80%",
       alignSelf: "center",
       paddingVertical: moderateWidthScale(20),
@@ -1023,6 +1022,7 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: moderateHeightScale(10),
+      paddingHorizontal: moderateWidthScale(20),
     },
     allReviewsModalTitle: {
       fontSize: fontSize.size18,
@@ -1910,7 +1910,8 @@ export default function BusinessDetailScreen() {
 
   const renderReviewCard = (
     review: (typeof reviews)[0],
-    isHorizontal = false
+    isHorizontal = false,
+    index=0
   ) => {
     const reviewText = review.comment || "";
     const shouldShowSeeMore = reviewText.length > textWrapLength;
@@ -2412,8 +2413,8 @@ export default function BusinessDetailScreen() {
             style={styles.fullReviewModalContainer}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={styles.allReviewsModalHeader}>
-              <Text style={styles.allReviewsModalTitle}>Review</Text>
+            <View style={[styles.allReviewsModalHeader,{paddingHorizontal:0}]}>
+              <Text style={styles.allReviewsModalTitle}>Review asas</Text>
               <TouchableOpacity
                 style={styles.allReviewsModalCloseButton}
                 onPress={() => setFullReviewModalVisible(false)}
