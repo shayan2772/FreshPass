@@ -132,6 +132,8 @@ export default function Register() {
   // Get saved email from general state (if exists from previous registration)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
 
+  const userRole = useAppSelector((state) => state.general.role);
+  const isCustomer = userRole === "customer";
   const [email, setEmail] = useState(savedEmail || DEFAULT_EMAIL);
   const [isSubscribed, setIsSubscribed] = useState(true);
   const [emailError, setEmailError] = useState<string | null>(null);
@@ -192,7 +194,9 @@ export default function Register() {
           <View style={styles.mainContent}>
             <View style={styles.content}>
               <View style={styles.titleSection}>
-                <Text style={styles.title}>Create your business profile</Text>
+                <Text style={styles.title}>
+                  Create your {isCustomer ? "customer" : "business"} profile
+                </Text>
                 <Text style={styles.description}>
                   Upload your photo and enter your details to get started with
                   FreshPass.

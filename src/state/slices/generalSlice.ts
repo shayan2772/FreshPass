@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export type UserRole = "business" | "client" | "staff" | null;
+export type UserRole = "business" | "customer" | "staff" | null;
 
 export interface GeneralState {
   theme: "light" | "dark" | "blue";

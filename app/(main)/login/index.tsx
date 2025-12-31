@@ -235,7 +235,7 @@ export default function Login() {
             // Clear saved password if checkbox is unchecked
             dispatch(setSavedPassword(null));
           }
-          if (user?.role?.toLowerCase() === "business") {
+          if (user?.role?.toLowerCase() === "business" || user?.role?.toLowerCase() === "customer") {
             router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
           } else if (user?.role?.toLowerCase() === "staff") {
             // Save salon business hours from login response if available
@@ -320,7 +320,7 @@ export default function Login() {
                 })
               );
             }
-          }
+          } 
         } else {
           Alert.alert("Error", "Invalid response from server");
         }

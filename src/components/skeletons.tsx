@@ -292,7 +292,7 @@ export const Skeleton = ({
   const userRole = useAppSelector((state) => state.user.userRole);
   const isStaff = userRole === "staff";
   const isBusiness = userRole === "business";
-  const isClient = userRole === "client";
+  const isClient = userRole === "customer";
 
   const stepOneSkeleton = styles ? (
     <>

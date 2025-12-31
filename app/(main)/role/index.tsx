@@ -16,21 +16,22 @@ export default function Role() {
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
   const dispatch = useAppDispatch();
-  
+
   // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
   const selectedRole = useAppSelector((state) => state.general.role);
- 
+
   const handleOptionSelect = (option: UserRole) => {
     // Save selected role to Redux immediately when user selects
-    dispatch(setRole(option));
+    dispatch(setRole(option === "client" ? "customer" : option));
   };
 
   const handleContinue = () => {
     // Only continue if role is selected and saved in Redux
     if (selectedRole) {
       // Navigate to client onboarding flow (location screen first)
-      if (selectedRole === "client") {
-        router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
+      if (selectedRole === "customer") {
+        // router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
+        router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
         return;
       }
       router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
@@ -70,7 +71,9 @@ export default function Role() {
             title="I'm a Client"
             subtitle="Book, subscribe, and manage your visits"
             option="client"
-            selectedOption={selectedRole}
+            selectedOption={
+              selectedRole === "customer" ? "client" : selectedRole
+            }
             onPress={handleOptionSelect}
           />
         </View>
@@ -83,8 +86,8 @@ export default function Role() {
         </Text>
       </View>
 
-      <Button 
-        title="Continue" 
+      <Button
+        title="Continue"
         onPress={handleContinue}
         disabled={!selectedRole} // Disable button if no role is selected
       />

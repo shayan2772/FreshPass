@@ -41,7 +41,9 @@ export default function SocialLogin() {
 
   const handleSocialLogin = useCallback((provider: SocialProvider) => {}, []);
 
-  const handleGuestLogin = () => {};
+  const handleGuestLogin = () => {
+    router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
+  };
 
   const handleOpenLink = useCallback(async (url: string, title: string) => {
     if (!url) {
@@ -70,7 +72,7 @@ export default function SocialLogin() {
     handleOpenLink(PRIVACY_POLICY_URL, "Privacy Policy");
   }, [handleOpenLink]);
 
-  const isGuest = selectedRole === "client" ? true : false; // Set to true to show guest login button
+  const isGuest = selectedRole === "customer" ? true : false; // Set to true to show guest login button
 
   return (
     <SafeAreaView style={styles.container}>

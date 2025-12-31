@@ -261,7 +261,7 @@ export default function HomeScreen() {
         params.status = "scheduled";
       }
       // For client role, fetch client's appointments
-      else if (userRole === "client") {
+      else if (userRole === "customer") {
         params.status = "scheduled";
       }
       // For business, fetch all scheduled appointments
@@ -315,7 +315,7 @@ export default function HomeScreen() {
         params.status = "without_scheduled";
       }
       // For client role, fetch past appointments
-      else if (userRole === "client") {
+      else if (userRole === "customer") {
         params.status = "without_scheduled";
       }
       // For business, fetch without_scheduled (past appointments)
