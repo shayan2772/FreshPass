@@ -211,7 +211,8 @@ export default function RegisterTermsModal({
               <CrownIcon
                 width={moderateWidthScale(47)}
                 height={moderateHeightScale(32)}
-                color={theme.white}
+                color1={theme.white}
+                color2={theme.darkGreen}
               />
             </View>
 
