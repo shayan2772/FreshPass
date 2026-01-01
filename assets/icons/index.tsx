@@ -1080,7 +1080,6 @@ export const CircleTickIcon: React.FC<CircleTickIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
-
  
  
 // Find Nearby Salons Icon SVG (location pin with mustache)

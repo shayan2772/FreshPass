@@ -124,11 +124,15 @@ export const reviewsEndpoints = {
   list: (params?: {
     page?: number;
     per_page?: number;
+    business_id?: number | string;
+    user_id?: number | string;
   }) => {
     const queryParams = new URLSearchParams();
     
     if (params?.page) queryParams.append('page', params.page.toString());
     if (params?.per_page) queryParams.append('per_page', params.per_page.toString());
+    if (params?.business_id) queryParams.append('business_id', params.business_id.toString());
+    if (params?.user_id) queryParams.append('user_id', params.user_id.toString());
     
     const queryString = queryParams.toString();
     return `/api/reviews${queryString ? `?${queryString}` : ''}`;

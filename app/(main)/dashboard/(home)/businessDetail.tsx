@@ -286,7 +286,7 @@ const createStyles = (theme: Theme) =>
     },
     heroImageContainer: {
       width: SCREEN_WIDTH,
-      height: heightScale(250),
+      height: heightScale(270),
       position: "relative",
       backgroundColor: theme.darkGreen,
     },
@@ -1003,46 +1003,31 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    allReviewsModalOverlay: {
+    reviewModalOverlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
       justifyContent: "center",
       alignItems: "center",
     },
-    allReviewsModalContainer: {
-      backgroundColor: theme.background,
-      borderRadius: moderateWidthScale(12),
-      width: "94%",
-      height: "80%",
-      alignSelf: "center",
-      paddingVertical: moderateWidthScale(20),
-    },
-    allReviewsModalHeader: {
+    reviewModalHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: moderateHeightScale(10),
       paddingHorizontal: moderateWidthScale(20),
     },
-    allReviewsModalTitle: {
+    reviewModalTitle: {
       fontSize: fontSize.size18,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
-    allReviewsModalCloseButton: {
+    reviewModalCloseButton: {
       width: widthScale(32),
       height: heightScale(32),
       borderRadius: moderateWidthScale(16),
       backgroundColor: theme.lightGreen015,
       alignItems: "center",
       justifyContent: "center",
-    },
-    allReviewsModalContent: {
-      flex: 1,
-    },
-    allReviewsModalContentContainer: {
-      paddingVertical: moderateHeightScale(16),
-      paddingHorizontal: moderateWidthScale(20),
     },
     fullReviewModalContainer: {
       backgroundColor: theme.background,
@@ -1091,7 +1076,6 @@ export default function BusinessDetailScreen() {
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const [showAllStaff, setShowAllStaff] = useState(false);
-  const [allReviewsModalVisible, setAllReviewsModalVisible] = useState(false);
   const [fullReviewModalVisible, setFullReviewModalVisible] = useState(false);
   const [selectedReview, setSelectedReview] = useState<
     (typeof reviews)[0] | null
@@ -2046,7 +2030,12 @@ export default function BusinessDetailScreen() {
           {hasMoreReviews && (
             <TouchableOpacity
               style={styles.showAllReviewsButton}
-              onPress={() => setAllReviewsModalVisible(true)}
+              onPress={() => {
+                router.push({
+                  pathname: "/(main)/dashboard/(home)/userReviews",
+                  params: { business_id: "1" }, // Dummy business ID
+                } as any);
+              }}
             >
               <Text style={styles.showAllReviewsText}>
                 Show all {totalReviews} reviews
@@ -2179,13 +2168,13 @@ export default function BusinessDetailScreen() {
                   color={theme.darkGreen}
                 />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.iconButton}>
+              {/* <TouchableOpacity style={styles.iconButton}>
                 <BookmarkIcon
                   width={widthScale(16)}
                   height={heightScale(16)}
                   color={theme.darkGreen}
                 />
-              </TouchableOpacity>
+              </TouchableOpacity> */}
             </View>
           </View>
 
@@ -2358,46 +2347,6 @@ export default function BusinessDetailScreen() {
         inclusions={selectedInclusions}
       />
 
-      {/* All Reviews Modal */}
-      <Modal
-        visible={allReviewsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setAllReviewsModalVisible(false)}
-      >
-        <Pressable
-          style={styles.allReviewsModalOverlay}
-          onPress={() => setAllReviewsModalVisible(false)}
-        >
-          <Pressable
-            style={styles.allReviewsModalContainer}
-            onPress={(e) => e.stopPropagation()}
-          >
-            <View style={styles.allReviewsModalHeader}>
-              <Text style={styles.allReviewsModalTitle}>All Reviews</Text>
-              <TouchableOpacity
-                style={styles.allReviewsModalCloseButton}
-                onPress={() => setAllReviewsModalVisible(false)}
-              >
-                <CloseIcon width={widthScale(20)} height={heightScale(20)} />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={reviews}
-              renderItem={({ item }) => (
-                <View style={{ marginBottom: moderateHeightScale(16) }}>
-                  {renderReviewCard(item, false)}
-                </View>
-              )}
-              keyExtractor={(item) => item.id.toString()}
-              style={styles.allReviewsModalContent}
-              contentContainerStyle={styles.allReviewsModalContentContainer}
-              showsVerticalScrollIndicator={false}
-            />
-          </Pressable>
-        </Pressable>
-      </Modal>
-
       {/* Full Review Modal */}
       <Modal
         visible={fullReviewModalVisible}
@@ -2406,17 +2355,17 @@ export default function BusinessDetailScreen() {
         onRequestClose={() => setFullReviewModalVisible(false)}
       >
         <Pressable
-          style={styles.allReviewsModalOverlay}
+          style={styles.reviewModalOverlay}
           onPress={() => setFullReviewModalVisible(false)}
         >
           <Pressable
             style={styles.fullReviewModalContainer}
             onPress={(e) => e.stopPropagation()}
           >
-            <View style={[styles.allReviewsModalHeader,{paddingHorizontal:0}]}>
-              <Text style={styles.allReviewsModalTitle}>Review asas</Text>
+            <View style={[styles.reviewModalHeader,{paddingHorizontal:0}]}>
+              <Text style={styles.reviewModalTitle}>Review asas</Text>
               <TouchableOpacity
-                style={styles.allReviewsModalCloseButton}
+                style={styles.reviewModalCloseButton}
                 onPress={() => setFullReviewModalVisible(false)}
               >
                 <CloseIcon width={widthScale(20)} height={heightScale(20)} />

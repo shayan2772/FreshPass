@@ -22,6 +22,7 @@ import { reviewsEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Skeleton } from "@/src/components/skeletons";
 import dayjs from "dayjs";
+import { useLocalSearchParams } from "expo-router";
 
 type Review = {
   id: number;
@@ -185,6 +186,7 @@ export default function UserReviewsScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
+  const params = useLocalSearchParams<{ business_id?: string; user_id?: string }>();
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(false);
@@ -206,11 +208,28 @@ export default function UserReviewsScreen() {
       }
 
       try {
+        const apiParams: {
+          page: number;
+          per_page: number;
+          business_id?: string;
+          user_id?: string;
+        } = {
+          page,
+          per_page: 10,
+        };
+
+        // Add business_id if it exists in params
+        if (params.business_id) {
+          apiParams.business_id = params.business_id;
+        }
+
+        // Add user_id if it exists in params
+        // if (params.user_id) {
+        //   apiParams.user_id = params.user_id;
+        // }
+
         const response = await ApiService.get<ReviewsResponse>(
-          reviewsEndpoints.list({
-            page,
-            per_page: 10,
-          })
+          reviewsEndpoints.list(apiParams)
         );
 
         if (response.success && response.data) {
@@ -236,7 +255,7 @@ export default function UserReviewsScreen() {
         setLoadingMore(false);
       }
     },
-    [showBanner]
+    [showBanner, params.business_id, params.user_id]
   );
 
   useEffect(() => {
