@@ -1494,6 +1494,109 @@ export default function BusinessDetailScreen() {
     }
   };
 
+
+  const getStars = (rating: number) => {
+    const stars: ("star" | "star-half" | "star-border")[] = [];
+    const ratingNum = parseFloat(rating.toString());
+    for (let i = 1; i <= 5; i += 1) {
+      if (ratingNum >= i) {
+        stars.push("star");
+      } else if (ratingNum >= i - 0.5) {
+        stars.push("star-half");
+      } else {
+        stars.push("star-border");
+      }
+    }
+    return stars;
+  };
+
+  const formatDate = (dateString: string) => {
+    return dayjs(dateString).format("MMMM D, YYYY");
+  };
+
+  const getProfileImageUrl = (profileImageUrl: string | null) => {
+    if (profileImageUrl) {
+      return `${process.env.EXPO_PUBLIC_API_BASE_URL}${profileImageUrl}`;
+    }
+    return DEFAULT_AVATAR_URL;
+  };
+
+  const renderReviewCard = (
+    review: (typeof reviews)[0],
+    isHorizontal = false,
+    index=0
+  ) => {
+    const reviewText = review.comment || "";
+    const shouldShowSeeMore = reviewText.length > textWrapLength;
+
+    return (
+      <View
+        style={[styles.reviewCard, isHorizontal && styles.reviewCardHorizontal]}
+      >
+        <View style={styles.reviewCardHeaderRow}>
+          <View style={styles.reviewAvatar}>
+            <Image
+              source={{
+                uri: getProfileImageUrl(review.user.profile_image_url),
+              }}
+              style={styles.reviewAvatarImage}
+            />
+          </View>
+          <View style={styles.reviewUserInfo}>
+            <Text style={styles.reviewNameText}>
+              {review.user.name || "User"}
+            </Text>
+            <Text style={styles.reviewDateText}>
+              {formatDate(review.created_at)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.reviewStarsRow}>
+          {getStars(parseFloat(review.overall_rating)).map((icon, index) => (
+            <MaterialIcons
+              key={`${review.id}-star-${index}`}
+              name={icon}
+              size={moderateWidthScale(18)}
+              color={theme.darkGreen}
+              style={styles.reviewStarIcon}
+            />
+          ))}
+        </View>
+
+        {reviewText && (
+          <View
+            style={[
+              styles.reviewCardTextContainer,
+              isHorizontal && styles.reviewCardTextContainerHorizontal,
+            ]}
+          >
+            <Text
+              style={styles.reviewCardText}
+              numberOfLines={isHorizontal ? 4 : undefined}
+            >
+              {shouldShowSeeMore
+                ? `${reviewText.slice(0, textWrapLength).trim()}...`
+                : reviewText}
+            </Text>
+
+            {shouldShowSeeMore && (
+              <Text
+                style={styles.reviewSeeMoreText}
+                onPress={() => {
+                  setSelectedReview(review);
+                  setFullReviewModalVisible(true);
+                }}
+              >
+                See more
+              </Text>
+            )}
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderDetailsContent = () => {
     const aboutText =
       "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
@@ -1866,107 +1969,57 @@ export default function BusinessDetailScreen() {
     </View>
   );
 
-  const getStars = (rating: number) => {
-    const stars: ("star" | "star-half" | "star-border")[] = [];
-    const ratingNum = parseFloat(rating.toString());
-    for (let i = 1; i <= 5; i += 1) {
-      if (ratingNum >= i) {
-        stars.push("star");
-      } else if (ratingNum >= i - 0.5) {
-        stars.push("star-half");
-      } else {
-        stars.push("star-border");
-      }
-    }
-    return stars;
-  };
-
-  const formatDate = (dateString: string) => {
-    return dayjs(dateString).format("MMMM D, YYYY");
-  };
-
-  const getProfileImageUrl = (profileImageUrl: string | null) => {
-    if (profileImageUrl) {
-      return `${process.env.EXPO_PUBLIC_API_BASE_URL}${profileImageUrl}`;
-    }
-    return DEFAULT_AVATAR_URL;
-  };
-
-  const renderReviewCard = (
-    review: (typeof reviews)[0],
-    isHorizontal = false,
-    index=0
-  ) => {
-    const reviewText = review.comment || "";
-    const shouldShowSeeMore = reviewText.length > textWrapLength;
+  const renderStaffContent = () => {
+    const displayedStaff = showAllStaff
+      ? staffMembers
+      : staffMembers.slice(0, 6);
+    const hasMoreStaff = staffMembers.length > 6;
 
     return (
       <View
-        style={[styles.reviewCard, isHorizontal && styles.reviewCardHorizontal]}
+        ref={staffSectionRef}
+        onLayout={() => {
+          measureSectionPosition(staffSectionRef, "staff");
+        }}
+        style={styles.contentContainer}
       >
-        <View style={styles.reviewCardHeaderRow}>
-          <View style={styles.reviewAvatar}>
-            <Image
-              source={{
-                uri: getProfileImageUrl(review.user.profile_image_url),
-              }}
-              style={styles.reviewAvatarImage}
-            />
+        <View style={styles.sectionContentFullWidth}>
+          <Text style={styles.staffSectionTitle}>
+            Staff members ({staffMembers.length})
+          </Text>
+          <View style={styles.staffGrid}>
+            {displayedStaff.map((staff) => (
+              <View key={staff.id} style={[styles.staffCard, styles.shadow]}>
+                <Image
+                  source={{ uri: staff.image }}
+                  style={styles.staffProfileImage}
+                />
+                <View style={styles.staffInfo}>
+                  <Text style={styles.staffName} numberOfLines={1}>
+                    {staff.name}
+                  </Text>
+                  {staff.experience !== null && (
+                    <Text numberOfLines={1} style={styles.staffExperience}>
+                      {staff.experience} years of exp.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))}
           </View>
-          <View style={styles.reviewUserInfo}>
-            <Text style={styles.reviewNameText}>
-              {review.user.name || "User"}
-            </Text>
-            <Text style={styles.reviewDateText}>
-              {formatDate(review.created_at)}
-            </Text>
-          </View>
-        </View>
-
-        <View style={styles.reviewStarsRow}>
-          {getStars(parseFloat(review.overall_rating)).map((icon, index) => (
-            <MaterialIcons
-              key={`${review.id}-star-${index}`}
-              name={icon}
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-              style={styles.reviewStarIcon}
-            />
-          ))}
-        </View>
-
-        {reviewText && (
-          <View
-            style={[
-              styles.reviewCardTextContainer,
-              isHorizontal && styles.reviewCardTextContainerHorizontal,
-            ]}
-          >
-            <Text
-              style={styles.reviewCardText}
-              numberOfLines={isHorizontal ? 4 : undefined}
+          {hasMoreStaff && !showAllStaff && (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={() => setShowAllStaff(true)}
             >
-              {shouldShowSeeMore
-                ? `${reviewText.slice(0, textWrapLength).trim()}...`
-                : reviewText}
-            </Text>
-
-            {shouldShowSeeMore && (
-              <Text
-                style={styles.reviewSeeMoreText}
-                onPress={() => {
-                  setSelectedReview(review);
-                  setFullReviewModalVisible(true);
-                }}
-              >
-                See more
-              </Text>
-            )}
-          </View>
-        )}
+              <Text style={styles.loadMoreText}>Load more staff members</Text>
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
     );
   };
+
 
   const renderRatingsContent = () => {
     const displayedReviews = reviews.slice(0, 5);
@@ -2077,57 +2130,7 @@ export default function BusinessDetailScreen() {
     );
   };
 
-  const renderStaffContent = () => {
-    const displayedStaff = showAllStaff
-      ? staffMembers
-      : staffMembers.slice(0, 6);
-    const hasMoreStaff = staffMembers.length > 6;
-
-    return (
-      <View
-        ref={staffSectionRef}
-        onLayout={() => {
-          measureSectionPosition(staffSectionRef, "staff");
-        }}
-        style={styles.contentContainer}
-      >
-        <View style={styles.sectionContentFullWidth}>
-          <Text style={styles.staffSectionTitle}>
-            Staff members ({staffMembers.length})
-          </Text>
-          <View style={styles.staffGrid}>
-            {displayedStaff.map((staff) => (
-              <View key={staff.id} style={[styles.staffCard, styles.shadow]}>
-                <Image
-                  source={{ uri: staff.image }}
-                  style={styles.staffProfileImage}
-                />
-                <View style={styles.staffInfo}>
-                  <Text style={styles.staffName} numberOfLines={1}>
-                    {staff.name}
-                  </Text>
-                  {staff.experience !== null && (
-                    <Text numberOfLines={1} style={styles.staffExperience}>
-                      {staff.experience} years of exp.
-                    </Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-          {hasMoreStaff && !showAllStaff && (
-            <TouchableOpacity
-              style={styles.loadMoreButton}
-              onPress={() => setShowAllStaff(true)}
-            >
-              <Text style={styles.loadMoreText}>Load more staff members</Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-    );
-  };
-
+ 
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
