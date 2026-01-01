@@ -198,7 +198,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(20),
       paddingHorizontal: moderateWidthScale(20),
       backgroundColor: theme.orangeBrown30,
       paddingVertical: moderateHeightScale(12),
@@ -218,45 +218,60 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.selectCard,
     },
     staffSection: {
-      marginBottom: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(20),
     },
     staffTitle: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(16),
+      marginBottom: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
     },
     staffList: {
-      gap: moderateHeightScale(12),
+      flexDirection: "row",
+      gap: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(20),
     },
     staffCard: {
-      flexDirection: "row",
-      alignItems: "center",
+      width: widthScale(180),
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
+      padding: moderateWidthScale(12),
+      flexDirection: "row",
+      alignItems: "center",
       gap: moderateWidthScale(12),
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+      elevation: 1,
     },
     staffCardSelected: {
       backgroundColor: theme.lightBeige,
     },
     staffImage: {
-      width: widthScale(50),
-      height: heightScale(50),
-      borderRadius: moderateWidthScale(25),
-      backgroundColor: theme.borderLight,
+      width: widthScale(35),
+      height: heightScale(35),
+      borderRadius: moderateWidthScale(17.5),
+      backgroundColor: theme.emptyProfileImage,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
     },
     staffInfo: {
       flex: 1,
     },
     staffName: {
-      fontSize: fontSize.size16,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(2),
     },
     staffExperience: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
@@ -327,8 +342,8 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
       gap: moderateHeightScale(16),
       paddingVertical: moderateHeightScale(12),
-      borderColor:theme.borderLight,
-      borderTopWidth:1,
+      borderColor: theme.borderLight,
+      borderTopWidth: 1,
     },
     totalSection: {
       flexDirection: "row",
@@ -651,7 +666,11 @@ export default function BookingNow() {
         {/* Staff Selection */}
         <View style={styles.staffSection}>
           <Text style={styles.staffTitle}>Choose staff members</Text>
-          <View style={styles.staffList}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.staffList}
+          >
             {staffList.map((staff) => (
               <TouchableOpacity
                 key={staff.id}
@@ -670,9 +689,11 @@ export default function BookingNow() {
                   <View style={styles.staffImage} />
                 )}
                 <View style={styles.staffInfo}>
-                  <Text style={styles.staffName}>{staff.name}</Text>
+                  <Text style={styles.staffName} numberOfLines={1}>
+                    {staff.name}
+                  </Text>
                   {staff.experience ? (
-                    <Text style={styles.staffExperience}>
+                    <Text style={styles.staffExperience} numberOfLines={1}>
                       {staff.experience}
                     </Text>
                   ) : null}
@@ -704,7 +725,7 @@ export default function BookingNow() {
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* Price Breakdown */}
@@ -724,8 +745,6 @@ export default function BookingNow() {
             </Text>
           </View>
         </View>
-
-     
       </ScrollView>
 
       <View style={styles.bottom}>
