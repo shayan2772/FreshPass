@@ -1956,7 +1956,20 @@ export default function BusinessDetailScreen() {
                     <Text style={styles.serviceDuration}>
                       {service.duration}
                     </Text>
-                    <TouchableOpacity style={styles.bookNowButton}>
+                    <TouchableOpacity 
+                      style={styles.bookNowButton}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/(main)/bookingNow",
+                          params: {
+                            selectedService: JSON.stringify(service),
+                            allServices: JSON.stringify(individualServices),
+                            staffMembers: JSON.stringify(staffMembers),
+                            businessId: params.business_id || "",
+                          },
+                        });
+                      }}
+                    >
                       <Text style={styles.bookNowButtonText}>Book Now</Text>
                     </TouchableOpacity>
                   </View>
