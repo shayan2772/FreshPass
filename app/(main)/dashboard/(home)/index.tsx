@@ -7,8 +7,9 @@ export default function Home() {
   const user = useAppSelector((state) => state.user);
   const userRole = user.userRole;
   const isGuest = user.isGuest;
-   
-  if (userRole === "staff" || isGuest) {
+  
+  
+  if (userRole === "customer" || isGuest) {
     return <HomeClientScreen />;
   }
 

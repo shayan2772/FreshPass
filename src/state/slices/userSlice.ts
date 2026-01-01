@@ -51,6 +51,13 @@ export interface UserState {
     id: number;
     name: string;
   }[];
+  dateOfBirth: {
+    date: string;
+    month: string;
+    year: string;
+  } | null;
+  countryZipCode: string;
+  countryName: string;
 }
 
 const initialState: UserState = {
@@ -77,6 +84,9 @@ const initialState: UserState = {
   },
   discover: null,
   selectBsnsCategory: [],
+  dateOfBirth: null,
+  countryZipCode: "",
+  countryName: "",
 };
 
 const userSlice = createSlice({
@@ -143,6 +153,13 @@ const userSlice = createSlice({
         country_code?: string | null;
         email_notifications?: boolean | null;
         profile_image_url?: string | null;
+        dateOfBirth?: {
+          date: string;
+          month: string;
+          year: string;
+        } | null;
+        countryZipCode?: string;
+        countryName?: string;
       }>
     ) {
       if (action.payload.name !== undefined) {
@@ -165,6 +182,15 @@ const userSlice = createSlice({
       }
       if (action.payload.profile_image_url !== undefined) {
         state.profile_image_url = action.payload.profile_image_url;
+      }
+      if (action.payload.dateOfBirth !== undefined) {
+        state.dateOfBirth = action.payload.dateOfBirth;
+      }
+      if (action.payload.countryZipCode !== undefined) {
+        state.countryZipCode = action.payload.countryZipCode;
+      }
+      if (action.payload.countryName !== undefined) {
+        state.countryName = action.payload.countryName;
       }
     },
     setUnreadCount(state, action: PayloadAction<number>) {
@@ -210,6 +236,9 @@ const userSlice = createSlice({
       state.location = initialState.location;
       state.discover = initialState.discover;
       state.selectBsnsCategory = initialState.selectBsnsCategory;
+      state.dateOfBirth = initialState.dateOfBirth;
+      state.countryZipCode = initialState.countryZipCode;
+      state.countryName = initialState.countryName;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -231,6 +260,9 @@ const userSlice = createSlice({
       state.location = initialState.location;
       state.discover = initialState.discover;
       state.selectBsnsCategory = initialState.selectBsnsCategory;
+      state.dateOfBirth = initialState.dateOfBirth;
+      state.countryZipCode = initialState.countryZipCode;
+      state.countryName = initialState.countryName;
     },
   },
 });

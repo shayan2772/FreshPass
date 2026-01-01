@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -17,9 +17,14 @@ import {
   moderateWidthScale,
 } from "@/src/theme/dimensions";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import Button from "@/src/components/button";
 import { CrownIcon } from "@/assets/icons";
+import { setLocation } from "@/src/state/slices/userSlice";
+import { handleLocationPermission } from "@/src/services/locationPermissionService";
+import * as Location from "expo-location";
+import { tryGetPosition } from "@/src/constant/functions";
+import { MAIN_ROUTES } from "@/src/constant/routes";
 
 interface AcceptTermsModalProps {
   visible: boolean;
@@ -140,6 +145,20 @@ const createStyles = (theme: Theme) =>
       paddingBottom: moderateHeightScale(20),
       gap: moderateHeightScale(22),
     },
+    loadingText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(12),
+    },
+    errorText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.white80,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(12),
+    },
   });
 
 export default function RegisterTermsModal({
@@ -152,7 +171,12 @@ export default function RegisterTermsModal({
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+  const userLocation = useAppSelector((state) => state.user.location);
   const [isAgreed, setIsAgreed] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Handle back button press
   useFocusEffect(
@@ -178,9 +202,144 @@ export default function RegisterTermsModal({
     }, [visible, onClose, nonClosable])
   );
 
-  const handleContinue = () => {
-    if (isAgreed) {
+  const handleContinue = async () => {
+    if (!isAgreed) {
+      // If checkbox is not checked, set location to null and navigate to home
+      dispatch(
+        setLocation({
+          lat: null,
+          long: null,
+          locationName: null,
+        })
+      );
+       onContinue();
+      return;
+    }
+
+    // If checkbox is checked, check if location exists with all required fields
+    if (
+      userLocation?.lat &&
+      userLocation?.long &&
+      userLocation?.locationName
+    ) {
+      // Location already exists with all required data, navigate to home
       onContinue();
+      return;
+    }
+
+    // Location doesn't exist, get current location
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      // Check if location services are enabled
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+
+      if (!servicesEnabled) {
+        setErrorMessage("Please turn on your phone location");
+        setIsLoading(false);
+        return;
+      }
+
+      // Request location permission
+      const permissionResult = await handleLocationPermission();
+
+      if (!permissionResult.granted) {
+        if (permissionResult.errorMessage) {
+          setErrorMessage(permissionResult.errorMessage);
+        } else {
+          setErrorMessage("Please turn on your phone location");
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      // Get current location coordinates directly
+      let currentPosition: Location.LocationObject | null = null;
+
+      try {
+        // Try to get cached position first (faster)
+        const cachedPosition = await Location.getLastKnownPositionAsync({
+          maxAge: 60000, // Use cached position if less than 1 minute old
+        });
+
+        if (cachedPosition) {
+          currentPosition = cachedPosition;
+        } else {
+          // If no cached position, try to get current position with retries
+          currentPosition = await tryGetPosition();
+        }
+      } catch (error) {
+        console.error("Error getting location position:", error);
+        throw new Error(
+          "Unable to get your current location. Please make sure location services are enabled and try again."
+        );
+      }
+
+      if (!currentPosition) {
+        throw new Error(
+          "Unable to get your current location. Please make sure location services are enabled and try again."
+        );
+      }
+
+      const coordinates = {
+        latitude: currentPosition.coords.latitude,
+        longitude: currentPosition.coords.longitude,
+      };
+
+      // Get address via reverse geocoding (required)
+      let locationName: string | null = null;
+      try {
+        const reverseResults = await Location.reverseGeocodeAsync(
+          coordinates,
+          {
+            useGoogleMaps: true,
+            timeout: 10000,
+          }
+        );
+        if (reverseResults && reverseResults.length > 0) {
+          const address = reverseResults[0];
+          const addressParts = [
+            address.street,
+            address.city,
+            address.region,
+          ].filter(Boolean);
+          locationName =
+            addressParts.length > 0 ? addressParts.join(", ") : null;
+        }
+      } catch (error) {
+        console.error("Reverse geocode failed:", error);
+        throw new Error(
+          "Unable to get your location address. Please try again."
+        );
+      }
+
+      // Validate that we have all required location data
+      if (!locationName || !coordinates.latitude || !coordinates.longitude) {
+        throw new Error(
+          "Unable to get complete location information. Please try again."
+        );
+      }
+
+      // Store location in user slice
+      dispatch(
+        setLocation({
+          lat: coordinates.latitude,
+          long: coordinates.longitude,
+          locationName,
+        })
+      );
+
+      onContinue();
+    } catch (error) {
+      console.error("Error getting location:", error);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Unable to get your location. Please make sure location services are enabled and try again.";
+      setErrorMessage(errorMsg);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -188,7 +347,7 @@ export default function RegisterTermsModal({
     <Modal
       visible={visible}
       transparent={false}
-      animationType="slide"
+      animationType="none"
       statusBarTranslucent={true}
       onRequestClose={nonClosable ? undefined : onClose}
     >
@@ -218,7 +377,7 @@ export default function RegisterTermsModal({
             </View>
 
             <Text style={styles.title}>You're all set!</Text>
-            <Text style={styles.bodyText}>You’ve registered successfully.</Text>
+            <Text style={styles.bodyText}>You've registered successfully.</Text>
             <Text style={styles.bodyText2}>
               Your account is ready. Let's find you a perfect salon – enable
               location to see the best options near you.
@@ -226,10 +385,19 @@ export default function RegisterTermsModal({
           </View>
 
           <View style={styles.buttonContainer}>
+            {isLoading && (
+              <Text style={styles.loadingText}>Locating...</Text>
+            )}
+
+            {errorMessage && (
+              <Text style={styles.errorText}>{errorMessage}</Text>
+            )}
+
             <TouchableOpacity
               style={styles.checkboxContainer}
               onPress={() => setIsAgreed(!isAgreed)}
               activeOpacity={0.7}
+              disabled={isLoading}
             >
               <View style={styles.checkbox}>
                 <View style={styles.checkboxInnerSquare}>
@@ -244,11 +412,13 @@ export default function RegisterTermsModal({
               </View>
               <Text style={styles.checkboxLabel}>Find salons near me</Text>
             </TouchableOpacity>
+
             <Button
               title="Lets go!"
               onPress={handleContinue}
               backgroundColor={theme.orangeBrown}
               textColor={theme.darkGreen}
+              disabled={isLoading}
             />
           </View>
         </View>

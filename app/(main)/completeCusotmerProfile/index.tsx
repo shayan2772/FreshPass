@@ -291,8 +291,7 @@ export default function completeCusotmerProfile() {
           // Empty function - modal is non-closable
         }}
         onContinue={() => {
-          setShowTermsModal(false);
-          router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
+          router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/${MAIN_ROUTES.HOME}` as any);
         }}
         nonClosable={true}
       />
