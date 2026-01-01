@@ -155,3 +155,11 @@ export const notificationsEndpoints = {
   markAllAsRead: `/api/notifications/mark-all-read`,
   unreadCount: `/api/notifications/unread-count`,
 };
+
+/**
+ * Email verification endpoints
+ */
+export const emailVerificationEndpoints = {
+  verify: `/api/email/verify`,
+  resendNotification: `/api/email/verification-notification`,
+};

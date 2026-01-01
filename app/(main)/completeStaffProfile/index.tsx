@@ -45,6 +45,9 @@ export default function CompleteStaffProfile() {
     businessHours,
     profileImageUri,
     aboutYourself,
+    dateOfBirth,
+    countryZipCode,
+    countryName,
   } = useAppSelector((state) => state.completeProfile);
 
   const handleBack = useCallback(() => {

@@ -1,5 +1,13 @@
 import React, { useMemo, useEffect, useCallback, useState } from "react";
-import { Image, Pressable, StyleSheet, Text, View, TouchableOpacity, FlatList } from "react-native";
+import {
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -19,7 +27,10 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
 import { LeafLogo } from "@/assets/icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { setSelectBsnsCategory, setIsGuest } from "@/src/state/slices/userSlice";
+import {
+  setSelectBsnsCategory,
+  setIsGuest,
+} from "@/src/state/slices/userSlice";
 
 interface CategorySelectProps {
   onNext: () => void;
@@ -205,18 +216,15 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
   const [apiError, setApiError] = useState(false);
 
   useEffect(() => {
-      fetchCategories();
+    fetchCategories();
   }, []);
 
   const fetchCategories = async () => {
     try {
       setCategoriesLoading(true);
       setApiError(false);
-      
-      // Get guest token from environment variables
-      const guestToken = process.env.EXPO_PUBLIC_AUTH_TOKEN || "";
-      
-      // Use guest token for guest API call
+
+      // API service automatically uses guest token if access token is not available
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -225,11 +233,7 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
           name: string;
           imageUrl: string | null;
         }>;
-      }>(businessEndpoints.categories, {
-        headers: {
-          Authorization: `Bearer ${guestToken}`,
-        },
-      });
+      }>(businessEndpoints.categories);
 
       if (response.success && response.data) {
         setCategories(response.data);
@@ -283,7 +287,11 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
   );
 
   const renderCategoryItem = useCallback(
-    ({ item }: { item: { id: number; name: string; imageUrl: string | null } }) => {
+    ({
+      item,
+    }: {
+      item: { id: number; name: string; imageUrl: string | null };
+    }) => {
       const isSelected = selectedCategories.includes(item.id);
       const selectedIndex = isSelected
         ? selectedCategories.indexOf(item.id) + 1
@@ -295,16 +303,12 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
         >
           {isSelected && selectedIndex && (
             <View style={styles.selectedBadge}>
-              <Text style={styles.selectedBadgeText}>
-                {selectedIndex}
-              </Text>
+              <Text style={styles.selectedBadgeText}>{selectedIndex}</Text>
             </View>
           )}
           <Image
             source={
-              item.imageUrl
-                ? { uri: item.imageUrl }
-                : IMAGES.socialBackgroud
+              item.imageUrl ? { uri: item.imageUrl } : IMAGES.socialBackgroud
             }
             style={[
               styles.categoryImage,
@@ -369,9 +373,7 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
       </View>
 
       <View style={styles.titleSec}>
-        <Text style={styles.title}>
-          What&apos;s on your self-care radar?
-        </Text>
+        <Text style={styles.title}>What&apos;s on your self-care radar?</Text>
         <Text style={styles.subtitle}>
           Select up to 5 categories you&apos;re interested in, and we&apos;ll
           show you personalized picks?
@@ -386,9 +388,7 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
         </View>
       ) : hasNoData ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>
-            Category data not found
-          </Text>
+          <Text style={styles.emptyStateText}>Category data not found</Text>
         </View>
       ) : (
         <>
@@ -430,7 +430,6 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
               contentContainerStyle={styles.categoriesGrid}
               showsVerticalScrollIndicator={false}
             />
-            
           </View>
 
           <View style={styles.buttonContainer}>

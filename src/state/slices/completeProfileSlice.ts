@@ -120,6 +120,13 @@ export interface CompleteProfileState {
   }>;
   profileImageUri: string | null;
   aboutYourself: string;
+  dateOfBirth: {
+    date: string;
+    month: string;
+    year: string;
+  } | null;
+  countryZipCode: string;
+  countryName: string;
 }
 
 const initialState: CompleteProfileState = {
@@ -218,6 +225,9 @@ const initialState: CompleteProfileState = {
   businessServices: [],
   profileImageUri: null,
   aboutYourself: "",
+  dateOfBirth: null,
+  countryZipCode: "",
+  countryName: "",
 };
 
 const completeProfileSlice = createSlice({
@@ -800,6 +810,22 @@ const completeProfileSlice = createSlice({
     ) => {
       state.salonBusinessHours = action.payload;
     },
+    setDateOfBirth: (
+      state,
+      action: PayloadAction<{
+        date: string;
+        month: string;
+        year: string;
+      } | null>
+    ) => {
+      state.dateOfBirth = action.payload;
+    },
+    setCountryZipCode: (state, action: PayloadAction<string>) => {
+      state.countryZipCode = action.payload;
+    },
+    setCountryName: (state, action: PayloadAction<string>) => {
+      state.countryName = action.payload;
+    },
   },
 });
 
@@ -855,6 +881,9 @@ export const {
   setSubscriptions,
   setServices,
   setSalonBusinessHours,
+  setDateOfBirth,
+  setCountryZipCode,
+  setCountryName,
 } = completeProfileSlice.actions;
 
 export default completeProfileSlice.reducer;

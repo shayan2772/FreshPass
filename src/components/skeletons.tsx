@@ -281,7 +281,8 @@ export const Skeleton = ({
     | "Notifications"
     | "Team"
     | "Availability"
-    | "CategorySelect";
+    | "CategorySelect"
+    | "VerificationModal";
   styles?: Record<string, any>;
 }) => {
   const { colors } = useTheme();
@@ -598,6 +599,24 @@ export const Skeleton = ({
     </>
   ) : null;
 
+  const verificationModalSkeleton = styles ? (
+    <>
+      <View style={styles.skeletonContainer}>
+        <View style={skeletonStyles.titleSkeleton} />
+        <View style={styles.instructionContainer}>
+          <View style={skeletonStyles.subtitleSkeleton} />
+          <View style={skeletonStyles.subtitleSkeleton} />
+        </View>
+        <View style={styles.skeletonCodeContainer}>
+          {[...Array(5)].map((_, index) => (
+            <View key={index} style={styles.skeletonCodeInput} />
+          ))}
+        </View>
+        <View style={skeletonStyles.subtitleSkeleton} />
+      </View>
+    </>
+  ) : null;
+
   return (
     <>
       {screenType === "StepOne" && (
@@ -659,6 +678,11 @@ export const Skeleton = ({
       {screenType === "CategorySelect" && (
         <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
           {categorySelectSkeleton}
+        </SkeletonPlaceholder>
+      )}
+      {screenType === "VerificationModal" && (
+        <SkeletonPlaceholder backgroundColor="#E8DFB8" highlightColor="#DCCF9E">
+          {verificationModalSkeleton}
         </SkeletonPlaceholder>
       )}
     </>

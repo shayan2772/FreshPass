@@ -22,6 +22,7 @@ import {
 import Button from "@/src/components/button";
 import FloatingInput from "@/src/components/floatingInput";
 import RegisterHeader from "@/src/components/registerHeader";
+import VerificationCodeModal from "@/src/components/verificationCodeModal";
 import {
   validatePassword,
   validatePasswordMatch,
@@ -35,7 +36,7 @@ import {
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { setUser } from "@/src/state/slices/userSlice";
- 
+
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     safeArea: {
@@ -131,6 +132,10 @@ export default function RegisterPassword() {
     null
   );
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerificationModalVisible, setIsVerificationModalVisible] =
+    useState(false);
+
+  const [data, setData] = useState(null);
 
   const selectedRole = useAppSelector((state) => state.general.role);
 
@@ -179,7 +184,27 @@ export default function RegisterPassword() {
     setPasswordError(null);
   }, []);
 
-  const handleContinue =  async () => {
+  const handleVerificationCodeComplete = () => {
+    handleCloseVerificationModal();
+    const { user, token, refreshToken } = data as any;
+    dispatch(
+      setUser({
+        id: user.id,
+        name: user?.name || "",
+        email: user.email || email.trim(), // Use email from API response
+        accessToken: token,
+        refreshToken: refreshToken || null,
+        userRole: user?.role?.toLowerCase() || null, // Set userRole from response or use current role
+      })
+    );
+    router.replace(`/${MAIN_ROUTES.COMPLETE_CUSTOMER_PROFILE}`);
+  };
+
+  const handleCloseVerificationModal = useCallback(() => {
+    setIsVerificationModalVisible(false);
+  }, []);
+
+  const handleContinue = async () => {
     Keyboard.dismiss();
 
     setIsLoading(true);
@@ -195,20 +220,12 @@ export default function RegisterPassword() {
 
       // Handle successful registration
       if (response.success && response.data) {
-        const { user, token, refreshToken } = response.data;
+        setData(response.data);
+        const { user, token, refreshToken, email_verification_required } =
+          response.data;
 
         // Set user data in Redux (email from API response)
         if (user && token) {
-          dispatch(
-            setUser({
-              id: user.id,
-              name: user?.name || "",
-              email: user.email || email.trim(), // Use email from API response
-              accessToken: token,
-              refreshToken: refreshToken || null,
-              userRole: user?.role?.toLowerCase() || null, // Set userRole from response or use current role
-            })
-          );
           dispatch(setRegisterEmail(user.email || email.trim()));
           if (savePassword) {
             dispatch(setSavedPassword(password));
@@ -216,8 +233,24 @@ export default function RegisterPassword() {
             // Clear saved password if checkbox is unchecked
             dispatch(setSavedPassword(null));
           }
-          // Navigate to next steps
-          router.replace(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
+
+          if (user?.role?.toLowerCase() == "business") {
+            dispatch(
+              setUser({
+                id: user.id,
+                name: user?.name || "",
+                email: user.email || email.trim(), // Use email from API response
+                accessToken: token,
+                refreshToken: refreshToken || null,
+                userRole: user?.role?.toLowerCase() || null, // Set userRole from response or use current role
+              })
+            );
+            router.replace(`/${MAIN_ROUTES.REGISTER_NEXT_STEPS}`);
+          } else {
+            if (email_verification_required) {
+              setIsVerificationModalVisible(true);
+            }
+          }
         } else {
           Alert.alert("Error", "Invalid response from server");
         }
@@ -230,7 +263,7 @@ export default function RegisterPassword() {
     } finally {
       setIsLoading(false);
     }
-  } 
+  };
 
   // Form is valid only if both password and confirm password are valid
   const passwordValidation = validatePassword(password);
@@ -346,6 +379,16 @@ export default function RegisterPassword() {
           </View>
         </View>
       </TouchableWithoutFeedback>
+
+      <VerificationCodeModal
+        visible={isVerificationModalVisible}
+        // visible={true}
+        onClose={handleCloseVerificationModal}
+        email={email}
+        onCodeComplete={handleVerificationCodeComplete}
+        accessToken={data?.token||null}
+        
+      />
     </SafeAreaView>
   );
 }

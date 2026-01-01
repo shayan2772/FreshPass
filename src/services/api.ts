@@ -16,6 +16,11 @@ import { MAIN_ROUTES } from "../constant/routes";
 // Get base URL from environment
 const BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL || "";
 
+// Get guest token from environment
+const getGuestToken = (): string | null => {
+  return process.env.EXPO_PUBLIC_AUTH_TOKEN || null;
+};
+
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -238,15 +243,22 @@ const getErrorMessage = (error: AxiosError): string => {
   }
 };
 
-// Request interceptor - Add access token to headers
+// Request interceptor - Add access token or guest token to headers
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     try {
       // Only add token if Authorization header is not already set (for guest calls)
       if (!config.headers?.Authorization) {
-        const token = getAccessToken();
-        if (token && config.headers) {
-          config.headers.Authorization = `Bearer ${token}`;
+        const accessToken = getAccessToken();
+        if (accessToken && config.headers) {
+          // Use access token if available
+          config.headers.Authorization = `Bearer ${accessToken}`;
+        } else {
+          // Fallback to guest token if no access token
+          const guestToken = getGuestToken();
+          if (guestToken && config.headers) {
+            config.headers.Authorization = `Bearer ${guestToken}`;
+          }
         }
       }
     } catch (error) {
