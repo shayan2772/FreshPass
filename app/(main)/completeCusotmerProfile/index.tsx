@@ -28,6 +28,7 @@ import { ApiService } from "@/src/services/api";
 import { userEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { validateName } from "@/src/services/validationService";
+import RegisterTermsModal from "@/src/components/registerTermsModal";
 
 export default function completeCusotmerProfile() {
   const router = useRouter();
@@ -36,6 +37,7 @@ export default function completeCusotmerProfile() {
   const { showBanner } = useNotificationContext();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
   const {
     currentStep,
     totalSteps,
@@ -65,7 +67,7 @@ export default function completeCusotmerProfile() {
   }, [currentStep, dispatch, router]);
 
   // Build FormData for Step 1 API call
-  const buildFormData = () => {
+  const buildFormDataStep1 = () => {
     const formData = new FormData();
 
     // Convert month abbreviation to number (e.g., "Sep" -> "09")
@@ -107,50 +109,73 @@ export default function completeCusotmerProfile() {
     return formData;
   };
 
+  // Build FormData for Step 2 API call
+  const buildFormDataStep2 = () => {
+    const formData = new FormData();
+
+    // country_name - send empty string if not provided
+    formData.append("country_name", countryName?.trim() || "");
+
+    // zip_code - send empty string if not provided
+    formData.append("zip_code", countryZipCode?.trim() || "");
+
+    return formData;
+  };
+
   const handleContinue = async () => {
-    // Step 1: Call API to update user profile
-    if (currentStep === 1) {
-      setIsSubmitting(true);
-      try {
-        const formData = buildFormData();
+    setIsSubmitting(true);
+    try {
+      const config = {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      };
 
-        const config = {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        };
+      let formData: FormData;
 
-        const response = await ApiService.post<{
-          success: boolean;
-          message: string;
-          data?: any;
-        }>(userEndpoints.update, formData, config);
+      // Step 1: Call API to update user profile (name, phone, country_code, date_of_birth)
+      if (currentStep === 1) {
+        formData = buildFormDataStep1();
+      } else if (currentStep === 2) {
+        // Step 2: Call API to update country_name and zip_code
+        formData = buildFormDataStep2();
+      } else {
+        setIsSubmitting(false);
+        return;
+      }
 
-        if (response.success) {
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(userEndpoints.update, formData, config);
+
+      if (response.success) {
+        if (currentStep === 1) {
           // Move to next step on success
           dispatch(goToNextStep());
-        } else {
-          showBanner(
-            "Error",
-            response.message || "Failed to update profile",
-            "error",
-            3000
-          );
+        } else if (currentStep === 2) {
+          // Open terms modal after Step 2 API call
+          setShowTermsModal(true);
         }
-      } catch (error: any) {
-        console.error("Failed to update profile:", error);
+      } else {
         showBanner(
           "Error",
-          error.message || "Failed to update profile. Please try again.",
+          response.message || "Failed to update profile",
           "error",
           3000
         );
-      } finally {
-        setIsSubmitting(false);
       }
-    } else if (currentStep === 2) {
-      // Step 2: Just navigate to next screen (no API call needed for step 2)
-      router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
+    } catch (error: any) {
+      console.error("Failed to update profile:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to update profile. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -237,7 +262,7 @@ export default function completeCusotmerProfile() {
         currentStep={currentStep}
         totalSteps={totalSteps}
         onBack={handleBack}
-        disableBack={false}
+        disableBack={currentStep === 1 ? true : false}
       />
       <KeyboardAvoidingView
         style={styles.contentContainer}
@@ -259,6 +284,18 @@ export default function completeCusotmerProfile() {
           />
         </View>
       </KeyboardAvoidingView>
+
+      <RegisterTermsModal
+        visible={showTermsModal}
+        onClose={() => {
+          // Empty function - modal is non-closable
+        }}
+        onContinue={() => {
+          setShowTermsModal(false);
+          router.replace(`/(main)/${MAIN_ROUTES.INTRODUCTION}`);
+        }}
+        nonClosable={true}
+      />
     </SafeAreaView>
   );
 }

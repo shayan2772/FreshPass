@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+} from "react";
 import {
   Dimensions,
   Pressable,
@@ -151,15 +157,17 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      alignSelf:"center"
     },
     subtitle: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+         alignSelf:"center"
     },
     formGroup: {
       gap: moderateHeightScale(16),
-      marginTop: moderateHeightScale(10),
+      marginTop: moderateHeightScale(5),
     },
     field: {},
     phoneField: {
@@ -269,7 +277,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textDecorationLine: "underline",
-      textDecorationColor:theme.lightGreen,
+      textDecorationColor: theme.lightGreen,
     },
     dateOfBirthFields: {
       flexDirection: "row",
@@ -590,14 +598,11 @@ export default function StepOne() {
     }
   }, [fullName]);
 
-
   return (
     <View style={styles.container}>
       <View style={styles.titleSec}>
-        <Text style={styles.title}>Tell us about yourself</Text>
-        <Text style={styles.subtitle}>
-          We need some basic information to get started.
-        </Text>
+        <Text style={styles.title}>What’s your name?</Text>
+        <Text style={styles.subtitle}>Personalize your experience</Text>
       </View>
 
       <View style={styles.formGroup}>
@@ -736,8 +741,8 @@ export default function StepOne() {
                   ]}
                 >
                   {dateOfBirth?.month
-                    ? MONTHS.find((m) => m.value === dateOfBirth.month)?.label ||
-                      dateOfBirth.month
+                    ? MONTHS.find((m) => m.value === dateOfBirth.month)
+                        ?.label || dateOfBirth.month
                     : "Sep"}
                 </Text>
               </View>

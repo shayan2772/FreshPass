@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -82,9 +82,9 @@ export default function CompleteProfileHeader({
         {disableBack ? (
           <View style={styles.spacer} />
         ) : (
-          <Pressable
+          <TouchableOpacity
             onPress={onBack}
-            hitSlop={moderateWidthScale(8)}
+            activeOpacity={0.6}
             style={styles.backButton}
           >
             <Feather
@@ -92,7 +92,7 @@ export default function CompleteProfileHeader({
               size={moderateWidthScale(22)}
               color={(colors as Theme).darkGreen}
             />
-          </Pressable>
+          </TouchableOpacity>
         )}
 
         <Text style={styles.stepLabel}>

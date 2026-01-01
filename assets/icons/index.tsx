@@ -1080,6 +1080,32 @@ export const CircleTickIcon: React.FC<CircleTickIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Crown Icon SVG
+const crownIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 61 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M52.198 47.0914H7.88223C6.31577 47.0914 4.97677 45.9627 4.71068 44.4177L0.0456427 17.2386C-0.156066 16.0498 0.320312 14.8438 1.28594 14.1185C2.25156 13.3889 3.54335 13.2731 4.62915 13.8009L17.0492 19.8479L27.2291 1.53534C28.3621 -0.511781 31.7224 -0.511781 32.8554 1.53534L43.0353 19.8479L55.4554 13.8009C56.5411 13.2731 57.8329 13.3889 58.7986 14.1185C59.7642 14.8438 60.2406 16.0455 60.0388 17.2386L55.3738 44.4177C55.1034 45.9627 53.7644 47.0914 52.198 47.0914ZM10.5946 40.6539H49.4856L52.6271 22.3328L43.1125 26.9678C41.5675 27.7274 39.7178 27.1351 38.8895 25.6373L30.0401 9.72813L21.1907 25.6416C20.3624 27.1394 18.5084 27.7274 16.9677 26.9721L7.45306 22.3371L10.5946 40.6539Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface CrownIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const CrownIcon: React.FC<CrownIconProps> = ({
+  width = 61,
+  height = 48,
+  color = "#18210E",
+}) => {
+  const svgXml = crownIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 // Location Icon SVG
 const locationIconSvg = `
 <svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 393 414" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1436,4 +1462,5 @@ export default {
   OpenFullIcon,
   MapPinIcon,
   PhoneIconContact,
+  CrownIcon,
 };

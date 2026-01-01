@@ -5,7 +5,6 @@ import {
   View,
   ScrollView,
   TouchableOpacity,
-  TextInput,
 } from "react-native";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -14,35 +13,372 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import {
-  CountryPicker,
-  CountryItem,
-} from "react-native-country-codes-picker";
+import { CountryPicker, CountryItem } from "react-native-country-codes-picker";
 import FloatingInput from "@/src/components/floatingInput";
-import { setCountryName, setCountryZipCode } from "@/src/state/slices/completeProfileSlice";
+import {
+  setCountryName,
+  setCountryZipCode,
+} from "@/src/state/slices/completeProfileSlice";
 
-// Popular countries list with their flag emojis
+// Popular countries list with their flag emojis and zip code formats
 const POPULAR_COUNTRIES = [
-  { code: "RU", name: "Russia", flag: "🇷🇺" },
-  { code: "US", name: "United States", flag: "🇺🇸" },
-  { code: "CN", name: "China", flag: "🇨🇳" },
-  { code: "AU", name: "Australia", flag: "🇦🇺" },
-  { code: "PL", name: "Poland", flag: "🇵🇱" },
-  { code: "PK", name: "Pakistan", flag: "🇵🇰" },
-  { code: "GB", name: "United Kingdom", flag: "🇬🇧" },
-  { code: "CA", name: "Canada", flag: "🇨🇦" },
-  { code: "IN", name: "India", flag: "🇮🇳" },
-  { code: "NG", name: "Nigeria", flag: "🇳🇬" },
-  { code: "FR", name: "France", flag: "🇫🇷" },
-  { code: "DE", name: "Germany", flag: "🇩🇪" },
-  { code: "IT", name: "Italy", flag: "🇮🇹" },
-  { code: "ES", name: "Spain", flag: "🇪🇸" },
-  { code: "BR", name: "Brazil", flag: "🇧🇷" },
-  { code: "MX", name: "Mexico", flag: "🇲🇽" },
-  { code: "JP", name: "Japan", flag: "🇯🇵" },
-  { code: "KR", name: "South Korea", flag: "🇰🇷" },
-  { code: "SA", name: "Saudi Arabia", flag: "🇸🇦" },
-  { code: "AE", name: "United Arab Emirates", flag: "🇦🇪" },
+  {
+    code: "RU",
+    name: "Russia",
+    flag: "🇷🇺",
+    zipCode: "101000",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "US",
+    name: "United States",
+    flag: "🇺🇸",
+    zipCode: "10001",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "CN",
+    name: "China",
+    flag: "🇨🇳",
+    zipCode: "100000",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "AU",
+    name: "Australia",
+    flag: "🇦🇺",
+    zipCode: "2000",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "PL",
+    name: "Poland",
+    flag: "🇵🇱",
+    zipCode: "00-001",
+    zipCodeFormat: "XX-XXX",
+  },
+  {
+    code: "PK",
+    name: "Pakistan",
+    flag: "🇵🇰",
+    zipCode: "44000",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "GB",
+    name: "United Kingdom",
+    flag: "🇬🇧",
+    zipCode: "SW1A 1AA",
+    zipCodeFormat: "SW1A 1AA",
+  },
+  {
+    code: "CA",
+    name: "Canada",
+    flag: "🇨🇦",
+    zipCode: "K1A 0B1",
+    zipCodeFormat: "K1A 0B1",
+  },
+  {
+    code: "IN",
+    name: "India",
+    flag: "🇮🇳",
+    zipCode: "110001",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "NG",
+    name: "Nigeria",
+    flag: "🇳🇬",
+    zipCode: "",
+    zipCodeFormat: "Not used",
+  },
+  {
+    code: "FR",
+    name: "France",
+    flag: "🇫🇷",
+    zipCode: "75001",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "DE",
+    name: "Germany",
+    flag: "🇩🇪",
+    zipCode: "10115",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "IT",
+    name: "Italy",
+    flag: "🇮🇹",
+    zipCode: "00118",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "ES",
+    name: "Spain",
+    flag: "🇪🇸",
+    zipCode: "28001",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "BR",
+    name: "Brazil",
+    flag: "🇧🇷",
+    zipCode: "01310-100",
+    zipCodeFormat: "XXXXX-XXX",
+  },
+  {
+    code: "MX",
+    name: "Mexico",
+    flag: "🇲🇽",
+    zipCode: "01000",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "JP",
+    name: "Japan",
+    flag: "🇯🇵",
+    zipCode: "100-0001",
+    zipCodeFormat: "XXX-XXXX",
+  },
+  {
+    code: "KR",
+    name: "South Korea",
+    flag: "🇰🇷",
+    zipCode: "03051",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "SA",
+    name: "Saudi Arabia",
+    flag: "🇸🇦",
+    zipCode: "11564",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "AE",
+    name: "United Arab Emirates",
+    flag: "🇦🇪",
+    zipCode: "",
+    zipCodeFormat: "Not used",
+  },
+  {
+    code: "TR",
+    name: "Turkey",
+    flag: "🇹🇷",
+    zipCode: "34000",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "ID",
+    name: "Indonesia",
+    flag: "🇮🇩",
+    zipCode: "10110",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "PH",
+    name: "Philippines",
+    flag: "🇵🇭",
+    zipCode: "1000",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "VN",
+    name: "Vietnam",
+    flag: "🇻🇳",
+    zipCode: "100000",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "TH",
+    name: "Thailand",
+    flag: "🇹🇭",
+    zipCode: "10100",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "MY",
+    name: "Malaysia",
+    flag: "🇲🇾",
+    zipCode: "50000",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "SG",
+    name: "Singapore",
+    flag: "🇸🇬",
+    zipCode: "018956",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "NZ",
+    name: "New Zealand",
+    flag: "🇳🇿",
+    zipCode: "1010",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "ZA",
+    name: "South Africa",
+    flag: "🇿🇦",
+    zipCode: "0001",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "EG",
+    name: "Egypt",
+    flag: "🇪🇬",
+    zipCode: "11511",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "AR",
+    name: "Argentina",
+    flag: "🇦🇷",
+    zipCode: "C1000",
+    zipCodeFormat: "XXXX",
+  },
+  {
+    code: "CL",
+    name: "Chile",
+    flag: "🇨🇱",
+    zipCode: "8320000",
+    zipCodeFormat: "7 digits",
+  },
+  {
+    code: "CO",
+    name: "Colombia",
+    flag: "🇨🇴",
+    zipCode: "110111",
+    zipCodeFormat: "6 digits",
+  },
+  {
+    code: "PE",
+    name: "Peru",
+    flag: "🇵🇪",
+    zipCode: "15001",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "NL",
+    name: "Netherlands",
+    flag: "🇳🇱",
+    zipCode: "1012 AB",
+    zipCodeFormat: "XXXX XX",
+  },
+  {
+    code: "BE",
+    name: "Belgium",
+    flag: "🇧🇪",
+    zipCode: "1000",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "CH",
+    name: "Switzerland",
+    flag: "🇨🇭",
+    zipCode: "8001",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "AT",
+    name: "Austria",
+    flag: "🇦🇹",
+    zipCode: "1010",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "SE",
+    name: "Sweden",
+    flag: "🇸🇪",
+    zipCode: "111 22",
+    zipCodeFormat: "XXX XX",
+  },
+  {
+    code: "NO",
+    name: "Norway",
+    flag: "🇳🇴",
+    zipCode: "0001",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "DK",
+    name: "Denmark",
+    flag: "🇩🇰",
+    zipCode: "1000",
+    zipCodeFormat: "4 digits",
+  },
+  {
+    code: "FI",
+    name: "Finland",
+    flag: "🇫🇮",
+    zipCode: "00100",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "PT",
+    name: "Portugal",
+    flag: "🇵🇹",
+    zipCode: "1000-001",
+    zipCodeFormat: "XXXX-XXX",
+  },
+  {
+    code: "GR",
+    name: "Greece",
+    flag: "🇬🇷",
+    zipCode: "101 10",
+    zipCodeFormat: "XXX XX",
+  },
+  {
+    code: "IE",
+    name: "Ireland",
+    flag: "🇮🇪",
+    zipCode: "D02 AF30",
+    zipCodeFormat: "Dublin format",
+  },
+  {
+    code: "IL",
+    name: "Israel",
+    flag: "🇮🇱",
+    zipCode: "9100001",
+    zipCodeFormat: "7 digits",
+  },
+  {
+    code: "JO",
+    name: "Jordan",
+    flag: "🇯🇴",
+    zipCode: "11118",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "KW",
+    name: "Kuwait",
+    flag: "🇰🇼",
+    zipCode: "13001",
+    zipCodeFormat: "5 digits",
+  },
+  {
+    code: "QA",
+    name: "Qatar",
+    flag: "🇶🇦",
+    zipCode: "",
+    zipCodeFormat: "Not used",
+  },
+  {
+    code: "BH",
+    name: "Bahrain",
+    flag: "🇧🇭",
+    zipCode: "",
+    zipCodeFormat: "Not used",
+  },
+  {
+    code: "OM",
+    name: "Oman",
+    flag: "🇴🇲",
+    zipCode: "100",
+    zipCodeFormat: "3 digits",
+  },
 ];
 
 const createStyles = (theme: Theme) =>
@@ -60,14 +396,15 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      textAlign:"center"
     },
     subtitle: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+      textAlign:"center"
     },
     countryList: {
-      marginTop: moderateHeightScale(20),
       gap: 0,
     },
     countryItem: {
@@ -78,10 +415,13 @@ const createStyles = (theme: Theme) =>
       borderBottomColor: theme.borderLight,
       gap: moderateWidthScale(12),
     },
+    countryItemSelected:{
+      borderBottomWidth: 0
+    },
     radioButton: {
-      width: moderateWidthScale(20),
-      height: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(10),
+      width: moderateWidthScale(16),
+      height: moderateWidthScale(16),
+      borderRadius: moderateWidthScale(16/2),
       borderWidth: 2,
       borderColor: theme.darkGreen,
       alignItems: "center",
@@ -91,9 +431,9 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.darkGreen,
     },
     radioButtonInner: {
-      width: moderateWidthScale(10),
-      height: moderateWidthScale(10),
-      borderRadius: moderateWidthScale(5),
+      width: moderateWidthScale(6),
+      height: moderateWidthScale(6),
+      borderRadius: moderateWidthScale(6/2),
       backgroundColor: theme.orangeBrown,
     },
     countryFlag: {
@@ -101,29 +441,14 @@ const createStyles = (theme: Theme) =>
     },
     countryName: {
       flex: 1,
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     zipCodeContainer: {
-      marginTop: moderateHeightScale(20),
-    },
-    zipCodeInput: {
-      borderRadius: moderateWidthScale(12),
-      borderWidth: 1,
-      borderColor: theme.lightGreen2,
-      backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(14),
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-    },
-    zipCodeLabel: {
-      fontSize: fontSize.size11,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginBottom: moderateHeightScale(4),
+      paddingVertical: moderateHeightScale(16),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
     },
   });
 
@@ -134,33 +459,26 @@ export default function StepTwo() {
   const { countryName, countryZipCode } = useAppSelector(
     (state) => state.completeProfile
   );
-  const [showCountryPicker, setShowCountryPicker] = useState(false);
-
-  const handleCountrySelect = useCallback(
-    (country: CountryItem) => {
-      const countryData = POPULAR_COUNTRIES.find(
-        (c) => c.code === country.code
-      ) || {
-        code: country.code,
-        name: country.name?.en || country.name || "",
-        flag: country.flag || "🏳️",
-      };
-      dispatch(setCountryName(countryData.name));
-      setShowCountryPicker(false);
-    },
-    [dispatch]
-  );
 
   const handleCountryPress = useCallback(
-    (country: typeof POPULAR_COUNTRIES[0]) => {
+    (country: (typeof POPULAR_COUNTRIES)[0]) => {
       dispatch(setCountryName(country.name));
+      // Pre-fill zip code if available
+      if (country.zipCode) {
+        dispatch(setCountryZipCode(country.zipCode));
+      } else {
+        // Clear zip code if country doesn't use zip codes
+        dispatch(setCountryZipCode(""));
+      }
     },
     [dispatch]
   );
 
   const handleZipCodeChange = useCallback(
     (value: string) => {
-      dispatch(setCountryZipCode(value));
+      // Only allow numbers - remove any non-numeric characters
+      const numericValue = value.replace(/[^0-9]/g, "");
+      dispatch(setCountryZipCode(numericValue));
     },
     [dispatch]
   );
@@ -173,8 +491,8 @@ export default function StepTwo() {
     );
   }, [countryName]);
 
-  // Show zip code input only for United States
-  const showZipCode = selectedCountryData?.code === "US";
+  // Show zip code input when any country is selected
+  const showZipCode = !!selectedCountryData;
 
   return (
     <View style={styles.container}>
@@ -194,54 +512,41 @@ export default function StepTwo() {
           const isSelected =
             countryName?.toLowerCase() === country.name.toLowerCase();
           return (
-            <TouchableOpacity
-              key={country.code}
-              style={styles.countryItem}
-              onPress={() => handleCountryPress(country)}
-              activeOpacity={0.7}
-            >
-              <View
-                style={[
-                  styles.radioButton,
-                  isSelected && styles.radioButtonSelected,
-                ]}
+            <React.Fragment key={country.code}>
+              <TouchableOpacity
+                style={[styles.countryItem,isSelected && styles.countryItemSelected]}
+                onPress={() => handleCountryPress(country)}
+                activeOpacity={0.7}
               >
-                {isSelected && <View style={styles.radioButtonInner} />}
-              </View>
-              <Text style={styles.countryFlag}>{country.flag}</Text>
-              <Text style={styles.countryName}>{country.name}</Text>
-            </TouchableOpacity>
+                <View
+                  style={[
+                    styles.radioButton,
+                    isSelected && styles.radioButtonSelected,
+                  ]}
+                >
+                  {isSelected && <View style={styles.radioButtonInner} />}
+                </View>
+                <Text style={styles.countryFlag}>{country.flag}</Text>
+                <Text style={styles.countryName}>{country.name}</Text>
+              </TouchableOpacity>
+              {isSelected && (
+                <View style={styles.zipCodeContainer}>
+                  <FloatingInput
+                    label="Zip code"
+                    value={countryZipCode}
+                    onChangeText={handleZipCodeChange}
+                    placeholder={"Zip code" + ` ( ${country.zipCode} )`}
+                    keyboardType="number-pad"
+                    onClear={() => {
+                      dispatch(setCountryZipCode(""));
+                    }}
+                  />
+                </View>
+              )}
+            </React.Fragment>
           );
         })}
       </ScrollView>
-
-      {showZipCode && (
-        <View style={styles.zipCodeContainer}>
-          <Text style={styles.zipCodeLabel}>Zip code</Text>
-          <TextInput
-            style={styles.zipCodeInput}
-            value={countryZipCode}
-            onChangeText={handleZipCodeChange}
-            placeholder="Zip code"
-            placeholderTextColor={(colors as Theme).lightGreen2}
-            keyboardType="default"
-            autoCapitalize="none"
-          />
-        </View>
-      )}
-
-      <CountryPicker
-        show={showCountryPicker}
-        pickerButtonOnPress={handleCountrySelect}
-        onBackdropPress={() => setShowCountryPicker(false)}
-        onRequestClose={() => setShowCountryPicker(false)}
-        inputPlaceholder="Search country"
-        inputPlaceholderTextColor={(colors as Theme).lightGreen2}
-        searchMessage="No country found"
-        popularCountries={POPULAR_COUNTRIES.map((c) => c.code)}
-        enableModalAvoiding
-        lang="en"
-      />
     </View>
   );
 }
