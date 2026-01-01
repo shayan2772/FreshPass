@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   StyleSheet,
   View,
@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Modal,
   StatusBar,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -24,6 +23,7 @@ import { LeafLogo } from "@/assets/icons";
 import Button from "@/src/components/button";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Octicons } from "@expo/vector-icons";
+import AddServiceBottomSheet from "@/src/components/AddServiceBottomSheet";
 
 // Back Arrow Icon SVG
 const backArrowIconSvg = `
@@ -64,21 +64,6 @@ const plusIconSvg = `
 
 const PlusIcon = ({ width = 24, height = 24, color = "#283618" }) => {
   const svgXml = plusIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-// Checkbox Icon SVG
-const checkboxIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-const CheckboxIcon = ({ width = 24, height = 24, color = "#283618" }) => {
-  const svgXml = checkboxIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString())
     .replace(/{{COLOR}}/g, color);
@@ -376,108 +361,6 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    // Modal styles
-    modalContainer: {
-      flex: 1,
-      backgroundColor: theme.background,
-    },
-    modalHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      paddingTop: moderateHeightScale(50),
-      paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(16),
-    },
-    modalTitle: {
-      fontSize: fontSize.size24,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginTop: moderateHeightScale(20),
-      marginBottom: moderateHeightScale(24),
-      paddingHorizontal: moderateWidthScale(20),
-    },
-    serviceListItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
-      marginBottom: moderateHeightScale(12),
-      marginHorizontal: moderateWidthScale(20),
-    },
-    checkboxContainer: {
-      width: widthScale(24),
-      height: heightScale(24),
-      borderRadius: moderateWidthScale(4),
-      borderWidth: 2,
-      borderColor: theme.lightGreen2,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: moderateWidthScale(12),
-    },
-    checkboxChecked: {
-      backgroundColor: theme.darkGreen,
-      borderColor: theme.darkGreen,
-    },
-    serviceListContent: {
-      flex: 1,
-    },
-    serviceListLabel: {
-      position: "absolute",
-      top: moderateHeightScale(-8),
-      left: moderateWidthScale(0),
-      backgroundColor: theme.lightGreen,
-      paddingHorizontal: moderateWidthScale(8),
-      paddingVertical: moderateHeightScale(2),
-      borderRadius: moderateWidthScale(4),
-    },
-    serviceListLabelText: {
-      fontSize: fontSize.size10,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-    },
-    serviceListName: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
-    },
-    serviceListDescription: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginBottom: moderateHeightScale(4),
-    },
-    serviceListDuration: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    serviceListPriceContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(8),
-      marginTop: moderateHeightScale(8),
-    },
-    serviceListOriginalPrice: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      textDecorationLine: "line-through",
-    },
-    serviceListCurrentPrice: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-    },
-    serviceListButton: {
-      marginTop: moderateHeightScale(8),
-    },
-    modalAddButton: {
-      marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(20),
-    },
   });
 
 export default function BookingNow() {
@@ -493,20 +376,33 @@ export default function BookingNow() {
   }>();
 
   const [selectedStaff, setSelectedStaff] = useState<string>("anyone");
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
-  const [selectedServicesInModal, setSelectedServicesInModal] = useState<
-    number[]
-  >([]);
+  const staffList = [
+    {
+      id: "anyone",
+      name: "Anyone who's available",
+      experience: null,
+      image: null,
+    },
+    ...staffMembers.map((staff) => ({
+      id: staff.id.toString(),
+      name: staff.name,
+      experience: `${staff.experience ?? 0} years of exp.`,
+      image: staff.image,
+    })),
+  ];
+  const totalPrice = selectedServices.reduce(
+    (sum, service) => sum + service.price,
+    0
+  );
 
   useEffect(() => {
     if (params.selectedService) {
       try {
         const service = JSON.parse(params.selectedService);
-        setSelectedService(service);
         setSelectedServices([service]);
       } catch (e) {
         console.error("Error parsing selectedService:", e);
@@ -530,71 +426,34 @@ export default function BookingNow() {
         console.error("Error parsing staffMembers:", e);
       }
     }
-  }, [params]);
-
-  const otherServices = allServices.filter(
-    (service) => service.id !== selectedService?.id
-  );
-
-  const totalPrice = selectedServices.reduce(
-    (sum, service) => sum + service.price,
-    0
-  );
+  }, [ ]);
 
   const handleDeleteService = (serviceId: number) => {
     setSelectedServices(
       selectedServices.filter((service) => service.id !== serviceId)
     );
-    if (selectedServices.length === 1) {
-      router.back();
-    }
+     
   };
 
   const handleAddService = () => {
     setAddServiceModalVisible(true);
-    setSelectedServicesInModal([]);
   };
 
-  const handleToggleServiceInModal = (serviceId: number) => {
-    setSelectedServicesInModal((prev) =>
-      prev.includes(serviceId)
-        ? prev.filter((id) => id !== serviceId)
-        : [...prev, serviceId]
-    );
-  };
-
-  const handleAddSelectedServices = () => {
-    const servicesToAdd = otherServices.filter((service) =>
-      selectedServicesInModal.includes(service.id)
-    );
-    setSelectedServices([...selectedServices, ...servicesToAdd]);
+  const handleCloseModal = useCallback(() => {
     setAddServiceModalVisible(false);
-    setSelectedServicesInModal([]);
-  };
+  }, []);
 
-  const staffList = [
-    {
-      id: "anyone",
-      name: "Anyone who's available",
-      experience: null,
-      image: null,
-    },
-    ...staffMembers.map((staff) => ({
-      id: staff.id.toString(),
-      name: staff.name,
-      experience: staff.experience ? `${staff.experience} years of exp.` : null,
-      image: staff.image,
-    })),
-  ];
+  const handleUpdateSelectedServices = useCallback((services: Service[]) => {
+    // Directly update with the service objects passed from bottom sheet
+    setSelectedServices(services);
+  }, []);
 
-  if (!selectedService) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.title}>Loading...</Text>
-      </View>
-    );
-  }
-
+  // Memoize selectedServiceIds to prevent infinite loops
+  const selectedServiceIds = useMemo(
+    () => selectedServices.map((s) => s.id),
+    [selectedServices]
+  );
+ 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -772,95 +631,14 @@ export default function BookingNow() {
         />
       </View>
 
-      {/* Add Service Modal */}
-      <Modal
+      {/* Add Service Bottom Sheet */}
+      <AddServiceBottomSheet
         visible={addServiceModalVisible}
-        animationType="slide"
-        presentationStyle="pageSheet"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalHeader}>
-            <View style={styles.headerLeft}>
-              <TouchableOpacity
-                style={styles.backButton}
-                onPress={() => setAddServiceModalVisible(false)}
-              >
-                <BackArrowIcon
-                  width={widthScale(16)}
-                  height={heightScale(16)}
-                  color={theme.darkGreen}
-                />
-              </TouchableOpacity>
-              <View style={styles.logoContainer}>
-                <LeafLogo
-                  width={widthScale(22)}
-                  height={heightScale(22)}
-                  color1={theme.darkGreen}
-                  color2={theme.darkGreen}
-                />
-                <Text style={styles.logoText}>FRESHPASS</Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.modalTitle}>Add another service</Text>
-
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {otherServices.map((service) => (
-              <View key={service.id} style={styles.serviceListItem}>
-                <TouchableOpacity
-                  style={[
-                    styles.checkboxContainer,
-                    selectedServicesInModal.includes(service.id) &&
-                      styles.checkboxChecked,
-                  ]}
-                  onPress={() => handleToggleServiceInModal(service.id)}
-                >
-                  {selectedServicesInModal.includes(service.id) && (
-                    <CheckboxIcon
-                      width={widthScale(16)}
-                      height={heightScale(16)}
-                      color={theme.white}
-                    />
-                  )}
-                </TouchableOpacity>
-                <View style={styles.serviceListContent}>
-                  {service.label && (
-                    <View style={styles.serviceListLabel}>
-                      <Text style={styles.serviceListLabelText}>
-                        {service.label}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={styles.serviceListName}>{service.name}</Text>
-                  <Text style={styles.serviceListDescription}>
-                    {service.description}
-                  </Text>
-                  <Text style={styles.serviceListDuration}>
-                    {service.duration}
-                  </Text>
-                  <View style={styles.serviceListPriceContainer}>
-                    <Text style={styles.serviceListOriginalPrice}>
-                      ${service.originalPrice.toFixed(2)}
-                    </Text>
-                    <Text style={styles.serviceListCurrentPrice}>
-                      ${service.price.toFixed(2)} USD
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            ))}
-          </ScrollView>
-
-          <View style={styles.modalAddButton}>
-            <Button
-              title="Add service"
-              onPress={handleAddSelectedServices}
-              disabled={selectedServicesInModal.length === 0}
-            />
-          </View>
-        </View>
-      </Modal>
+        onClose={handleCloseModal}
+        services={allServices}
+        selectedServiceIds={selectedServiceIds}
+        onUpdateServices={handleUpdateSelectedServices}
+      />
     </SafeAreaView>
   );
 }

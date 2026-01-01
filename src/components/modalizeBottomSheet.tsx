@@ -28,6 +28,7 @@ interface ModalizeBottomSheetProps {
   title: string;
   footerButtonTitle?: string;
   onFooterButtonPress?: () => void;
+  footerButtonDisabled?: boolean;
   children: React.ReactNode;
   sheetContainerStyle?: ViewStyle;
   contentStyle?: ViewStyle;
@@ -93,6 +94,7 @@ export default function ModalizeBottomSheet({
   title,
   footerButtonTitle,
   onFooterButtonPress,
+  footerButtonDisabled = false,
   children,
   sheetContainerStyle={},
   contentStyle,
@@ -154,6 +156,7 @@ export default function ModalizeBottomSheet({
               <Button
                 title={footerButtonTitle}
                 onPress={onFooterButtonPress || (() => {})}
+                disabled={footerButtonDisabled}
               />
             </View>
           ) : (
