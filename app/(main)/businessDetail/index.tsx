@@ -10,7 +10,6 @@ import {
   Pressable,
   StatusBar,
   Dimensions,
-  FlatList,
   Linking,
   Platform,
   Alert,
@@ -26,7 +25,7 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { SvgXml } from "react-native-svg";
 import {
   PlatformVerifiedStarIcon,
@@ -1059,6 +1058,7 @@ export default function BusinessDetailScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
+  const params = useLocalSearchParams<{ business_id?: string }>();
   const [activeTab, setActiveTab] = useState<
     "Details" | "Service" | "Ratings" | "Staff"
   >("Details");

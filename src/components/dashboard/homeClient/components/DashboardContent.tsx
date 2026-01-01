@@ -1419,7 +1419,10 @@ export default function DashboardContent() {
                     <TouchableOpacity
                       style={styles.verifiedSalonViewDetail}
                       onPress={() => {
-                        router.push("/(main)/dashboard/(home)/businessDetail" as any);
+                        router.push({
+                          pathname: "/(main)/businessDetail",
+                          params: { business_id: "1" }, // Dummy business ID
+                        } as any);
                       }}
                     >
                       <Text style={styles.verifiedSalonViewDetailText}>
