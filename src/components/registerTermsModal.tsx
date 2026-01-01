@@ -7,8 +7,6 @@ import {
   TouchableOpacity,
   BackHandler,
   StatusBar,
-  Linking,
-  Pressable,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@/src/hooks/hooks";
@@ -17,13 +15,11 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
-  heightScale,
 } from "@/src/theme/dimensions";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useFocusEffect } from "expo-router";
 import Button from "@/src/components/button";
-import { LeafLogo, CrownIcon } from "@/assets/icons";
+import { CrownIcon } from "@/assets/icons";
 
 interface AcceptTermsModalProps {
   visible: boolean;
