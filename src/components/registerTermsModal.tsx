@@ -189,6 +189,7 @@ export default function RegisterTermsModal({
       visible={visible}
       transparent={false}
       animationType="slide"
+      statusBarTranslucent={true}
       onRequestClose={nonClosable ? undefined : onClose}
     >
       <StatusBar barStyle={"light-content"} />
