@@ -217,9 +217,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1.5,
       borderColor: theme.selectCard,
     },
-    staffSection: {
-      marginBottom: moderateHeightScale(20),
-    },
+
     staffTitle: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
@@ -231,6 +229,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       gap: moderateWidthScale(12),
       paddingHorizontal: moderateWidthScale(20),
+      paddingBottom: moderateHeightScale(2),
     },
     staffCard: {
       width: widthScale(180),
@@ -240,6 +239,8 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(12),
+    },
+    shadow: {
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
@@ -249,8 +250,11 @@ const createStyles = (theme: Theme) =>
       shadowRadius: 1.0,
       elevation: 1,
     },
-    staffCardSelected: {
-      backgroundColor: theme.lightBeige,
+    staffCardSelected: {},
+    staffCardAnyone: {
+      justifyContent: "space-between",
+      width: widthScale(130),
+      backgroundColor: theme.lightGreen015,
     },
     staffImage: {
       width: widthScale(35),
@@ -275,11 +279,23 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
+    radioButton: {
+      width: moderateWidthScale(20),
+      height: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(10),
+      borderWidth: 2,
+      borderColor: theme.lightGreen2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    radioButtonInner: {
+      width: moderateWidthScale(10),
+      height: moderateWidthScale(10),
+      borderRadius: moderateWidthScale(5),
+      backgroundColor: theme.orangeBrown,
+    },
     priceBreakdown: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
-      marginBottom: moderateHeightScale(16),
+      padding: moderateWidthScale(20),
     },
     priceRow: {
       flexDirection: "row",
@@ -293,7 +309,7 @@ const createStyles = (theme: Theme) =>
     priceLabel: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
+      color: theme.darkGreen,
     },
     priceValue: {
       fontSize: fontSize.size14,
@@ -301,13 +317,13 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     priceLabelTotal: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
     priceValueTotal: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     subscriptionSection: {
@@ -664,69 +680,61 @@ export default function BookingNow() {
         </TouchableOpacity>
 
         {/* Staff Selection */}
-        <View style={styles.staffSection}>
+        <View>
           <Text style={styles.staffTitle}>Choose staff members</Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.staffList}
           >
-            {staffList.map((staff) => (
-              <TouchableOpacity
-                key={staff.id}
-                style={[
-                  styles.staffCard,
-                  selectedStaff === staff.id && styles.staffCardSelected,
-                ]}
-                onPress={() => setSelectedStaff(staff.id)}
-              >
-                {staff.image ? (
-                  <Image
-                    source={{ uri: staff.image }}
-                    style={styles.staffImage}
-                  />
-                ) : (
-                  <View style={styles.staffImage} />
-                )}
-                <View style={styles.staffInfo}>
-                  <Text style={styles.staffName} numberOfLines={1}>
-                    {staff.name}
-                  </Text>
-                  {staff.experience ? (
-                    <Text style={styles.staffExperience} numberOfLines={1}>
-                      {staff.experience}
-                    </Text>
-                  ) : null}
-                </View>
-                <View
-                  style={{
-                    width: moderateWidthScale(20),
-                    height: moderateWidthScale(20),
-                    borderRadius: moderateWidthScale(10),
-                    borderWidth: 2,
-                    borderColor:
-                      selectedStaff === staff.id
-                        ? theme.darkGreen
-                        : theme.lightGreen2,
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
+            {staffList.map((staff) => {
+              const isAnyone = staff.id === "anyone";
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  key={staff.id}
+                  style={[
+                    styles.staffCard,
+                    selectedStaff === staff.id && styles.staffCardSelected,
+                    isAnyone && styles.staffCardAnyone,
+                    !isAnyone && styles.shadow,
+                  ]}
+                  onPress={() => setSelectedStaff(staff.id)}
                 >
-                  {selectedStaff === staff.id && (
-                    <View
-                      style={{
-                        width: moderateWidthScale(10),
-                        height: moderateWidthScale(10),
-                        borderRadius: moderateWidthScale(5),
-                        backgroundColor: theme.darkGreen,
-                      }}
-                    />
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))}
+                  <>
+                    {!isAnyone && (
+                      <Image
+                        source={{ uri: staff.image || "" }}
+                        style={styles.staffImage}
+                      />
+                    )}
+
+                    <View style={styles.staffInfo}>
+                      <Text
+                        style={styles.staffName}
+                        numberOfLines={isAnyone ? 2 : 1}
+                      >
+                        {staff.name}
+                      </Text>
+                      {staff.experience ? (
+                        <Text style={styles.staffExperience} numberOfLines={1}>
+                          {staff.experience}
+                        </Text>
+                      ) : null}
+                    </View>
+                    <View style={[styles.radioButton]}>
+                      {selectedStaff === staff.id && (
+                        <View style={styles.radioButtonInner} />
+                      )}
+                    </View>
+                  </>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
         </View>
+
+        <View style={[styles.line, { marginTop: moderateHeightScale(20) }]} />
 
         {/* Price Breakdown */}
         <View style={styles.priceBreakdown}>
@@ -737,12 +745,6 @@ export default function BookingNow() {
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tax:</Text>
             <Text style={styles.priceValue}>Calculated at the checkout</Text>
-          </View>
-          <View style={[styles.priceRow, styles.priceRowLast]}>
-            <Text style={styles.priceLabelTotal}>Estimated Total:</Text>
-            <Text style={styles.priceValueTotal}>
-              ${totalPrice.toFixed(2)} USD
-            </Text>
           </View>
         </View>
       </ScrollView>

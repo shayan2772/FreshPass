@@ -1390,7 +1390,7 @@ export default function BusinessDetailScreen() {
     {
       id: 1,
       name: "Umut Hasanoglu",
-      experience: null,
+      experience: 1,
       image:
         "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
     },
