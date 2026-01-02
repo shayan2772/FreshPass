@@ -656,6 +656,21 @@ export default function Checkout() {
     setSelectedCategory(category);
   };
 
+  // Handle service deletion
+  const handleDeleteService = (serviceId: number) => {
+    const updatedServices = selectedServices.filter(
+      (service) => service.id !== serviceId
+    );
+    setSelectedServices(updatedServices);
+    
+    // Update route params so previous screen gets updated services
+    router.setParams({
+      selectedServices: JSON.stringify(updatedServices),
+      selectedStaff: params.selectedStaff || "",
+      businessId: params.businessId || "",
+    });
+  };
+
   // Dummy staff member
   const dummyStaff: StaffMember = {
     id: 1,
@@ -1026,11 +1041,16 @@ export default function Checkout() {
                             ${service.originalPrice.toFixed(2)}
                           </Text>
                         </View>
-                        <MaterialIcons
-                          name="delete-outline"
-                          size={moderateWidthScale(20)}
-                          color={theme.red}
-                        />
+                        <TouchableOpacity
+                          onPress={() => handleDeleteService(service.id)}
+                          activeOpacity={0.7}
+                        >
+                          <MaterialIcons
+                            name="delete-outline"
+                            size={moderateWidthScale(20)}
+                            color={theme.red}
+                          />
+                        </TouchableOpacity>
                       </View>
                     </View>
                   </View>

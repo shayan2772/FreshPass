@@ -1,4 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   StyleSheet,
   View,
@@ -335,6 +336,7 @@ export default function BookingNow() {
   const router = useRouter();
   const params = useLocalSearchParams<{
     selectedService?: string;
+    selectedServices?: string;
     allServices?: string;
     staffMembers?: string;
     businessId?: string;
@@ -374,6 +376,16 @@ export default function BookingNow() {
       }
     }
 
+    // Check for updated services from checkout screen
+    if (params.selectedServices) {
+      try {
+        const services = JSON.parse(params.selectedServices);
+        setSelectedServices(services);
+      } catch (e) {
+        console.error("Error parsing selectedServices:", e);
+      }
+    }
+
     if (params.allServices) {
       try {
         const services = JSON.parse(params.allServices);
@@ -391,7 +403,21 @@ export default function BookingNow() {
         console.error("Error parsing staffMembers:", e);
       }
     }
-  }, [ ]);
+  }, [params.selectedService, params.selectedServices, params.allServices, params.staffMembers]);
+
+  // Update services when returning from checkout
+  useFocusEffect(
+    useCallback(() => {
+      if (params.selectedServices) {
+        try {
+          const services = JSON.parse(params.selectedServices);
+          setSelectedServices(services);
+        } catch (e) {
+          console.error("Error parsing selectedServices:", e);
+        }
+      }
+    }, [params.selectedServices])
+  );
 
   const handleDeleteService = (serviceId: number) => {
     setSelectedServices(
