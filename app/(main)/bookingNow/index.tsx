@@ -607,6 +607,11 @@ export default function BookingNow() {
             <Text style={styles.priceLabel}>Tax:</Text>
             <Text style={styles.priceValue}>Calculated at the checkout</Text>
           </View>
+          <View style={[styles.line,{backgroundColor:theme.lightGreen2,marginBottom:moderateHeightScale(12)}  ]} />
+          <View style={styles.priceRow}>
+            <Text style={[styles.priceLabel,{fontFamily:fonts.fontBold}]}>Estimated Total:</Text>
+            <Text style={[styles.priceValue,{fontFamily:fonts.fontBold}]}>${totalPrice.toFixed(2)} USD</Text>
+          </View>
         </View>
       </ScrollView>
 
