@@ -33,6 +33,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Feather, Octicons } from "@expo/vector-icons";
 import { MorningIcon, EveningIcon, NightIcon } from "@/assets/icons";
 import AddServiceBottomSheet from "@/src/components/AddServiceBottomSheet";
+import StaffSelectionBottomSheet from "@/src/components/StaffSelectionBottomSheet";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -523,13 +524,14 @@ const createStyles = (theme: Theme) =>
     },
     // Privacy Policy Section
     privacyText: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       lineHeight: moderateHeightScale(16),
+      marginHorizontal: moderateWidthScale(20),
     },
     privacyLink: {
-      color: theme.darkGreen,
+      color: theme.primary,
       fontFamily: fonts.fontMedium,
     },
     // Subscription Section
@@ -601,6 +603,9 @@ export default function Checkout() {
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [allServices, setAllServices] = useState<Service[]>([]);
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
+  const [staffSelectionModalVisible, setStaffSelectionModalVisible] =
+    useState(false);
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("anyone");
   const [selectedStaffMember, setSelectedStaffMember] =
     useState<StaffMember | null>(null);
@@ -709,7 +714,13 @@ export default function Checkout() {
         staffMembers: params.staffMembers || "",
       });
     },
-    [params.selectedStaff, params.businessId, params.allServices, params.staffMembers, router]
+    [
+      params.selectedStaff,
+      params.businessId,
+      params.allServices,
+      params.staffMembers,
+      router,
+    ]
   );
 
   // Memoize selectedServiceIds for AddServiceBottomSheet
@@ -730,7 +741,14 @@ export default function Checkout() {
         staffMembers: params.staffMembers || "",
       },
     });
-  }, [selectedServices, selectedStaffId, params.businessId, params.allServices, params.staffMembers, router]);
+  }, [
+    selectedServices,
+    selectedStaffId,
+    params.businessId,
+    params.allServices,
+    params.staffMembers,
+    router,
+  ]);
 
   // Handle Android hardware back button
   useFocusEffect(
@@ -761,7 +779,9 @@ export default function Checkout() {
     (sum, service) => sum + service.price,
     0
   );
-  const tax = 0.1; // Dummy tax
+  // Tax rate (5% = 0.1)
+  const taxRate = 0.05;
+  const tax = totalPrice * taxRate;
   const estimatedTotal = totalPrice + tax;
 
   useEffect(() => {
@@ -783,14 +803,43 @@ export default function Checkout() {
       }
     }
 
+    if (params.staffMembers) {
+      try {
+        const staff = JSON.parse(params.staffMembers);
+        setStaffMembers(staff);
+      } catch (e) {
+        console.error("Error parsing staffMembers:", e);
+      }
+    }
+
     if (params.selectedStaff) {
       setSelectedStaffId(params.selectedStaff);
       if (params.selectedStaff !== "anyone") {
-        // In real app, fetch staff member by ID
-        setSelectedStaffMember(dummyStaff);
+        // Find staff member from parsed staffMembers
+        try {
+          const staff = params.staffMembers
+            ? JSON.parse(params.staffMembers)
+            : [];
+          const foundStaff = staff.find(
+            (s: StaffMember) => s.id.toString() === params.selectedStaff
+          );
+          if (foundStaff) {
+            setSelectedStaffMember(foundStaff);
+          } else {
+            // Fallback to dummy staff if not found
+            setSelectedStaffMember(dummyStaff);
+          }
+        } catch (e) {
+          setSelectedStaffMember(dummyStaff);
+        }
       }
     }
-  }, [params.selectedServices, params.allServices, params.selectedStaff]);
+  }, [
+    params.selectedServices,
+    params.allServices,
+    params.staffMembers,
+    params.selectedStaff,
+  ]);
 
   const prevWeek = () => {
     const newWeek = week[0].subtract(1, "week");
@@ -1135,7 +1184,7 @@ export default function Checkout() {
                         </View>
                         <TouchableOpacity
                           onPress={() => handleDeleteService(service.id)}
-                          activeOpacity={0.7}
+                          activeOpacity={0.5}
                         >
                           <MaterialIcons
                             name="delete-outline"
@@ -1235,7 +1284,11 @@ export default function Checkout() {
                   </Text>
                 </>
               )}
-              <TouchableOpacity style={styles.serviceDetailsChangeButton}>
+              <TouchableOpacity
+                style={styles.serviceDetailsChangeButton}
+                onPress={() => setStaffSelectionModalVisible(true)}
+                activeOpacity={0.7}
+              >
                 <Text style={styles.serviceDetailsChangeButtonText}>
                   Change
                 </Text>
@@ -1252,7 +1305,7 @@ export default function Checkout() {
           </View>
           <View style={styles.priceRow}>
             <Text style={styles.priceLabel}>Tax:</Text>
-            <Text style={styles.priceValue}>Calculated at the checkout</Text>
+            <Text style={styles.priceValue}>${tax.toFixed(2)} USD</Text>
           </View>
           <View
             style={[
@@ -1268,7 +1321,7 @@ export default function Checkout() {
               Estimated Total:
             </Text>
             <Text style={[styles.priceValue, { fontFamily: fonts.fontBold }]}>
-              ${totalPrice.toFixed(2)} USD
+              ${estimatedTotal.toFixed(2)} USD
             </Text>
           </View>
         </View>
@@ -1277,9 +1330,11 @@ export default function Checkout() {
         <View style={styles.section}>
           <Text style={styles.privacyText}>
             By placing this order, you agree to our{" "}
-            <Text style={styles.privacyLink}>Privacy Policy</Text>. Your
-            personal data will be processed by the partner with whom you're
-            booking an appointment.
+            <Text style={styles.privacyLink} onPress={() => {}}>
+              Privacy Policy
+            </Text>
+            . Your personal data will be processed by the partner with whom
+            you're booking an appointment.
           </Text>
         </View>
       </ScrollView>
@@ -1324,6 +1379,37 @@ export default function Checkout() {
         services={allServices}
         selectedServiceIds={selectedServiceIds}
         onUpdateServices={handleUpdateSelectedServices}
+      />
+
+      {/* Staff Selection Bottom Sheet */}
+      <StaffSelectionBottomSheet
+        visible={staffSelectionModalVisible}
+        onClose={() => setStaffSelectionModalVisible(false)}
+        staffMembers={staffMembers}
+        selectedStaffId={selectedStaffId}
+        onSelectStaff={(staffId) => {
+          setSelectedStaffId(staffId);
+          if (staffId === "anyone") {
+            setSelectedStaffMember(null);
+          } else {
+            const foundStaff = staffMembers.find(
+              (s) => s.id.toString() === staffId
+            );
+            if (foundStaff) {
+              setSelectedStaffMember(foundStaff);
+            } else {
+              setSelectedStaffMember(dummyStaff);
+            }
+          }
+          // Update route params
+          router.setParams({
+            selectedServices: JSON.stringify(selectedServices),
+            selectedStaff: staffId,
+            businessId: params.businessId || "",
+            allServices: params.allServices || "",
+            staffMembers: params.staffMembers || "",
+          });
+        }}
       />
     </SafeAreaView>
   );
