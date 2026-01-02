@@ -1361,13 +1361,16 @@ export default function Checkout() {
               );
               return;
             }
-            // Handle booking logic here
-            showBanner(
-              "Booking Successful",
-              "Your appointment has been confirmed.",
-              "success",
-              4000
-            );
+            if (selectedServices.length === 0) {
+              showBanner(
+                "No Service Selected",
+                "Please select at least one service to proceed with checkout.",
+                "warning",
+                4000
+              );
+              return;
+            }
+             
           }}
         />
       </View>
