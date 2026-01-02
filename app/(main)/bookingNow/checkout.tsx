@@ -13,9 +13,10 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  BackHandler,
 } from "react-native";
 import { FlatList } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
@@ -594,6 +595,7 @@ export default function Checkout() {
     selectedStaff?: string;
     businessId?: string;
     allServices?: string;
+    staffMembers?: string;
   }>();
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -682,6 +684,7 @@ export default function Checkout() {
       selectedStaff: params.selectedStaff || "",
       businessId: params.businessId || "",
       allServices: params.allServices || "",
+      staffMembers: params.staffMembers || "",
     });
   };
 
@@ -703,15 +706,47 @@ export default function Checkout() {
         selectedStaff: params.selectedStaff || "",
         businessId: params.businessId || "",
         allServices: params.allServices || "",
+        staffMembers: params.staffMembers || "",
       });
     },
-    [params.selectedStaff, params.businessId, params.allServices, router]
+    [params.selectedStaff, params.businessId, params.allServices, params.staffMembers, router]
   );
 
   // Memoize selectedServiceIds for AddServiceBottomSheet
   const selectedServiceIds = useMemo(
     () => selectedServices.map((s) => s.id),
     [selectedServices]
+  );
+
+  // Handle back navigation with updated data
+  const handleBackNavigation = useCallback(() => {
+    router.push({
+      pathname: "/(main)/bookingNow",
+      params: {
+        selectedServices: JSON.stringify(selectedServices),
+        selectedStaff: selectedStaffId,
+        businessId: params.businessId || "",
+        allServices: params.allServices || "",
+        staffMembers: params.staffMembers || "",
+      },
+    });
+  }, [selectedServices, selectedStaffId, params.businessId, params.allServices, params.staffMembers, router]);
+
+  // Handle Android hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        handleBackNavigation();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [handleBackNavigation])
   );
 
   // Dummy staff member
@@ -796,7 +831,7 @@ export default function Checkout() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={handleBackNavigation}
           >
             <BackArrowIcon
               width={widthScale(25)}

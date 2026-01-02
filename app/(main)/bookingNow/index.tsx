@@ -204,7 +204,6 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1.5,
       borderColor: theme.selectCard,
     },
-
     staffTitle: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
@@ -337,6 +336,7 @@ export default function BookingNow() {
   const params = useLocalSearchParams<{
     selectedService?: string;
     selectedServices?: string;
+    selectedStaff?: string;
     allServices?: string;
     staffMembers?: string;
     businessId?: string;
@@ -386,6 +386,11 @@ export default function BookingNow() {
       }
     }
 
+    // Check for updated staff from checkout screen
+    if (params.selectedStaff) {
+      setSelectedStaff(params.selectedStaff);
+    }
+
     if (params.allServices) {
       try {
         const services = JSON.parse(params.allServices);
@@ -403,9 +408,9 @@ export default function BookingNow() {
         console.error("Error parsing staffMembers:", e);
       }
     }
-  }, [params.selectedService, params.selectedServices, params.allServices, params.staffMembers]);
+  }, [params.selectedService, params.selectedServices, params.selectedStaff, params.allServices, params.staffMembers]);
 
-  // Update services when returning from checkout
+  // Update services and staff when returning from checkout
   useFocusEffect(
     useCallback(() => {
       if (params.selectedServices) {
@@ -416,7 +421,10 @@ export default function BookingNow() {
           console.error("Error parsing selectedServices:", e);
         }
       }
-    }, [params.selectedServices])
+      if (params.selectedStaff) {
+        setSelectedStaff(params.selectedStaff);
+      }
+    }, [params.selectedServices, params.selectedStaff])
   );
 
   const handleDeleteService = (serviceId: number) => {
