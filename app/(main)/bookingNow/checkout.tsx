@@ -19,7 +19,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
-import { fontSize, fonts,   } from "@/src/theme/fonts";
+import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   heightScale,
   moderateWidthScale,
@@ -29,8 +29,9 @@ import {
 import { SvgXml } from "react-native-svg";
 import Button from "@/src/components/button";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { MaterialIcons, Feather, Octicons } from "@expo/vector-icons";
 import { MorningIcon, EveningIcon, NightIcon } from "@/assets/icons";
+import AddServiceBottomSheet from "@/src/components/AddServiceBottomSheet";
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -422,6 +423,15 @@ const createStyles = (theme: Theme) =>
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(4),
     },
+    addServiceButton: {
+      width: widthScale(22),
+      height: heightScale(22),
+      borderRadius: 4,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1.5,
+      borderColor: theme.selectCard,
+    },
     serviceDetailsName: {
       flex: 1,
       fontSize: fontSize.size14,
@@ -583,9 +593,12 @@ export default function Checkout() {
     selectedServices?: string;
     selectedStaff?: string;
     businessId?: string;
+    allServices?: string;
   }>();
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [allServices, setAllServices] = useState<Service[]>([]);
+  const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("anyone");
   const [selectedStaffMember, setSelectedStaffMember] =
     useState<StaffMember | null>(null);
@@ -662,14 +675,44 @@ export default function Checkout() {
       (service) => service.id !== serviceId
     );
     setSelectedServices(updatedServices);
-    
+
     // Update route params so previous screen gets updated services
     router.setParams({
       selectedServices: JSON.stringify(updatedServices),
       selectedStaff: params.selectedStaff || "",
       businessId: params.businessId || "",
+      allServices: params.allServices || "",
     });
   };
+
+  // Handle add service modal
+  const handleAddService = () => {
+    setAddServiceModalVisible(true);
+  };
+
+  const handleCloseModal = useCallback(() => {
+    setAddServiceModalVisible(false);
+  }, []);
+
+  const handleUpdateSelectedServices = useCallback(
+    (services: Service[]) => {
+      setSelectedServices(services);
+      // Update route params
+      router.setParams({
+        selectedServices: JSON.stringify(services),
+        selectedStaff: params.selectedStaff || "",
+        businessId: params.businessId || "",
+        allServices: params.allServices || "",
+      });
+    },
+    [params.selectedStaff, params.businessId, params.allServices, router]
+  );
+
+  // Memoize selectedServiceIds for AddServiceBottomSheet
+  const selectedServiceIds = useMemo(
+    () => selectedServices.map((s) => s.id),
+    [selectedServices]
+  );
 
   // Dummy staff member
   const dummyStaff: StaffMember = {
@@ -696,6 +739,15 @@ export default function Checkout() {
       }
     }
 
+    if (params.allServices) {
+      try {
+        const services = JSON.parse(params.allServices);
+        setAllServices(services);
+      } catch (e) {
+        console.error("Error parsing allServices:", e);
+      }
+    }
+
     if (params.selectedStaff) {
       setSelectedStaffId(params.selectedStaff);
       if (params.selectedStaff !== "anyone") {
@@ -703,7 +755,7 @@ export default function Checkout() {
         setSelectedStaffMember(dummyStaff);
       }
     }
-  }, []);
+  }, [params.selectedServices, params.allServices, params.selectedStaff]);
 
   const prevWeek = () => {
     const newWeek = week[0].subtract(1, "week");
@@ -1021,16 +1073,21 @@ export default function Checkout() {
         <View style={styles.line} />
 
         {/* Service Details Section */}
-        {selectedServices.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>You're paying for:</Text>
-            <View style={styles.serviceDetailsCard}>
-              {selectedServices.map((service, index) => (
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>You're paying for:</Text>
+          <View style={styles.serviceDetailsCard}>
+            {selectedServices.length > 0 &&
+              selectedServices.map((service, index) => (
                 <React.Fragment key={service.id}>
                   <View style={styles.serviceItem}>
                     <View style={styles.serviceDetailsHeader}>
                       <Text style={styles.serviceDetailsName}>
-                        {service.name}<Text style={{fontFamily:fonts.fontRegular }}> - {service.description}</Text>
+                        {service.name}
+                        <Text style={{ fontFamily: fonts.fontRegular }}>
+                          {" "}
+                          - {service.description}
+                        </Text>
                       </Text>
                       <View style={styles.serviceDetailsPriceContainer}>
                         <View style={styles.serviceDetailsPriceColumn}>
@@ -1059,65 +1116,98 @@ export default function Checkout() {
                   )}
                 </React.Fragment>
               ))}
-              {/* Staff Section - Always show */}
+            {/* Add Service Button - Always show */}
+            {selectedServices.length > 0 && (
               <View style={styles.serviceDivider} />
-              <View style={styles.serviceDetailsStaff}>
-                {selectedStaffId === "anyone" ? (
-                  <>
-                    <Image
-                      source={{
-                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                      }}
-                      style={styles.serviceDetailsStaffImage}
-                      resizeMode="cover"
-                    />
-                    <Text style={styles.serviceDetailsStaffName}>
-                      Anyone available
-                    </Text>
-                  </>
-                ) : selectedStaffMember ? (
-                  <>
-                    {selectedStaffMember.image ? (
-                      <Image
-                        source={{ uri: selectedStaffMember.image }}
-                        style={styles.serviceDetailsStaffImage}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <Image
-                        source={{
-                          uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                        }}
-                        style={styles.serviceDetailsStaffImage}
-                      />
-                    )}
-                    <Text style={styles.serviceDetailsStaffName}>
-                      {selectedStaffMember.name}
-                    </Text>
-                  </>
-                ) : (
-                  <>
-                    <Image
-                      source={{
-                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                      }}
-                      style={styles.serviceDetailsStaffImage}
-                      resizeMode="cover"
-                    />
-                    <Text style={styles.serviceDetailsStaffName}>
-                      Anyone available
-                    </Text>
-                  </>
-                )}
-                <TouchableOpacity style={styles.serviceDetailsChangeButton}>
-                  <Text style={styles.serviceDetailsChangeButtonText}>
-                    Change
+            )}
+            {selectedServices.length <= 0 && (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleAddService}
+                style={[
+                  styles.serviceItem,
+                  {
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.serviceDetailsName,
+                    { fontFamily: fonts.fontRegular },
+                  ]}
+                >
+                  Add another service
+                </Text>
+                <View style={styles.addServiceButton}>
+                  <Octicons
+                    name="plus"
+                    size={moderateWidthScale(16)}
+                    color={theme.selectCard}
+                  />
+                </View>
+              </TouchableOpacity>
+            )}
+            {/* Staff Section - Always show */}
+            <View style={[styles.serviceDivider, { marginHorizontal: 0 }]} />
+            <View style={styles.serviceDetailsStaff}>
+              {selectedStaffId === "anyone" ? (
+                <>
+                  <Image
+                    source={{
+                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                    }}
+                    style={styles.serviceDetailsStaffImage}
+                    resizeMode="cover"
+                  />
+                  <Text style={styles.serviceDetailsStaffName}>
+                    Anyone available
                   </Text>
-                </TouchableOpacity>
-              </View>
+                </>
+              ) : selectedStaffMember ? (
+                <>
+                  {selectedStaffMember.image ? (
+                    <Image
+                      source={{ uri: selectedStaffMember.image }}
+                      style={styles.serviceDetailsStaffImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <Image
+                      source={{
+                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                      }}
+                      style={styles.serviceDetailsStaffImage}
+                    />
+                  )}
+                  <Text style={styles.serviceDetailsStaffName}>
+                    {selectedStaffMember.name}
+                  </Text>
+                </>
+              ) : (
+                <>
+                  <Image
+                    source={{
+                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                    }}
+                    style={styles.serviceDetailsStaffImage}
+                    resizeMode="cover"
+                  />
+                  <Text style={styles.serviceDetailsStaffName}>
+                    Anyone available
+                  </Text>
+                </>
+              )}
+              <TouchableOpacity style={styles.serviceDetailsChangeButton}>
+                <Text style={styles.serviceDetailsChangeButtonText}>
+                  Change
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
-        )}
+        </View>
 
         {/* Price Breakdown Section */}
         <View style={styles.priceBreakdown}>
@@ -1191,6 +1281,15 @@ export default function Checkout() {
           }}
         />
       </View>
+
+      {/* Add Service Bottom Sheet */}
+      <AddServiceBottomSheet
+        visible={addServiceModalVisible}
+        onClose={handleCloseModal}
+        services={allServices}
+        selectedServiceIds={selectedServiceIds}
+        onUpdateServices={handleUpdateSelectedServices}
+      />
     </SafeAreaView>
   );
 }
