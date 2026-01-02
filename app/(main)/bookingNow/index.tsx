@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -367,6 +368,7 @@ export default function BookingNow() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const { showBanner } = useNotificationContext();
   const router = useRouter();
   const params = useLocalSearchParams<{
     selectedService?: string;
@@ -619,6 +621,15 @@ export default function BookingNow() {
         <Button
           title="Checkout"
           onPress={() => {
+            if (selectedServices.length === 0) {
+              showBanner(
+                "No Service Selected",
+                "Please select at least one service to proceed with checkout.",
+                "warning",
+                4000
+              );
+              return;
+            }
             router.push({
               pathname: "/(main)/bookingNow/checkout",
               params: {
