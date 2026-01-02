@@ -19,7 +19,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
-import { fontSize, fonts } from "@/src/theme/fonts";
+import { fontSize, fonts,   } from "@/src/theme/fonts";
 import {
   heightScale,
   moderateWidthScale,
@@ -408,42 +408,56 @@ const createStyles = (theme: Theme) =>
     },
     // Service Details Section
     serviceDetailsCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.lightGreen015,
+      borderRadius: moderateWidthScale(8),
+      marginHorizontal: moderateWidthScale(20),
+      overflow: "hidden",
+    },
+    serviceItem: {
       padding: moderateWidthScale(16),
     },
     serviceDetailsHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "flex-start",
-      marginBottom: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(4),
     },
     serviceDetailsName: {
       flex: 1,
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
+      marginRight: moderateWidthScale(12),
     },
     serviceDetailsPrice: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginRight: moderateWidthScale(8),
     },
     serviceDetailsOriginalPrice: {
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
       color: theme.lightGreen4,
       textDecorationLine: "line-through",
     },
     serviceDetailsPriceContainer: {
       flexDirection: "row",
       alignItems: "center",
+      gap: moderateWidthScale(8),
+    },
+    serviceDetailsPriceColumn: {
+      alignItems: "flex-end",
+    },
+    serviceDivider: {
+      height: 1,
+      backgroundColor: theme.borderLight,
+      marginHorizontal: moderateWidthScale(16),
     },
     serviceDetailsStaff: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: moderateHeightScale(12),
+      padding: moderateWidthScale(16),
     },
     serviceDetailsStaffImage: {
       width: widthScale(32),
@@ -461,15 +475,16 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     serviceDetailsChangeButton: {
-      paddingHorizontal: moderateWidthScale(12),
+      paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(6),
       borderRadius: moderateWidthScale(6),
+      backgroundColor: theme.white,
       borderWidth: 1,
-      borderColor: theme.lightGreen2,
+      borderColor: theme.borderLight,
     },
     serviceDetailsChangeButtonText: {
       fontSize: fontSize.size12,
-      fontFamily: fonts.fontMedium,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     // Price Breakdown Section
@@ -994,48 +1009,93 @@ export default function Checkout() {
         {selectedServices.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>You're paying for:</Text>
-            {selectedServices.map((service) => (
-              <View key={service.id} style={styles.serviceDetailsCard}>
-                <View style={styles.serviceDetailsHeader}>
-                  <Text style={styles.serviceDetailsName}>
-                    {service.name} - {service.description}
-                  </Text>
-                  <View style={styles.serviceDetailsPriceContainer}>
-                    <Text style={styles.serviceDetailsPrice}>
-                      ${service.price.toFixed(2)} USD
-                    </Text>
-                    <MaterialIcons
-                      name="delete-outline"
-                      size={moderateWidthScale(20)}
-                      color={theme.red}
-                    />
+            <View style={styles.serviceDetailsCard}>
+              {selectedServices.map((service, index) => (
+                <React.Fragment key={service.id}>
+                  <View style={styles.serviceItem}>
+                    <View style={styles.serviceDetailsHeader}>
+                      <Text style={styles.serviceDetailsName}>
+                        {service.name}<Text style={{fontFamily:fonts.fontRegular }}> - {service.description}</Text>
+                      </Text>
+                      <View style={styles.serviceDetailsPriceContainer}>
+                        <View style={styles.serviceDetailsPriceColumn}>
+                          <Text style={styles.serviceDetailsPrice}>
+                            ${service.price.toFixed(2)} USD
+                          </Text>
+                          <Text style={styles.serviceDetailsOriginalPrice}>
+                            ${service.originalPrice.toFixed(2)}
+                          </Text>
+                        </View>
+                        <MaterialIcons
+                          name="delete-outline"
+                          size={moderateWidthScale(20)}
+                          color={theme.red}
+                        />
+                      </View>
+                    </View>
                   </View>
-                </View>
-                <Text style={styles.serviceDetailsOriginalPrice}>
-                  ${service.originalPrice.toFixed(2)}
-                </Text>
-                {selectedStaffMember && (
-                  <View style={styles.serviceDetailsStaff}>
+                  {index < selectedServices.length - 1 && (
+                    <View style={styles.serviceDivider} />
+                  )}
+                </React.Fragment>
+              ))}
+              {/* Staff Section - Always show */}
+              <View style={styles.serviceDivider} />
+              <View style={styles.serviceDetailsStaff}>
+                {selectedStaffId === "anyone" ? (
+                  <>
+                    <Image
+                      source={{
+                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                      }}
+                      style={styles.serviceDetailsStaffImage}
+                      resizeMode="cover"
+                    />
+                    <Text style={styles.serviceDetailsStaffName}>
+                      Anyone available
+                    </Text>
+                  </>
+                ) : selectedStaffMember ? (
+                  <>
                     {selectedStaffMember.image ? (
                       <Image
                         source={{ uri: selectedStaffMember.image }}
                         style={styles.serviceDetailsStaffImage}
+                        resizeMode="cover"
                       />
                     ) : (
-                      <View style={styles.serviceDetailsStaffImage} />
+                      <Image
+                        source={{
+                          uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                        }}
+                        style={styles.serviceDetailsStaffImage}
+                      />
                     )}
                     <Text style={styles.serviceDetailsStaffName}>
                       {selectedStaffMember.name}
                     </Text>
-                    <TouchableOpacity style={styles.serviceDetailsChangeButton}>
-                      <Text style={styles.serviceDetailsChangeButtonText}>
-                        Change
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
+                  </>
+                ) : (
+                  <>
+                    <Image
+                      source={{
+                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                      }}
+                      style={styles.serviceDetailsStaffImage}
+                      resizeMode="cover"
+                    />
+                    <Text style={styles.serviceDetailsStaffName}>
+                      Anyone available
+                    </Text>
+                  </>
                 )}
+                <TouchableOpacity style={styles.serviceDetailsChangeButton}>
+                  <Text style={styles.serviceDetailsChangeButtonText}>
+                    Change
+                  </Text>
+                </TouchableOpacity>
               </View>
-            ))}
+            </View>
           </View>
         )}
 
