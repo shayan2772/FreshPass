@@ -255,18 +255,41 @@ const createStyles = (theme: Theme) =>
     timeSlotSection: {
       marginTop: moderateHeightScale(16),
     },
-    timeSlotCategory: {
+    timeSlotCategoryRow: {
+      flexDirection: "row",
+      paddingHorizontal: moderateWidthScale(20),
+      marginBottom: moderateHeightScale(16),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.lightGreen2,
+    },
+    timeSlotCategoryButton: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(12),
-      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(16),
+      marginRight: moderateWidthScale(24),
+      position: "relative",
+    },
+    timeSlotCategoryButtonSelected: {
+      // Selected state handled by underline
+    },
+    timeSlotCategoryUnderline: {
+      position: "absolute",
+      bottom: -2,
+      left: 0,
+      right: 0,
+      height: 3,
+      backgroundColor: theme.orangeBrown30,
     },
     timeSlotCategoryIcon: {
-      marginRight: moderateWidthScale(8),
+      marginRight: moderateWidthScale(6),
     },
     timeSlotCategoryText: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
+      color: theme.lightGreen,
+    },
+    timeSlotCategoryTextSelected: {
       color: theme.darkGreen,
     },
     timeSlotsContainer: {
@@ -535,9 +558,11 @@ export default function Checkout() {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [week, setWeek] = useState(getWeekDays(dayjs()));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<"morning" | "evening" | "night">("morning");
   const [paymentMethod, setPaymentMethod] = useState<"payNow" | "payLater">(
     "payNow"
   );
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Categorize time slots
   const { morning, evening, night } = useMemo(
@@ -545,49 +570,52 @@ export default function Checkout() {
     []
   );
 
-  // Render time slot category component
-  const renderTimeSlotCategory = (
-    title: string,
-    slots: string[],
-    icon: React.ReactNode
-  ) => {
-    if (slots.length === 0) return null;
+  // Get all slots in order (morning, evening, night)
+  const getAllSlots = () => {
+    return [...morning, ...evening, ...night];
+  };
 
-    return (
-      <>
-        <View style={styles.timeSlotCategory}>
-          <View style={styles.timeSlotCategoryIcon}>{icon}</View>
-          <Text style={styles.timeSlotCategoryText}>{title}</Text>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.timeSlotsContainer}
-          contentContainerStyle={styles.timeSlotsContentContainer}
-        >
-          {slots.map((slot) => (
-            <TouchableOpacity
-              activeOpacity={0.7}
-              key={slot}
-              style={[
-                styles.timeSlotButton,
-                selectedTimeSlot === slot && styles.timeSlotButtonSelected,
-              ]}
-              onPress={() => setSelectedTimeSlot(slot)}
-            >
-              <Text
-                style={[
-                  styles.timeSlotText,
-                  selectedTimeSlot === slot && styles.timeSlotTextSelected,
-                ]}
-              >
-                {convertTo12Hour(slot)}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </>
-    );
+  // Get category of a slot
+  const getSlotCategory = (slot: string): "morning" | "evening" | "night" => {
+    if (morning.includes(slot)) return "morning";
+    if (evening.includes(slot)) return "evening";
+    return "night";
+  };
+
+  // Get index of first slot in a category
+  const getCategoryStartIndex = (category: "morning" | "evening" | "night"): number => {
+    const allSlots = getAllSlots();
+    switch (category) {
+      case "morning":
+        return 0;
+      case "evening":
+        return morning.length;
+      case "night":
+        return morning.length + evening.length;
+      default:
+        return 0;
+    }
+  };
+
+  // Scroll to category
+  const scrollToCategory = (category: "morning" | "evening" | "night") => {
+    const startIndex = getCategoryStartIndex(category);
+    const slotWidth = widthScale(90);
+    const gap = moderateWidthScale(12);
+    const paddingHorizontal = moderateWidthScale(20);
+    const scrollPosition = startIndex * (slotWidth + gap) + paddingHorizontal;
+    
+    scrollViewRef.current?.scrollTo({
+      x: scrollPosition,
+      animated: true,
+    });
+  };
+
+  // Handle slot selection
+  const handleSlotSelect = (slot: string) => {
+    setSelectedTimeSlot(slot);
+    const category = getSlotCategory(slot);
+    setSelectedCategory(category);
   };
 
   // Dummy staff member
@@ -761,30 +789,122 @@ export default function Checkout() {
 
           {/* Time Slots */}
           <View style={styles.timeSlotSection}>
-            {renderTimeSlotCategory(
-              "Morning",
-              morning,
-              <MorningIcon
-                width={moderateWidthScale(18)}
-                height={moderateHeightScale(13)}
-              />
-            )}
-            {renderTimeSlotCategory(
-              "Evening",
-              evening,
-              <EveningIcon
-                width={moderateWidthScale(18)}
-                height={moderateHeightScale(10)}
-              />
-            )}
-            {renderTimeSlotCategory(
-              "Night",
-              night,
-              <NightIcon
-                width={moderateWidthScale(15)}
-                height={moderateHeightScale(15)}
-              />
-            )}
+            {/* Category Selector - Horizontal Tabs */}
+            <View style={styles.timeSlotCategoryRow}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.timeSlotCategoryButton}
+                onPress={() => {
+                  setSelectedCategory("morning");
+                  scrollToCategory("morning");
+                }}
+              >
+                <View style={styles.timeSlotCategoryIcon}>
+                  <MorningIcon
+                    width={moderateWidthScale(18)}
+                    height={moderateHeightScale(13)}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.timeSlotCategoryText,
+                    selectedCategory === "morning" &&
+                      styles.timeSlotCategoryTextSelected,
+                  ]}
+                >
+                  Morning
+                </Text>
+                {selectedCategory === "morning" && (
+                  <View style={styles.timeSlotCategoryUnderline} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.timeSlotCategoryButton}
+                onPress={() => {
+                  setSelectedCategory("evening");
+                  scrollToCategory("evening");
+                }}
+              >
+                <View style={styles.timeSlotCategoryIcon}>
+                  <EveningIcon
+                    width={moderateWidthScale(18)}
+                    height={moderateHeightScale(10)}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.timeSlotCategoryText,
+                    selectedCategory === "evening" &&
+                      styles.timeSlotCategoryTextSelected,
+                  ]}
+                >
+                  Evening
+                </Text>
+                {selectedCategory === "evening" && (
+                  <View style={styles.timeSlotCategoryUnderline} />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                activeOpacity={0.7}
+                style={styles.timeSlotCategoryButton}
+                onPress={() => {
+                  setSelectedCategory("night");
+                  scrollToCategory("night");
+                }}
+              >
+                <View style={styles.timeSlotCategoryIcon}>
+                  <NightIcon
+                    width={moderateWidthScale(15)}
+                    height={moderateHeightScale(15)}
+                  />
+                </View>
+                <Text
+                  style={[
+                    styles.timeSlotCategoryText,
+                    selectedCategory === "night" &&
+                      styles.timeSlotCategoryTextSelected,
+                  ]}
+                >
+                  Night
+                </Text>
+                {selectedCategory === "night" && (
+                  <View style={styles.timeSlotCategoryUnderline} />
+                )}
+              </TouchableOpacity>
+            </View>
+
+            {/* Time Slots - All slots in one horizontal scroll */}
+            <ScrollView
+              ref={scrollViewRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.timeSlotsContainer}
+              contentContainerStyle={styles.timeSlotsContentContainer}
+            >
+              {getAllSlots().map((slot) => (
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  key={slot}
+                  style={[
+                    styles.timeSlotButton,
+                    selectedTimeSlot === slot && styles.timeSlotButtonSelected,
+                  ]}
+                  onPress={() => handleSlotSelect(slot)}
+                >
+                  <Text
+                    style={[
+                      styles.timeSlotText,
+                      selectedTimeSlot === slot && styles.timeSlotTextSelected,
+                    ]}
+                  >
+                    {convertTo12Hour(slot)}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
         </View>
 
