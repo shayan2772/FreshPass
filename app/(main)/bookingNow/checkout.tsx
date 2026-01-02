@@ -669,6 +669,34 @@ export default function Checkout() {
     });
   };
 
+  // Handle scroll to detect which category is visible
+  const handleScroll = (event: any) => {
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const slotWidth = widthScale(90);
+    const gap = moderateWidthScale(12);
+    const paddingHorizontal = moderateWidthScale(20);
+    
+    // Calculate which slot index is currently visible (centered)
+    const visibleIndex = Math.round(
+      (scrollX - paddingHorizontal + slotWidth / 2) / (slotWidth + gap)
+    );
+    
+    // Clamp to valid range
+    const allSlots = getAllSlots();
+    const clampedIndex = Math.max(0, Math.min(visibleIndex, allSlots.length - 1));
+    
+    // Get the slot at this index
+    const visibleSlot = allSlots[clampedIndex];
+    
+    // Determine category based on visible slot
+    const category = getSlotCategory(visibleSlot);
+    
+    // Update selected category if it changed
+    if (category !== selectedCategory) {
+      setSelectedCategory(category);
+    }
+  };
+
   // Handle slot selection
   const handleSlotSelect = (slot: string) => {
     setSelectedTimeSlot(slot);
@@ -1070,6 +1098,8 @@ export default function Checkout() {
               ref={scrollViewRef}
               horizontal
               showsHorizontalScrollIndicator={false}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
               style={styles.timeSlotsContainer}
               contentContainerStyle={styles.timeSlotsContentContainer}
             >
