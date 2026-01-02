@@ -172,7 +172,7 @@ export default function ModalizeBottomSheet({
             scrollViewStyle,
           ]}
           contentContainerStyle={[styles.scrollContent, contentStyle]}
-          showsVerticalScrollIndicator={true}
+          showsVerticalScrollIndicator={false}
         >
           {children}
         </ScrollView>
