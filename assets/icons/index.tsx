@@ -1380,6 +1380,103 @@ export const CrownIcon: React.FC<CrownIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Morning Icon SVG
+const morningIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 18 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_760_454" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="18" height="10">
+<path d="M0 0H17.5V9.63869H0V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_760_454)">
+<g clip-path="url(#clip0_760_454)">
+<path d="M8.74618 11.7287C10.6167 11.7287 12.133 10.2124 12.133 8.34188C12.133 6.4714 10.6167 4.95508 8.74618 4.95508C6.8757 4.95508 5.35938 6.4714 5.35938 8.34188C5.35938 10.2124 6.8757 11.7287 8.74618 11.7287Z" stroke="#283618" stroke-width="1.5" stroke-miterlimit="10"/>
+<path d="M12.463 4.62868L13.8798 3.21186M3.61627 13.4754L5.02937 12.0623M14.0063 8.34364H15.9995M1.48918 8.34364H3.49727M8.75177 3.08914L8.74061 1.08477M8.74061 15.6025L8.74061 13.5944M5.03308 4.63611L3.61255 3.21558M13.8761 13.4791L12.463 12.066" stroke="#283618" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>
+</g>
+</g>
+<path d="M1.75 11.6699H15.75" stroke="#283618" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<defs>
+<clipPath id="clip0_760_454">
+<rect width="17.6471" height="16.4706" fill="white" transform="translate(-0.0742188 -0.978516)"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface MorningIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const MorningIcon: React.FC<MorningIconProps> = ({
+  width = 18,
+  height = 13,
+}) => {
+  const svgXml = morningIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Evening Icon SVG
+const eveningIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 18 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_760_473" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="18" height="7">
+<path d="M0 0H17.5V7H0V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_760_473)">
+<g clip-path="url(#clip0_760_473)">
+<path d="M8.74618 11.7306C10.6167 11.7306 12.133 10.2143 12.133 8.34383C12.133 6.47335 10.6167 4.95703 8.74618 4.95703C6.8757 4.95703 5.35938 6.47335 5.35938 8.34383C5.35938 10.2143 6.8757 11.7306 8.74618 11.7306Z" stroke="#283618" stroke-width="1.5" stroke-miterlimit="10"/>
+<path d="M12.4611 4.63063L13.8779 3.21381M3.61431 13.4774L5.02741 12.0643M14.0043 8.34559H15.9975M1.48723 8.34559H3.49532M8.74981 3.0911L8.73866 1.08673M8.73866 15.6045L8.73866 13.5964M5.03113 4.63807L3.61059 3.21753M13.8742 13.4811L12.4611 12.068" stroke="#283618" stroke-width="1.5" stroke-miterlimit="10" stroke-linecap="round"/>
+</g>
+</g>
+<path d="M1.75 9H15.75" stroke="#283618" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+<defs>
+<clipPath id="clip0_760_473">
+<rect width="17.6471" height="17.2857" fill="white" transform="translate(-0.0742188 -1.02539)"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface EveningIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const EveningIcon: React.FC<EveningIconProps> = ({
+  width = 18,
+  height = 10,
+}) => {
+  const svgXml = eveningIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Night Icon SVG
+const nightIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.16667 13.8333C5.30556 13.8333 3.72917 13.1875 2.4375 11.8958C1.14583 10.6042 0.5 9.02778 0.5 7.16667C0.5 5.30555 1.14583 3.72917 2.4375 2.4375C3.72917 1.14583 5.30556 0.5 7.16667 0.5C7.23611 0.5 7.30556 0.503333 7.375 0.51C7.44444 0.516667 7.51389 0.520278 7.58333 0.520833C7.18056 0.965278 6.87167 1.47222 6.65667 2.04167C6.44167 2.61111 6.33389 3.20833 6.33333 3.83333C6.33333 5.22222 6.81944 6.40278 7.79167 7.375C8.76389 8.34722 9.94444 8.83333 11.3333 8.83333C11.7639 8.83333 12.1842 8.78139 12.5942 8.6775C13.0042 8.57361 13.3894 8.41722 13.75 8.20833C13.5 9.84722 12.75 11.1944 11.5 12.25C10.25 13.3056 8.80556 13.8333 7.16667 13.8333Z" fill="#283618" stroke="#283618" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface NightIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const NightIcon: React.FC<NightIconProps> = ({
+  width = 15,
+  height = 15,
+}) => {
+  const svgXml = nightIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1426,4 +1523,7 @@ export default {
   MapPinIcon,
   PhoneIconContact,
   CrownIcon,
+  MorningIcon,
+  EveningIcon,
+  NightIcon,
 };

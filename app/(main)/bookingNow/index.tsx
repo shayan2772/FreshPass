@@ -641,6 +641,8 @@ export default function BookingNow() {
                 selectedServices: JSON.stringify(selectedServices),
                 selectedStaff: selectedStaff,
                 businessId: params.businessId || "",
+                allServices: params.allServices || "",
+                staffMembers: params.staffMembers || "",
               },
             });
           }}
