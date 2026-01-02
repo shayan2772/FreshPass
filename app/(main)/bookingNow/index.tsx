@@ -302,43 +302,6 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    priceLabelTotal: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-    },
-    priceValueTotal: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-    },
-    subscriptionSection: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      backgroundColor: theme.lightBeige,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
-      marginBottom: moderateHeightScale(24),
-    },
-    subscriptionText: {
-      flex: 1,
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginRight: moderateWidthScale(12),
-    },
-    subscriptionButton: {
-      backgroundColor: theme.orangeBrown,
-      borderRadius: moderateWidthScale(8),
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(8),
-    },
-    subscriptionButtonText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
-      color: theme.black,
-    },
     bottom: {
       backgroundColor: theme.white,
       paddingHorizontal: moderateWidthScale(20),

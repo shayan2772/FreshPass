@@ -86,20 +86,44 @@ const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 // Time slots in 24-hour format (HH:mm)
 const allTimeSlots = [
+  "08:00",
+  "08:30",
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
   "11:00",
+  "11:30",
   "12:00",
   "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
   "15:30",
   "16:00",
   "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+  "18:30",
+  "19:00",
+  "19:30",
   "20:00",
+  "20:30",
+  "21:00",
+  "21:30",
+  "22:00",
 ];
 
-// Convert 24-hour format to 12-hour format for display (without AM/PM)
+// Convert 24-hour format to 12-hour format for display (with AM/PM)
 const convertTo12Hour = (time24: string): string => {
   const [hours, minutes] = time24.split(":").map(Number);
-  const hour12 = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-  return `${hour12}:${minutes.toString().padStart(2, "0")}`;
+  const hour12 =
+    hours === 0 ? 12 : hours > 12 ? hours - 12 : hours === 12 ? 12 : hours;
+  const ampm = hours < 12 ? "AM" : "PM";
+  return `${hour12}:${minutes.toString().padStart(2, "0")} ${ampm}`;
 };
 
 // Categorize time slots into Morning, Evening, and Night
@@ -166,14 +190,13 @@ const createStyles = (theme: Theme) =>
       paddingBottom: moderateHeightScale(20),
     },
     section: {
-      
-      marginTop: moderateHeightScale(12),
+      marginTop: moderateHeightScale(16),
     },
     sectionTitle: {
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(16),
+      marginBottom: moderateHeightScale(20),
       paddingHorizontal: moderateWidthScale(20),
     },
     // Availability Section
@@ -231,7 +254,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
       borderWidth: 1,
-      borderColor: "transparent"
+      borderColor: "transparent",
     },
     dayNumberSelected: {
       backgroundColor: theme.orangeBrown30,
@@ -263,11 +286,11 @@ const createStyles = (theme: Theme) =>
       borderBottomColor: theme.lightGreen2,
     },
     timeSlotCategoryButton: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "center",
       paddingVertical: moderateHeightScale(12),
-      paddingHorizontal: moderateWidthScale(16),
-      marginRight: moderateWidthScale(24),
       position: "relative",
     },
     timeSlotCategoryButtonSelected: {
@@ -275,11 +298,11 @@ const createStyles = (theme: Theme) =>
     },
     timeSlotCategoryUnderline: {
       position: "absolute",
-      bottom: -2,
+      bottom: -1,
       left: 0,
       right: 0,
-      height: 3,
-      backgroundColor: theme.orangeBrown30,
+      height: 2,
+      backgroundColor: theme.orangeBrown,
     },
     timeSlotCategoryIcon: {
       marginRight: moderateWidthScale(6),
@@ -298,7 +321,7 @@ const createStyles = (theme: Theme) =>
     timeSlotsContentContainer: {
       marginBottom: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(20),
-      gap: moderateWidthScale(12) 
+      gap: moderateWidthScale(12),
     },
     timeSlotButton: {
       width: widthScale(90),
@@ -314,42 +337,55 @@ const createStyles = (theme: Theme) =>
       borderColor: theme.darkGreen,
     },
     timeSlotText: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     timeSlotTextSelected: {
       color: theme.white,
-      fontFamily: fonts.fontRegular,
     },
     // Payment Method Section
+    paymentCard: {
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(8),
+      marginHorizontal: moderateWidthScale(20),
+      overflow: "hidden",
+      marginBottom: moderateHeightScale(12),
+    },
+    shadow: {
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.18,
+      shadowRadius: 1.0,
+      elevation: 1,
+    },
     paymentOption: {
       flexDirection: "row",
-      alignItems: "flex-start",
-      padding: moderateWidthScale(16),
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      marginBottom: moderateHeightScale(12),
-      borderWidth: 1.5,
-      borderColor: theme.lightGreen2,
+      alignItems: "center",
+      padding: moderateWidthScale(12),
     },
     paymentOptionSelected: {
-      borderColor: theme.orangeBrown,
+      // Selected state handled by radio button
+    },
+    paymentDivider: {
+      height: 1,
+      backgroundColor: theme.borderLight,
     },
     paymentRadioButton: {
       width: moderateWidthScale(20),
       height: moderateWidthScale(20),
       borderRadius: moderateWidthScale(10),
       borderWidth: 2,
-      borderColor: theme.lightGreen2,
+      borderColor: theme.darkGreen,
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(12),
       marginTop: moderateHeightScale(2),
     },
-    paymentRadioButtonSelected: {
-      borderColor: theme.orangeBrown,
-    },
+    paymentRadioButtonSelected: {},
     paymentRadioButtonInner: {
       width: moderateWidthScale(10),
       height: moderateWidthScale(10),
@@ -360,13 +396,13 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     paymentOptionTitle: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(3),
     },
     paymentOptionDescription: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
@@ -438,9 +474,7 @@ const createStyles = (theme: Theme) =>
     },
     // Price Breakdown Section
     priceBreakdown: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(16),
+      padding: moderateWidthScale(20),
     },
     priceRow: {
       flexDirection: "row",
@@ -459,21 +493,6 @@ const createStyles = (theme: Theme) =>
     priceValue: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-    },
-    priceDivider: {
-      height: 1,
-      backgroundColor: theme.lightGreen2,
-      marginVertical: moderateHeightScale(12),
-    },
-    priceLabelTotal: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-    },
-    priceValueTotal: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     // Privacy Policy Section
@@ -558,7 +577,9 @@ export default function Checkout() {
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [week, setWeek] = useState(getWeekDays(dayjs()));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<"morning" | "evening" | "night">("morning");
+  const [selectedCategory, setSelectedCategory] = useState<
+    "morning" | "evening" | "night"
+  >("morning");
   const [paymentMethod, setPaymentMethod] = useState<"payNow" | "payLater">(
     "payNow"
   );
@@ -583,7 +604,9 @@ export default function Checkout() {
   };
 
   // Get index of first slot in a category
-  const getCategoryStartIndex = (category: "morning" | "evening" | "night"): number => {
+  const getCategoryStartIndex = (
+    category: "morning" | "evening" | "night"
+  ): number => {
     const allSlots = getAllSlots();
     switch (category) {
       case "morning":
@@ -604,7 +627,7 @@ export default function Checkout() {
     const gap = moderateWidthScale(12);
     const paddingHorizontal = moderateWidthScale(20);
     const scrollPosition = startIndex * (slotWidth + gap) + paddingHorizontal;
-    
+
     scrollViewRef.current?.scrollTo({
       x: scrollPosition,
       animated: true,
@@ -908,66 +931,69 @@ export default function Checkout() {
           </View>
         </View>
 
+        <View style={[styles.line, { marginTop: 0 }]} />
+
         {/* Payment Method Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Choose payment method</Text>
 
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === "payNow" && styles.paymentOptionSelected,
-            ]}
-            onPress={() => setPaymentMethod("payNow")}
-          >
-            <View
-              style={[
-                styles.paymentRadioButton,
-                paymentMethod === "payNow" && styles.paymentRadioButtonSelected,
-              ]}
+          <View style={[styles.paymentCard, styles.shadow]}>
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setPaymentMethod("payNow")}
             >
-              {paymentMethod === "payNow" && (
-                <View style={styles.paymentRadioButtonInner} />
-              )}
-            </View>
-            <View style={styles.paymentOptionContent}>
-              <Text style={styles.paymentOptionTitle}>Pay now</Text>
-              <Text style={styles.paymentOptionDescription}>
-                Securely pay online to confirm your booking instantly.
-              </Text>
-            </View>
-          </TouchableOpacity>
+              <View
+                style={[
+                  styles.paymentRadioButton,
+                  paymentMethod === "payNow" &&
+                    styles.paymentRadioButtonSelected,
+                ]}
+              >
+                {paymentMethod === "payNow" && (
+                  <View style={styles.paymentRadioButtonInner} />
+                )}
+              </View>
+              <View style={styles.paymentOptionContent}>
+                <Text style={styles.paymentOptionTitle}>Pay now</Text>
+                <Text style={styles.paymentOptionDescription}>
+                  Securely pay online to confirm your booking instantly.
+                </Text>
+              </View>
+            </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[
-              styles.paymentOption,
-              paymentMethod === "payLater" && styles.paymentOptionSelected,
-            ]}
-            onPress={() => setPaymentMethod("payLater")}
-          >
-            <View
-              style={[
-                styles.paymentRadioButton,
-                paymentMethod === "payLater" &&
-                  styles.paymentRadioButtonSelected,
-              ]}
+            <View style={styles.paymentDivider} />
+
+            <TouchableOpacity
+              style={styles.paymentOption}
+              onPress={() => setPaymentMethod("payLater")}
             >
-              {paymentMethod === "payLater" && (
-                <View style={styles.paymentRadioButtonInner} />
-              )}
-            </View>
-            <View style={styles.paymentOptionContent}>
-              <Text style={styles.paymentOptionTitle}>Pay later</Text>
-              <Text style={styles.paymentOptionDescription}>
-                Pay in person at the salon.
-              </Text>
-            </View>
-          </TouchableOpacity>
+              <View
+                style={[
+                  styles.paymentRadioButton,
+                  paymentMethod === "payLater" &&
+                    styles.paymentRadioButtonSelected,
+                ]}
+              >
+                {paymentMethod === "payLater" && (
+                  <View style={styles.paymentRadioButtonInner} />
+                )}
+              </View>
+              <View style={styles.paymentOptionContent}>
+                <Text style={styles.paymentOptionTitle}>Pay later</Text>
+                <Text style={styles.paymentOptionDescription}>
+                  Pay in person at the salon.
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
         </View>
+
+        <View style={styles.line} />
 
         {/* Service Details Section */}
         {selectedServices.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Service Details</Text>
+            <Text style={styles.sectionTitle}>You're paying for:</Text>
             {selectedServices.map((service) => (
               <View key={service.id} style={styles.serviceDetailsCard}>
                 <View style={styles.serviceDetailsHeader}>
@@ -1014,25 +1040,31 @@ export default function Checkout() {
         )}
 
         {/* Price Breakdown Section */}
-        <View style={styles.section}>
-          <View style={styles.priceBreakdown}>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Subtotal</Text>
-              <Text style={styles.priceValue}>
-                ${totalPrice.toFixed(2)} USD
-              </Text>
-            </View>
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>Tax</Text>
-              <Text style={styles.priceValue}>${tax.toFixed(2)} USD</Text>
-            </View>
-            <View style={styles.priceDivider} />
-            <View style={styles.priceRow}>
-              <Text style={styles.priceLabelTotal}>Estimated Total</Text>
-              <Text style={styles.priceValueTotal}>
-                ${estimatedTotal.toFixed(2)} USD
-              </Text>
-            </View>
+        <View style={styles.priceBreakdown}>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Subtotal:</Text>
+            <Text style={styles.priceValue}>${totalPrice.toFixed(2)} USD</Text>
+          </View>
+          <View style={styles.priceRow}>
+            <Text style={styles.priceLabel}>Tax:</Text>
+            <Text style={styles.priceValue}>Calculated at the checkout</Text>
+          </View>
+          <View
+            style={[
+              styles.line,
+              {
+                backgroundColor: theme.lightGreen2,
+                marginBottom: moderateHeightScale(12),
+              },
+            ]}
+          />
+          <View style={styles.priceRow}>
+            <Text style={[styles.priceLabel, { fontFamily: fonts.fontBold }]}>
+              Estimated Total:
+            </Text>
+            <Text style={[styles.priceValue, { fontFamily: fonts.fontBold }]}>
+              ${totalPrice.toFixed(2)} USD
+            </Text>
           </View>
         </View>
 
