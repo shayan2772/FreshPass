@@ -1370,7 +1370,27 @@ export default function Checkout() {
               );
               return;
             }
-             
+            
+            // Generate booking ID
+            const bookingId = `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+            
+            // Navigate to booking detail with all data
+            router.push({
+              pathname: "/(main)/bookingDetail",
+              params: {
+                bookingId: bookingId,
+                selectedServices: JSON.stringify(selectedServices),
+                selectedStaff: selectedStaffId,
+                selectedStaffMember: selectedStaffMember ? JSON.stringify(selectedStaffMember) : "",
+                selectedDate: selectedDate.format("YYYY-MM-DD"),
+                selectedTimeSlot: selectedTimeSlot || "",
+                paymentMethod: paymentMethod,
+                totalPrice: totalPrice.toFixed(2),
+                tax: tax.toFixed(2),
+                estimatedTotal: estimatedTotal.toFixed(2),
+                businessId: params.businessId || "",
+              },
+            });
           }}
         />
       </View>
