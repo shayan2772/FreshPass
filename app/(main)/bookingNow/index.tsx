@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -318,7 +312,6 @@ export default function BookingNow() {
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
   const {
-    selectedService,
     allServices,
     staffMembers,
     selectedServices: reduxSelectedServices,
@@ -331,66 +324,23 @@ export default function BookingNow() {
     selectedStaff: "anyone",
   };
 
-  const [selectedStaff, setSelectedStaffLocal] = useState<string>(
-    reduxSelectedStaff || "anyone"
-  );
-  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(
-    () => {
-      // Initialize from Redux - prefer selectedServices, fallback to selectedService only on initial load
-      if (reduxSelectedServices.length > 0) {
-        return reduxSelectedServices;
-      } else if (selectedService) {
-        return [selectedService];
-      }
+  // Use Redux directly - no local state needed
+  const selectedServices = useMemo(() => {
+    if (reduxSelectedServices.length > 0) {
+      return reduxSelectedServices;
+    } else {
       return [];
     }
-  );
+  }, [reduxSelectedServices]);
+
+  const selectedStaff = reduxSelectedStaff || "anyone";
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
-  const isUpdatingFromLocalRef = useRef(false);
-  const isInitializedRef = useRef(false);
-
-  // Sync with Redux when it changes from external sources (like checkout screen)
-  // Skip sync if we're updating Redux ourselves
-  useEffect(() => {
-    if (isUpdatingFromLocalRef.current) {
-      isUpdatingFromLocalRef.current = false;
-      return;
-    }
-
-    // On initial load, initialize from Redux
-    if (!isInitializedRef.current) {
-      isInitializedRef.current = true;
-      if (reduxSelectedServices.length > 0) {
-        setSelectedServicesLocal(reduxSelectedServices);
-      } else if (selectedService && reduxSelectedServices.length === 0) {
-        // Only use selectedService on initial load if Redux is empty
-        setSelectedServicesLocal([selectedService]);
-      }
-      return;
-    }
-
-    // After initial load, only sync if Redux has services
-    // If Redux is empty, respect that (user deleted all services)
-    if (reduxSelectedServices.length > 0) {
-      setSelectedServicesLocal(reduxSelectedServices);
-    } else {
-      // Keep local state empty if Redux is empty (user intentionally deleted all)
-      setSelectedServicesLocal([]);
-    }
-  }, [reduxSelectedServices, selectedService]);
 
   useEffect(() => {
-    if (reduxSelectedStaff) {
-      setSelectedStaffLocal(reduxSelectedStaff);
-    }
-  }, [reduxSelectedStaff]);
-
-  useEffect(()=>{
-
-    return()=>{
+    return () => {
       dispatch(clearBusinessData());
-    }
-  },[])
+    };
+  }, [dispatch]);
 
   const staffList = [
     {
@@ -411,23 +361,10 @@ export default function BookingNow() {
     0
   );
 
-  // Update Redux when local state changes (but mark that we're updating from local)
-  useEffect(() => {
-    isUpdatingFromLocalRef.current = true;
-    dispatch(setSelectedServices(selectedServices));
-  }, [selectedServices, dispatch]);
-
-  useEffect(() => {
-    dispatch(setSelectedStaff(selectedStaff));
-  }, [selectedStaff, dispatch]);
-
   const handleDeleteService = (serviceId: number) => {
     const updatedServices = selectedServices.filter(
       (service) => service.id !== serviceId
     );
-    // Mark that we're updating from local, so sync useEffect doesn't interfere
-    isUpdatingFromLocalRef.current = true;
-    setSelectedServicesLocal(updatedServices);
     dispatch(setSelectedServices(updatedServices));
   };
 
@@ -441,9 +378,6 @@ export default function BookingNow() {
 
   const handleUpdateSelectedServices = useCallback(
     (services: Service[]) => {
-      // Directly update with the service objects passed from bottom sheet
-      isUpdatingFromLocalRef.current = true;
-      setSelectedServicesLocal(services);
       dispatch(setSelectedServices(services));
     },
     [dispatch]
@@ -562,7 +496,6 @@ export default function BookingNow() {
                     !isAnyone && styles.shadow,
                   ]}
                   onPress={() => {
-                    setSelectedStaffLocal(staff.id);
                     dispatch(setSelectedStaff(staff.id));
                   }}
                 >

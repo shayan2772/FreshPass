@@ -605,26 +605,14 @@ export default function Checkout() {
     businessId,
   } = businessData;
 
-  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(reduxSelectedServices || []);
+  // Use Redux directly - no local state needed
+  const selectedServices = reduxSelectedServices || [];
+  const selectedStaffId = reduxSelectedStaff || "anyone";
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
   const [staffSelectionModalVisible, setStaffSelectionModalVisible] =
     useState(false);
-  const [selectedStaffId, setSelectedStaffIdLocal] = useState<string>(reduxSelectedStaff || "anyone");
   const [selectedStaffMember, setSelectedStaffMember] =
     useState<StaffMember | null>(null);
-  
-  // Sync with Redux when it changes
-  useEffect(() => {
-    if (reduxSelectedServices.length > 0) {
-      setSelectedServicesLocal(reduxSelectedServices);
-    }
-  }, [reduxSelectedServices]);
-
-  useEffect(() => {
-    if (reduxSelectedStaff) {
-      setSelectedStaffIdLocal(reduxSelectedStaff);
-    }
-  }, [reduxSelectedStaff]);
   const [selectedDate, setSelectedDate] = useState(dayjs());
   const [week, setWeek] = useState(getWeekDays(dayjs()));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
@@ -725,7 +713,6 @@ export default function Checkout() {
     const updatedServices = selectedServices.filter(
       (service) => service.id !== serviceId
     );
-    setSelectedServicesLocal(updatedServices);
     dispatch(setSelectedServices(updatedServices));
   };
 
@@ -740,7 +727,6 @@ export default function Checkout() {
 
   const handleUpdateSelectedServices = useCallback(
     (services: Service[]) => {
-      setSelectedServicesLocal(services);
       dispatch(setSelectedServices(services));
     },
     [dispatch]
@@ -1392,7 +1378,6 @@ export default function Checkout() {
         staffMembers={staffMembers}
         selectedStaffId={selectedStaffId}
         onSelectStaff={(staffId) => {
-          setSelectedStaffIdLocal(staffId);
           dispatch(setSelectedStaff(staffId));
           if (staffId === "anyone") {
             setSelectedStaffMember(null);
