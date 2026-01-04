@@ -181,16 +181,22 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
     },
     serviceName: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(12),
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    serviceDescription: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+     
     },
     servicePriceRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(8),
-      marginBottom: moderateHeightScale(16),
+       
     },
     servicePriceColumn: {
       flexDirection: "row",
@@ -198,12 +204,12 @@ const createStyles = (theme: Theme) =>
       gap: moderateWidthScale(8),
     },
     serviceCurrentPrice: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
     },
     serviceOriginalPrice: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.lightGreen4,
       textDecorationLine: "line-through",
@@ -420,7 +426,7 @@ export default function BookingDetail() {
       const date = dayjs(params.selectedDate);
       setBookingDate(date.format("MMM D, YYYY"));
     }
-  }, [params]);
+  }, [ ]);
 
   const handleCopyBookingId = () => {
     if (params.bookingId) {
@@ -453,10 +459,6 @@ export default function BookingDetail() {
   const businessName = "Ra Benjamin Styles LLC";
   const businessAddress =
     "240 E Exchange Blvd, Columbia, SC 29209, United States.";
-
-  // Get first service for display (or combine all services)
-  const displayService =
-    selectedServices.length > 0 ? selectedServices[0] : null;
 
   const totalPrice = params.totalPrice ? parseFloat(params.totalPrice) : 0;
   const tax = params.tax ? parseFloat(params.tax) : 0;
@@ -551,45 +553,25 @@ export default function BookingDetail() {
 
           <View style={styles.line} />
 
-          <View style={styles.serviceCard}>
-            <Text style={styles.serviceName}>
-              {displayService.name} - {displayService.description}
-            </Text>
-            <View style={styles.servicePriceRow}>
-              <Text style={styles.serviceCurrentPrice}>
-                - ${displayService.price.toFixed(2)} USD
-              </Text>
-              <Text style={styles.serviceOriginalPrice}>
-                ${displayService.originalPrice.toFixed(2)} USD
-              </Text>
-            </View>
-            <View style={styles.serviceIncludes}>
-              <View style={styles.serviceIncludeItem}>
-                <Text style={styles.bulletPoint}>-</Text>
-                <Text style={styles.serviceIncludeText}>
-                  This service includes we wash and cut
-                </Text>
+          {selectedServices.length > 0 &&
+            selectedServices.map((service) => (
+              <View key={service.id} style={styles.serviceCard}>
+                <Text style={styles.serviceName}>{service.name}</Text>
+                <View style={styles.servicePriceRow}>
+                  <Text style={styles.serviceCurrentPrice}>
+                    - ${service.price.toFixed(2)} USD
+                  </Text>
+                  <Text style={styles.serviceOriginalPrice}>
+                    ${service.originalPrice.toFixed(2)} USD
+                  </Text>
+                </View>
+                {service.description && (
+                  <Text style={styles.serviceDescription}>
+                    - {service.description}
+                  </Text>
+                )}
               </View>
-              <View style={styles.serviceIncludeItem}>
-                <Text style={styles.bulletPoint}>-</Text>
-                <Text style={styles.serviceIncludeText}>
-                  Monthly subscription membership package
-                </Text>
-              </View>
-              <View style={styles.serviceIncludeItem}>
-                <Text style={styles.bulletPoint}>-</Text>
-                <Text style={styles.serviceIncludeText}>
-                  This service includes we wash and cut
-                </Text>
-              </View>
-              <View style={styles.serviceIncludeItem}>
-                <Text style={styles.bulletPoint}>-</Text>
-                <Text style={styles.serviceIncludeText}>
-                  Monthly subscription membership package
-                </Text>
-              </View>
-            </View>
-          </View>
+            ))}
         </View>
 
         {/* Summary */}
