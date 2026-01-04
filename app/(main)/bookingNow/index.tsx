@@ -41,37 +41,9 @@ const BackArrowIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
     .replace(/{{COLOR}}/g, color);
   return <SvgXml xml={svgXml} />;
 };
+ 
 
-// Trash Icon SVG
-const trashIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6 19C6 20.1 6.9 21 8 21H16C17.1 21 18 20.1 18 19V7H6V19ZM19 4H15.5L14.5 3H9.5L8.5 4H5V6H19V4Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-const TrashIcon = ({ width = 24, height = 24, color = "#FF0000" }) => {
-  const svgXml = trashIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-// Plus Icon SVG
-const plusIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M19 13H13V19H11V13H5V11H11V5H13V11H19V13Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-const PlusIcon = ({ width = 24, height = 24, color = "#283618" }) => {
-  const svgXml = plusIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
+ 
 interface Service {
   id: number;
   name: string;
@@ -346,16 +318,46 @@ export default function BookingNow() {
   } = businessData;
 
   const [selectedStaff, setSelectedStaffLocal] = useState<string>(reduxSelectedStaff || "anyone");
-  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(reduxSelectedServices || []);
+  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(() => {
+    // Initialize from Redux - prefer selectedServices, fallback to selectedService only on initial load
+    if (reduxSelectedServices.length > 0) {
+      return reduxSelectedServices;
+    } else if (selectedService) {
+      return [selectedService];
+    }
+    return [];
+  });
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
+  const isUpdatingFromLocalRef = useRef(false);
+  const isInitializedRef = useRef(false);
   
-  // Sync with Redux when it changes
+  // Sync with Redux when it changes from external sources (like checkout screen)
+  // Skip sync if we're updating Redux ourselves
   useEffect(() => {
+    if (isUpdatingFromLocalRef.current) {
+      isUpdatingFromLocalRef.current = false;
+      return;
+    }
+    
+    // On initial load, initialize from Redux
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      if (reduxSelectedServices.length > 0) {
+        setSelectedServicesLocal(reduxSelectedServices);
+      } else if (selectedService && reduxSelectedServices.length === 0) {
+        // Only use selectedService on initial load if Redux is empty
+        setSelectedServicesLocal([selectedService]);
+      }
+      return;
+    }
+    
+    // After initial load, only sync if Redux has services
+    // If Redux is empty, respect that (user deleted all services)
     if (reduxSelectedServices.length > 0) {
       setSelectedServicesLocal(reduxSelectedServices);
-    } else if (selectedService) {
-      // If no selectedServices but we have selectedService, use it
-      setSelectedServicesLocal([selectedService]);
+    } else {
+      // Keep local state empty if Redux is empty (user intentionally deleted all)
+      setSelectedServicesLocal([]);
     }
   }, [reduxSelectedServices, selectedService]);
 
@@ -364,6 +366,7 @@ export default function BookingNow() {
       setSelectedStaffLocal(reduxSelectedStaff);
     }
   }, [reduxSelectedStaff]);
+  
   const staffList = [
     {
       id: "anyone",
@@ -383,8 +386,9 @@ export default function BookingNow() {
     0
   );
 
-  // Update Redux when local state changes
+  // Update Redux when local state changes (but mark that we're updating from local)
   useEffect(() => {
+    isUpdatingFromLocalRef.current = true;
     dispatch(setSelectedServices(selectedServices));
   }, [selectedServices, dispatch]);
 
@@ -398,6 +402,8 @@ export default function BookingNow() {
     const updatedServices = selectedServices.filter(
       (service) => service.id !== serviceId
     );
+    // Mark that we're updating from local, so sync useEffect doesn't interfere
+    isUpdatingFromLocalRef.current = true;
     setSelectedServicesLocal(updatedServices);
     dispatch(setSelectedServices(updatedServices));
   };
@@ -412,6 +418,7 @@ export default function BookingNow() {
 
   const handleUpdateSelectedServices = useCallback((services: Service[]) => {
     // Directly update with the service objects passed from bottom sheet
+    isUpdatingFromLocalRef.current = true;
     setSelectedServicesLocal(services);
     dispatch(setSelectedServices(services));
   }, [dispatch]);
