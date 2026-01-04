@@ -67,7 +67,7 @@ const rootReducer = combineReducers({
   general: persistedGeneralReducer, // Already persisted with field filtering
   completeProfile: completeProfileReducer, // Not persisted
   user: persistedUserReducer, // Persisted with field filtering (id, name, token)
-  
+  bsns: bsnsReducer, // Business/booking state
 });
 
 // ✅ No root-level persistence needed - general is already persisted with nested config

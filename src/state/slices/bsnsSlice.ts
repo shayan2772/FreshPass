@@ -90,7 +90,9 @@ const bsnsSlice = createSlice({
       state.selectedService = null;
       state.selectedServices = [];
       state.selectedStaff = "anyone";
-      // Keep allServices, staffMembers, and businessId as they might be needed
+      state.allServices = [];
+      state.staffMembers = [];
+      state.businessId = "";
     },
     resetBusinessState(state) {
       return initialState;

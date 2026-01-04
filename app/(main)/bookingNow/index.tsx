@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import {
   StyleSheet,
   View,
@@ -10,7 +16,11 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
-import { setSelectedServices, setSelectedStaff } from "@/src/state/slices/bsnsSlice";
+import {
+  setSelectedServices,
+  setSelectedStaff,
+  clearBusinessData,
+} from "@/src/state/slices/bsnsSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -41,9 +51,7 @@ const BackArrowIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
     .replace(/{{COLOR}}/g, color);
   return <SvgXml xml={svgXml} />;
 };
- 
 
- 
 interface Service {
   id: number;
   name: string;
@@ -217,7 +225,7 @@ const createStyles = (theme: Theme) =>
     staffImage: {
       width: widthScale(35),
       height: widthScale(35),
-      borderRadius: widthScale(35/2),
+      borderRadius: widthScale(35 / 2),
       backgroundColor: theme.emptyProfileImage,
       borderWidth: 1,
       borderColor: theme.borderLight,
@@ -306,7 +314,7 @@ export default function BookingNow() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  
+
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
   const {
@@ -315,22 +323,32 @@ export default function BookingNow() {
     staffMembers,
     selectedServices: reduxSelectedServices,
     selectedStaff: reduxSelectedStaff,
-  } = businessData;
+  } = businessData || {
+    selectedService: null,
+    allServices: [],
+    staffMembers: [],
+    selectedServices: [],
+    selectedStaff: "anyone",
+  };
 
-  const [selectedStaff, setSelectedStaffLocal] = useState<string>(reduxSelectedStaff || "anyone");
-  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(() => {
-    // Initialize from Redux - prefer selectedServices, fallback to selectedService only on initial load
-    if (reduxSelectedServices.length > 0) {
-      return reduxSelectedServices;
-    } else if (selectedService) {
-      return [selectedService];
+  const [selectedStaff, setSelectedStaffLocal] = useState<string>(
+    reduxSelectedStaff || "anyone"
+  );
+  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(
+    () => {
+      // Initialize from Redux - prefer selectedServices, fallback to selectedService only on initial load
+      if (reduxSelectedServices.length > 0) {
+        return reduxSelectedServices;
+      } else if (selectedService) {
+        return [selectedService];
+      }
+      return [];
     }
-    return [];
-  });
+  );
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
   const isUpdatingFromLocalRef = useRef(false);
   const isInitializedRef = useRef(false);
-  
+
   // Sync with Redux when it changes from external sources (like checkout screen)
   // Skip sync if we're updating Redux ourselves
   useEffect(() => {
@@ -338,7 +356,7 @@ export default function BookingNow() {
       isUpdatingFromLocalRef.current = false;
       return;
     }
-    
+
     // On initial load, initialize from Redux
     if (!isInitializedRef.current) {
       isInitializedRef.current = true;
@@ -350,7 +368,7 @@ export default function BookingNow() {
       }
       return;
     }
-    
+
     // After initial load, only sync if Redux has services
     // If Redux is empty, respect that (user deleted all services)
     if (reduxSelectedServices.length > 0) {
@@ -366,7 +384,14 @@ export default function BookingNow() {
       setSelectedStaffLocal(reduxSelectedStaff);
     }
   }, [reduxSelectedStaff]);
-  
+
+  useEffect(()=>{
+
+    return()=>{
+      dispatch(clearBusinessData());
+    }
+  },[])
+
   const staffList = [
     {
       id: "anyone",
@@ -396,8 +421,6 @@ export default function BookingNow() {
     dispatch(setSelectedStaff(selectedStaff));
   }, [selectedStaff, dispatch]);
 
- 
-
   const handleDeleteService = (serviceId: number) => {
     const updatedServices = selectedServices.filter(
       (service) => service.id !== serviceId
@@ -416,19 +439,22 @@ export default function BookingNow() {
     setAddServiceModalVisible(false);
   }, []);
 
-  const handleUpdateSelectedServices = useCallback((services: Service[]) => {
-    // Directly update with the service objects passed from bottom sheet
-    isUpdatingFromLocalRef.current = true;
-    setSelectedServicesLocal(services);
-    dispatch(setSelectedServices(services));
-  }, [dispatch]);
+  const handleUpdateSelectedServices = useCallback(
+    (services: Service[]) => {
+      // Directly update with the service objects passed from bottom sheet
+      isUpdatingFromLocalRef.current = true;
+      setSelectedServicesLocal(services);
+      dispatch(setSelectedServices(services));
+    },
+    [dispatch]
+  );
 
   // Memoize selectedServiceIds to prevent infinite loops
   const selectedServiceIds = useMemo(
     () => selectedServices.map((s) => s.id),
     [selectedServices]
   );
- 
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -437,7 +463,9 @@ export default function BookingNow() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => router.back()}
+            onPress={() => {
+              router.back();
+            }}
           >
             <BackArrowIcon
               width={widthScale(25)}
@@ -583,10 +611,22 @@ export default function BookingNow() {
             <Text style={styles.priceLabel}>Tax:</Text>
             <Text style={styles.priceValue}>Calculated at the checkout</Text>
           </View>
-          <View style={[styles.line,{backgroundColor:theme.lightGreen2,marginBottom:moderateHeightScale(12)}  ]} />
+          <View
+            style={[
+              styles.line,
+              {
+                backgroundColor: theme.lightGreen2,
+                marginBottom: moderateHeightScale(12),
+              },
+            ]}
+          />
           <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel,{fontFamily:fonts.fontBold}]}>Estimated Total:</Text>
-            <Text style={[styles.priceValue,{fontFamily:fonts.fontBold}]}>${totalPrice.toFixed(2)} USD</Text>
+            <Text style={[styles.priceLabel, { fontFamily: fonts.fontBold }]}>
+              Estimated Total:
+            </Text>
+            <Text style={[styles.priceValue, { fontFamily: fonts.fontBold }]}>
+              ${totalPrice.toFixed(2)} USD
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -630,4 +670,3 @@ export default function BookingNow() {
     </SafeAreaView>
   );
 }
-
