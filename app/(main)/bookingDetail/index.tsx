@@ -111,6 +111,7 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       height: 1.1,
       backgroundColor: theme.borderLight,
+      alignSelf: "center",
     },
     lineV: {
       width: 1.1,
@@ -124,6 +125,8 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       paddingVertical: moderateHeightScale(8),
       gap: moderateHeightScale(12),
+      borderBottomWidth: 1,
+      borderColor: theme.borderLight,
     },
     bookingInfoCard: {
       flexDirection: "row",
@@ -190,13 +193,11 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-     
     },
     servicePriceRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(8),
-       
     },
     servicePriceColumn: {
       flexDirection: "row",
@@ -237,22 +238,23 @@ const createStyles = (theme: Theme) =>
       lineHeight: moderateHeightScale(18),
     },
     summaryCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      gap: moderateHeightScale(12),
     },
     summaryTitle: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(16),
+    },
+    summaryTitle2: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
     },
     summaryRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: moderateHeightScale(12),
     },
     summaryRowLast: {
       marginBottom: 0,
@@ -260,44 +262,41 @@ const createStyles = (theme: Theme) =>
     summaryLabel: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
+      color: theme.lightGreen,
     },
     summaryValue: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    summaryTotalLabel: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    summaryTotalLabel: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-    },
     summaryTotalValue: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     divider: {
       height: 1,
       backgroundColor: theme.borderLight,
-      marginVertical: moderateHeightScale(16),
     },
     salonCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(12),
     },
     salonLabel: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(8),
     },
     salonName: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
       marginBottom: moderateHeightScale(4),
     },
     salonAddress: {
@@ -307,20 +306,17 @@ const createStyles = (theme: Theme) =>
       lineHeight: moderateHeightScale(20),
     },
     staffCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
     },
     staffLabel: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(8),
     },
     staffName: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
     },
@@ -426,7 +422,7 @@ export default function BookingDetail() {
       const date = dayjs(params.selectedDate);
       setBookingDate(date.format("MMM D, YYYY"));
     }
-  }, [ ]);
+  }, []);
 
   const handleCopyBookingId = () => {
     if (params.bookingId) {
@@ -495,7 +491,6 @@ export default function BookingDetail() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Booking Info Section */}
-
         <View style={styles.section}>
           <View style={styles.bookingInfoCard}>
             <View style={styles.bookingInfoRow}>
@@ -554,87 +549,76 @@ export default function BookingDetail() {
           <View style={styles.line} />
 
           {selectedServices.length > 0 &&
-            selectedServices.map((service) => (
-              <View key={service.id} style={styles.serviceCard}>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <View style={styles.servicePriceRow}>
-                  <Text style={styles.serviceCurrentPrice}>
-                    - ${service.price.toFixed(2)} USD
-                  </Text>
-                  <Text style={styles.serviceOriginalPrice}>
-                    ${service.originalPrice.toFixed(2)} USD
-                  </Text>
+            selectedServices.map((service, index) => (
+              <React.Fragment key={service.id}>
+                <View style={styles.serviceCard}>
+                  <Text style={styles.serviceName}>{service.name}</Text>
+                  <View style={styles.servicePriceRow}>
+                    <Text style={styles.serviceCurrentPrice}>
+                      - ${service.price.toFixed(2)} USD
+                    </Text>
+                    <Text style={styles.serviceOriginalPrice}>
+                      ${service.originalPrice.toFixed(2)} USD
+                    </Text>
+                  </View>
+                  {service.description && (
+                    <Text style={styles.serviceDescription}>
+                      - {service.description}
+                    </Text>
+                  )}
                 </View>
-                {service.description && (
-                  <Text style={styles.serviceDescription}>
-                    - {service.description}
-                  </Text>
+                {index < selectedServices.length - 1 && (
+                  <View style={[styles.line, { width: "90%" }]} />
                 )}
-              </View>
+              </React.Fragment>
             ))}
         </View>
 
         {/* Summary */}
-        
-          <View style={styles.summaryCard}>
-            <Text style={styles.summaryTitle}>Summary (you'll pay)</Text>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={styles.summaryValue}>
-                ${totalPrice.toFixed(2)} USD
-              </Text>
-            </View>
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Total Tax:</Text>
-              <Text style={styles.summaryValue}>${tax.toFixed(2)} USD</Text>
-            </View>
-            <View style={styles.divider} />
-            <View style={[styles.summaryRow, styles.summaryRowLast]}>
-              <Text style={styles.summaryTotalLabel}>Booking Total:</Text>
-              <Text style={styles.summaryTotalValue}>
-                ${bookingTotal.toFixed(2)} USD
-              </Text>
-            </View>
+        <View style={styles.summaryCard}>
+          <Text style={styles.summaryTitle}>
+            Summary <Text style={styles.summaryTitle2}>(you'll pay)</Text>
+          </Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Subtotal:</Text>
+            <Text style={styles.summaryValue}>
+              ${totalPrice.toFixed(2)} USD
+            </Text>
           </View>
-       
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Total Tax:</Text>
+            <Text style={styles.summaryValue}>${tax.toFixed(2)} USD</Text>
+          </View>
+          <View style={styles.divider} />
+          <View style={[styles.summaryRow, styles.summaryRowLast]}>
+            <Text style={styles.summaryTotalLabel}>Booking Total:</Text>
+            <Text style={styles.summaryTotalValue}>
+              ${bookingTotal.toFixed(2)} USD
+            </Text>
+          </View>
+        </View>
 
         {/* Salon Address */}
-        <View style={styles.section}>
-          <View style={styles.salonCard}>
-            <Text style={styles.salonLabel}>Salon address:</Text>
-            <Text style={styles.salonName}>{businessName}</Text>
-            <Text style={styles.salonAddress}>{businessAddress}</Text>
-          </View>
+        <View style={styles.salonCard}>
+          <Text style={styles.salonLabel}>Salon address:</Text>
+          <Text style={styles.salonName}>{businessName}</Text>
+          <Text style={styles.salonAddress}>{businessAddress}</Text>
         </View>
 
         {/* Staff Member */}
         {selectedStaffMember && (
-          <View style={styles.section}>
-            <View style={styles.staffCard}>
-              <Text style={styles.staffLabel}>Staff member:</Text>
-              <Text style={styles.staffName}>{selectedStaffMember.name}</Text>
-              {selectedStaffMember.experience && (
-                <Text style={styles.staffExperience}>
-                  {selectedStaffMember.experience} Years Of Experience
-                </Text>
-              )}
-            </View>
+          <View style={styles.staffCard}>
+            <Text style={styles.staffLabel}>Staff member:</Text>
+            <Text style={styles.staffName}>{selectedStaffMember.name}</Text>
+            {selectedStaffMember.experience && (
+              <Text style={styles.staffExperience}>
+                {selectedStaffMember.experience} Years Of Experience
+              </Text>
+            )}
           </View>
         )}
 
-        {/* Payment Method */}
-        <View style={styles.section}>
-          <View style={styles.paymentCard}>
-            <Ionicons
-              name="logo-apple"
-              size={moderateWidthScale(24)}
-              color={theme.darkGreen}
-            />
-            <Text style={styles.paymentMethod}>
-              {params.paymentMethod === "payNow" ? "Apple Pay" : "Pay Later"}
-            </Text>
-          </View>
-        </View>
+        
 
         {/* Action Buttons */}
         <View style={styles.actionRow}>
