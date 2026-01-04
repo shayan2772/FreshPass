@@ -6,8 +6,6 @@ import {
   TouchableOpacity,
   View,
   ScrollView,
-  Image,
-  Alert,
   Clipboard,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -114,18 +112,31 @@ const createStyles = (theme: Theme) =>
       height: 1.1,
       backgroundColor: theme.borderLight,
     },
+    lineV: {
+      width: 1.1,
+      height: "100%",
+      backgroundColor: theme.borderLight,
+    },
     scrollContent: {
       paddingBottom: moderateHeightScale(20),
     },
     section: {
-      paddingHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      backgroundColor: theme.white,
+      paddingVertical: moderateHeightScale(8),
+      gap: moderateHeightScale(12),
+    },
+    bookingInfoCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     bookingInfoRow: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: moderateHeightScale(12),
+      width: "65%",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    bookingInfoRowLast: {
+      width: "30%",
+      paddingHorizontal: moderateWidthScale(20),
     },
     bookingInfoLabel: {
       fontSize: fontSize.size14,
@@ -136,32 +147,24 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      flex: 1,
-      textAlign: "right",
-      marginRight: moderateWidthScale(8),
     },
     copyButton: {
       padding: moderateWidthScale(4),
     },
     confirmationCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      gap: moderateWidthScale(6),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    confirmationCardRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: moderateWidthScale(12),
+      gap: moderateWidthScale(8),
     },
     confirmationIcon: {
       width: widthScale(40),
       height: heightScale(40),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.lightGreen015,
       alignItems: "center",
       justifyContent: "center",
-    },
-    confirmationContent: {
-      flex: 1,
     },
     confirmationTitle: {
       fontSize: fontSize.size16,
@@ -175,10 +178,7 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
     },
     serviceCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(12),
-      padding: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
     },
     serviceName: {
       fontSize: fontSize.size15,
@@ -188,21 +188,22 @@ const createStyles = (theme: Theme) =>
     },
     servicePriceRow: {
       flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-end",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
       marginBottom: moderateHeightScale(16),
     },
     servicePriceColumn: {
-      alignItems: "flex-end",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(8),
     },
     serviceCurrentPrice: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
     },
     serviceOriginalPrice: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontMedium,
       color: theme.lightGreen4,
       textDecorationLine: "line-through",
@@ -219,7 +220,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-      marginRight: moderateWidthScale(8),
+      marginRight: moderateWidthScale(4),
       marginTop: moderateHeightScale(2),
     },
     serviceIncludeText: {
@@ -281,11 +282,17 @@ const createStyles = (theme: Theme) =>
       padding: moderateWidthScale(20),
       marginTop: moderateHeightScale(20),
     },
+    salonLabel: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(8),
+    },
     salonName: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(4),
     },
     salonAddress: {
       fontSize: fontSize.size13,
@@ -298,6 +305,12 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(12),
       padding: moderateWidthScale(20),
       marginTop: moderateHeightScale(20),
+    },
+    staffLabel: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(8),
     },
     staffName: {
       fontSize: fontSize.size15,
@@ -405,7 +418,7 @@ export default function BookingDetail() {
 
     if (params.selectedDate) {
       const date = dayjs(params.selectedDate);
-      setBookingDate(date.format("MMM DD, YYYY"));
+      setBookingDate(date.format("MMM D, YYYY"));
     }
   }, [params]);
 
@@ -479,110 +492,115 @@ export default function BookingDetail() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Booking Info */}
+        {/* Booking Info Section */}
+
         <View style={styles.section}>
-          <View style={styles.bookingInfoRow}>
-            <Text style={styles.bookingInfoLabel}>Booking ID:</Text>
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.bookingInfoValue}>
-                {params.bookingId || "N/A"}
-              </Text>
-              <TouchableOpacity
-                style={styles.copyButton}
-                onPress={handleCopyBookingId}
+          <View style={styles.bookingInfoCard}>
+            <View style={styles.bookingInfoRow}>
+              <Text style={styles.bookingInfoLabel}>Booking ID:</Text>
+              <View
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: moderateWidthScale(8),
+                }}
               >
-                <MaterialIcons
-                  name="content-copy"
-                  size={moderateWidthScale(18)}
-                  color={theme.darkGreen}
-                />
-              </TouchableOpacity>
+                <Text style={styles.bookingInfoValue}>
+                  {params.bookingId || "N/A"}
+                </Text>
+                <TouchableOpacity
+                  style={styles.copyButton}
+                  onPress={handleCopyBookingId}
+                >
+                  <MaterialIcons
+                    name="content-copy"
+                    size={moderateWidthScale(18)}
+                    color={theme.darkGreen}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.lineV} />
+            <View style={[styles.bookingInfoRow, styles.bookingInfoRowLast]}>
+              <Text style={styles.bookingInfoLabel}>Date:</Text>
+              <Text style={styles.bookingInfoValue}>
+                {bookingDate || dayjs().format("MMM D, YYYY")}
+              </Text>
             </View>
           </View>
-          <View style={styles.bookingInfoRow}>
-            <Text style={styles.bookingInfoLabel}>Date:</Text>
-            <Text style={styles.bookingInfoValue}>
-              {bookingDate || "N/A"}
-            </Text>
-          </View>
-        </View>
 
-        {/* Confirmation Card */}
-        <View style={styles.section}>
+          <View style={styles.line} />
+
           <View style={styles.confirmationCard}>
-            <View style={styles.confirmationIcon}>
+            <View style={styles.confirmationCardRow}>
               <ScissorsIcon
                 width={widthScale(24)}
                 height={heightScale(24)}
-                color={theme.darkGreen}
+                color={theme.red}
               />
-            </View>
-            <View style={styles.confirmationContent}>
               <Text style={styles.confirmationTitle}>
                 Your appointment is confirmed
               </Text>
-              <Text style={styles.confirmationMessage}>
-                Booking confirmed! Can't wait to give you the Freshpass
-                experience.
+            </View>
+
+            <Text style={styles.confirmationMessage}>
+              Booking confirmed! Can't wait to give you the Freshpass
+              experience.
+            </Text>
+          </View>
+
+          <View style={styles.line} />
+
+          <View style={styles.serviceCard}>
+            <Text style={styles.serviceName}>
+              {displayService.name} - {displayService.description}
+            </Text>
+            <View style={styles.servicePriceRow}>
+              <Text style={styles.serviceCurrentPrice}>
+                - ${displayService.price.toFixed(2)} USD
               </Text>
+              <Text style={styles.serviceOriginalPrice}>
+                ${displayService.originalPrice.toFixed(2)} USD
+              </Text>
+            </View>
+            <View style={styles.serviceIncludes}>
+              <View style={styles.serviceIncludeItem}>
+                <Text style={styles.bulletPoint}>-</Text>
+                <Text style={styles.serviceIncludeText}>
+                  This service includes we wash and cut
+                </Text>
+              </View>
+              <View style={styles.serviceIncludeItem}>
+                <Text style={styles.bulletPoint}>-</Text>
+                <Text style={styles.serviceIncludeText}>
+                  Monthly subscription membership package
+                </Text>
+              </View>
+              <View style={styles.serviceIncludeItem}>
+                <Text style={styles.bulletPoint}>-</Text>
+                <Text style={styles.serviceIncludeText}>
+                  This service includes we wash and cut
+                </Text>
+              </View>
+              <View style={styles.serviceIncludeItem}>
+                <Text style={styles.bulletPoint}>-</Text>
+                <Text style={styles.serviceIncludeText}>
+                  Monthly subscription membership package
+                </Text>
+              </View>
             </View>
           </View>
         </View>
 
-        {/* Service Details */}
-        {displayService && (
-          <View style={styles.section}>
-            <View style={styles.serviceCard}>
-              <Text style={styles.serviceName}>
-                {displayService.name} - {displayService.description}
-              </Text>
-              <View style={styles.servicePriceRow}>
-                <View style={styles.servicePriceColumn}>
-                  <Text style={styles.serviceCurrentPrice}>
-                    ${displayService.price.toFixed(2)} USD
-                  </Text>
-                  <Text style={styles.serviceOriginalPrice}>
-                    ${displayService.originalPrice.toFixed(2)} USD
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.serviceIncludes}>
-                <View style={styles.serviceIncludeItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.serviceIncludeText}>
-                    This service includes we wash and cut
-                  </Text>
-                </View>
-                <View style={styles.serviceIncludeItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.serviceIncludeText}>
-                    Monthly subscription membership package
-                  </Text>
-                </View>
-                <View style={styles.serviceIncludeItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.serviceIncludeText}>
-                    This service includes we wash and cut
-                  </Text>
-                </View>
-                <View style={styles.serviceIncludeItem}>
-                  <Text style={styles.bulletPoint}>•</Text>
-                  <Text style={styles.serviceIncludeText}>
-                    Monthly subscription membership package
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </View>
-        )}
-
         {/* Summary */}
-        <View style={styles.section}>
+        
           <View style={styles.summaryCard}>
             <Text style={styles.summaryTitle}>Summary (you'll pay)</Text>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Subtotal:</Text>
-              <Text style={styles.summaryValue}>${totalPrice.toFixed(2)} USD</Text>
+              <Text style={styles.summaryValue}>
+                ${totalPrice.toFixed(2)} USD
+              </Text>
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Total Tax:</Text>
@@ -596,11 +614,12 @@ export default function BookingDetail() {
               </Text>
             </View>
           </View>
-        </View>
+       
 
         {/* Salon Address */}
         <View style={styles.section}>
           <View style={styles.salonCard}>
+            <Text style={styles.salonLabel}>Salon address:</Text>
             <Text style={styles.salonName}>{businessName}</Text>
             <Text style={styles.salonAddress}>{businessAddress}</Text>
           </View>
@@ -610,9 +629,8 @@ export default function BookingDetail() {
         {selectedStaffMember && (
           <View style={styles.section}>
             <View style={styles.staffCard}>
-              <Text style={styles.staffName}>
-                {selectedStaffMember.name}
-              </Text>
+              <Text style={styles.staffLabel}>Staff member:</Text>
+              <Text style={styles.staffName}>{selectedStaffMember.name}</Text>
               {selectedStaffMember.experience && (
                 <Text style={styles.staffExperience}>
                   {selectedStaffMember.experience} Years Of Experience
