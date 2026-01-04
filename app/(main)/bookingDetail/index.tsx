@@ -119,7 +119,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.borderLight,
     },
     scrollContent: {
-      paddingBottom: moderateHeightScale(20),
+      paddingBottom: moderateHeightScale(30),
     },
     section: {
       backgroundColor: theme.white,
@@ -339,38 +339,50 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
-    actionRow: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      marginTop: moderateHeightScale(20),
+    actionContainer: {
+      width: "100%",
+      backgroundColor: theme.lightGreen05,
+      paddingVertical: moderateHeightScale(16),
       paddingHorizontal: moderateWidthScale(20),
+      alignItems:"center",
+      justifyContent:"center"
+    },
+    actionSection: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      width: "70%",
     },
     actionButton: {
       flexDirection: "row",
       alignItems: "center",
-      gap: moderateWidthScale(8),
+      gap: moderateWidthScale(12),
     },
     actionText: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
+      color: theme.lightGreen,
+    },
+    policySection: {
+      backgroundColor: theme.white,
+      paddingVertical: moderateHeightScale(12),
     },
     policyRow: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(16),
+      paddingVertical: moderateHeightScale(12),
     },
     policyText: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     bottomButton: {
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(20),
-      paddingTop: moderateHeightScale(12),
+      paddingTop: moderateHeightScale(2),
     },
   });
 
@@ -448,7 +460,7 @@ export default function BookingDetail() {
 
   const handleViewBooking = () => {
     // Handle view booking functionality
-    router.back();
+    // router.back();
   };
 
   // Dummy business data (in real app, fetch from businessId)
@@ -618,42 +630,39 @@ export default function BookingDetail() {
           </View>
         )}
 
-        
-
         {/* Action Buttons */}
-        <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleShare}
-            activeOpacity={0.7}
-          >
-            <Feather
-              name="upload"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-            />
-            <Text style={styles.actionText}>Share</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleDownloadReceipt}
-            activeOpacity={0.7}
-          >
-            <Feather
-              name="download"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-            />
-            <Text style={styles.actionText}>Download receipt</Text>
-          </TouchableOpacity>
+        <View style={styles.actionContainer}>
+          <View style={styles.actionSection}>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleShare}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionText}>Share</Text>
+              <Feather
+                name="upload"
+                size={moderateWidthScale(14)}
+                color={theme.lightGreen}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.actionButton}
+              onPress={handleDownloadReceipt}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionText}>Download receipt</Text>
+              <Feather
+                name="download"
+                size={moderateWidthScale(15)}
+                color={theme.lightGreen}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Policies */}
-        <View style={styles.policyRow}>
-          <TouchableOpacity
-            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            activeOpacity={0.7}
-          >
+        <View style={styles.policySection}>
+          <TouchableOpacity style={styles.policyRow} activeOpacity={0.7}>
             <Text style={styles.policyText}>Booking cancel policy</Text>
             <Feather
               name="chevron-right"
@@ -661,12 +670,8 @@ export default function BookingDetail() {
               color={theme.darkGreen}
             />
           </TouchableOpacity>
-        </View>
-        <View style={styles.policyRow}>
-          <TouchableOpacity
-            style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            activeOpacity={0.7}
-          >
+          <View style={styles.line} />
+          <TouchableOpacity style={styles.policyRow} activeOpacity={0.7}>
             <Text style={styles.policyText}>Payment return policy</Text>
             <Feather
               name="chevron-right"

@@ -52,12 +52,7 @@ const userPersistConfig = {
   whitelist: ["id", "name", "email", "phone", "country_code", "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone", "isGuest", "location", "discover", "selectBsnsCategory"], // Only persist these fields (businessStatus excluded)
 };
 
-// ✅ Nested persist config for business slice - persist all business booking data
-const bsnsPersistConfig = {
-  key: "bsns",
-  storage: SecureStorageAdapter,
-  whitelist: ["selectedService", "allServices", "staffMembers", "businessId", "selectedServices", "selectedStaff"], // Persist all business data
-};
+ 
 
 // ✅ Persist the general reducer with field filtering
 const persistedGeneralReducer = persistReducer(generalPersistConfig, generalReducer);
@@ -65,15 +60,14 @@ const persistedGeneralReducer = persistReducer(generalPersistConfig, generalRedu
 // ✅ Persist the user reducer with field filtering
 const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
 
-// ✅ Persist the business reducer
-const persistedBsnsReducer = persistReducer(bsnsPersistConfig, bsnsReducer);
+ 
 
 // ✅ combine reducers
 const rootReducer = combineReducers({
   general: persistedGeneralReducer, // Already persisted with field filtering
   completeProfile: completeProfileReducer, // Not persisted
   user: persistedUserReducer, // Persisted with field filtering (id, name, token)
-  bsns: persistedBsnsReducer, // Persisted with all business data
+  
 });
 
 // ✅ No root-level persistence needed - general is already persisted with nested config
