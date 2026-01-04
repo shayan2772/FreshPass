@@ -58,8 +58,8 @@ const createStyles = (theme: Theme) =>
     },
     staffImage: {
       width: widthScale(50),
-      height: heightScale(50),
-      borderRadius: moderateWidthScale(25),
+      height: widthScale(50),
+      borderRadius: widthScale(50/2),
       backgroundColor: theme.emptyProfileImage,
       borderWidth: 1,
       borderColor: theme.borderLight,

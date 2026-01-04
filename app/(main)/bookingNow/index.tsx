@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
-import { useFocusEffect } from "expo-router";
 import {
   StyleSheet,
   View,
@@ -9,8 +8,9 @@ import {
   Image,
   StatusBar,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
-import { useTheme } from "@/src/hooks/hooks";
+import { useRouter } from "expo-router";
+import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
+import { setSelectedServices, setSelectedStaff } from "@/src/state/slices/bsnsSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -244,8 +244,8 @@ const createStyles = (theme: Theme) =>
     },
     staffImage: {
       width: widthScale(35),
-      height: heightScale(35),
-      borderRadius: moderateWidthScale(17.5),
+      height: widthScale(35),
+      borderRadius: widthScale(35/2),
       backgroundColor: theme.emptyProfileImage,
       borderWidth: 1,
       borderColor: theme.borderLight,
@@ -333,20 +333,37 @@ export default function BookingNow() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
   const router = useRouter();
-  const params = useLocalSearchParams<{
-    selectedService?: string;
-    selectedServices?: string;
-    selectedStaff?: string;
-    allServices?: string;
-    staffMembers?: string;
-    businessId?: string;
-  }>();
+  const dispatch = useAppDispatch();
+  
+  // Get data from Redux
+  const businessData = useAppSelector((state) => state.bsns);
+  const {
+    selectedService,
+    allServices,
+    staffMembers,
+    selectedServices: reduxSelectedServices,
+    selectedStaff: reduxSelectedStaff,
+  } = businessData;
 
-  const [selectedStaff, setSelectedStaff] = useState<string>("anyone");
-  const [allServices, setAllServices] = useState<Service[]>([]);
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
-  const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [selectedStaff, setSelectedStaffLocal] = useState<string>(reduxSelectedStaff || "anyone");
+  const [selectedServices, setSelectedServicesLocal] = useState<Service[]>(reduxSelectedServices || []);
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
+  
+  // Sync with Redux when it changes
+  useEffect(() => {
+    if (reduxSelectedServices.length > 0) {
+      setSelectedServicesLocal(reduxSelectedServices);
+    } else if (selectedService) {
+      // If no selectedServices but we have selectedService, use it
+      setSelectedServicesLocal([selectedService]);
+    }
+  }, [reduxSelectedServices, selectedService]);
+
+  useEffect(() => {
+    if (reduxSelectedStaff) {
+      setSelectedStaffLocal(reduxSelectedStaff);
+    }
+  }, [reduxSelectedStaff]);
   const staffList = [
     {
       id: "anyone",
@@ -366,72 +383,23 @@ export default function BookingNow() {
     0
   );
 
+  // Update Redux when local state changes
   useEffect(() => {
-    if (params.selectedService) {
-      try {
-        const service = JSON.parse(params.selectedService);
-        setSelectedServices([service]);
-      } catch (e) {
-        console.error("Error parsing selectedService:", e);
-      }
-    }
+    dispatch(setSelectedServices(selectedServices));
+  }, [selectedServices, dispatch]);
 
-    // Check for updated services from checkout screen
-    if (params.selectedServices) {
-      try {
-        const services = JSON.parse(params.selectedServices);
-        setSelectedServices(services);
-      } catch (e) {
-        console.error("Error parsing selectedServices:", e);
-      }
-    }
+  useEffect(() => {
+    dispatch(setSelectedStaff(selectedStaff));
+  }, [selectedStaff, dispatch]);
 
-    // Check for updated staff from checkout screen
-    if (params.selectedStaff) {
-      setSelectedStaff(params.selectedStaff);
-    }
-
-    if (params.allServices) {
-      try {
-        const services = JSON.parse(params.allServices);
-        setAllServices(services);
-      } catch (e) {
-        console.error("Error parsing allServices:", e);
-      }
-    }
-
-    if (params.staffMembers) {
-      try {
-        const staff = JSON.parse(params.staffMembers);
-        setStaffMembers(staff);
-      } catch (e) {
-        console.error("Error parsing staffMembers:", e);
-      }
-    }
-  }, [params.selectedService, params.selectedServices, params.selectedStaff, params.allServices, params.staffMembers]);
-
-  // Update services and staff when returning from checkout
-  useFocusEffect(
-    useCallback(() => {
-      if (params.selectedServices) {
-        try {
-          const services = JSON.parse(params.selectedServices);
-          setSelectedServices(services);
-        } catch (e) {
-          console.error("Error parsing selectedServices:", e);
-        }
-      }
-      if (params.selectedStaff) {
-        setSelectedStaff(params.selectedStaff);
-      }
-    }, [params.selectedServices, params.selectedStaff])
-  );
+ 
 
   const handleDeleteService = (serviceId: number) => {
-    setSelectedServices(
-      selectedServices.filter((service) => service.id !== serviceId)
+    const updatedServices = selectedServices.filter(
+      (service) => service.id !== serviceId
     );
-     
+    setSelectedServicesLocal(updatedServices);
+    dispatch(setSelectedServices(updatedServices));
   };
 
   const handleAddService = () => {
@@ -444,8 +412,9 @@ export default function BookingNow() {
 
   const handleUpdateSelectedServices = useCallback((services: Service[]) => {
     // Directly update with the service objects passed from bottom sheet
-    setSelectedServices(services);
-  }, []);
+    setSelectedServicesLocal(services);
+    dispatch(setSelectedServices(services));
+  }, [dispatch]);
 
   // Memoize selectedServiceIds to prevent infinite loops
   const selectedServiceIds = useMemo(
@@ -557,7 +526,10 @@ export default function BookingNow() {
                     isAnyone && styles.staffCardAnyone,
                     !isAnyone && styles.shadow,
                   ]}
-                  onPress={() => setSelectedStaff(staff.id)}
+                  onPress={() => {
+                    setSelectedStaffLocal(staff.id);
+                    dispatch(setSelectedStaff(staff.id));
+                  }}
                 >
                   <>
                     {!isAnyone && (
@@ -632,15 +604,9 @@ export default function BookingNow() {
               );
               return;
             }
+            // Data is already in Redux, just navigate
             router.push({
               pathname: "/(main)/bookingNow/checkout",
-              params: {
-                selectedServices: JSON.stringify(selectedServices),
-                selectedStaff: selectedStaff,
-                businessId: params.businessId || "",
-                allServices: params.allServices || "",
-                staffMembers: params.staffMembers || "",
-              },
             });
           }}
         />
@@ -657,3 +623,4 @@ export default function BookingNow() {
     </SafeAreaView>
   );
 }
+

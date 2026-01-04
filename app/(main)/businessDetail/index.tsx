@@ -16,8 +16,9 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
+import { setBusinessData } from "@/src/state/slices/bsnsSlice";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   heightScale,
@@ -1058,6 +1059,7 @@ export default function BusinessDetailScreen() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const params = useLocalSearchParams<{ business_id?: string }>();
   const [activeTab, setActiveTab] = useState<
     "Details" | "Service" | "Ratings" | "Staff"
@@ -1959,14 +1961,18 @@ export default function BusinessDetailScreen() {
                     <TouchableOpacity 
                       style={styles.bookNowButton}
                       onPress={() => {
+                        // Set business data in Redux
+                        dispatch(
+                          setBusinessData({
+                            selectedService: service,
+                            allServices: individualServices,
+                            staffMembers: staffMembers,
+                            businessId: params.business_id || "",
+                          })
+                        );
+                        // Navigate to bookingNow without params
                         router.push({
                           pathname: "/(main)/bookingNow",
-                          params: {
-                            selectedService: JSON.stringify(service),
-                            allServices: JSON.stringify(individualServices),
-                            staffMembers: JSON.stringify(staffMembers),
-                            businessId: params.business_id || "",
-                          },
                         });
                       }}
                     >
