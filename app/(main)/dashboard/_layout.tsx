@@ -68,9 +68,9 @@ export default function DashboardLayout() {
   const user = useAppSelector((state) => state.user);
   const segments = useSegments() as string[];
   const unreadCount = user.unreadCount;
-  const accessToken = user.accessToken;
   const isGuest = user.isGuest;
   const userRole = user.userRole;
+  const isCustomer = isGuest || userRole === "customer";
 
   const isUserReviewsScreen =
     Array.isArray(segments) &&
@@ -151,7 +151,7 @@ export default function DashboardLayout() {
       }}
     >
       <Tabs.Screen
-        name= "(home)"
+        name="(home)"
         options={{
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
@@ -168,32 +168,11 @@ export default function DashboardLayout() {
           ),
         }}
       />
-   
+
       <Tabs.Screen
         name="(calendar)"
         options={{
-          title: "Calendar",
-          href: isGuest ? null : undefined,
-          tabBarIcon: ({ color, size, focused }) => (
-            <View
-              style={[styles.iconContainer, focused && styles.iconBackground]}
-            >
-              <CalendarIcon
-                width={size}
-                height={size}
-                color={color}
-                focused={focused}
-              />
-            </View>
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="(booking)"
-        options={{
-          title: "Booking",
-          href: isGuest ? undefined : null,
+          title: isCustomer ? "Booking" : "Calendar",
           tabBarIcon: ({ color, size, focused }) => (
             <View
               style={[styles.iconContainer, focused && styles.iconBackground]}

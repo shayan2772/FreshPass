@@ -16,7 +16,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function CalendarScreen() {
+export default function BookingScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);

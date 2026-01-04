@@ -1,10 +1,4 @@
-import React, {
-  useMemo,
-  useCallback,
-  useState,
-  useRef,
-  memo,
-} from "react";
+import React, { useMemo, useCallback, useState, useRef, memo } from "react";
 import {
   StyleSheet,
   Text,
@@ -35,7 +29,6 @@ import { checkInternetConnection } from "@/src/services/api";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import BusinessPlansModal from "@/src/components/businessPlansModal";
 
- 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
     headerContainer: {
@@ -97,6 +90,8 @@ function DashboardHeader({
   const { showBanner } = useNotificationContext();
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const userRole = useAppSelector((state) => state.user.userRole);
+  const isGuest = useAppSelector((state) => state.user.isGuest);
+  const isCustomer = isGuest || userRole === "customer";
   const isOnline = businessStatus?.active ?? false;
   const insets = useSafeAreaInsets();
 
@@ -106,8 +101,6 @@ function DashboardHeader({
   const toggleLoading = useAppSelector((state) => state.general.toggleLoading);
   const bannerAnimation = useRef(new Animated.Value(0)).current;
 
-  
- 
   const handleStripeOnboardingPress = async () => {
     // First check internet connection
     const hasInternet = await checkInternetConnection();
@@ -280,57 +273,62 @@ function DashboardHeader({
             />
             <Text style={styles.logoText}>FRESHPASS</Text>
           </View>
-          <View style={styles.toggleContainer}>
-            <CustomToggleInside
-              value={isOnline}
-              onValueChange={handleToggleChange}
-              loading={toggleLoading}
-            />
-          </View>
+          {isCustomer ? (
+            <View style={{ width: 16, height: moderateHeightScale(38) }} />
+          ) : (
+            <View style={styles.toggleContainer}>
+              <CustomToggleInside
+                value={isOnline}
+                onValueChange={handleToggleChange}
+                loading={toggleLoading}
+              />
+            </View>
+          )}
         </View>
       </View>
       <View style={styles.line} />
+
       {userRole === "business" &&
         (showStripeBanner || showBusinessSubscriptipn) && (
-        <TouchableOpacity
-          onPress={
-            showStripeBanner
-              ? handleStripeOnboardingPress
-              : handleBusinessSubscriptionPress
-          }
-          activeOpacity={0.8}
-          disabled={isFetchingStripeLink}
-        >
-          <Animated.View
-            style={[
-              styles.stripeBanner,
-              {
-                transform: [{ translateX: bannerAnimation }],
-              },
-            ]}
+          <TouchableOpacity
+            onPress={
+              showStripeBanner
+                ? handleStripeOnboardingPress
+                : handleBusinessSubscriptionPress
+            }
+            activeOpacity={0.8}
+            disabled={isFetchingStripeLink}
           >
-            {isFetchingStripeLink ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: moderateWidthScale(8),
-                }}
-              >
-                <ActivityIndicator size="small" color={theme.white} />
-                <Text style={styles.stripeBannerText}>Loading...</Text>
-              </View>
-            ) : (
-              <Text style={styles.stripeBannerText}>
-                {showStripeBanner
-                  ? "Please complete your business stripe connect onboarding"
-                  : "Please buy business plan"}
-              </Text>
-            )}
-          </Animated.View>
-        </TouchableOpacity>
-      )}
+            <Animated.View
+              style={[
+                styles.stripeBanner,
+                {
+                  transform: [{ translateX: bannerAnimation }],
+                },
+              ]}
+            >
+              {isFetchingStripeLink ? (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: moderateWidthScale(8),
+                  }}
+                >
+                  <ActivityIndicator size="small" color={theme.white} />
+                  <Text style={styles.stripeBannerText}>Loading...</Text>
+                </View>
+              ) : (
+                <Text style={styles.stripeBannerText}>
+                  {showStripeBanner
+                    ? "Please complete your business stripe connect onboarding"
+                    : "Please buy business plan"}
+                </Text>
+              )}
+            </Animated.View>
+          </TouchableOpacity>
+        )}
 
       <BusinessPlansModal
         visible={businessPlansModalVisible}
