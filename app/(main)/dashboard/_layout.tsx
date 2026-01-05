@@ -126,6 +126,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(home)") &&
     segments.includes("businessDetail");
+  const isSubscriptionScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("subscription");
 
   return (
     <Tabs
@@ -154,7 +158,8 @@ export default function DashboardLayout() {
             isWorkHistoryScreen ||
             isStaffAvailabilityScreen ||
             isBusinessListScreen ||
-            isBusinessDetailScreen) && { display: "none" },
+            isBusinessDetailScreen ||
+            isSubscriptionScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,

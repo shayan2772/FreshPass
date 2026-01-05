@@ -50,6 +50,13 @@ export const businessEndpoints = {
   subscriptionPlans: (planType: string = "business", status: string = "active", sort: string = "price", direction: string = "asc") => 
     `/api/subscription-plans?plan_type=${planType}&status=${status}&sort=${sort}&direction=${direction}`,
   subscribe: (planId: number) => `/api/subscription-plans/${planId}/subscribe`,
+  subscriptions: (status?: string) => {
+    if (status) {
+      return `/api/subscriptions?status=${status}`;
+    }
+    return `/api/subscriptions`;
+  },
+  cancelTrial: (subscriptionId: number) => `/api/subscriptions/${subscriptionId}/cancel-trial`,
 };
 
 /**

@@ -192,6 +192,8 @@ export default function AccountScreen() {
           params: { business_id: user.id }, // Dummy business ID
         } as any);
       }
+    } else if (key === "subscriptions") {
+      router.push("./subscription");
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -211,6 +213,7 @@ export default function AccountScreen() {
       | "notifications"
       | "rules"
       | "reviews"
+      | "subscriptions"
       | "logout"
       | "delete";
     title: string;
@@ -242,6 +245,7 @@ export default function AccountScreen() {
       title: "Language",
       subtitle: `Current language (${getLanguageName(currentLanguage)})`,
     },
+    ...( userRole === "business" ? [{ key: "subscriptions" as const, title: "Subscription" }] : []),
     {
       key: "notifications",
       title: "Notification settings",
