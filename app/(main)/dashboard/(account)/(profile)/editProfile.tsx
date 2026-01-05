@@ -17,7 +17,7 @@ import {
   Pressable,
   Dimensions,
 } from "react-native";
-import { AntDesign, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign, MaterialIcons, Feather } from "@expo/vector-icons";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { ApiService } from "@/src/services/api";
@@ -34,6 +34,7 @@ import StackHeader from "@/src/components/StackHeader";
 import FloatingInput from "@/src/components/floatingInput";
 import Button from "@/src/components/button";
 import ImagePickerModal from "@/src/components/imagePickerModal";
+import DatePickerDropdown from "@/src/components/DatePickerDropdown";
 import {
   validateDescription,
   validateEmail,
@@ -253,6 +254,62 @@ const createStyles = (theme: Theme) =>
       right: moderateWidthScale(12),
       zIndex: 1,
     },
+    dateOfBirthContainer: {
+      gap: moderateHeightScale(5),
+      marginBottom: moderateHeightScale(20),
+    },
+    dateOfBirthLabelContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    dateOfBirthLabel: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    clearDateText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.lightGreen,
+    },
+    dateOfBirthFields: {
+      flexDirection: "row",
+      gap: moderateWidthScale(12),
+    },
+    dateField: {
+      flex: 1,
+      borderRadius: moderateWidthScale(12),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      backgroundColor: theme.white,
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(14),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    dateFieldContent: {
+      flex: 1,
+      gap: moderateHeightScale(2),
+    },
+    dateFieldText: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    dateFieldPlaceholder: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen2,
+    },
+    dateFieldLabel: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
   });
 
 const FALLBACK_PHONE_PLACEHOLDERS: Record<string, string> = {
@@ -374,6 +431,68 @@ const getCountryIsoFromDialCode = (dialCode: string): string => {
   return dialCodeMap[dialCode] || "US";
 };
 
+// Date, Month, Year options
+const DAYS = Array.from({ length: 31 }, (_, i) => (i + 1).toString());
+const MONTHS = [
+  { value: "Jan", label: "Jan" },
+  { value: "Feb", label: "Feb" },
+  { value: "Mar", label: "Mar" },
+  { value: "Apr", label: "Apr" },
+  { value: "May", label: "May" },
+  { value: "Jun", label: "Jun" },
+  { value: "Jul", label: "Jul" },
+  { value: "Aug", label: "Aug" },
+  { value: "Sep", label: "Sep" },
+  { value: "Oct", label: "Oct" },
+  { value: "Nov", label: "Nov" },
+  { value: "Dec", label: "Dec" },
+];
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 100 }, (_, i) =>
+  (CURRENT_YEAR - i).toString()
+);
+
+// Helper function to parse date of birth from API format (YYYY-MM-DD) to our format
+const parseDateOfBirth = (
+  dateString: string | null | undefined
+): { date: string; month: string; year: string } | null => {
+  if (!dateString) return null;
+
+  try {
+    const parts = dateString.split("-");
+    if (parts.length === 3) {
+      const year = parts[0];
+      const monthNumber = parseInt(parts[1], 10);
+      const date = parts[2];
+
+      const monthMap: Record<number, string> = {
+        1: "Jan",
+        2: "Feb",
+        3: "Mar",
+        4: "Apr",
+        5: "May",
+        6: "Jun",
+        7: "Jul",
+        8: "Aug",
+        9: "Sep",
+        10: "Oct",
+        11: "Nov",
+        12: "Dec",
+      };
+
+      return {
+        date: date.replace(/^0+/, "") || date, // Remove leading zeros
+        month: monthMap[monthNumber] || "",
+        year: year,
+      };
+    }
+  } catch (error) {
+    console.error("Error parsing date of birth:", error);
+  }
+
+  return null;
+};
+
 export default function EditProfileScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -419,6 +538,20 @@ export default function EditProfileScreen() {
   const [selection, setSelection] = useState({ start: 0, end: 0 });
   const previousDigitCountRef = useRef(0);
   const isSettingCursorRef = useRef(false);
+
+  // Date of birth state
+  const initialDateOfBirth = user.dateOfBirth || null;
+  const [dateOfBirth, setDateOfBirth] = useState<{
+    date: string;
+    month: string;
+    year: string;
+  } | null>(initialDateOfBirth);
+  const [dateDropdownVisible, setDateDropdownVisible] = useState<
+    "date" | "month" | "year" | null
+  >(null);
+  const dateFieldRef = useRef<View>(null);
+  const monthFieldRef = useRef<View>(null);
+  const yearFieldRef = useRef<View>(null);
 
   // Validate phone number on mount if it exists
   useEffect(() => {
@@ -473,6 +606,13 @@ export default function EditProfileScreen() {
       setAboutYourselfError(null);
     }
   }, [aboutYourself, user.userRole]);
+
+  // Date of birth validation: if any field is selected, all must be selected
+  const hasDate = dateOfBirth?.date && dateOfBirth.date.trim().length > 0;
+  const hasMonth = dateOfBirth?.month && dateOfBirth.month.trim().length > 0;
+  const hasYear = dateOfBirth?.year && dateOfBirth.year.trim().length > 0;
+  const isDateOfBirthPartial =
+    (hasDate || hasMonth || hasYear) && !(hasDate && hasMonth && hasYear);
 
   // Initialize phone placeholder when country changes
   useEffect(() => {
@@ -638,6 +778,25 @@ export default function EditProfileScreen() {
     setSelection(newSelection);
   }, []);
 
+  const handleDateSelect = useCallback(
+    (type: "date" | "month" | "year", value: string) => {
+      const current = dateOfBirth || { date: "", month: "", year: "" };
+      const updated = { ...current };
+
+      if (type === "date") {
+        updated.date = value;
+      } else if (type === "month") {
+        updated.month = value;
+      } else {
+        updated.year = value;
+      }
+
+      setDateOfBirth(updated);
+      setDateDropdownVisible(null);
+    },
+    [dateOfBirth]
+  );
+
   const pickerStyles = useMemo<CountryPickerStyle>(
     () => ({
       modal: {
@@ -713,6 +872,7 @@ export default function EditProfileScreen() {
   // Button should be disabled if:
   // - fullName is empty or invalid
   // - phone is invalid (but phone is optional, so empty is OK)
+  // - date of birth is partial (for customer users)
   const isFormValid = useMemo(() => {
     const fullNameValidation = validateName(fullName, "Your full name");
 
@@ -732,8 +892,18 @@ export default function EditProfileScreen() {
     // Phone is optional, but if provided, it must be valid (non-staff users)
     const isPhoneValid = phoneNumber.length === 0 || phoneIsValid;
 
-    return isFullNameValid && isPhoneValid;
-  }, [aboutYourself, fullName, phoneIsValid, phoneNumber, user.userRole]);
+    // Date of birth is optional, but if any field is filled, all must be filled (customer users)
+    const isDateOfBirthValid = !isDateOfBirthPartial;
+
+    return isFullNameValid && isPhoneValid && isDateOfBirthValid;
+  }, [
+    aboutYourself,
+    fullName,
+    phoneIsValid,
+    phoneNumber,
+    user.userRole,
+    isDateOfBirthPartial,
+  ]);
 
   const handleUpdateProfile = async () => {
     // Validate all fields before submitting
@@ -753,6 +923,11 @@ export default function EditProfileScreen() {
         return;
       }
     } else {
+      // Validate date of birth: if any field is filled, all must be filled
+      if (isDateOfBirthPartial) {
+        return;
+      }
+
       if (
         !fullNameValidation.isValid ||
         !(phoneNumber.length === 0 || phoneIsValid)
@@ -788,6 +963,33 @@ export default function EditProfileScreen() {
           // If phone is empty, send empty string to clear it
           formData.append("phone", "");
           formData.append("country_code", countryCode);
+        }
+
+        // Add date of birth for customer users
+        const monthMap: Record<string, string> = {
+          Jan: "01",
+          Feb: "02",
+          Mar: "03",
+          Apr: "04",
+          May: "05",
+          Jun: "06",
+          Jul: "07",
+          Aug: "08",
+          Sep: "09",
+          Oct: "10",
+          Nov: "11",
+          Dec: "12",
+        };
+
+        if (dateOfBirth?.date && dateOfBirth?.month && dateOfBirth?.year) {
+          const monthNumber = monthMap[dateOfBirth.month] || dateOfBirth.month;
+          const formattedDate = `${
+            dateOfBirth.year
+          }-${monthNumber}-${dateOfBirth.date.padStart(2, "0")}`;
+          formData.append("date_of_birth", formattedDate);
+        } else {
+          // If date of birth is empty, send empty string to clear it
+          formData.append("date_of_birth", "");
         }
       }
 
@@ -852,6 +1054,7 @@ export default function EditProfileScreen() {
           country_code?: string | null;
           profile_image_url?: string | null;
           description?: string | null;
+          date_of_birth?: string | null;
           user?: {
             profile_image_url?: string | null;
           };
@@ -862,6 +1065,18 @@ export default function EditProfileScreen() {
         console.log("response.data :", response.data);
         // Update Redux state with new user data (for user endpoint responses)
         if (response.data) {
+          // Parse date_of_birth from API response if it exists
+          let parsedDateOfBirth = null;
+          if (response.data.date_of_birth) {
+            parsedDateOfBirth = parseDateOfBirth(response.data.date_of_birth);
+          } else if (user.userRole !== "staff" && !dateOfBirth) {
+            // If date_of_birth is not in response and we cleared it, set to null
+            parsedDateOfBirth = null;
+          } else if (user.userRole !== "staff") {
+            // Keep existing date of birth if not in response
+            parsedDateOfBirth = dateOfBirth;
+          }
+
           dispatch(
             setUserDetails({
               name: response.data.name,
@@ -872,6 +1087,7 @@ export default function EditProfileScreen() {
                   ? response?.data?.user?.profile_image_url
                   : response.data.profile_image_url,
               description: response.data.description ?? "",
+              dateOfBirth: parsedDateOfBirth,
             })
           );
         }
@@ -951,23 +1167,6 @@ export default function EditProfileScreen() {
 
         <View style={styles.inputContainer}>
           <FloatingInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            placeholder="Email"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onClear={handleClearEmail}
-            editable={false}
-            showClearButton={false}
-            containerStyle={styles.disabledInputContainer}
-          />
-          {emailError && <Text style={styles.errorText}>{emailError}</Text>}
-        </View>
-
-        <View style={styles.inputContainer}>
-          <FloatingInput
             label="Your full name"
             value={fullName}
             onChangeText={setFullName}
@@ -1007,72 +1206,186 @@ export default function EditProfileScreen() {
         )}
 
         {user?.userRole !== "staff" && (
-          <View style={styles.phoneField}>
-            <View style={styles.phoneFieldContainer}>
-              <Text style={styles.inputLabel}>Phone number</Text>
-              <View style={styles.phoneInputContainer}>
-                <Pressable
-                  onPress={() => setPickerVisible(true)}
-                  style={styles.countrySelector}
-                  hitSlop={moderateWidthScale(10)}
-                >
-                  <Text style={styles.countryCodeText}>{countryCode}</Text>
-                  <AntDesign
-                    name="caret-down"
-                    size={moderateWidthScale(12)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-                <View style={styles.segmentWrapper}>
-                  <TextInput
-                    ref={phoneInputRef}
-                    style={styles.hiddenInput}
-                    value={formattedPhoneValue}
-                    onChangeText={handlePhoneChange}
-                    onSelectionChange={handleSelectionChange}
-                    selection={selection}
-                    keyboardType="phone-pad"
-                    returnKeyType="done"
-                    maxLength={phonePlaceholder.length}
-                    showSoftInputOnFocus={true}
-                    caretHidden={false}
-                  />
-                  <View style={styles.segInputWrapper} pointerEvents="none">
-                    {segmentNodes}
+          <>
+            <View style={styles.phoneField}>
+              <View style={styles.phoneFieldContainer}>
+                <Text style={styles.inputLabel}>Phone number</Text>
+                <View style={styles.phoneInputContainer}>
+                  <Pressable
+                    onPress={() => setPickerVisible(true)}
+                    style={styles.countrySelector}
+                    hitSlop={moderateWidthScale(10)}
+                  >
+                    <Text style={styles.countryCodeText}>{countryCode}</Text>
+                    <AntDesign
+                      name="caret-down"
+                      size={moderateWidthScale(12)}
+                      color={theme.darkGreen}
+                    />
+                  </Pressable>
+                  <View style={styles.segmentWrapper}>
+                    <TextInput
+                      ref={phoneInputRef}
+                      style={styles.hiddenInput}
+                      value={formattedPhoneValue}
+                      onChangeText={handlePhoneChange}
+                      onSelectionChange={handleSelectionChange}
+                      selection={selection}
+                      keyboardType="phone-pad"
+                      returnKeyType="done"
+                      maxLength={phonePlaceholder.length}
+                      showSoftInputOnFocus={true}
+                      caretHidden={false}
+                    />
+                    <View style={styles.segInputWrapper} pointerEvents="none">
+                      {segmentNodes}
+                    </View>
                   </View>
+                  {!!phoneNumber && (
+                    <Pressable
+                      onPress={() => {
+                        previousDigitCountRef.current = 0;
+                        setPhoneNumber("");
+                        setPhoneIsValid(false);
+                      }}
+                      hitSlop={moderateWidthScale(10)}
+                    >
+                      <CloseIcon color={theme.darkGreen} />
+                    </Pressable>
+                  )}
                 </View>
-                {!!phoneNumber && (
+              </View>
+              {isPhoneInvalid && (
+                <Text style={styles.errorText}>Enter a valid phone number</Text>
+              )}
+              <CountryPicker
+                show={pickerVisible}
+                pickerButtonOnPress={handleCountrySelect}
+                onBackdropPress={() => setPickerVisible(false)}
+                onRequestClose={() => setPickerVisible(false)}
+                inputPlaceholder="Search country"
+                inputPlaceholderTextColor={theme.lightGreen2}
+                searchMessage="No country found"
+                style={pickerStyles}
+                popularCountries={["US", "NG", "GB", "CA", "PK", "IN"]}
+                enableModalAvoiding
+                lang="en"
+              />
+            </View>
+
+            <View style={styles.dateOfBirthContainer}>
+              <View style={styles.dateOfBirthLabelContainer}>
+                <Text style={styles.dateOfBirthLabel}>Date of birth</Text>
+                {(hasDate || hasMonth || hasYear) && (
                   <Pressable
                     onPress={() => {
-                      previousDigitCountRef.current = 0;
-                      setPhoneNumber("");
-                      setPhoneIsValid(false);
+                      setDateOfBirth({ date: "", month: "", year: "" });
                     }}
                     hitSlop={moderateWidthScale(10)}
                   >
-                    <CloseIcon color={theme.darkGreen} />
+                    <Text style={styles.clearDateText}>Clear</Text>
                   </Pressable>
                 )}
               </View>
+              <View style={styles.dateOfBirthFields}>
+                <Pressable
+                  ref={dateFieldRef}
+                  style={styles.dateField}
+                  onPress={() => setDateDropdownVisible("date")}
+                >
+                  <View style={styles.dateFieldContent}>
+                    <Text style={styles.dateFieldLabel}>Date</Text>
+                    <Text
+                      style={[
+                        dateOfBirth?.date
+                          ? styles.dateFieldText
+                          : styles.dateFieldPlaceholder,
+                      ]}
+                    >
+                      {dateOfBirth?.date || "16"}
+                    </Text>
+                  </View>
+                  <Feather
+                    name="chevron-down"
+                    size={moderateWidthScale(16)}
+                    color={theme.darkGreen}
+                  />
+                </Pressable>
+                <Pressable
+                  ref={monthFieldRef}
+                  style={styles.dateField}
+                  onPress={() => setDateDropdownVisible("month")}
+                >
+                  <View style={styles.dateFieldContent}>
+                    <Text style={styles.dateFieldLabel}>Month</Text>
+                    <Text
+                      style={[
+                        dateOfBirth?.month
+                          ? styles.dateFieldText
+                          : styles.dateFieldPlaceholder,
+                      ]}
+                    >
+                      {dateOfBirth?.month
+                        ? MONTHS.find((m) => m.value === dateOfBirth.month)
+                            ?.label || dateOfBirth.month
+                        : "Sep"}
+                    </Text>
+                  </View>
+                  <Feather
+                    name="chevron-down"
+                    size={moderateWidthScale(16)}
+                    color={theme.darkGreen}
+                  />
+                </Pressable>
+                <Pressable
+                  ref={yearFieldRef}
+                  style={styles.dateField}
+                  onPress={() => setDateDropdownVisible("year")}
+                >
+                  <View style={styles.dateFieldContent}>
+                    <Text style={styles.dateFieldLabel}>Year</Text>
+                    <Text
+                      style={[
+                        dateOfBirth?.year
+                          ? styles.dateFieldText
+                          : styles.dateFieldPlaceholder,
+                      ]}
+                    >
+                      {dateOfBirth?.year || "1992"}
+                    </Text>
+                  </View>
+                  <Feather
+                    name="chevron-down"
+                    size={moderateWidthScale(16)}
+                    color={theme.darkGreen}
+                  />
+                </Pressable>
+              </View>
+              {isDateOfBirthPartial && (
+                <Text style={styles.errorText}>
+                  Please complete all date fields or leave them empty
+                </Text>
+              )}
             </View>
-            {isPhoneInvalid && (
-              <Text style={styles.errorText}>Enter a valid phone number</Text>
-            )}
-            <CountryPicker
-              show={pickerVisible}
-              pickerButtonOnPress={handleCountrySelect}
-              onBackdropPress={() => setPickerVisible(false)}
-              onRequestClose={() => setPickerVisible(false)}
-              inputPlaceholder="Search country"
-              inputPlaceholderTextColor={theme.lightGreen2}
-              searchMessage="No country found"
-              style={pickerStyles}
-              popularCountries={["US", "NG", "GB", "CA", "PK", "IN"]}
-              enableModalAvoiding
-              lang="en"
-            />
-          </View>
+          </>
         )}
+
+        <View style={styles.inputContainer}>
+          <FloatingInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            placeholder="Email"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+            onClear={handleClearEmail}
+            editable={false}
+            showClearButton={false}
+            containerStyle={styles.disabledInputContainer}
+          />
+          {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+        </View>
       </ScrollView>
 
       <View style={styles.updateButtonContainer}>
@@ -1088,6 +1401,40 @@ export default function EditProfileScreen() {
         onClose={() => setShowImagePickerModal(false)}
         onImageSelected={setProfileImageUri}
       />
+
+      {user?.userRole !== "staff" && (
+        <>
+          <DatePickerDropdown
+            visible={dateDropdownVisible === "date"}
+            options={DAYS}
+            selectedValue={dateOfBirth?.date}
+            onSelect={(value) => handleDateSelect("date", value)}
+            onClose={() => setDateDropdownVisible(null)}
+            buttonRef={dateFieldRef}
+          />
+
+          <DatePickerDropdown
+            visible={dateDropdownVisible === "month"}
+            options={MONTHS.map((m) => m.value)}
+            selectedValue={dateOfBirth?.month}
+            onSelect={(value) => handleDateSelect("month", value)}
+            onClose={() => setDateDropdownVisible(null)}
+            buttonRef={monthFieldRef}
+            displayValue={(value) =>
+              MONTHS.find((m) => m.value === value)?.label || value
+            }
+          />
+
+          <DatePickerDropdown
+            visible={dateDropdownVisible === "year"}
+            options={YEARS}
+            selectedValue={dateOfBirth?.year}
+            onSelect={(value) => handleDateSelect("year", value)}
+            onClose={() => setDateDropdownVisible(null)}
+            buttonRef={yearFieldRef}
+          />
+        </>
+      )}
     </SafeAreaView>
   );
 }
