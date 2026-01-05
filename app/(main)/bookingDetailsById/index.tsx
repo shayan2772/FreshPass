@@ -22,7 +22,7 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import { SvgXml } from "react-native-svg";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import Button from "@/src/components/button";
-import { PersonIcon, MapPinIcon } from "@/assets/icons";
+import { PersonIcon, MapPinIcon, CalendarIcon } from "@/assets/icons";
 
 // Back Arrow Icon SVG
 const backArrowIconSvg = `
@@ -92,7 +92,7 @@ const createStyles = (theme: Theme) =>
       alignSelf: "center",
     },
     scrollContent: {
-      paddingHorizontal: moderateWidthScale(20),
+     
       paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(30),
     },
@@ -103,6 +103,7 @@ const createStyles = (theme: Theme) =>
     },
     bookingSection: {
       marginBottom: moderateHeightScale(24),
+     
     },
     statusBadge: {
       alignSelf: "flex-start",
@@ -110,6 +111,7 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(6),
       borderRadius: moderateWidthScale(6),
       marginBottom: moderateHeightScale(12),
+      marginHorizontal: moderateWidthScale(20),
     },
     statusOngoing: {
       backgroundColor: theme.orangeBrown015,
@@ -140,20 +142,33 @@ const createStyles = (theme: Theme) =>
       color: "#D32F2F",
     },
     serviceName: {
-      fontSize: fontSize.size20,
+      fontSize: fontSize.size18,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    detailsRowContainer: {
+      marginTop: moderateHeightScale(16),
+     
+     
+    },
+    detailsRowTopLine: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
+      marginBottom: moderateHeightScale(16),
     },
     detailsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: moderateHeightScale(16),
+     paddingHorizontal: moderateWidthScale(20),
     },
     detailColumn: {
       flex: 1,
-      alignItems: "center",
+      flexDirection: "row",
+      alignItems:"center",
       position: "relative",
+      paddingHorizontal: moderateWidthScale(8),
     },
     detailColumnSeparator: {
       position: "absolute",
@@ -163,11 +178,15 @@ const createStyles = (theme: Theme) =>
       width: 1,
       backgroundColor: theme.borderLight,
     },
-    detailIcon: {
-      marginBottom: moderateHeightScale(8),
+    detailIconContainer: {
+      marginRight: moderateWidthScale(8),
+      marginTop: moderateHeightScale(2),
+    },
+    detailTextContainer: {
+      flex: 1,
     },
     detailLabel: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
@@ -175,40 +194,65 @@ const createStyles = (theme: Theme) =>
     detailValue: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.darkGreen,
-      textAlign: "center",
+      color: theme.lightGreen,
+    },
+    detailsRowBottomLine: {
+      width: "100%",
+      height: 1,
+      backgroundColor: theme.borderLight,
+      marginTop: moderateHeightScale(16),
     },
     businessCard: {
       marginBottom: moderateHeightScale(24),
       flexDirection: "row",
       alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
     },
     businessImageContainer: {
-      position: "relative",
       marginRight: moderateWidthScale(12),
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
     },
     businessImage: {
       width: widthScale(60),
       height: heightScale(60),
       borderRadius: moderateWidthScale(30),
+      borderWidth:1,
+      borderColor:theme.borderLight,
+      overflow:"hidden",
+      backgroundColor:theme.lightGreen05,
     },
     ratingBadge: {
       position: "absolute",
       bottom: 0,
-      left: 0,
+      left: moderateWidthScale(10),
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: theme.orangeBrown,
+      justifyContent: "center",
+      backgroundColor: theme.white,
       borderRadius: moderateWidthScale(4),
       paddingHorizontal: moderateWidthScale(4),
       paddingVertical: moderateHeightScale(2),
+      minWidth: moderateWidthScale(40),
+    },
+    sahdow:{
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 1,
+      },
+      shadowOpacity: 0.20,
+      shadowRadius: 1.41,
+      
+      elevation: 2,
     },
     ratingStar: {
       marginRight: moderateWidthScale(2),
     },
     ratingText: {
       fontSize: fontSize.size10,
-      fontFamily: fonts.fontBold,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     businessInfo: {
@@ -445,40 +489,58 @@ export default function bookingDetailsById() {
           <Text style={styles.serviceName}>{booking.serviceName}</Text>
 
           {/* Details Row */}
-          <View style={styles.detailsRow}>
-            <View style={styles.detailColumn}>
-              <Ionicons
-                name="time-outline"
-                size={moderateWidthScale(24)}
-                color={theme.darkGreen}
-                style={styles.detailIcon}
-              />
-              <Text style={styles.detailLabel}>Duration</Text>
-              <Text style={styles.detailValue}>{booking.duration}</Text>
-              <View style={styles.detailColumnSeparator} />
+          <View style={styles.detailsRowContainer}>
+            <View style={styles.detailsRowTopLine} />
+            <View style={styles.detailsRow}>
+              <View style={styles.detailColumn}>
+                <View style={styles.detailIconContainer}>
+                  <Ionicons
+                    name="time-outline"
+                    size={moderateWidthScale(17)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+                <View style={styles.detailTextContainer}>
+                  <Text style={styles.detailLabel}>Duration</Text>
+                  <Text style={styles.detailValue}>{booking.duration}</Text>
+                </View>
+                <View style={styles.detailColumnSeparator} />
+              </View>
+              <View style={styles.detailColumn}>
+                <View style={styles.detailIconContainer}>
+                  <CalendarIcon
+                    width={moderateWidthScale(17)}
+                    height={moderateWidthScale(17)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+                <View style={styles.detailTextContainer}>
+                  <Text style={styles.detailLabel}>Date</Text>
+                  <Text style={styles.detailValue}>
+                    {date}
+                    {time ? ` -` : ""}
+                  </Text>
+                  {time && <Text style={styles.detailValue}>{time}</Text>}
+                </View>
+                <View style={styles.detailColumnSeparator} />
+              </View>
+              <View style={[styles.detailColumn, { borderRightWidth: 0 }]}>
+                <View style={styles.detailIconContainer}>
+                  <PersonIcon
+                    width={moderateWidthScale(17)}
+                    height={moderateWidthScale(17)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+                <View style={styles.detailTextContainer}>
+                  <Text style={styles.detailLabel}>My barber</Text>
+                  <Text style={styles.detailValue} numberOfLines={2}>
+                    {booking.staffName}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.detailColumn}>
-              <Ionicons
-                name="calendar-outline"
-                size={moderateWidthScale(24)}
-                color={theme.darkGreen}
-                style={styles.detailIcon}
-              />
-              <Text style={styles.detailLabel}>Date</Text>
-              <Text style={styles.detailValue}>{booking.dateTime}</Text>
-              <View style={styles.detailColumnSeparator} />
-            </View>
-            <View style={[styles.detailColumn, { borderRightWidth: 0 }]}>
-              <PersonIcon
-                width={moderateWidthScale(24)}
-                height={moderateWidthScale(24)}
-                color={theme.darkGreen}
-              />
-              <Text style={styles.detailLabel}>My barber</Text>
-              <Text style={styles.detailValue} numberOfLines={2}>
-                {booking.staffName}
-              </Text>
-            </View>
+            <View style={styles.detailsRowBottomLine} />
           </View>
         </View>
 
@@ -487,15 +549,15 @@ export default function bookingDetailsById() {
           <View style={styles.businessImageContainer}>
             <Image
               source={{
-                uri: "https://via.placeholder.com/60",
+                uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
               }}
               style={styles.businessImage}
             />
-            <View style={styles.ratingBadge}>
+            <View style={[styles.ratingBadge, styles.sahdow]}>
               <Ionicons
                 name="star"
                 size={moderateWidthScale(10)}
-                color={theme.darkGreen}
+                color={theme.selectCard}
                 style={styles.ratingStar}
               />
               <Text style={styles.ratingText}>4.9</Text>
@@ -519,6 +581,9 @@ export default function bookingDetailsById() {
             />
           </View>
         </View>
+
+        <View style={styles.line} />
+
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
@@ -555,6 +620,8 @@ export default function bookingDetailsById() {
             <Text style={styles.actionButtonText}>Support</Text>
           </TouchableOpacity>
         </View>
+
+        
 
         {/* Payment Information */}
         <View style={styles.paymentSection}>

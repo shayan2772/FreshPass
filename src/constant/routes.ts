@@ -14,6 +14,7 @@ export const ROUTES = {
     INTRODUCTION: "introduction",
     DASHBOARD: "dashboard",
     HOME: "(home)",
+    BOKING_DETAILS_BY_ID: "bookingDetailsById",
   },
 } as const;
 
