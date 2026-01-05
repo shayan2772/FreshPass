@@ -1167,32 +1167,6 @@ export const CheckRealTimeAvailabilityIcon: React.FC<CheckRealTimeAvailabilityIc
   return <SvgXml xml={svgXml} />;
 };
 
-// Location Pin Icon SVG
-const locationPinIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M10.0007 10.0003C9.08398 10.0003 8.33398 9.25033 8.33398 8.33366C8.33398 7.41699 9.08398 6.66699 10.0007 6.66699C10.9173 6.66699 11.6673 7.41699 11.6673 8.33366C11.6673 9.25033 10.9173 10.0003 10.0007 10.0003ZM15.0007 8.50033C15.0007 5.47533 12.7923 3.33366 10.0007 3.33366C7.20898 3.33366 5.00065 5.47533 5.00065 8.50033C5.00065 10.4503 6.62565 13.0337 10.0007 16.117C13.3757 13.0337 15.0007 10.4503 15.0007 8.50033ZM10.0007 1.66699C13.5007 1.66699 16.6673 4.35033 16.6673 8.50033C16.6673 11.267 14.4423 14.542 10.0007 18.3337C5.55898 14.542 3.33398 11.267 3.33398 8.50033C3.33398 4.35033 6.50065 1.66699 10.0007 1.66699Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-interface LocationPinIconProps {
-  width?: number;
-  height?: number;
-  color?: string;
-}
-
-export const LocationPinIcon: React.FC<LocationPinIconProps> = ({
-  width = 20,
-  height = 20,
-  color = "#283618",
-}) => {
-  const svgXml = locationPinIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-
-  return <SvgXml xml={svgXml} />;
-};
-
 // Chevron Down Icon SVG
 const chevronDownIconSvg = `
 <svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1473,6 +1447,32 @@ export const NightIcon: React.FC<NightIconProps> = ({
   const svgXml = nightIconSvg
     .replace(/{{WIDTH}}/g, width.toString())
     .replace(/{{HEIGHT}}/g, height.toString());
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Location Pin Icon SVG
+const locationPinIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 11 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.33333 6C6.22 6 8 6.44667 8 7.33333V7.44C7.35333 8.18667 6.4 8.66667 5.33333 8.66667C4.26667 8.66667 3.31333 8.18667 2.66667 7.44V7.33333C2.66667 6.44667 4.44667 6 5.33333 6ZM5.33333 5.33333C4.6 5.33333 4 4.73333 4 4C4 3.26667 4.6 2.66667 5.33333 2.66667C6.06667 2.66667 6.66667 3.26667 6.66667 4C6.66667 4.73333 6.06667 5.33333 5.33333 5.33333ZM9.33333 5.46667C9.33333 3.04667 7.56667 1.33333 5.33333 1.33333C3.1 1.33333 1.33333 3.04667 1.33333 5.46667C1.33333 7.02667 2.63333 9.09333 5.33333 11.56C8.03333 9.09333 9.33333 7.02667 9.33333 5.46667ZM5.33333 0C8.13333 0 10.6667 2.14667 10.6667 5.46667C10.6667 7.68 8.88667 10.3 5.33333 13.3333C1.78 10.3 0 7.68 0 5.46667C0 2.14667 2.53333 0 5.33333 0Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface LocationPinIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const LocationPinIcon: React.FC<LocationPinIconProps> = ({
+  width = 11,
+  height = 14,
+  color = "#283618",
+}) => {
+  const svgXml = locationPinIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
 
   return <SvgXml xml={svgXml} />;
 };

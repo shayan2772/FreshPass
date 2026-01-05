@@ -16,9 +16,9 @@ import {
   heightScale,
 } from "@/src/theme/dimensions";
 import DashboardHeader from "@/src/components/DashboardHeader";
-import { SubscriptionTicketIcon, PersonIcon } from "@/assets/icons";
+import { SubscriptionTicketIcon, PersonIcon, LocationPinIcon } from "@/assets/icons";
 import { useRouter } from "expo-router";
-import { Entypo } from "@expo/vector-icons";
+import { Entypo, Ionicons } from "@expo/vector-icons";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
@@ -223,8 +223,9 @@ const createStyles = (theme: Theme) =>
     },
     dateTimeRow: {
       flexDirection: "row",
-      alignItems: "baseline",
+      alignItems: "center",
       width: "90%",
+      gap: moderateWidthScale(4),
     },
     dateTimeText: {
       fontSize: fontSize.size11,
@@ -240,7 +241,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
     },
     statusOngoing: {
-      backgroundColor: "#FFF4E6",
+      backgroundColor: theme.orangeBrown30,
     },
     statusActive: {
       backgroundColor: "#E3F2FD",
@@ -284,6 +285,7 @@ export default function BookingScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const router = useRouter();
   const [selectedTab, setSelectedTab] = useState<TabType>("all");
   const [listType, setListType] = useState<ListType>("individual");
 
@@ -333,7 +335,19 @@ export default function BookingScreen() {
   };
 
   const renderBookingCard = ({ item }: { item: BookingItem }) => (
-    <TouchableOpacity activeOpacity={0.7} style={[styles.bookingCard, styles.shadow]}>
+    <TouchableOpacity
+      activeOpacity={0.7}
+      style={[styles.bookingCard, styles.shadow]}
+      onPress={() => {
+        router.push({
+          pathname: "/(main)/bookingDetailsById",
+          params: {
+            bookingId: item.id,
+            booking: JSON.stringify(item),
+          },
+        });
+      }}
+    >
       <View style={styles.cardLeftSection}>
         <Text numberOfLines={1} style={styles.serviceName}>
           {item.serviceName}
@@ -353,7 +367,11 @@ export default function BookingScreen() {
           )}
           {item.location && (
             <View style={styles.infoRow}>
-              <Text style={styles.infoText}>📍</Text>
+              <LocationPinIcon
+                width={moderateWidthScale(15)}
+                height={moderateWidthScale(15)}
+                color={theme.lightGreen}
+              />
               <Text numberOfLines={1} style={styles.infoText}>
                 {item.location}
               </Text>
@@ -372,7 +390,11 @@ export default function BookingScreen() {
         </View>
 
         <View style={styles.dateTimeRow}>
-          <Text style={styles.dateTimeText}>🕐</Text>
+          <Ionicons
+            name="time-outline"
+            size={moderateWidthScale(15)}
+            color={theme.lightGreen}
+          />
           <Text style={styles.dateTimeText}>
             {item.dateTime} • {item.duration}
           </Text>
