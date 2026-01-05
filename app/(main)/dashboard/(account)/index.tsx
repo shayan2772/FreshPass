@@ -90,6 +90,7 @@ export default function AccountScreen() {
   const isGuest = user.isGuest;
   const isCustomer = user.userRole === "customer";
   const currentLanguage = useAppSelector((state) => state.general.language);
+  const countryName = user.countryName;
 
   const getLanguageName = (code: string) => {
     const languages: { [key: string]: string } = {
@@ -178,6 +179,8 @@ export default function AccountScreen() {
       router.push("./notificationSettings");
     } else if (key === "language") {
       router.push("./languageChange");
+    } else if (key === "country") {
+      router.push("./countryChange");
     } else if (key === "business") {
       router.push("./(businessProfileSettings)");
     } else if (key === "availability") {
@@ -204,6 +207,7 @@ export default function AccountScreen() {
       | "business"
       | "availability"
       | "language"
+      |"country"
       | "notifications"
       | "rules"
       | "reviews"
@@ -215,13 +219,24 @@ export default function AccountScreen() {
 
   const rows: Row[] = [
     { key: "personal", title: "Personal information" },
-    ...((userRole === "business" || userRole === "staff") &&
+      ...((userRole === "business" || userRole === "staff") &&
     !isGuest &&
     !isCustomer
       ? userRole === "staff"
         ? [{ key: "availability" as const, title: "Set availability" }]
         : [{ key: "business" as const, title: "Business profile settings" }]
       : []),
+      ...(isCustomer
+        ? [
+            {
+              key: "country" as const,
+              title: "Country",
+              subtitle: countryName && countryName.trim().length > 0
+                ? countryName
+                : "Set country",
+            },
+          ]
+        : []),
     {
       key: "language",
       title: "Language",
@@ -232,12 +247,11 @@ export default function AccountScreen() {
       title: "Notification settings",
       subtitle: "Turned ON",
     },
-    ...((userRole === "business" || userRole === "staff") &&
-    !isGuest &&
-    !isCustomer
-      ? [{ key: "rules" as const, title: "Rules and terms" }]
-      : []),
     ...(isCustomer ? [{ key: "reviews" as const, title: "Reviews" }] : []),
+    {
+      key: "rules" as const,
+      title: "Rules and terms",
+    },
     { key: "logout", title: "Log out" },
     { key: "delete", title: "Delete account" },
   ];

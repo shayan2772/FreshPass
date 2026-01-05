@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import { setLanguage } from "@/src/state/slices/generalSlice";
 import { setupRTL } from "@/src/constant/functions";
 import * as Updates from "expo-updates";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -144,7 +145,7 @@ export default function LanguageChangeScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Language" />
       <ScrollView
         style={styles.content}
@@ -188,6 +189,6 @@ export default function LanguageChangeScreen() {
           })}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
