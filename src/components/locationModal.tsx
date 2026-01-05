@@ -13,8 +13,6 @@ import {
   TouchableOpacity,
   View,
   ActivityIndicator,
-  Platform,
-  Linking,
   Image,
 } from "react-native";
 import MapView, { Circle, Region } from "react-native-maps";
@@ -456,7 +454,7 @@ export default function LocationModal({
 
       setTimeout(() => {
         onClose();
-      }, 1500);
+      }, 500);
     }
   }, [tempLocation, dispatch, onClose]);
 
@@ -592,9 +590,9 @@ export default function LocationModal({
                 style={styles.currentLocControls}
               >
                 <Feather
-                  name="target"
+                  name="navigation"
                   size={moderateWidthScale(18)}
-                  color={theme.darkGreen}
+                  color={theme.selectCard}
                 />
               </TouchableOpacity>
             </View>
