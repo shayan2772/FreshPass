@@ -892,8 +892,9 @@ export default function EditProfileScreen() {
     // Phone is optional, but if provided, it must be valid (non-staff users)
     const isPhoneValid = phoneNumber.length === 0 || phoneIsValid;
 
-    // Date of birth is optional, but if any field is filled, all must be filled (customer users)
-    const isDateOfBirthValid = !isDateOfBirthPartial;
+    // Date of birth is optional, but if any field is filled, all must be filled (only for customer users)
+    const isDateOfBirthValid =
+      user.userRole === "customer" ? !isDateOfBirthPartial : true;
 
     return isFullNameValid && isPhoneValid && isDateOfBirthValid;
   }, [
@@ -923,8 +924,8 @@ export default function EditProfileScreen() {
         return;
       }
     } else {
-      // Validate date of birth: if any field is filled, all must be filled
-      if (isDateOfBirthPartial) {
+      // For customer users: Validate date of birth: if any field is filled, all must be filled
+      if (user.userRole === "customer" && isDateOfBirthPartial) {
         return;
       }
 
@@ -965,31 +966,33 @@ export default function EditProfileScreen() {
           formData.append("country_code", countryCode);
         }
 
-        // Add date of birth for customer users
-        const monthMap: Record<string, string> = {
-          Jan: "01",
-          Feb: "02",
-          Mar: "03",
-          Apr: "04",
-          May: "05",
-          Jun: "06",
-          Jul: "07",
-          Aug: "08",
-          Sep: "09",
-          Oct: "10",
-          Nov: "11",
-          Dec: "12",
-        };
+        // Add date of birth only for customer users
+        if (user.userRole === "customer") {
+          const monthMap: Record<string, string> = {
+            Jan: "01",
+            Feb: "02",
+            Mar: "03",
+            Apr: "04",
+            May: "05",
+            Jun: "06",
+            Jul: "07",
+            Aug: "08",
+            Sep: "09",
+            Oct: "10",
+            Nov: "11",
+            Dec: "12",
+          };
 
-        if (dateOfBirth?.date && dateOfBirth?.month && dateOfBirth?.year) {
-          const monthNumber = monthMap[dateOfBirth.month] || dateOfBirth.month;
-          const formattedDate = `${
-            dateOfBirth.year
-          }-${monthNumber}-${dateOfBirth.date.padStart(2, "0")}`;
-          formData.append("date_of_birth", formattedDate);
-        } else {
-          // If date of birth is empty, send empty string to clear it
-          formData.append("date_of_birth", "");
+          if (dateOfBirth?.date && dateOfBirth?.month && dateOfBirth?.year) {
+            const monthNumber = monthMap[dateOfBirth.month] || dateOfBirth.month;
+            const formattedDate = `${
+              dateOfBirth.year
+            }-${monthNumber}-${dateOfBirth.date.padStart(2, "0")}`;
+            formData.append("date_of_birth", formattedDate);
+          } else {
+            // If date of birth is empty, send empty string to clear it
+            formData.append("date_of_birth", "");
+          }
         }
       }
 
@@ -1065,16 +1068,18 @@ export default function EditProfileScreen() {
         console.log("response.data :", response.data);
         // Update Redux state with new user data (for user endpoint responses)
         if (response.data) {
-          // Parse date_of_birth from API response if it exists
+          // Parse date_of_birth from API response if it exists (only for customer users)
           let parsedDateOfBirth = null;
-          if (response.data.date_of_birth) {
-            parsedDateOfBirth = parseDateOfBirth(response.data.date_of_birth);
-          } else if (user.userRole !== "staff" && !dateOfBirth) {
-            // If date_of_birth is not in response and we cleared it, set to null
-            parsedDateOfBirth = null;
-          } else if (user.userRole !== "staff") {
-            // Keep existing date of birth if not in response
-            parsedDateOfBirth = dateOfBirth;
+          if (user.userRole === "customer") {
+            if (response.data.date_of_birth) {
+              parsedDateOfBirth = parseDateOfBirth(response.data.date_of_birth);
+            } else if (!dateOfBirth) {
+              // If date_of_birth is not in response and we cleared it, set to null
+              parsedDateOfBirth = null;
+            } else {
+              // Keep existing date of birth if not in response
+              parsedDateOfBirth = dateOfBirth;
+            }
           }
 
           dispatch(
@@ -1272,102 +1277,104 @@ export default function EditProfileScreen() {
                 lang="en"
               />
             </View>
+          </>
+        )}
 
-            <View style={styles.dateOfBirthContainer}>
-              <View style={styles.dateOfBirthLabelContainer}>
-                <Text style={styles.dateOfBirthLabel}>Date of birth</Text>
-                {(hasDate || hasMonth || hasYear) && (
-                  <Pressable
-                    onPress={() => {
-                      setDateOfBirth({ date: "", month: "", year: "" });
-                    }}
-                    hitSlop={moderateWidthScale(10)}
-                  >
-                    <Text style={styles.clearDateText}>Clear</Text>
-                  </Pressable>
-                )}
-              </View>
-              <View style={styles.dateOfBirthFields}>
+        {user?.userRole === "customer" && (
+          <View style={styles.dateOfBirthContainer}>
+            <View style={styles.dateOfBirthLabelContainer}>
+              <Text style={styles.dateOfBirthLabel}>Date of birth</Text>
+              {(hasDate || hasMonth || hasYear) && (
                 <Pressable
-                  ref={dateFieldRef}
-                  style={styles.dateField}
-                  onPress={() => setDateDropdownVisible("date")}
+                  onPress={() => {
+                    setDateOfBirth({ date: "", month: "", year: "" });
+                  }}
+                  hitSlop={moderateWidthScale(10)}
                 >
-                  <View style={styles.dateFieldContent}>
-                    <Text style={styles.dateFieldLabel}>Date</Text>
-                    <Text
-                      style={[
-                        dateOfBirth?.date
-                          ? styles.dateFieldText
-                          : styles.dateFieldPlaceholder,
-                      ]}
-                    >
-                      {dateOfBirth?.date || "16"}
-                    </Text>
-                  </View>
-                  <Feather
-                    name="chevron-down"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
+                  <Text style={styles.clearDateText}>Clear</Text>
                 </Pressable>
-                <Pressable
-                  ref={monthFieldRef}
-                  style={styles.dateField}
-                  onPress={() => setDateDropdownVisible("month")}
-                >
-                  <View style={styles.dateFieldContent}>
-                    <Text style={styles.dateFieldLabel}>Month</Text>
-                    <Text
-                      style={[
-                        dateOfBirth?.month
-                          ? styles.dateFieldText
-                          : styles.dateFieldPlaceholder,
-                      ]}
-                    >
-                      {dateOfBirth?.month
-                        ? MONTHS.find((m) => m.value === dateOfBirth.month)
-                            ?.label || dateOfBirth.month
-                        : "Sep"}
-                    </Text>
-                  </View>
-                  <Feather
-                    name="chevron-down"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-                <Pressable
-                  ref={yearFieldRef}
-                  style={styles.dateField}
-                  onPress={() => setDateDropdownVisible("year")}
-                >
-                  <View style={styles.dateFieldContent}>
-                    <Text style={styles.dateFieldLabel}>Year</Text>
-                    <Text
-                      style={[
-                        dateOfBirth?.year
-                          ? styles.dateFieldText
-                          : styles.dateFieldPlaceholder,
-                      ]}
-                    >
-                      {dateOfBirth?.year || "1992"}
-                    </Text>
-                  </View>
-                  <Feather
-                    name="chevron-down"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-              </View>
-              {isDateOfBirthPartial && (
-                <Text style={styles.errorText}>
-                  Please complete all date fields or leave them empty
-                </Text>
               )}
             </View>
-          </>
+            <View style={styles.dateOfBirthFields}>
+              <Pressable
+                ref={dateFieldRef}
+                style={styles.dateField}
+                onPress={() => setDateDropdownVisible("date")}
+              >
+                <View style={styles.dateFieldContent}>
+                  <Text style={styles.dateFieldLabel}>Date</Text>
+                  <Text
+                    style={[
+                      dateOfBirth?.date
+                        ? styles.dateFieldText
+                        : styles.dateFieldPlaceholder,
+                    ]}
+                  >
+                    {dateOfBirth?.date || "16"}
+                  </Text>
+                </View>
+                <Feather
+                  name="chevron-down"
+                  size={moderateWidthScale(16)}
+                  color={theme.darkGreen}
+                />
+              </Pressable>
+              <Pressable
+                ref={monthFieldRef}
+                style={styles.dateField}
+                onPress={() => setDateDropdownVisible("month")}
+              >
+                <View style={styles.dateFieldContent}>
+                  <Text style={styles.dateFieldLabel}>Month</Text>
+                  <Text
+                    style={[
+                      dateOfBirth?.month
+                        ? styles.dateFieldText
+                        : styles.dateFieldPlaceholder,
+                    ]}
+                  >
+                    {dateOfBirth?.month
+                      ? MONTHS.find((m) => m.value === dateOfBirth.month)
+                          ?.label || dateOfBirth.month
+                      : "Sep"}
+                  </Text>
+                </View>
+                <Feather
+                  name="chevron-down"
+                  size={moderateWidthScale(16)}
+                  color={theme.darkGreen}
+                />
+              </Pressable>
+              <Pressable
+                ref={yearFieldRef}
+                style={styles.dateField}
+                onPress={() => setDateDropdownVisible("year")}
+              >
+                <View style={styles.dateFieldContent}>
+                  <Text style={styles.dateFieldLabel}>Year</Text>
+                  <Text
+                    style={[
+                      dateOfBirth?.year
+                        ? styles.dateFieldText
+                        : styles.dateFieldPlaceholder,
+                    ]}
+                  >
+                    {dateOfBirth?.year || "1992"}
+                  </Text>
+                </View>
+                <Feather
+                  name="chevron-down"
+                  size={moderateWidthScale(16)}
+                  color={theme.darkGreen}
+                />
+              </Pressable>
+            </View>
+            {isDateOfBirthPartial && (
+              <Text style={styles.errorText}>
+                Please complete all date fields or leave them empty
+              </Text>
+            )}
+          </View>
         )}
 
         <View style={styles.inputContainer}>
@@ -1402,7 +1409,7 @@ export default function EditProfileScreen() {
         onImageSelected={setProfileImageUri}
       />
 
-      {user?.userRole !== "staff" && (
+      {user?.userRole === "customer" && (
         <>
           <DatePickerDropdown
             visible={dateDropdownVisible === "date"}

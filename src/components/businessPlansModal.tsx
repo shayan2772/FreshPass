@@ -404,7 +404,7 @@ function BusinessPlansModalContent({
   if (!visible) return null;
 
   return (
-    <View style={[styles.modalOverlay, { paddingTop: insets.top }]}>
+    <View style={[styles.modalOverlay, { paddingTop: insets.top,paddingBottom: insets.bottom + moderateHeightScale(20) }]}>
       <View style={styles.modalContainer}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Business Plans</Text>
