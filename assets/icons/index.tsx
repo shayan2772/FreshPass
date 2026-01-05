@@ -1477,6 +1477,59 @@ export const LocationPinIcon: React.FC<LocationPinIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Contact Icon SVG (Chat/Message)
+const contactIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M4.33268 4.33268H21.666V17.3327H5.60018L4.33268 18.6002V4.33268ZM4.33268 2.16602C3.14102 2.16602 2.17685 3.14102 2.17685 4.33268L2.16602 23.8327L6.49935 19.4993H21.666C22.8577 19.4993 23.8327 18.5243 23.8327 17.3327V4.33268C23.8327 3.14102 22.8577 2.16602 21.666 2.16602H4.33268ZM6.49935 12.9993H15.166V15.166H6.49935V12.9993ZM6.49935 9.74935H19.4993V11.916H6.49935V9.74935ZM6.49935 6.49935H19.4993V8.66602H6.49935V6.49935Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface ContactIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const ContactIcon: React.FC<ContactIconProps> = ({
+  width = 26,
+  height = 26,
+  color = "#283618",
+}) => {
+  const svgXml = contactIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Support Icon SVG (Help/Question)
+const supportIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M21.666 2.16602H4.33268C3.14102 2.16602 2.17685 3.14102 2.17685 4.33268L2.16602 23.8327L6.49935 19.4993H21.666C22.8577 19.4993 23.8327 18.5243 23.8327 17.3327V4.33268C23.8327 3.14102 22.8577 2.16602 21.666 2.16602ZM21.666 17.3327H5.60018L4.33268 18.6002V4.33268H21.666V17.3327Z" fill="{{COLOR}}"/>
+<path d="M12.25 14.4H13.75V16H12.25V14.4ZM13.75 13.2H12.25C12.25 10.6 14.5 10.8 14.5 9.2C14.5 8.32 13.825 7.6 13 7.6C12.175 7.6 11.5 8.32 11.5 9.2H10C10 7.432 11.3425 6 13 6C14.6575 6 16 7.432 16 9.2C16 11.2 13.75 11.4 13.75 13.2Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface SupportIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const SupportIcon: React.FC<SupportIconProps> = ({
+  width = 26,
+  height = 26,
+  color = "#283618",
+}) => {
+  const svgXml = supportIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1526,4 +1579,6 @@ export default {
   MorningIcon,
   EveningIcon,
   NightIcon,
+  ContactIcon,
+  SupportIcon,
 };

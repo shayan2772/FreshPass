@@ -1286,7 +1286,7 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointments.length > 9
+        {appointments.length > 0
           ? appointments.map((appointment, index) => (
               <View
                 key={appointment.id}
@@ -1351,7 +1351,28 @@ export default function DashboardContent() {
                       <TouchableOpacity
                         style={styles.viewDetailLink}
                         onPress={() => {
-                          router.push("/(main)/dashboard/(home)/businessDetail" as any);
+                          // Map appointment to BookingItem format
+                          const bookingItem = {
+                            id: appointment.id.toString(),
+                            serviceName: appointment.salonName,
+                            membershipType: appointment.membershipInfo?.split("•")[0]?.trim() || "",
+                            staffName: appointment.stylistName,
+                            location: appointment.salonName,
+                            dateTime: appointment.dateTime,
+                            duration: "30 min", // Default duration
+                            price: "$0", // Default price
+                            status: appointment.badgeText?.toLowerCase().includes("upcoming") 
+                              ? "active" as const 
+                              : "ongoing" as const,
+                          };
+                          
+                          router.push({
+                            pathname: "/(main)/bookingDetailsById",
+                            params: {
+                              bookingId: appointment.id.toString(),
+                              booking: JSON.stringify(bookingItem),
+                            },
+                          });
                         }}
                       >
                         <Text style={styles.viewDetailText}>View detail</Text>

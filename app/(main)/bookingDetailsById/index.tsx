@@ -6,6 +6,9 @@ import {
   View,
   ScrollView,
   Image,
+  Linking,
+  Platform,
+  Alert,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
@@ -22,7 +25,13 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import { SvgXml } from "react-native-svg";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import Button from "@/src/components/button";
-import { PersonIcon, MapPinIcon, CalendarIcon } from "@/assets/icons";
+import {
+  PersonIcon,
+  MapPinIcon,
+  CalendarIcon,
+  ContactIcon,
+  SupportIcon,
+} from "@/assets/icons";
 
 // Back Arrow Icon SVG
 const backArrowIconSvg = `
@@ -92,7 +101,6 @@ const createStyles = (theme: Theme) =>
       alignSelf: "center",
     },
     scrollContent: {
-     
       paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(30),
     },
@@ -103,7 +111,6 @@ const createStyles = (theme: Theme) =>
     },
     bookingSection: {
       marginBottom: moderateHeightScale(24),
-     
     },
     statusBadge: {
       alignSelf: "flex-start",
@@ -149,8 +156,6 @@ const createStyles = (theme: Theme) =>
     },
     detailsRowContainer: {
       marginTop: moderateHeightScale(16),
-     
-     
     },
     detailsRowTopLine: {
       width: "100%",
@@ -161,12 +166,12 @@ const createStyles = (theme: Theme) =>
     detailsRow: {
       flexDirection: "row",
       justifyContent: "space-between",
-     paddingHorizontal: moderateWidthScale(20),
+      paddingHorizontal: moderateWidthScale(20),
     },
     detailColumn: {
       flex: 1,
       flexDirection: "row",
-      alignItems:"center",
+      alignItems: "center",
       position: "relative",
       paddingHorizontal: moderateWidthScale(8),
     },
@@ -218,10 +223,10 @@ const createStyles = (theme: Theme) =>
       width: widthScale(60),
       height: heightScale(60),
       borderRadius: moderateWidthScale(30),
-      borderWidth:1,
-      borderColor:theme.borderLight,
-      overflow:"hidden",
-      backgroundColor:theme.lightGreen05,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+      backgroundColor: theme.lightGreen05,
     },
     ratingBadge: {
       position: "absolute",
@@ -236,15 +241,15 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(2),
       minWidth: moderateWidthScale(40),
     },
-    sahdow:{
+    sahdow: {
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
         height: 1,
       },
-      shadowOpacity: 0.20,
+      shadowOpacity: 0.2,
       shadowRadius: 1.41,
-      
+
       elevation: 2,
     },
     ratingStar: {
@@ -270,10 +275,11 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     mapPinContainer: {
-      width: widthScale(40),
-      height: heightScale(40),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.background,
+      width: 50,
+      height: 50,
+      borderRadius: 50 / 2,
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.lightGreen2,
       alignItems: "center",
       justifyContent: "center",
       marginLeft: moderateWidthScale(8),
@@ -281,8 +287,8 @@ const createStyles = (theme: Theme) =>
     actionButtonsContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
-      marginBottom: moderateHeightScale(24),
-      paddingHorizontal: moderateWidthScale(0),
+      marginVertical: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(20),
     },
     actionButton: {
       alignItems: "center",
@@ -290,16 +296,16 @@ const createStyles = (theme: Theme) =>
     },
     actionButtonCircle: {
       width: widthScale(60),
-      height: heightScale(60),
-      borderRadius: moderateWidthScale(30),
-      backgroundColor: theme.orangeBrown30,
+      height: heightScale(50),
+      borderRadius: 36,
+      backgroundColor: theme.orangeBrown,
       alignItems: "center",
       justifyContent: "center",
       marginBottom: moderateHeightScale(8),
     },
     actionButtonText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontMedium,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
     paymentSection: {
@@ -390,7 +396,9 @@ export default function bookingDetailsById() {
           </View>
         </View>
         <View style={styles.line} />
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+        >
           <Text style={{ color: theme.lightGreen }}>No booking data found</Text>
         </View>
       </SafeAreaView>
@@ -449,6 +457,34 @@ export default function bookingDetailsById() {
   const date = dateTimeParts[0] || booking.dateTime;
   const time = dateTimeParts[1] || "";
 
+  // Dummy location data (will be replaced with actual data later)
+  const businessName = booking.location || "Business Location";
+  const businessLatitude = 34.0522; // Dummy latitude (Los Angeles area)
+  const businessLongitude = -118.2437; // Dummy longitude
+
+  // Handle location navigation to Google Maps
+  const handleLocationPress = async () => {
+    const encodedName = encodeURIComponent(businessName);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${businessLatitude},${businessLongitude}&query_place_id=${encodedName}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(googleMapsUrl);
+      if (canOpen) {
+        await Linking.openURL(googleMapsUrl);
+      } else {
+        // Fallback to Apple Maps on iOS if Google Maps not available
+        if (Platform.OS === "ios") {
+          const appleMapsUrl = `http://maps.apple.com/?ll=${businessLatitude},${businessLongitude}&q=${encodedName}`;
+          await Linking.openURL(appleMapsUrl);
+        } else {
+          Alert.alert("Error", "Unable to open maps");
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Unable to open maps");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -479,8 +515,12 @@ export default function bookingDetailsById() {
         {/* Booking Section */}
         <View style={styles.bookingSection}>
           {/* Status Badge */}
-          <View style={[styles.statusBadge, getStatusBadgeStyle(booking.status)]}>
-            <Text style={[styles.statusText, getStatusTextStyle(booking.status)]}>
+          <View
+            style={[styles.statusBadge, getStatusBadgeStyle(booking.status)]}
+          >
+            <Text
+              style={[styles.statusText, getStatusTextStyle(booking.status)]}
+            >
               {getStatusLabel(booking.status)}
             </Text>
           </View>
@@ -573,25 +613,27 @@ export default function bookingDetailsById() {
                 : "Business Address"}
             </Text>
           </View>
-          <View style={styles.mapPinContainer}>
+          <TouchableOpacity
+            style={styles.mapPinContainer}
+            onPress={handleLocationPress}
+          >
             <MapPinIcon
-              width={moderateWidthScale(20)}
-              height={moderateWidthScale(20)}
-              color={theme.darkGreen}
+              width={moderateWidthScale(18)}
+              height={moderateWidthScale(18)}
+              color={theme.primary}
             />
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.line} />
-
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
           <TouchableOpacity style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
-              <Ionicons
-                name="chatbubble-outline"
-                size={moderateWidthScale(24)}
+              <ContactIcon
+                width={moderateWidthScale(22)}
+                height={moderateWidthScale(22)}
                 color={theme.darkGreen}
               />
             </View>
@@ -611,9 +653,9 @@ export default function bookingDetailsById() {
           )}
           <TouchableOpacity style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
-              <Ionicons
-                name="help-circle-outline"
-                size={moderateWidthScale(24)}
+              <SupportIcon
+                width={moderateWidthScale(22)}
+                height={moderateWidthScale(22)}
                 color={theme.darkGreen}
               />
             </View>
@@ -621,7 +663,8 @@ export default function bookingDetailsById() {
           </TouchableOpacity>
         </View>
 
-        
+        <View style={styles.line} />
+
 
         {/* Payment Information */}
         <View style={styles.paymentSection}>
