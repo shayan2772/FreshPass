@@ -241,7 +241,7 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
     },
     statusOngoing: {
-      backgroundColor: theme.orangeBrown30,
+      backgroundColor: theme.orangeBrown015,
     },
     statusActive: {
       backgroundColor: "#E3F2FD",
@@ -257,7 +257,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
     },
     statusTextOngoing: {
-      color: "#F57C00",
+      color: theme.appointmentStatusText
     },
     statusTextActive: {
       color: "#1976D2",

@@ -112,15 +112,32 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(12),
     },
     statusOngoing: {
-      backgroundColor: theme.orangeBrown30,
+      backgroundColor: theme.orangeBrown015,
+    },
+    statusActive: {
+      backgroundColor: "#E3F2FD",
+    },
+    statusComplete: {
+      backgroundColor: "#E8F5E9",
     },
     statusCancelled: {
-      backgroundColor: "#D32F2F",
+      backgroundColor: "#FFEBEE",
     },
     statusText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
+    },
+    statusTextOngoing: {
+      color: theme.appointmentStatusText,
+    },
+    statusTextActive: {
+      color: "#1976D2",
+    },
+    statusTextComplete: {
+      color: "#388E3C",
+    },
+    statusTextCancelled: {
+      color: "#D32F2F",
     },
     serviceName: {
       fontSize: fontSize.size20,
@@ -336,20 +353,52 @@ export default function bookingDetailsById() {
     );
   }
 
-  const isCancelled = booking.status === "cancelled";
-  const statusBadgeStyle =
-    booking.status === "ongoing"
-      ? styles.statusOngoing
-      : booking.status === "cancelled"
-      ? styles.statusCancelled
-      : styles.statusOngoing;
+  const getStatusBadgeStyle = (status: BookingStatus) => {
+    switch (status) {
+      case "ongoing":
+        return styles.statusOngoing;
+      case "active":
+        return styles.statusActive;
+      case "complete":
+        return styles.statusComplete;
+      case "cancelled":
+        return styles.statusCancelled;
+      default:
+        return styles.statusActive;
+    }
+  };
 
-  const statusLabel =
-    booking.status === "ongoing"
-      ? "On going"
-      : booking.status === "cancelled"
-      ? "You canceled"
-      : booking.status;
+  const getStatusTextStyle = (status: BookingStatus) => {
+    switch (status) {
+      case "ongoing":
+        return styles.statusTextOngoing;
+      case "active":
+        return styles.statusTextActive;
+      case "complete":
+        return styles.statusTextComplete;
+      case "cancelled":
+        return styles.statusTextCancelled;
+      default:
+        return styles.statusTextActive;
+    }
+  };
+
+  const getStatusLabel = (status: BookingStatus) => {
+    switch (status) {
+      case "ongoing":
+        return "On going";
+      case "active":
+        return "Active";
+      case "complete":
+        return "Complete";
+      case "cancelled":
+        return "You canceled";
+      default:
+        return "Active";
+    }
+  };
+
+  const isCancelled = booking.status === "cancelled";
 
   // Parse date and time from dateTime string
   const dateTimeParts = booking.dateTime.split(" - ");
@@ -386,8 +435,10 @@ export default function bookingDetailsById() {
         {/* Booking Section */}
         <View style={styles.bookingSection}>
           {/* Status Badge */}
-          <View style={[styles.statusBadge, statusBadgeStyle]}>
-            <Text style={styles.statusText}>{statusLabel}</Text>
+          <View style={[styles.statusBadge, getStatusBadgeStyle(booking.status)]}>
+            <Text style={[styles.statusText, getStatusTextStyle(booking.status)]}>
+              {getStatusLabel(booking.status)}
+            </Text>
           </View>
 
           {/* Service Name */}
