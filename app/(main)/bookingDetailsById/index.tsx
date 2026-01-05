@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -25,6 +25,7 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import { SvgXml } from "react-native-svg";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import Button from "@/src/components/button";
+import CancelBookingBottomSheet from "@/src/components/CancelBookingBottomSheet";
 import {
   PersonIcon,
   MapPinIcon,
@@ -369,6 +370,7 @@ export default function bookingDetailsById() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
 
   // Parse booking data from params
   const booking: BookingItem | null = params.booking
@@ -484,6 +486,22 @@ export default function bookingDetailsById() {
     } catch (error) {
       Alert.alert("Error", "Unable to open maps");
     }
+  };
+
+  // Handle cancel booking modal
+  const handleOpenCancelModal = () => {
+    setCancelModalVisible(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setCancelModalVisible(false);
+  };
+
+  const handleCancelBooking = (reason: string) => {
+    // Handle cancellation with reason
+    showBanner("Booking Cancelled", `Reason: ${reason}`, "success", 3000);
+    // Here you would typically make an API call to cancel the booking
+    // For now, just show a banner notification
   };
 
   return (
@@ -714,7 +732,12 @@ export default function bookingDetailsById() {
         <Button
           title={isCancelled ? "Remove from history" : "Cancel this booking"}
           onPress={() => {
-            // Handle button press
+            if (isCancelled) {
+              // Handle remove from history
+              showBanner("Removed", "Booking removed from history", "success", 2000);
+            } else {
+              handleOpenCancelModal();
+            }
           }}
           containerStyle={
             isCancelled ? styles.removeButton : styles.cancelButton
@@ -722,6 +745,13 @@ export default function bookingDetailsById() {
           textColor={isCancelled ? undefined : "#D32F2F"}
         />
       </View>
+
+      {/* Cancel Booking Bottom Sheet */}
+      <CancelBookingBottomSheet
+        visible={cancelModalVisible}
+        onClose={handleCloseCancelModal}
+        onSubmit={handleCancelBooking}
+      />
     </SafeAreaView>
   );
 }
