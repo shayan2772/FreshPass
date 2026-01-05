@@ -374,7 +374,7 @@ export default function HomeScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [userRole]);
+  }, [ ]);
 
   const fetchInitialData = async () => {
     const statusSuccess = await handleFetchUserStatus();
