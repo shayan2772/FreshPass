@@ -37,7 +37,10 @@ import {
   handleLocationPermission,
   openLocationSettings,
 } from "@/src/services/locationPermissionService";
-import { resolveCurrentLocation, resolveAddressViaGoogle } from "@/src/constant/functions";
+import {
+  resolveCurrentLocation,
+  resolveAddressViaGoogle,
+} from "@/src/constant/functions";
 import { setLocation } from "@/src/state/slices/userSlice";
 import NotificationBanner from "@/src/components/notificationBanner";
 import { IMAGES } from "@/src/constant/images";
@@ -94,7 +97,7 @@ const createStyles = (theme: Theme) =>
     },
     modalContent: {
       flex: 1,
-      paddingBottom: moderateHeightScale(100),
+      // paddingBottom: moderateHeightScale(100),
     },
     mapContainer: {
       flex: 1,
@@ -121,6 +124,20 @@ const createStyles = (theme: Theme) =>
       width: moderateWidthScale(22),
       height: moderateHeightScale(32),
     },
+    currentLocControls: {
+      position: "absolute",
+      right: moderateWidthScale(16),
+      top: moderateHeightScale(16),
+      backgroundColor: theme.white,
+      borderRadius: moderateWidthScale(5),
+      borderWidth: 1,
+      borderColor: theme.darkGreen,
+      width: moderateWidthScale(32),
+      height: moderateWidthScale(32),
+      alignItems: "center",
+      justifyContent: "center",
+      opacity: 0.7,
+    },
     mapControls: {
       position: "absolute",
       right: moderateWidthScale(16),
@@ -130,7 +147,7 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.darkGreen,
       width: moderateWidthScale(42),
-      opacity: 0.8,
+      opacity: 0.7,
     },
     mapControlButton: {
       width: "100%",
@@ -142,30 +159,6 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       height: 1,
       backgroundColor: theme.darkGreen,
-    },
-    leftMapControls: {
-      position: "absolute",
-      left: moderateWidthScale(16),
-      bottom: moderateHeightScale(16),
-      gap: moderateHeightScale(8),
-    },
-    leftMapControlButton: {
-      width: moderateWidthScale(40),
-      height: moderateWidthScale(40),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.white,
-      alignItems: "center",
-      justifyContent: "center",
-      borderWidth: 1,
-      borderColor: theme.darkGreen,
-      shadowColor: theme.darkGreen,
-      shadowOffset: {
-        width: 0,
-        height: 2,
-      },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      elevation: 5,
     },
     locationInfoContainer: {
       paddingHorizontal: moderateWidthScale(20),
@@ -191,10 +184,6 @@ const createStyles = (theme: Theme) =>
       lineHeight: moderateHeightScale(16),
     },
     confirmButtonContainer: {
-      position: "absolute",
-      bottom: 0,
-      left: 0,
-      right: 0,
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
@@ -225,7 +214,10 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function LocationModal({ visible, onClose }: LocationModalProps) {
+export default function LocationModal({
+  visible,
+  onClose,
+}: LocationModalProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
@@ -242,7 +234,9 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
-  const [locationServicesMessage, setLocationServicesMessage] = useState<string | null>(null);
+  const [locationServicesMessage, setLocationServicesMessage] = useState<
+    string | null
+  >(null);
   const mapRef = useRef<MapView>(null);
   const currentRegionRef = useRef<Region | null>(null);
 
@@ -301,7 +295,9 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
         if (addressData && addressData.formatted) {
           const locationName =
             addressData.formatted ||
-            `${addressData.street || ""}, ${addressData.area || ""}, ${addressData.state || ""}`.trim() ||
+            `${addressData.street || ""}, ${addressData.area || ""}, ${
+              addressData.state || ""
+            }`.trim() ||
             `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
           setTempLocation({
             lat: latitude,
@@ -337,34 +333,31 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
     [fetchAddressFromCoordinates]
   );
 
-  const handleZoom = useCallback(
-    (direction: "in" | "out") => {
-      if (!currentRegionRef.current || !mapRef.current) return;
+  const handleZoom = useCallback((direction: "in" | "out") => {
+    if (!currentRegionRef.current || !mapRef.current) return;
 
-      const factor = direction === "in" ? 0.7 : 1.3;
-      const latitudeDelta = Math.max(
-        currentRegionRef.current.latitudeDelta * factor,
-        0.0005
-      );
-      const longitudeDelta = Math.max(
-        currentRegionRef.current.longitudeDelta * factor,
-        0.0005
-      );
+    const factor = direction === "in" ? 0.7 : 1.3;
+    const latitudeDelta = Math.max(
+      currentRegionRef.current.latitudeDelta * factor,
+      0.0005
+    );
+    const longitudeDelta = Math.max(
+      currentRegionRef.current.longitudeDelta * factor,
+      0.0005
+    );
 
-      const newRegion: Region = {
-        ...currentRegionRef.current,
-        latitudeDelta,
-        longitudeDelta,
-      };
+    const newRegion: Region = {
+      ...currentRegionRef.current,
+      latitudeDelta,
+      longitudeDelta,
+    };
 
-      currentRegionRef.current = newRegion;
-      setMapRegion(newRegion);
-      if (mapRef.current && "animateToRegion" in mapRef.current) {
-        (mapRef.current as any).animateToRegion(newRegion, 300);
-      }
-    },
-    []
-  );
+    currentRegionRef.current = newRegion;
+    setMapRegion(newRegion);
+    if (mapRef.current && "animateToRegion" in mapRef.current) {
+      (mapRef.current as any).animateToRegion(newRegion, 300);
+    }
+  }, []);
 
   const handleUseCurrentLocation = async () => {
     setLocationMessage(null);
@@ -374,7 +367,9 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
     const servicesEnabled = await Location.hasServicesEnabledAsync();
 
     if (!servicesEnabled) {
-      setLocationServicesMessage("Please enable location services on your phone first");
+      setLocationServicesMessage(
+        "Please enable location services on your phone first"
+      );
       return;
     }
 
@@ -412,7 +407,9 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
       const lng = details.coordinates.longitude;
       const locationName =
         details.formattedAddress ||
-        `${details.street || ""}, ${details.area || ""}, ${details.state || ""}`.trim() ||
+        `${details.street || ""}, ${details.area || ""}, ${
+          details.state || ""
+        }`.trim() ||
         `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
 
       const newRegion: Region = {
@@ -463,7 +460,6 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
     }
   }, [tempLocation, dispatch, onClose]);
 
-
   const handleClose = useCallback(() => {
     setLocationMessage(null);
     setTempLocation(null);
@@ -491,14 +487,9 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
       onRequestClose={handleClose}
       statusBarTranslucent
     >
-      <SafeAreaView
-        style={[styles.modalContainer, { paddingBottom: 20 }]}
-        edges={["top", "bottom"]}
-      >
+      <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
         <View style={styles.modalHeader}>
           <View style={styles.modalHeaderTop}>
-            <View style={{ width: moderateWidthScale(32) }} />
-            <Text style={styles.modalHeaderTitle}>Select your location</Text>
             <TouchableOpacity
               onPress={handleClose}
               style={styles.modalCloseButton}
@@ -510,6 +501,7 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
                 color={theme.darkGreen}
               />
             </TouchableOpacity>
+            <Text style={styles.modalHeaderTitle}>Select your location</Text>
           </View>
           <Text style={styles.modalHeaderSubtitle}>
             Drag the map to adjust your location.
@@ -525,7 +517,7 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
                 </View>
               ) : (
                 <>
-                  <Text 
+                  <Text
                     style={styles.locationInfoTitle}
                     numberOfLines={2}
                     ellipsizeMode="tail"
@@ -533,7 +525,8 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
                     {tempLocation.locationName || "Location"}
                   </Text>
                   <Text style={styles.locationInfoSubtitle}>
-                    {tempLocation.lat.toFixed(6)}, {tempLocation.long.toFixed(6)}
+                    {tempLocation.lat.toFixed(6)},{" "}
+                    {tempLocation.long.toFixed(6)}
                   </Text>
                 </>
               )}
@@ -568,20 +561,7 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
                   resizeMode="contain"
                 />
               </View>
-              <View style={styles.leftMapControls}>
-                <TouchableOpacity
-                  style={styles.leftMapControlButton}
-                  onPress={handleUseCurrentLocation}
-                  disabled={isResolvingLocation}
-                  activeOpacity={0.7}
-                >
-                  <Feather
-                    name="target"
-                    size={moderateWidthScale(18)}
-                    color={theme.darkGreen}
-                  />
-                </TouchableOpacity>
-              </View>
+
               <View style={styles.mapControls}>
                 <Pressable
                   style={styles.mapControlButton}
@@ -605,6 +585,18 @@ export default function LocationModal({ visible, onClose }: LocationModalProps) 
                   />
                 </Pressable>
               </View>
+              <TouchableOpacity
+                onPress={handleUseCurrentLocation}
+                disabled={isResolvingLocation}
+                activeOpacity={0.7}
+                style={styles.currentLocControls}
+              >
+                <Feather
+                  name="target"
+                  size={moderateWidthScale(18)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.loadingContainer}>
