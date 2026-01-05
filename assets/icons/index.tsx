@@ -1530,6 +1530,71 @@ export const SupportIcon: React.FC<SupportIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Book Again Icon SVG (Cycle/Refresh)
+const bookAgainIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M14.7541 3.25C9.36997 3.25 5.00414 7.61583 5.00414 13C5.00414 13.065 5.01497 13.13 5.01497 13.2058L3.02164 11.2125L1.49414 12.74L6.08747 17.3333L10.6808 12.74L9.15331 11.2125L7.18164 13.1842C7.18164 13.1192 7.17081 13.065 7.17081 13C7.17081 8.81833 10.5725 5.41667 14.7541 5.41667C18.9358 5.41667 22.3375 8.81833 22.3375 13C22.3375 17.1817 18.9358 20.5833 14.7541 20.5833C12.6958 20.5833 10.8325 19.76 9.46747 18.4275L7.92914 19.955C9.68414 21.6775 12.1 22.75 14.7541 22.75C20.1383 22.75 24.5041 18.3842 24.5041 13C24.5041 7.61583 20.1383 3.25 14.7541 3.25Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface BookAgainIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const BookAgainIcon: React.FC<BookAgainIconProps> = ({
+  width = 26,
+  height = 26,
+  color = "#283618",
+}) => {
+  const svgXml = bookAgainIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Wallet Icon SVG
+const walletIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_1037_661)">
+<mask id="mask0_1037_661" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24">
+<path d="M24 0H0V24H24V0Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_1037_661)">
+<path d="M5.5 17C6.32843 17 7 16.3284 7 15.5C7 14.6716 6.32843 14 5.5 14C4.67157 14 4 14.6716 4 15.5C4 16.3284 4.67157 17 5.5 17Z" fill="{{COLOR}}"/>
+<path d="M21 3H3C2.20435 3 1.44129 3.31607 0.87868 3.87868C0.31607 4.44129 0 5.20435 0 6V21H24V6C24 5.20435 23.6839 4.44129 23.1213 3.87868C22.5587 3.31607 21.7956 3 21 3ZM3 5H21C21.2652 5 21.5196 5.10536 21.7071 5.29289C21.8946 5.48043 22 5.73478 22 6V8H2V6C2 5.73478 2.10536 5.48043 2.29289 5.29289C2.48043 5.10536 2.73478 5 3 5ZM2 19V10H22V19H2Z" fill="{{COLOR}}"/>
+</g>
+</g>
+<defs>
+<clipPath id="clip0_1037_661">
+<rect width="24" height="24" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface WalletIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const WalletIcon: React.FC<WalletIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#BC6C25",
+}) => {
+  const svgXml = walletIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1581,4 +1646,6 @@ export default {
   NightIcon,
   ContactIcon,
   SupportIcon,
+  BookAgainIcon,
+  WalletIcon,
 };

@@ -31,6 +31,8 @@ import {
   CalendarIcon,
   ContactIcon,
   SupportIcon,
+  BookAgainIcon,
+  WalletIcon,
 } from "@/assets/icons";
 
 // Back Arrow Icon SVG
@@ -311,10 +313,8 @@ const createStyles = (theme: Theme) =>
     paymentSection: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(16),
-      paddingBottom: moderateHeightScale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      marginVertical: moderateHeightScale(16),
+       paddingHorizontal: moderateWidthScale(20),
     },
     paymentIcon: {
       marginRight: moderateWidthScale(12),
@@ -323,29 +323,30 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     paymentLabel: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(2),
     },
     paymentAmount: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontBold,
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
+    },
+    paymentAmountVal: {
+      fontFamily: fonts.fontMedium,
+      
     },
     policyLink: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingHorizontal: moderateWidthScale(0),
-      marginBottom: moderateHeightScale(16),
-      paddingBottom: moderateHeightScale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      paddingVertical: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(20),
     },
     policyText: {
       fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
     cancelButton: {
@@ -629,7 +630,7 @@ export default function bookingDetailsById() {
 
         {/* Action Buttons */}
         <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
               <ContactIcon
                 width={moderateWidthScale(22)}
@@ -640,18 +641,28 @@ export default function bookingDetailsById() {
             <Text style={styles.actionButtonText}>Contact</Text>
           </TouchableOpacity>
           {isCancelled && (
-            <TouchableOpacity style={styles.actionButton}>
+            <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
               <View style={styles.actionButtonCircle}>
-                <Entypo
-                  name="cycle"
-                  size={moderateWidthScale(24)}
+                <BookAgainIcon
+                  width={moderateWidthScale(22)}
+                  height={moderateWidthScale(22)}
                   color={theme.darkGreen}
                 />
               </View>
               <Text style={styles.actionButtonText}>Book again</Text>
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.actionButton}>
+          <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
+            <View style={styles.actionButtonCircle}>
+              <CalendarIcon
+                width={moderateWidthScale(22)}
+                height={moderateWidthScale(22)}
+                color={theme.darkGreen}
+              />
+            </View>
+            <Text style={styles.actionButtonText}>Reschedule</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
               <SupportIcon
                 width={moderateWidthScale(22)}
@@ -668,19 +679,22 @@ export default function bookingDetailsById() {
 
         {/* Payment Information */}
         <View style={styles.paymentSection}>
-          <Ionicons
-            name="wallet-outline"
-            size={moderateWidthScale(24)}
-            color={theme.darkGreen}
-            style={styles.paymentIcon}
-          />
+          <View style={styles.paymentIcon}>
+            <WalletIcon
+              width={moderateWidthScale(22)}
+              height={moderateWidthScale(22)}
+              color={theme.orangeBrown}
+            />
+          </View>
           <View style={styles.paymentTextContainer}>
             <Text style={styles.paymentLabel}>
-              {isCancelled ? "I paid" : "will pay"}
+               I paid 
             </Text>
-            <Text style={styles.paymentAmount}>Total: {booking.price}</Text>
+            <Text style={styles.paymentAmount}>Total: <Text style={styles.paymentAmountVal}>{booking.price} USD</Text></Text>
           </View>
         </View>
+
+        <View style={styles.line} />
 
         {/* Policy Link (only for ongoing bookings) */}
         {!isCancelled && (
@@ -688,7 +702,7 @@ export default function bookingDetailsById() {
             <Text style={styles.policyText}>Booking cancel policy</Text>
             <Entypo
               name="chevron-small-right"
-              size={moderateWidthScale(24)}
+              size={moderateWidthScale(22)}
               color={theme.darkGreen}
             />
           </TouchableOpacity>
