@@ -221,6 +221,7 @@ function BusinessPlansModalContent({
     null
   );
   const [processingPayment, setProcessingPayment] = useState(false);
+  const [isSetupIntent, setIsSetupIntent] = useState(false);
   const dispatch = useAppDispatch();
 
   const [localBanner, setLocalBanner] = useState<{
@@ -276,6 +277,7 @@ function BusinessPlansModalContent({
 
   const handleSubscribe = async (planId: number) => {
     setSubscribingPlanId(planId);
+    setIsSetupIntent(false);
 
     try {
       // Step 1: Fetch payment sheet parameters from backend
@@ -315,7 +317,11 @@ function BusinessPlansModalContent({
       if (setupIntent && setupIntent.includes("_secret_")) {
         // SetupIntent is in correct client secret format
         paymentConfig.setupIntentClientSecret = setupIntent;
+        const trialDays = process.env.EXPO_PUBLIC_TRAILDAY || "0";
+        paymentConfig.primaryButtonLabel = `Start ${trialDays} Days Free Trial`;
+        setIsSetupIntent(true);
       } else if (paymentIntent && paymentIntent.trim() !== "") {
+        setIsSetupIntent(false);
         // Use paymentIntent if setupIntent is not available or not in correct format
         paymentConfig.paymentIntentClientSecret = paymentIntent;
       } else if (setupIntent) {
@@ -361,14 +367,12 @@ function BusinessPlansModalContent({
       // Wait 2-3 seconds before showing success and closing
       setTimeout(() => {
         setProcessingPayment(false);
-        showBanner(
-          "Success",
-          "Payment successful! Your subscription will be activated shortly.",
-          "success",
-          4000
-        );
+        const successMessage = isSetupIntent
+          ? "Trial started successfully! Your free trial will be activated."
+          : "Payment successful! Your subscription will be activated.";
+        showBanner("Success", successMessage, "success", 4000);
         onClose();
-        
+
         dispatch(fetchUserStatus({ showError: true })).unwrap();
       }, 2500);
     } catch (err: any) {
@@ -404,7 +408,15 @@ function BusinessPlansModalContent({
   if (!visible) return null;
 
   return (
-    <View style={[styles.modalOverlay, { paddingTop: insets.top,paddingBottom: insets.bottom + moderateHeightScale(20) }]}>
+    <View
+      style={[
+        styles.modalOverlay,
+        {
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom + moderateHeightScale(20),
+        },
+      ]}
+    >
       <View style={styles.modalContainer}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Business Plans</Text>
@@ -517,7 +529,7 @@ function BusinessPlansModalContent({
           <View style={styles.processingContainer}>
             <ActivityIndicator size="large" color={theme.primary} />
             <Text style={styles.processingText}>
-              Processing payment...
+              {isSetupIntent ? "Processing trial..." : "Processing payment..."}
             </Text>
           </View>
         </View>

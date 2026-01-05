@@ -9,6 +9,7 @@ export default function Index() {
   const isGuest = user.isGuest;
   const [isReady, setIsReady] = useState(false);
 
+
   useEffect(() => {
     // Small delay to ensure Redux state is hydrated
     const timer = setTimeout(() => {
@@ -20,7 +21,8 @@ export default function Index() {
   if (!isReady) {
     return null;
   }
- 
+  console.log("accessToken", accessToken);
+
   if (accessToken || isGuest)
     return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
 
