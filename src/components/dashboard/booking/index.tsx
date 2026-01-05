@@ -18,14 +18,11 @@ import {
 import DashboardHeader from "@/src/components/DashboardHeader";
 import { SubscriptionTicketIcon, PersonIcon } from "@/assets/icons";
 import { useRouter } from "expo-router";
+import { Entypo } from "@expo/vector-icons";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
-type BookingStatus =
-  | "ongoing"
-  | "active"
-  | "complete"
-  | "cancelled";
+type BookingStatus = "ongoing" | "active" | "complete" | "cancelled";
 
 interface BookingItem {
   id: string;
@@ -47,7 +44,7 @@ const DUMMY_BOOKINGS: BookingItem[] = [
     staffName: "Sanna",
     dateTime: "1/5/2025 - 12:30 pm",
     duration: "45 min",
-    price: "$132.00 USD",
+    price: "$132222.00 USD",
     status: "ongoing",
   },
   {
@@ -90,7 +87,6 @@ const createStyles = (theme: Theme) =>
     },
     content: {
       flex: 1,
-      paddingHorizontal: moderateWidthScale(16),
     },
     title: {
       fontSize: fontSize.size24,
@@ -98,27 +94,37 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       marginTop: moderateHeightScale(16),
       marginBottom: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(16),
     },
     tabsContainer: {
       flexDirection: "row",
-      marginBottom: moderateHeightScale(24),
-      gap: moderateWidthScale(40),
+      marginBottom: moderateHeightScale(16),
+      width: "100%",
+      justifyContent: "space-between",
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+      paddingHorizontal: moderateWidthScale(16),
     },
     tab: {
+      alignItems: "center",
+      justifyContent: "center",
       paddingBottom: moderateHeightScale(8),
+      width: "33%",
     },
     tabText: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
+      textAlign: "center",
     },
     activeTab: {
       borderBottomWidth: 3,
       borderBottomColor: theme.orangeBrown,
     },
     activeTabText: {
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
-      color: theme.text,
+      color: theme.darkGreen,
     },
     toggleContainer: {
       flexDirection: "row",
@@ -126,6 +132,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.darkGreen,
       marginBottom: moderateHeightScale(24),
       padding: moderateWidthScale(3),
+      marginHorizontal: moderateWidthScale(16),
     },
     toggleOption: {
       flex: 1,
@@ -156,81 +163,81 @@ const createStyles = (theme: Theme) =>
     },
     bookingCard: {
       backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(20),
-      padding: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(16),
+      borderRadius: moderateWidthScale(8),
+      padding: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(12),
+      flexDirection: "row",
+      justifyContent: "space-between",
+      width: "100%",
+    },
+    shadow: {
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
-        height: moderateHeightScale(2),
+        height: 1,
       },
-      shadowOpacity: 0.06,
-      shadowRadius: moderateWidthScale(10),
-      elevation: 3,
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      elevation: 2,
     },
-    cardHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: moderateHeightScale(16),
+    cardLeftSection: {
+      gap: moderateHeightScale(7),
+      width: "56%",
+    },
+    cardRightSection: {
+      gap: moderateHeightScale(10),
+      alignItems: "flex-end",
+      width: "40%",
     },
     serviceName: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.text,
-      flex: 1,
-      marginRight: moderateWidthScale(8),
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.black,
     },
     price: {
-      fontSize: fontSize.size20,
+      fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
-      color: theme.text,
+      color: theme.darkGreen,
     },
-    cardInfo: {
-      gap: moderateHeightScale(6),
+    appointmentInfoContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
     },
     infoRow: {
       flexDirection: "row",
       alignItems: "center",
-      gap: moderateWidthScale(6),
-      flex: 1,
-    },
-    infoRowWithStatus: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: moderateWidthScale(6),
-    },
-    infoLeftSection: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(6),
-      flex: 1,
+      width: "45%",
     },
     statusSection: {
       flexDirection: "row",
       alignItems: "center",
-      gap: moderateWidthScale(8),
+      justifyContent: "flex-end",
     },
     infoText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
+      marginLeft: moderateWidthScale(2),
     },
     dateTimeRow: {
       flexDirection: "row",
-      alignItems: "center",
-      gap: moderateWidthScale(4),
+      alignItems: "baseline",
+      width: "90%",
     },
     dateTimeText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
       color: theme.lightGreen,
     },
     statusBadge: {
-      paddingHorizontal: moderateWidthScale(10),
+      backgroundColor: theme.orangeBrown30,
+      paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
-      borderRadius: moderateWidthScale(6),
+      borderRadius: moderateWidthScale(4),
+      flexDirection: "row",
+      alignItems: "center",
     },
     statusOngoing: {
       backgroundColor: "#FFF4E6",
@@ -245,8 +252,8 @@ const createStyles = (theme: Theme) =>
       backgroundColor: "#FFEBEE",
     },
     statusText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
     },
     statusTextOngoing: {
       color: "#F57C00",
@@ -259,11 +266,6 @@ const createStyles = (theme: Theme) =>
     },
     statusTextCancelled: {
       color: "#D32F2F",
-    },
-    arrowIcon: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
     },
     emptyContainer: {
       flex: 1,
@@ -282,8 +284,6 @@ export default function BookingScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const router = useRouter();
-
   const [selectedTab, setSelectedTab] = useState<TabType>("all");
   const [listType, setListType] = useState<ListType>("individual");
 
@@ -333,52 +333,65 @@ export default function BookingScreen() {
   };
 
   const renderBookingCard = ({ item }: { item: BookingItem }) => (
-    <TouchableOpacity style={styles.bookingCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.serviceName}>{item.serviceName}</Text>
-        <Text style={styles.price}>{item.price}</Text>
-      </View>
-
-      <View style={styles.cardInfo}>
-        {item.membershipType && (
-          <View style={styles.infoRow}>
-            <SubscriptionTicketIcon
-              width={16}
-              height={16}
-              color={theme.lightGreen}
-            />
-            <Text style={styles.infoText}>{item.membershipType}</Text>
-          </View>
-        )}
-        {item.location && (
-          <View style={styles.infoRow}>
-            <Text style={styles.infoText}>📍</Text>
-            <Text style={styles.infoText}>{item.location}</Text>
-          </View>
-        )}
-        <View style={styles.infoRowWithStatus}>
-          <View style={styles.infoLeftSection}>
-            <PersonIcon width={16} height={16} color={theme.lightGreen} />
-            <Text style={styles.infoText}>{item.staffName}</Text>
-          </View>
-          <View style={styles.statusSection}>
-            <View
-              style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}
-            >
-              <Text
-                style={[styles.statusText, getStatusTextStyle(item.status)]}
-              >
-                {getStatusLabel(item.status)}
+    <TouchableOpacity activeOpacity={0.7} style={[styles.bookingCard, styles.shadow]}>
+      <View style={styles.cardLeftSection}>
+        <Text numberOfLines={1} style={styles.serviceName}>
+          {item.serviceName}
+        </Text>
+        <View style={styles.appointmentInfoContainer}>
+          {item.membershipType && (
+            <View style={styles.infoRow}>
+              <SubscriptionTicketIcon
+                width={moderateWidthScale(15)}
+                height={moderateWidthScale(15)}
+                color={theme.lightGreen}
+              />
+              <Text numberOfLines={1} style={styles.infoText}>
+                {item.membershipType}
               </Text>
             </View>
-            <Text style={styles.arrowIcon}>›</Text>
+          )}
+          {item.location && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoText}>📍</Text>
+              <Text numberOfLines={1} style={styles.infoText}>
+                {item.location}
+              </Text>
+            </View>
+          )}
+          <View style={styles.infoRow}>
+            <PersonIcon
+              width={moderateWidthScale(15)}
+              height={moderateWidthScale(15)}
+              color={theme.lightGreen}
+            />
+            <Text numberOfLines={1} style={styles.infoText}>
+              {item.staffName}
+            </Text>
           </View>
         </View>
+
         <View style={styles.dateTimeRow}>
           <Text style={styles.dateTimeText}>🕐</Text>
           <Text style={styles.dateTimeText}>
             {item.dateTime} • {item.duration}
           </Text>
+        </View>
+      </View>
+
+      <View style={styles.cardRightSection}>
+        <Text style={styles.price}>{item.price}</Text>
+        <View style={styles.statusSection}>
+          <View style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}>
+            <Text style={[styles.statusText, getStatusTextStyle(item.status)]}>
+              {getStatusLabel(item.status)}
+            </Text>
+          </View>
+          <Entypo
+            name="chevron-small-right"
+            size={moderateWidthScale(22)}
+            color={theme.darkGreen}
+          />
         </View>
       </View>
     </TouchableOpacity>
@@ -393,10 +406,7 @@ export default function BookingScreen() {
         {/* Tabs */}
         <View style={styles.tabsContainer}>
           <TouchableOpacity
-            style={[
-              styles.tab,
-              selectedTab === "all" && styles.activeTab,
-            ]}
+            style={[styles.tab, selectedTab === "all" && styles.activeTab]}
             onPress={() => setSelectedTab("all")}
           >
             <Text
@@ -409,10 +419,7 @@ export default function BookingScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[
-              styles.tab,
-              selectedTab === "complete" && styles.activeTab,
-            ]}
+            style={[styles.tab, selectedTab === "complete" && styles.activeTab]}
             onPress={() => setSelectedTab("complete")}
           >
             <Text
@@ -494,6 +501,7 @@ export default function BookingScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{
             paddingBottom: moderateHeightScale(20),
+            paddingHorizontal: moderateWidthScale(16),
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
