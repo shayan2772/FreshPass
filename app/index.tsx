@@ -4,15 +4,10 @@ import { useAppSelector } from "@/src/hooks/hooks";
 import { useEffect, useState } from "react";
 
 export default function Index() {
- 
   const user = useAppSelector((state) => state.user);
   const accessToken = user.accessToken;
   const isGuest = user.isGuest;
   const [isReady, setIsReady] = useState(false);
-
-  console.log("accessToken", accessToken);
-  console.log("isGuest", isGuest);
-
 
   useEffect(() => {
     // Small delay to ensure Redux state is hydrated
@@ -25,15 +20,9 @@ export default function Index() {
   if (!isReady) {
     return null;
   }
+ 
+  if (accessToken || isGuest)
+    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
 
-  // If access token exists, redirect to dashboard home
-  if (accessToken)
-    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
-  // return <Redirect href={`/(main)/${MAIN_ROUTES.COMPLETE_CUSTOMER_PROFILE}` as any} />;
- 
-  if(isGuest)
-    return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
-  
   return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;
- 
 }

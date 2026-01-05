@@ -2104,7 +2104,7 @@ export default function BusinessDetailScreen() {
               style={styles.showAllReviewsButton}
               onPress={() => {
                 router.push({
-                  pathname: "/(main)/dashboard/(home)/userReviews",
+                  pathname: "/(main)/userReviews",
                   params: { business_id: "1" }, // Dummy business ID
                 } as any);
               }}

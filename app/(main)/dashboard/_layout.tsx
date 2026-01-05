@@ -98,6 +98,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("notificationSettings");
+  const isLanguageChangeScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("languageChange");
   const isRulesAndTermsScreen =
     Array.isArray(segments) &&
     segments.includes("(account)") &&
@@ -139,6 +143,7 @@ export default function DashboardLayout() {
             isProfileScreen ||
             isRulesAndTermsScreen ||
             isNotificationSettingsScreen ||
+            isLanguageChangeScreen ||
             isBusinessProfileSettingsScreen ||
             isChatBoxScreen ||
             isWorkHistoryScreen ||

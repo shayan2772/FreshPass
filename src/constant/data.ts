@@ -1,7 +1,7 @@
 export const langData = [
   { label: "English", value: "en" },
-  { label: "Urdu", value: "ur" },
   { label: "French", value: "fr" },
+  { label: "Spanish", value: "es" },
 ];
 
 export const themeData  = [

@@ -197,7 +197,7 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
         <TouchableOpacity
           activeOpacity={0.8}
           style={[styles.revenueCard, styles.reviewCard]}
-          onPress={() => router.push("/(main)/dashboard/(home)/userReviews")}
+          onPress={() => router.push("/(main)/userReviews")}
         >
           <View style={styles.titleSec}>
             <Text numberOfLines={1} style={styles.reviewRate}>

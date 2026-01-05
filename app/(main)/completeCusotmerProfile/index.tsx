@@ -12,6 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { setUserDetails } from "@/src/state/slices/userSlice";
 import { Theme } from "@/src/theme/colors";
 import { MAIN_ROUTES } from "@/src/constant/routes";
 import Button from "@/src/components/button";
@@ -152,9 +153,25 @@ export default function completeCusotmerProfile() {
 
       if (response.success) {
         if (currentStep === 1) {
+          // Update user slice with Step 1 values
+          dispatch(
+            setUserDetails({
+              name: fullName.trim() || null,
+              phone: phoneNumber || null,
+              country_code: countryCode || countryIso || null,
+              dateOfBirth: dateOfBirth || null,
+            })
+          );
           // Move to next step on success
           dispatch(goToNextStep());
         } else if (currentStep === 2) {
+          // Update user slice with Step 2 values
+          dispatch(
+            setUserDetails({
+              countryZipCode: countryZipCode || "",
+              countryName: countryName || "",
+            })
+          );
           // Open terms modal after Step 2 API call
           setShowTermsModal(true);
         }

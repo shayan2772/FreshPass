@@ -2,12 +2,12 @@ import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import en from "@/src/locales/en/translation.json";
 import fr from "@/src/locales/fr/translation.json";
-import ur from "@/src/locales/ur/translation.json";
+import es from "@/src/locales/es/translation.json";
 
 const resources = {
   en: { translation: en },
-  ur: { translation: ur },
   fr: { translation: fr },
+  es: { translation: es },
 };
 
 export const initI18n = async () => {

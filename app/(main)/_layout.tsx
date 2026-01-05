@@ -6,7 +6,7 @@ import { Platform, StyleSheet } from "react-native";
 const createStyles = (theme: any) =>
   StyleSheet.create({
     contentStyle: {
-      // backgroundColor: theme.background,
+      
     },
   });
 

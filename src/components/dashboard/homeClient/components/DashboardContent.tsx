@@ -1286,7 +1286,7 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointments.length > 0
+        {appointments.length > 9
           ? appointments.map((appointment, index) => (
               <View
                 key={appointment.id}

@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme, useAppSelector } from "@/src/hooks/hooks";
+import { useTranslation } from "react-i18next";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -82,7 +83,22 @@ export default function AccountScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const userRole = useAppSelector((state) => state.user.userRole);
+  const { i18n } = useTranslation();
+
+  const user = useAppSelector((state) => state.user);
+  const userRole = user.userRole;
+  const isGuest = user.isGuest;
+  const isCustomer = user.userRole === "customer";
+  const currentLanguage = useAppSelector((state) => state.general.language);
+
+  const getLanguageName = (code: string) => {
+    const languages: { [key: string]: string } = {
+      en: "English",
+      fr: "French",
+      es: "Spanish",
+    };
+    return languages[code] || "English";
+  };
 
   const handleLogout = async () => {
     Alert.alert(
@@ -160,10 +176,19 @@ export default function AccountScreen() {
       router.push("./rulesAndTerms");
     } else if (key === "notifications") {
       router.push("./notificationSettings");
+    } else if (key === "language") {
+      router.push("./languageChange");
     } else if (key === "business") {
       router.push("./(businessProfileSettings)");
     } else if (key === "availability") {
       router.push("./staffAvailability");
+    } else if (key === "reviews") {
+      if (user.id) {
+        router.push({
+          pathname: "/(main)/userReviews",
+          params: { business_id: user.id }, // Dummy business ID
+        } as any);
+      }
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -181,6 +206,7 @@ export default function AccountScreen() {
       | "language"
       | "notifications"
       | "rules"
+      | "reviews"
       | "logout"
       | "delete";
     title: string;
@@ -189,20 +215,29 @@ export default function AccountScreen() {
 
   const rows: Row[] = [
     { key: "personal", title: "Personal information" },
-    ...(userRole === "staff"
-      ? [{ key: "availability" as const, title: "Set availability" }]
-      : [{ key: "business" as const, title: "Business profile settings" }]),
+    ...((userRole === "business" || userRole === "staff") &&
+    !isGuest &&
+    !isCustomer
+      ? userRole === "staff"
+        ? [{ key: "availability" as const, title: "Set availability" }]
+        : [{ key: "business" as const, title: "Business profile settings" }]
+      : []),
     {
       key: "language",
       title: "Language",
-      subtitle: "Default language (English)",
+      subtitle: `Current language (${getLanguageName(currentLanguage)})`,
     },
     {
       key: "notifications",
       title: "Notification settings",
       subtitle: "Turned ON",
     },
-    { key: "rules", title: "Rules and terms" },
+    ...((userRole === "business" || userRole === "staff") &&
+    !isGuest &&
+    !isCustomer
+      ? [{ key: "rules" as const, title: "Rules and terms" }]
+      : []),
+    ...(isCustomer ? [{ key: "reviews" as const, title: "Reviews" }] : []),
     { key: "logout", title: "Log out" },
     { key: "delete", title: "Delete account" },
   ];
