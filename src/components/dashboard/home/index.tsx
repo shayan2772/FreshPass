@@ -402,12 +402,15 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
+    if(userRole === "business" || userRole==="staff"){
     fetchInitialData();
+    }
 
     const subscription = AppState.addEventListener(
       "change",
       async (nextAppState) => {
         if (nextAppState === "active") {
+          console.log("app comes to foreground");
           // Refresh data when app comes to foreground
           handleFetchUserStatus();
           handleFetchUnreadCount();

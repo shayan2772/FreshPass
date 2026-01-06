@@ -8,7 +8,11 @@ import axios, {
 import NetInfo from "@react-native-community/netinfo";
 import { store, persistor } from "@/src/state/store";
 import { setTokens, resetUser } from "@/src/state/slices/userSlice";
-import { resetGeneral, setRegisterEmail, setSavedPassword } from "../state/slices/generalSlice";
+import {
+  resetGeneral,
+  setRegisterEmail,
+  setSavedPassword,
+} from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
 import { Platform } from "react-native";
 import { router } from "expo-router";
@@ -50,13 +54,25 @@ export const setSessionExpiredHandler = (callback: () => void) => {
 };
 
 // Callback for showing toast notifications
-let onShowToast: ((title: string, message: string, type: "success" | "error" | "warning" | "info") => void) | null = null;
+let onShowToast:
+  | ((
+      title: string,
+      message: string,
+      type: "success" | "error" | "warning" | "info"
+    ) => void)
+  | null = null;
 
 /**
  * Set callback to handle toast notifications
  * This will be called when we need to show toast messages
  */
-export const setToastHandler = (callback: (title: string, message: string, type: "success" | "error" | "warning" | "info") => void) => {
+export const setToastHandler = (
+  callback: (
+    title: string,
+    message: string,
+    type: "success" | "error" | "warning" | "info"
+  ) => void
+) => {
   onShowToast = callback;
 };
 
@@ -67,14 +83,14 @@ export const setToastHandler = (callback: (title: string, message: string, type:
  */
 export const checkInternetConnection = async (): Promise<boolean> => {
   try {
-    if (Platform.OS === 'web') {
+    if (Platform.OS === "web") {
       // For web, check navigator.onLine
       return navigator.onLine;
     }
-    
+
     // Fetch network state
     const state = await NetInfo.fetch();
-    
+
     // If connected to any network (WiFi, cellular, etc.), allow the request
     // NetInfo's isInternetReachable can be unreliable, especially for local networks
     // Let axios handle actual network errors instead of blocking upfront
@@ -83,11 +99,11 @@ export const checkInternetConnection = async (): Promise<boolean> => {
       // The actual network error will be caught by axios if the request fails
       return true;
     }
-    
+
     // Only block if explicitly not connected to any network
     return false;
   } catch (error) {
-    console.error('Error checking internet connection:', error);
+    console.error("Error checking internet connection:", error);
     // On error, allow the request to proceed - let axios handle network errors
     return true;
   }
@@ -179,28 +195,12 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * This function clears tokens from Redux state and all persisted data from SecureStore
  */
 const handleLogout = async () => {
-  // Save registerEmail and savedPassword before clearing
-  const currentState = store.getState();
-  const savedRegisterEmail = currentState.general.registerEmail;
-  const savedPasswordValue = currentState.general.savedPassword;
-  
   // Clear Redux state
-  store.dispatch(resetUser());
   store.dispatch(resetCompleteProfile());
   store.dispatch(resetGeneral());
-  
-  // Clear all persisted data from SecureStore (redux-persist)
-  await persistor.purge();
-  
-  // Restore registerEmail and savedPassword after purge
-  if (savedRegisterEmail) {
-    store.dispatch(setRegisterEmail(savedRegisterEmail));
-  }
-  if (savedPasswordValue) {
-    store.dispatch(setSavedPassword(savedPasswordValue));
-  }
-  
-   router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
+  store.dispatch(resetUser());
+
+  router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
 };
 
 /**
@@ -298,7 +298,7 @@ apiClient.interceptors.response.use(
     // Handle 401 Unauthorized - Session expired
     if (error.response?.status === 401) {
       // Clear user data and tokens
-        // await handleLogout();
+      // await handleLogout();
 
       // Call session expired handler (for toast and navigation)
       if (onSessionExpired) {
@@ -359,7 +359,11 @@ apiClient.interceptors.response.use(
     ) {
       // Show timeout toast
       if (onShowToast) {
-        onShowToast("Request Timeout", "The request took too long to complete. Please try again.", "error");
+        onShowToast(
+          "Request Timeout",
+          "The request took too long to complete. Please try again.",
+          "error"
+        );
       }
     }
 
@@ -420,7 +424,7 @@ const logApiResponse = (
     console.log(`✅ API ${method} Response:`, {
       url: fullUrl,
       status: status,
-      data: JSON.stringify( data),
+      data: JSON.stringify(data),
     });
   }
 };
@@ -481,12 +485,16 @@ export class ApiService {
     if (!hasInternet) {
       const error = new Error("No internet connection");
       (error as any).isNoInternet = true;
-      
+
       // Show toast for no internet connection
       if (onShowToast) {
-        onShowToast("No Internet Connection", "Please check your internet connection and try again.", "error");
+        onShowToast(
+          "No Internet Connection",
+          "Please check your internet connection and try again.",
+          "error"
+        );
       }
-      
+
       logApiError("POST", url, url, error);
       throw error;
     }

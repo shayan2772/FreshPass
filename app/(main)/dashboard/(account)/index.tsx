@@ -114,7 +114,7 @@ export default function AccountScreen() {
           text: "Yes",
           onPress: async () => {
             await ApiService.logout();
-            // router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
+      
           },
         },
       ],
