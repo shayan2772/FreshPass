@@ -1,20 +1,11 @@
 import React, { useMemo, useState, useEffect } from "react";
-import {
-  StyleSheet,
-  ScrollView,
-  View,
-  Text,
-  ActivityIndicator,
-  Alert,
-} from "react-native";
+import { StyleSheet, ScrollView, View, Text, Alert } from "react-native";
 import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
-  widthScale,
-  heightScale,
 } from "@/src/theme/dimensions";
 import StackHeader from "@/src/components/StackHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -82,7 +73,7 @@ const createStyles = (theme: Theme) =>
     headerCard: {
       marginHorizontal: moderateWidthScale(20),
       marginTop: moderateHeightScale(20),
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(12),
       overflow: "hidden",
       marginBottom: moderateHeightScale(12),
     },
@@ -115,7 +106,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.white,
       marginBottom: moderateHeightScale(8),
-      textTransform:"capitalize"
+      textTransform: "capitalize",
     },
     planPriceContainer: {
       flexDirection: "row",
@@ -160,8 +151,9 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(16),
     },
     infoCard: {
-      padding: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(12),
+      paddingVertical: moderateHeightScale(12),
+      flexDirection: "row",
+      alignItems: "center",
     },
     shadow: {
       shadowColor: theme.shadow,
@@ -174,9 +166,9 @@ const createStyles = (theme: Theme) =>
       elevation: 4,
     },
     infoRow: {
-      flexDirection: "row",
+      flexDirection: "column",
       alignItems: "center",
-      marginBottom: moderateHeightScale(16),
+      flex: 1,
     },
     infoRowLast: {
       marginBottom: 0,
@@ -188,35 +180,38 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.orangeBrown30,
       alignItems: "center",
       justifyContent: "center",
-      marginRight: moderateWidthScale(14),
+      marginBottom: moderateHeightScale(8),
     },
     infoIcon: {
       // Icon styling handled by Feather component
     },
     infoContent: {
-      flex: 1,
+      alignItems: "center",
     },
     infoLabel: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
+      textAlign: "center",
     },
     infoValue: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      textAlign: "center",
     },
     divider: {
-      height: 1,
+      width: 1,
+      height: moderateHeightScale(60),
       backgroundColor: theme.borderLight,
-      marginVertical: moderateHeightScale(16),
+      marginHorizontal: moderateWidthScale(12),
     },
     daysRemainingCard: {
       borderRadius: moderateWidthScale(16),
       marginHorizontal: moderateWidthScale(20),
       marginBottom: moderateHeightScale(20),
-      overflow: "hidden",   
+      overflow: "hidden",
     },
     cardGradient: {
       flex: 1,
@@ -306,8 +301,7 @@ const createStyles = (theme: Theme) =>
     },
     buttonContainer: {
       marginHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(8),
-      marginBottom: moderateHeightScale(20),
+      marginVertical: moderateHeightScale(24),
     },
     emptyContainer: {
       flex: 1,
@@ -420,32 +414,32 @@ export default function SubscriptionScreen() {
           text: "Yes, Cancel Trial",
           style: "destructive",
           onPress: async () => {
-            setCancelling(true);
-            try {
-              const response = await ApiService.post<{
-                success: boolean;
-                message: string;
-              }>(businessEndpoints.cancelTrial(subscription.id), {});
+            // setCancelling(true);
+            // try {
+            //   const response = await ApiService.post<{
+            //     success: boolean;
+            //     message: string;
+            //   }>(businessEndpoints.cancelTrial(subscription.id), {});
 
-              if (response.success) {
-                showBanner(
-                  "Success",
-                  "Trial cancelled successfully",
-                  "success",
-                  2500
-                );
-                await fetchSubscription();
-              }
-            } catch (err: any) {
-              showBanner(
-                "Error",
-                err.message || "Failed to cancel trial",
-                "error",
-                2500
-              );
-            } finally {
-              setCancelling(false);
-            }
+            //   if (response.success) {
+            //     showBanner(
+            //       "Success",
+            //       "Trial cancelled successfully",
+            //       "success",
+            //       2500
+            //     );
+            //     await fetchSubscription();
+            //   }
+            // } catch (err: any) {
+            //   showBanner(
+            //     "Error",
+            //     err.message || "Failed to cancel trial",
+            //     "error",
+            //     2500
+            //   );
+            // } finally {
+            //   setCancelling(false);
+            // }
           },
         },
       ],
@@ -455,7 +449,7 @@ export default function SubscriptionScreen() {
 
   const formatCardNumber = (lastFour: string | null) => {
     if (!lastFour) {
-      return "**** **** **** 4444";
+      return "**** **** **** ----";
     }
     return `**** **** **** ${lastFour}`;
   };
@@ -545,7 +539,9 @@ export default function SubscriptionScreen() {
             </View>
             {subscription.subscriptionPlanDescription && (
               <Text style={styles.planDescription}>
-                {capitalizeFirstLetter(subscription.subscriptionPlanDescription)}
+                {capitalizeFirstLetter(
+                  subscription.subscriptionPlanDescription
+                )}
               </Text>
             )}
           </LinearGradient>
@@ -632,7 +628,7 @@ export default function SubscriptionScreen() {
               onPress={handleCancelTrial}
               loading={cancelling}
               disabled={cancelling}
-              backgroundColor={theme.red}
+              backgroundColor={theme.buttonBack}
             />
           </View>
         )}
