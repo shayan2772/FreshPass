@@ -17,6 +17,28 @@ export const createStyles = (theme: Theme) =>
       flexGrow: 1,
       paddingVertical: moderateHeightScale(24),
       paddingHorizontal: moderateWidthScale(20),
+      justifyContent: "center",
+    },
+    headerContainer: {
+      marginBottom: moderateHeightScale(30),
+      alignItems: "center",
+    },
+    headerButton: {
+      width: "100%",
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
+    },
+    headerGradient: {
+      paddingVertical: moderateHeightScale(16),
+      paddingHorizontal: moderateWidthScale(24),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerTitle: {
+      fontSize: fontSize.size20,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      textAlign: "center",
     },
     featuresContainer: {
       flexDirection: "row",

@@ -1,91 +1,23 @@
-import React, { useMemo } from "react";
-import { ScrollView, View, Text, TouchableOpacity } from "react-native";
+import React, { useMemo, useState, useRef, useEffect } from "react";
+import {
+  ScrollView,
+  View,
+  Text,
+  TouchableOpacity,
+  Animated,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import { fontSize, fonts } from "@/src/theme/fonts";
-import {
-  moderateHeightScale,
-  moderateWidthScale,
-} from "@/src/theme/dimensions";
+import { moderateWidthScale } from "@/src/theme/dimensions";
 import { createStyles } from "./styles";
 import StackHeader from "@/src/components/StackHeader";
-import { SvgXml } from "react-native-svg";
 import { LinearGradient } from "expo-linear-gradient";
-
-// Generate Post Icon (Landscape/Image)
-const generatePostIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z" fill="{{COLOR}}"/>
-<path d="M14.5 11L12 8.5L9.5 11L8 9.5V15H16V9.5L14.5 11Z" fill="{{COLOR}}"/>
-<circle cx="15.5" cy="8.5" r="1.5" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Generate Collage Icon (Grid)
-const generateCollageIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M3 3H11V11H3V3Z" fill="{{COLOR}}"/>
-<path d="M13 3H21V11H13V3Z" fill="{{COLOR}}"/>
-<path d="M3 13H11V21H3V13Z" fill="{{COLOR}}"/>
-<path d="M13 13H21V21H13V13Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Generate Reel Icon (Video Camera)
-const generateReelIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-const GeneratePostIcon = ({
-  width = 24,
-  height = 24,
-  color = "#FFFFFF",
-}: {
-  width?: number;
-  height?: number;
-  color?: string;
-}) => {
-  const svgXml = generatePostIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const GenerateCollageIcon = ({
-  width = 24,
-  height = 24,
-  color = "#FFFFFF",
-}: {
-  width?: number;
-  height?: number;
-  color?: string;
-}) => {
-  const svgXml = generateCollageIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const GenerateReelIcon = ({
-  width = 24,
-  height = 24,
-  color = "#FFFFFF",
-}: {
-  width?: number;
-  height?: number;
-  color?: string;
-}) => {
-  const svgXml = generateReelIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
+import {
+  GeneratePostIcon,
+  GenerateCollageIcon,
+  GenerateReelIcon,
+} from "@/assets/icons";
 
 export default function BusinessAiTools() {
   const router = useRouter();
@@ -93,6 +25,12 @@ export default function BusinessAiTools() {
   const { colors } = useTheme();
 
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  // Animation values
+  const headerTranslateY = useRef(new Animated.Value(0)).current;
+  const boxesTranslateY = useRef(new Animated.Value(300)).current;
+  const boxesOpacity = useRef(new Animated.Value(0)).current;
 
   const features = [
     {
@@ -112,9 +50,64 @@ export default function BusinessAiTools() {
     },
   ];
 
-  const handleFeaturePress = (featureId: string) => {
-    // Handle feature press
-    console.log("Feature pressed:", featureId);
+  useEffect(() => {
+    if (isExpanded) {
+      // Animate header up
+      Animated.spring(headerTranslateY, {
+        toValue: -100,
+        useNativeDriver: true,
+        tension: 100,
+        friction: 8,
+      }).start();
+
+      // Animate boxes coming from below with stagger
+      Animated.parallel([
+        Animated.spring(boxesTranslateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 80,
+          friction: 8,
+          delay: 100,
+        }),
+        Animated.timing(boxesOpacity, {
+          toValue: 1,
+          duration: 400,
+          useNativeDriver: true,
+          delay: 100,
+        }),
+      ]).start();
+    } else {
+      // Reset animations
+      Animated.parallel([
+        Animated.spring(headerTranslateY, {
+          toValue: 0,
+          useNativeDriver: true,
+          tension: 100,
+          friction: 8,
+        }),
+        Animated.timing(boxesTranslateY, {
+          toValue: 300,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(boxesOpacity, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [isExpanded]);
+
+  const handleHeaderPress = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  const handleFeaturePress = (featureId: string, featureTitle: string) => {
+    router.push({
+      pathname: "/(main)/aiTools/tools",
+      params: { toolType: featureTitle },
+    });
   };
 
   return (
@@ -126,14 +119,49 @@ export default function BusinessAiTools() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        <View style={styles.featuresContainer}>
-          {features.map((feature) => {
+        <Animated.View
+          style={[
+            styles.headerContainer,
+            {
+              transform: [{ translateY: headerTranslateY }],
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={handleHeaderPress}
+            activeOpacity={0.7}
+            style={styles.headerButton}
+          >
+            <LinearGradient
+              colors={[
+                (colors as Theme).darkGreenLight,
+                (colors as Theme).darkGreen,
+              ]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.headerGradient}
+            >
+              <Text style={styles.headerTitle}>Social Media AI Tool</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+        </Animated.View>
+
+        <Animated.View
+          style={[
+            styles.featuresContainer,
+            {
+              transform: [{ translateY: boxesTranslateY }],
+              opacity: boxesOpacity,
+            },
+          ]}
+        >
+          {features.map((feature, index) => {
             const IconComponent = feature.icon;
             return (
               <TouchableOpacity
                 key={feature.id}
                 style={styles.featureBox}
-                onPress={() => handleFeaturePress(feature.id)}
+                onPress={() => handleFeaturePress(feature.id, feature.title)}
                 activeOpacity={0.7}
               >
                 <LinearGradient
@@ -157,7 +185,7 @@ export default function BusinessAiTools() {
               </TouchableOpacity>
             );
           })}
-        </View>
+        </Animated.View>
       </ScrollView>
     </View>
   );

@@ -1595,6 +1595,86 @@ export const WalletIcon: React.FC<WalletIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Generate Post Icon SVG (Landscape/Image)
+const generatePostIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M19 3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3ZM19 19H5V5H19V19Z" fill="{{COLOR}}"/>
+<path d="M14.5 11L12 8.5L9.5 11L8 9.5V15H16V9.5L14.5 11Z" fill="{{COLOR}}"/>
+<circle cx="15.5" cy="8.5" r="1.5" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface GeneratePostIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const GeneratePostIcon: React.FC<GeneratePostIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = generatePostIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+// Generate Collage Icon SVG (Grid)
+const generateCollageIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 3H11V11H3V3Z" fill="{{COLOR}}"/>
+<path d="M13 3H21V11H13V3Z" fill="{{COLOR}}"/>
+<path d="M3 13H11V21H3V13Z" fill="{{COLOR}}"/>
+<path d="M13 13H21V21H13V13Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface GenerateCollageIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const GenerateCollageIcon: React.FC<GenerateCollageIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = generateCollageIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
+// Generate Reel Icon SVG (Video Camera)
+const generateReelIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M17 10.5V7C17 6.45 16.55 6 16 6H4C3.45 6 3 6.45 3 7V17C3 17.55 3.45 18 4 18H16C16.55 18 17 17.55 17 17V13.5L21 17.5V6.5L17 10.5Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface GenerateReelIconProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const GenerateReelIcon: React.FC<GenerateReelIconProps> = ({
+  width = 24,
+  height = 24,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = generateReelIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -1648,4 +1728,7 @@ export default {
   SupportIcon,
   BookAgainIcon,
   WalletIcon,
+  GeneratePostIcon,
+  GenerateCollageIcon,
+  GenerateReelIcon,
 };
