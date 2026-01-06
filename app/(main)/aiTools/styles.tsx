@@ -14,6 +14,9 @@ export const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.background,
     },
+    contentContainer: {
+      flex: 1,
+    },
     scrollContent: {
       flexGrow: 1,
       paddingBottom: moderateHeightScale(15),

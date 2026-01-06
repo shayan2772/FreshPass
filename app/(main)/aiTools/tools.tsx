@@ -7,6 +7,8 @@ import {
   Alert,
   Image,
   Dimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
@@ -534,22 +536,27 @@ export default function Tools() {
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title={headerTitle} />
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.contentContainer}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        {toolType === "Generate Post" && renderPostContent()}
-        {toolType === "Generate Collage" && renderCollageContent()}
-        {toolType === "Generate Reel" && renderReelContent()}
-      </ScrollView>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {toolType === "Generate Post" && renderPostContent()}
+          {toolType === "Generate Collage" && renderCollageContent()}
+          {toolType === "Generate Reel" && renderReelContent()}
+        </ScrollView>
 
-      <View style={styles.buttonContainer}>
-        <Button
-          title={`Generate ${toolType.replace("Generate ", "")}`}
-          onPress={handleGenerate}
-        />
-      </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title={`Generate ${toolType.replace("Generate ", "")}`}
+            onPress={handleGenerate}
+          />
+        </View>
+      </KeyboardAvoidingView>
 
       {/* Image Picker Modal for Post and Collage */}
       <ModalizeBottomSheet
