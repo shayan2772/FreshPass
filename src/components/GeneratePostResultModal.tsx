@@ -517,28 +517,6 @@ export default function GeneratePostResultModal({
                       {result.video.duration.toFixed(1)}s
                     </Text>
                   )}
-                  {/* <TouchableOpacity
-                    style={styles.openFullButton}
-                    onPress={async () => {
-                      try {
-                        const canOpen = await Linking.canOpenURL(
-                          result.video!.url
-                        );
-                        if (canOpen) {
-                          await Linking.openURL(result.video!.url);
-                        }
-                      } catch (error) {
-                        console.error("Error opening video URL:", error);
-                      }
-                    }}
-                  >
-                    <OpenFullIcon
-                      width={widthScale(14)}
-                      height={heightScale(14)}
-                      color={theme.white}
-                    />
-                    <Text style={styles.openFullButtonText}>Open in full</Text>
-                  </TouchableOpacity> */}
                 </View>
               </View>
             )}
