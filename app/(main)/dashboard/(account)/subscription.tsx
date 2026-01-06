@@ -491,17 +491,17 @@ export default function SubscriptionScreen() {
           </LinearGradient>
         </View>
 
-        {/* Days Remaining Card */}
+        {/* Card Last 4 Digits Card */}
         <View style={styles.daysRemainingCard}>
           <View style={styles.daysRemainingLeft}>
-            <Text style={styles.daysRemainingLabel}>Days Remaining</Text>
+            <Text style={styles.daysRemainingLabel}>Card</Text>
             <Text style={styles.daysRemainingValue}>
-              {subscription.remainingDays}
+              {formatCardNumber(subscription.cardLastFour)}
             </Text>
           </View>
           <View style={styles.daysRemainingIcon}>
             <Feather
-              name="calendar"
+              name="credit-card"
               size={moderateWidthScale(28)}
               color={theme.darkGreenLight}
             />
@@ -515,15 +515,15 @@ export default function SubscriptionScreen() {
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Feather
-                  name="credit-card"
+                  name="calendar"
                   size={moderateWidthScale(20)}
                   color={theme.darkGreenLight}
                 />
               </View>
               <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Card</Text>
+                <Text style={styles.infoLabel}>Days Remaining</Text>
                 <Text style={styles.infoValue}>
-                  {formatCardNumber(subscription.cardLastFour)}
+                  {subscription.remainingDays}
                 </Text>
               </View>
             </View>
