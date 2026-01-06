@@ -59,11 +59,6 @@ const generalSlice = createSlice({
       state.isVisitFirst = action.payload;
     },
     resetGeneral(state) {
-      // state.theme = initialState.theme;
-      // state.themeType = initialState.themeType;
-      // state.language = initialState.language;
-      // state.registerEmail = initialState.registerEmail;
-      // state.savedPassword = initialState.savedPassword;
     },
   },
 });

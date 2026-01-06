@@ -8,7 +8,7 @@ import axios, {
 import NetInfo from "@react-native-community/netinfo";
 import { store, persistor } from "@/src/state/store";
 import { setTokens, resetUser } from "@/src/state/slices/userSlice";
-import { resetGeneral } from "../state/slices/generalSlice";
+import { resetGeneral, setRegisterEmail, setSavedPassword } from "../state/slices/generalSlice";
 import { resetCompleteProfile } from "../state/slices/completeProfileSlice";
 import { Platform } from "react-native";
 import { router } from "expo-router";
@@ -179,6 +179,11 @@ const refreshAccessToken = async (): Promise<string | null> => {
  * This function clears tokens from Redux state and all persisted data from SecureStore
  */
 const handleLogout = async () => {
+  // Save registerEmail and savedPassword before clearing
+  const currentState = store.getState();
+  const savedRegisterEmail = currentState.general.registerEmail;
+  const savedPasswordValue = currentState.general.savedPassword;
+  
   // Clear Redux state
   store.dispatch(resetUser());
   store.dispatch(resetCompleteProfile());
@@ -186,6 +191,15 @@ const handleLogout = async () => {
   
   // Clear all persisted data from SecureStore (redux-persist)
   await persistor.purge();
+  
+  // Restore registerEmail and savedPassword after purge
+  if (savedRegisterEmail) {
+    store.dispatch(setRegisterEmail(savedRegisterEmail));
+  }
+  if (savedPasswordValue) {
+    store.dispatch(setSavedPassword(savedPasswordValue));
+  }
+  
   router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
 };
 
