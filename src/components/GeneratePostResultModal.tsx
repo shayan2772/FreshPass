@@ -211,10 +211,10 @@ const createStyles = (theme: Theme) =>
     },
     videoContainer: {
       width: "100%",
-      height: heightScale(400),
+      height: heightScale(300),
       borderRadius: moderateWidthScale(12),
       overflow: "hidden",
-      backgroundColor: theme.lightGreen2,
+      backgroundColor: theme.orangeBrown30,
       borderWidth: 1,
       borderColor: theme.borderLight,
       marginBottom: moderateHeightScale(20),
@@ -259,6 +259,46 @@ const createStyles = (theme: Theme) =>
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
     },
+    videoDetailsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: moderateWidthScale(16),
+      marginTop: moderateHeightScale(16),
+    },
+    videoDetailCard: {
+      flex: 1,
+      minWidth: widthScale(140),
+      backgroundColor: theme.orangeBrown30,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(12),
+    },
+    videoDetailIconContainer: {
+      width: moderateWidthScale(40),
+      height: moderateWidthScale(40),
+      borderRadius: moderateWidthScale(20),
+      backgroundColor: theme.primary,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    videoDetailContent: {
+      flex: 1,
+    },
+    videoDetailLabel: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    videoDetailValue: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
   });
 
 export default function GeneratePostResultModal({
@@ -274,6 +314,7 @@ export default function GeneratePostResultModal({
   const [fullImageModalVisible, setFullImageModalVisible] = useState(false);
   const videoRef = useRef<Video>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
   const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(
     null
   );
@@ -283,8 +324,17 @@ export default function GeneratePostResultModal({
       // Pause video when modal closes
       videoRef.current?.pauseAsync();
       setIsPlaying(false);
+      setIsVideoReady(false);
     }
   }, [visible]);
+
+  useEffect(() => {
+    // Reset video ready state when video URL changes
+    if (result?.video?.url) {
+      setIsVideoReady(false);
+      setIsPlaying(false);
+    }
+  }, [result?.video?.url]);
 
   const handleCopy = async (text: string, label: string) => {
     try {
@@ -333,6 +383,19 @@ export default function GeneratePostResultModal({
       await videoRef.current.pauseAsync();
       setIsPlaying(false);
     } else {
+      // Check if video has finished - if so, reset to beginning
+      if (playbackStatus?.isLoaded && playbackStatus.didJustFinish) {
+        await videoRef.current.setPositionAsync(0);
+      }
+      // Also check if video is at the end position
+      if (
+        playbackStatus?.isLoaded &&
+        playbackStatus.positionMillis !== undefined &&
+        playbackStatus.durationMillis !== undefined &&
+        playbackStatus.positionMillis >= playbackStatus.durationMillis - 100
+      ) {
+        await videoRef.current.setPositionAsync(0);
+      }
       await videoRef.current.playAsync();
       setIsPlaying(true);
     }
@@ -341,9 +404,23 @@ export default function GeneratePostResultModal({
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     setPlaybackStatus(status);
     if (status.isLoaded) {
+      // Check if video is ready to play (not buffering and has duration)
+      const isReady =
+        !status.isBuffering &&
+        status.durationMillis !== undefined &&
+        status.durationMillis > 0;
+
+      if (isReady && !isVideoReady) {
+        setIsVideoReady(true);
+      }
+
       setIsPlaying(status.isPlaying);
+
+      // When video ends, show play button and reset position
       if (status.didJustFinish) {
         setIsPlaying(false);
+        // Reset video position to beginning
+        videoRef.current?.setPositionAsync(0);
       }
     }
   };
@@ -407,18 +484,30 @@ export default function GeneratePostResultModal({
                   shouldPlay={false}
                   onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                 />
-                {!isPlaying && (
+                {!isVideoReady ? (
+                  <View style={styles.playButton}>
+                    <ActivityIndicator size="large" color={theme.white} />
+                  </View>
+                ) : (
                   <TouchableOpacity
                     style={styles.playButton}
                     onPress={handlePlayPause}
                     activeOpacity={0.7}
                   >
                     <View style={styles.playButtonInner}>
-                      <MaterialIcons
-                        name="play-arrow"
-                        size={moderateWidthScale(40)}
-                        color={theme.white}
-                      />
+                      {isPlaying ? (
+                        <MaterialIcons
+                          name="pause"
+                          size={moderateWidthScale(40)}
+                          color={theme.white}
+                        />
+                      ) : (
+                        <MaterialIcons
+                          name="play-arrow"
+                          size={moderateWidthScale(40)}
+                          color={theme.white}
+                        />
+                      )}
                     </View>
                   </TouchableOpacity>
                 )}
@@ -428,7 +517,7 @@ export default function GeneratePostResultModal({
                       {result.video.duration.toFixed(1)}s
                     </Text>
                   )}
-                  <TouchableOpacity
+                  {/* <TouchableOpacity
                     style={styles.openFullButton}
                     onPress={async () => {
                       try {
@@ -449,7 +538,7 @@ export default function GeneratePostResultModal({
                       color={theme.white}
                     />
                     <Text style={styles.openFullButtonText}>Open in full</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
                 </View>
               </View>
             )}
@@ -458,36 +547,108 @@ export default function GeneratePostResultModal({
             {toolType === "Generate Reel" && result.video && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>Video Details</Text>
-                <View style={styles.sectionContent}>
+                <View style={styles.videoDetailsGrid}>
                   {result.video.duration && (
-                    <Text style={styles.captionText}>
-                      Duration: {result.video.duration.toFixed(1)}s
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="timer"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>Duration</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.video.duration.toFixed(1)}s
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {result.video.resolution && (
-                    <Text style={styles.captionText}>
-                      Resolution: {result.video.resolution}
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="high-quality"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>Resolution</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.video.resolution}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {result.video.format && (
-                    <Text style={styles.captionText}>
-                      Format: {result.video.format}
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="video-file"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>Format</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.video.format.toUpperCase()}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {result.video.file_size_mb && (
-                    <Text style={styles.captionText}>
-                      File Size: {result.video.file_size_mb.toFixed(2)} MB
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="storage"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>File Size</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.video.file_size_mb.toFixed(2)} MB
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {result.media_count && (
-                    <Text style={styles.captionText}>
-                      Media Count: {result.media_count}
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="collections"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>Media Count</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.media_count}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                   {result.music?.has_music && (
-                    <Text style={styles.captionText}>
-                      Music: {result.music.track || "Library Music"}
-                    </Text>
+                    <View style={styles.videoDetailCard}>
+                      <View style={styles.videoDetailIconContainer}>
+                        <MaterialIcons
+                          name="music-note"
+                          size={moderateWidthScale(20)}
+                          color={theme.white}
+                        />
+                      </View>
+                      <View style={styles.videoDetailContent}>
+                        <Text style={styles.videoDetailLabel}>Music</Text>
+                        <Text style={styles.videoDetailValue}>
+                          {result.music.track || "Library Music"}
+                        </Text>
+                      </View>
+                    </View>
                   )}
                 </View>
               </View>

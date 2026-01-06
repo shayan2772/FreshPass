@@ -80,8 +80,8 @@ export default function Tools() {
 
   // API state
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResult, setGeneratedResult] = useState<any>(null);
-
+  const [generatedResult, setGeneratedResult] = useState<any>({"business_id": 1, "media_count": 3, "music": {"has_music": true, "source": "uploaded", "track": "user_uploaded"}, "processing_time": 97.95, "status": "success", "transitions": {"applied": ["zoom_in", "zoom_in"], "style": "dynamic"}, "video": {"duration": 13.58, "file_size_mb": 4.97, "format": "instagram_reel", "fps": 30, "resolution": "1080x1920", "url": "http://159.89.190.185:8001/outputs/social_media/business_1/reels/76b9bc5f_reel.mp4"}});
+  console.log("--->generatedResult", generatedResult);
   // Get business_id from Redux store
   const user = useAppSelector((state) => state.user);
   // const businessId = user?.business_id ??
