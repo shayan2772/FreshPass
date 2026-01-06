@@ -4,6 +4,7 @@ import {
   setBusinessStatus,
   setBusinessStatusLoading,
   setBusinessStatusError,
+  setUserDetails,
 } from "../slices/userSlice";
 import { ApiService } from "@/src/services/api";
 import {
@@ -61,29 +62,54 @@ export const fetchUserStatus = createAsyncThunk<
         };
         dispatch(setBusinessStatus(businessStatusData));
         dispatch(setBusinessStatusError(false));
+        
+        // Set business_id and business_name in user state
+        if (response.data.business?.id && response.data.business?.title) {
+          dispatch(
+            setUserDetails({
+              business_id: response.data.business.id,
+              business_name: response.data.business.title,
+            })
+          );
+        }
+        
+        return businessStatusData;
+      }
+      return null;
+    } else if (userRole === "business") {
+      // For business users, use existing structure
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: BusinessStatus;
+      }>(userEndpoints.status);
+
+      if (response.success && response.data) {
+        // Ensure active field exists, default to false if not provided
+        const businessStatusData = {
+          ...response.data,
+          active: response.data.active ?? false,
+        };
+
+        dispatch(setBusinessStatus(businessStatusData));
+        dispatch(setBusinessStatusError(false));
+
+        // Set business_id and business_name in user state
+        if (response.data.business_id && response.data.business_name) {
+          dispatch(
+            setUserDetails({
+              business_id: response.data.business_id,
+              business_name: response.data.business_name,
+            })
+          );
+        }
+
         return businessStatusData;
       }
       return null;
     }
 
-    // For business users, use existing structure
-    const response = await ApiService.get<{
-      success: boolean;
-      message: string;
-      data: BusinessStatus;
-    }>(userEndpoints.status);
-
-    if (response.success && response.data) {
-      // Ensure active field exists, default to false if not provided
-      const businessStatusData = {
-        ...response.data,
-        active: response.data.active ?? false,
-      };
-   
-      dispatch(setBusinessStatus(businessStatusData));
-      dispatch(setBusinessStatusError(false));
-      return businessStatusData;
-    }
+    // Return null for other user roles (customer, etc.)
     return null;
   } catch (error: any) {
     dispatch(setBusinessStatusError(true));

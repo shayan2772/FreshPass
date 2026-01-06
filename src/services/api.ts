@@ -200,7 +200,7 @@ const handleLogout = async () => {
     store.dispatch(setSavedPassword(savedPasswordValue));
   }
   
-  router.replace(`/(main)/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+   router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
 };
 
 /**

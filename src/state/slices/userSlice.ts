@@ -89,7 +89,8 @@ const initialState: UserState = {
   dateOfBirth: null,
   countryZipCode: "",
   countryName: "",
-  
+  business_id: undefined,
+  business_name: undefined,
 };
 
 const userSlice = createSlice({
@@ -163,6 +164,8 @@ const userSlice = createSlice({
         } | null;
         countryZipCode?: string;
         countryName?: string;
+        business_id?: number;
+        business_name?: string;
       }>
     ) {
       if (action.payload.name !== undefined) {
@@ -194,6 +197,12 @@ const userSlice = createSlice({
       }
       if (action.payload.countryName !== undefined) {
         state.countryName = action.payload.countryName;
+      }
+      if (action.payload.business_id !== undefined) {
+        state.business_id = action.payload.business_id;
+      }
+      if (action.payload.business_name !== undefined) {
+        state.business_name = action.payload.business_name;
       }
     },
     setUnreadCount(state, action: PayloadAction<number>) {
@@ -242,6 +251,8 @@ const userSlice = createSlice({
       state.dateOfBirth = initialState.dateOfBirth;
       state.countryZipCode = initialState.countryZipCode;
       state.countryName = initialState.countryName;
+      state.business_id = initialState.business_id;
+      state.business_name = initialState.business_name;
     },
     resetUser(state) {
       state.id = initialState.id;
@@ -266,6 +277,8 @@ const userSlice = createSlice({
       state.dateOfBirth = initialState.dateOfBirth;
       state.countryZipCode = initialState.countryZipCode;
       state.countryName = initialState.countryName;
+      state.business_id = initialState.business_id;
+      state.business_name = initialState.business_name;
     },
   },
 });
