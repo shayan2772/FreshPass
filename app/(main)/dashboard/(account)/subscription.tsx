@@ -111,10 +111,11 @@ const createStyles = (theme: Theme) =>
       letterSpacing: 0.5,
     },
     planName: {
-      fontSize: fontSize.size28,
-      fontFamily: fonts.fontExtraBold,
+      fontSize: fontSize.size22,
+      fontFamily: fonts.fontBold,
       color: theme.white,
       marginBottom: moderateHeightScale(8),
+      textTransform:"capitalize"
     },
     planPriceContainer: {
       flexDirection: "row",
@@ -129,19 +130,19 @@ const createStyles = (theme: Theme) =>
       opacity: 0.9,
     },
     planPrice: {
-      fontSize: fontSize.size36,
+      fontSize: fontSize.size30,
       fontFamily: fonts.fontExtraBold,
       color: theme.white,
     },
     pricePeriod: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size16,
       fontFamily: fonts.fontRegular,
       color: theme.white,
       opacity: 0.85,
       marginLeft: moderateWidthScale(4),
     },
     planDescription: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontRegular,
       color: theme.white,
       opacity: 0.9,
@@ -159,12 +160,8 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(16),
     },
     infoCard: {
-      backgroundColor: theme.white,
-      borderRadius: moderateWidthScale(16),
       padding: moderateWidthScale(20),
       marginBottom: moderateHeightScale(12),
-      borderWidth: 1,
-      borderColor: theme.borderLight,
     },
     shadow: {
       shadowColor: theme.shadow,
@@ -188,7 +185,7 @@ const createStyles = (theme: Theme) =>
       width: moderateWidthScale(40),
       height: moderateWidthScale(40),
       borderRadius: moderateWidthScale(10),
-      backgroundColor: theme.lightGreen2,
+      backgroundColor: theme.orangeBrown30,
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(14),
@@ -202,11 +199,11 @@ const createStyles = (theme: Theme) =>
     infoLabel: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
-      color: theme.lightGreen,
+      color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
     },
     infoValue: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
@@ -216,7 +213,7 @@ const createStyles = (theme: Theme) =>
       marginVertical: moderateHeightScale(16),
     },
     daysRemainingCard: {
-      backgroundColor: theme.lightGreen2,
+      backgroundColor: theme.orangeBrown30,
       borderRadius: moderateWidthScale(16),
       padding: moderateWidthScale(20),
       marginHorizontal: moderateWidthScale(20),
@@ -229,7 +226,7 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     daysRemainingLabel: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
@@ -243,7 +240,7 @@ const createStyles = (theme: Theme) =>
       width: moderateWidthScale(56),
       height: moderateWidthScale(56),
       borderRadius: moderateWidthScale(28),
-      backgroundColor: theme.white,
+      backgroundColor: theme.lightBeige,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -398,9 +395,14 @@ export default function SubscriptionScreen() {
 
   const formatCardNumber = (lastFour: string | null) => {
     if (!lastFour) {
-      return "Not added";
+      return "**** **** **** 4444";
     }
-    return `**** ${lastFour}`;
+    return `**** **** **** ${lastFour}`;
+  };
+
+  const capitalizeFirstLetter = (text: string | null) => {
+    if (!text) return "";
+    return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
   if (loading && !subscription) {
@@ -457,7 +459,7 @@ export default function SubscriptionScreen() {
         {/* Header Card with Gradient */}
         <View style={styles.headerCard}>
           <LinearGradient
-            colors={[theme.buttonBack, theme.darkGreen]}
+            colors={[theme.darkGreen, theme.darkGreenLight]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.headerGradient}
@@ -483,7 +485,7 @@ export default function SubscriptionScreen() {
             </View>
             {subscription.subscriptionPlanDescription && (
               <Text style={styles.planDescription}>
-                {subscription.subscriptionPlanDescription}
+                {capitalizeFirstLetter(subscription.subscriptionPlanDescription)}
               </Text>
             )}
           </LinearGradient>
@@ -501,7 +503,7 @@ export default function SubscriptionScreen() {
             <Feather
               name="calendar"
               size={moderateWidthScale(28)}
-              color={theme.buttonBack}
+              color={theme.darkGreenLight}
             />
           </View>
         </View>
@@ -509,13 +511,29 @@ export default function SubscriptionScreen() {
         {/* Subscription Details */}
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Subscription Details</Text>
-          <View style={[styles.infoCard, styles.shadow]}>
+          <View style={[styles.infoCard]}>
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather
+                  name="credit-card"
+                  size={moderateWidthScale(20)}
+                  color={theme.darkGreenLight}
+                />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>Card</Text>
+                <Text style={styles.infoValue}>
+                  {formatCardNumber(subscription.cardLastFour)}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.divider} />
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Feather
                   name="calendar"
                   size={moderateWidthScale(20)}
-                  color={theme.buttonBack}
+                  color={theme.darkGreenLight}
                 />
               </View>
               <View style={styles.infoContent}>
@@ -525,33 +543,13 @@ export default function SubscriptionScreen() {
                 </Text>
               </View>
             </View>
-
             <View style={styles.divider} />
-
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Feather
-                  name="credit-card"
-                  size={moderateWidthScale(20)}
-                  color={theme.buttonBack}
-                />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Payment Method</Text>
-                <Text style={styles.infoValue}>
-                  {formatCardNumber(subscription.cardLastFour)}
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.divider} />
-
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Feather
                   name="clock"
                   size={moderateWidthScale(20)}
-                  color={theme.buttonBack}
+                  color={theme.darkGreenLight}
                 />
               </View>
               <View style={styles.infoContent}>
