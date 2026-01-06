@@ -58,6 +58,8 @@ export interface UserState {
   } | null;
   countryZipCode: string;
   countryName: string;
+  business_id?: number;
+  business_name?: string;
 }
 
 const initialState: UserState = {
@@ -87,6 +89,7 @@ const initialState: UserState = {
   dateOfBirth: null,
   countryZipCode: "",
   countryName: "",
+  
 };
 
 const userSlice = createSlice({

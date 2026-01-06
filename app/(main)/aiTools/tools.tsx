@@ -4,7 +4,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -34,6 +33,8 @@ import { socialMediaEndpoints } from "@/src/services/endpoints";
 import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
 import ActionLoader from "@/src/components/actionLoader";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import axios from "axios";
 
 interface MediaFile {
   id: string;
@@ -53,6 +54,7 @@ export default function Tools() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
+  const { showBanner } = useNotificationContext();
   const params = useLocalSearchParams<{ toolType?: string }>();
 
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
@@ -85,7 +87,8 @@ export default function Tools() {
 
   // Get business_id from Redux store
   const user = useAppSelector((state) => state.user);
-  const businessId = user.businessStatus?.business_id ;
+  // const businessId = user?.business_id ??
+    const businessId ="1" ;
  
 
   const generateId = () => {
@@ -128,9 +131,11 @@ export default function Tools() {
 
           const totalImages = collageImages.length + newImages.length;
           if (totalImages > 6) {
-            Alert.alert(
+            showBanner(
               "Limit Exceeded",
-              "You can select maximum 6 images. Only first 6 will be added."
+              "You can select maximum 6 images. Only first 6 will be added.",
+              "warning",
+              3000
             );
             const remaining = 6 - collageImages.length;
             setCollageImages([
@@ -157,9 +162,11 @@ export default function Tools() {
 
           const totalMedia = reelMedia.length + newMedia.length;
           if (totalMedia > 15) {
-            Alert.alert(
+            showBanner(
               "Limit Exceeded",
-              "You can select maximum 15 media files. Only first 15 will be added."
+              "You can select maximum 15 media files. Only first 15 will be added.",
+              "warning",
+              3000
             );
             const remaining = 15 - reelMedia.length;
             setReelMedia([...reelMedia, ...newMedia.slice(0, remaining)]);
@@ -170,7 +177,7 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error selecting media:", error);
-      Alert.alert("Error", "Failed to select media. Please try again.");
+      showBanner("Error", "Failed to select media. Please try again.", "error", 3000);
     }
   }, [toolType, collageImages, reelMedia]);
 
@@ -198,7 +205,7 @@ export default function Tools() {
           setPostImage(asset.uri);
         } else if (toolType === "Generate Collage") {
           if (collageImages.length >= 6) {
-            Alert.alert("Limit Exceeded", "You can select maximum 6 images.");
+            showBanner("Limit Exceeded", "You can select maximum 6 images.", "warning", 3000);
             return;
           }
           setCollageImages([
@@ -211,9 +218,11 @@ export default function Tools() {
           ]);
         } else if (toolType === "Generate Reel") {
           if (reelMedia.length >= 15) {
-            Alert.alert(
+            showBanner(
               "Limit Exceeded",
-              "You can select maximum 15 media files."
+              "You can select maximum 15 media files.",
+              "warning",
+              3000
             );
             return;
           }
@@ -233,7 +242,7 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error taking photo:", error);
-      Alert.alert("Error", "Failed to take photo. Please try again.");
+      showBanner("Error", "Failed to take photo. Please try again.", "error", 3000);
     }
   }, [toolType, collageImages, reelMedia]);
 
@@ -272,9 +281,11 @@ export default function Tools() {
         // Validate file extension
         const allowedExtensions = ["mp3", "wav", "m4a"];
         if (fileExtension && !allowedExtensions.includes(fileExtension)) {
-          Alert.alert(
+          showBanner(
             "Invalid File Type",
-            "Please select an audio file in MP3, WAV, or M4A format."
+            "Please select an audio file in MP3, WAV, or M4A format.",
+            "warning",
+            3000
           );
           return;
         }
@@ -287,49 +298,64 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error selecting audio file:", error);
-      Alert.alert("Error", "Failed to select audio file. Please try again.");
+      showBanner("Error", "Failed to select audio file. Please try again.", "error", 3000);
     }
   }, []);
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = async () => {
     // Validation
     if (toolType === "Generate Post") {
       if (!postImage) {
-        Alert.alert("Validation Error", "Please select an image.");
+        showBanner("Validation Error", "Please select an image.", "warning", 3000);
         return;
       }
     } else if (toolType === "Generate Collage") {
       if (collageImages.length < 2) {
-        Alert.alert(
+        showBanner(
           "Validation Error",
-          "Please select at least 2 images (maximum 6)."
+          "Please select at least 2 images (maximum 6).",
+          "warning",
+          3000
         );
         return;
       }
-      // TODO: Implement collage API when endpoint is available
-      Alert.alert(
-        "Coming Soon",
-        "Generate Collage feature will be available soon."
-      );
-      return;
+      // Validate file types for collage images
+      const allowedExtensions = ["jpg", "jpeg", "png"];
+      const invalidImages = collageImages.filter((img) => {
+        const fileExtension = img.uri.split(".").pop()?.toLowerCase() || "";
+        return !allowedExtensions.includes(fileExtension);
+      });
+      if (invalidImages.length > 0) {
+        showBanner(
+          "Invalid File Type",
+          "All images must be in JPEG, PNG, or JPG format.",
+          "warning",
+          3000
+        );
+        return;
+      }
     } else if (toolType === "Generate Reel") {
       if (reelMedia.length < 3 || reelMedia.length > 15) {
-        Alert.alert(
+        showBanner(
           "Validation Error",
-          "Please select 3-15 media files (images or videos)."
+          "Please select 3-15 media files (images or videos).",
+          "warning",
+          3000
         );
         return;
       }
       // TODO: Implement reel API when endpoint is available
-      Alert.alert("Coming Soon", "Generate Reel feature will be available soon.");
+      showBanner("Coming Soon", "Generate Reel feature will be available soon.", "info", 3000);
       return;
     }
 
     // Check if business_id is available
     if (!businessId) {
-      Alert.alert(
+      showBanner(
         "Error",
-        "Business ID not found. Please complete your business profile."
+        "Business ID not found. Please complete your business profile.",
+        "error",
+        3000
       );
       return;
     }
@@ -343,55 +369,83 @@ export default function Tools() {
       // Add business_id
       formData.append("business_id", businessId.toString());
 
-      // Add image for Generate Post
-      if (postImage) {
-        const fileExtension = postImage.split(".").pop() || "jpg";
-        const fileName = `post_image.${fileExtension}`;
-        const mimeType =
-          fileExtension === "jpg" || fileExtension === "jpeg"
-            ? "image/jpeg"
-            : fileExtension === "png"
-            ? "image/png"
-            : "image/jpeg";
-
-        formData.append("image", {
-          uri: postImage,
-          type: mimeType,
-          name: fileName,
-        } as any);
-      }
-
       // API call with FormData
+      // Use axios directly since we need a different baseURL than the default ApiService
       const aiToolBaseUrl = process.env.EXPO_PUBLIC_AITOOL_API_BASE_URL || "";
       const aiApiBearerToken = process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
-      const config = {
+
+      let endpoint = "";
+      let response;
+
+      if (toolType === "Generate Post") {
+        // Add image for Generate Post
+        if (postImage) {
+          const fileExtension = postImage.split(".").pop()?.toLowerCase() || "jpg";
+          const fileName = `post_image.${fileExtension}`;
+          const mimeType =
+            fileExtension === "jpg" || fileExtension === "jpeg"
+              ? "image/jpeg"
+              : fileExtension === "png"
+              ? "image/png"
+              : "image/jpeg";
+
+          formData.append("image", {
+            uri: postImage,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        }
+        endpoint = socialMediaEndpoints.generatePost;
+      } else if (toolType === "Generate Collage") {
+        // Add images for Generate Collage
+        // Backend expects 'images' as array, so we append each image with the same key
+        collageImages.forEach((image, index) => {
+          const fileExtension = image.uri.split(".").pop()?.toLowerCase() || "jpg";
+          const fileName = `collage_image_${index}.${fileExtension}`;
+          const mimeType =
+            fileExtension === "jpg" || fileExtension === "jpeg"
+              ? "image/jpeg"
+              : fileExtension === "png"
+              ? "image/png"
+              : "image/jpeg";
+
+          formData.append("images", {
+            uri: image.uri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        });
+        endpoint = socialMediaEndpoints.generateCollage;
+      }
+
+      // Create axios instance with AI tool baseURL
+      const aiToolClient = axios.create({
         baseURL: aiToolBaseUrl,
+        timeout: 180000, // 3 min
         headers: {
           "Content-Type": "multipart/form-data",
           Authorization: `Bearer ${aiApiBearerToken}`,
         },
-      };
+      });
 
-      const response = await ApiService.post(
-        socialMediaEndpoints.generatePost,
-        formData,
-        config
-      );
+      const axiosResponse = await aiToolClient.post(endpoint, formData);
+      response = axiosResponse.data;
 
       // Save the result
       setGeneratedResult(response);
       setResultModalVisible(true);
     } catch (error: any) {
-      console.error("Error generating post:", error);
-      Alert.alert(
-        "Error",
-        error.message || "Failed to generate post. Please try again."
-      );
+      console.error(`Error generating ${toolType.toLowerCase()}:`, error);
+      const errorMessage =
+        error.response?.data?.detail ||
+        error.message ||
+        `Failed to generate ${toolType.toLowerCase()}. Please try again.`;
+      showBanner("Error", errorMessage, "error", 4000);
     } finally {
       setIsGenerating(false);
       dispatch(setActionLoader(false));
     }
-  }, [toolType, postImage, businessId]);
+  } 
 
   const openImagePicker = useCallback(() => {
     setImagePickerVisible(true);

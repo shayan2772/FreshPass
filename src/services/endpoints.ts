@@ -180,4 +180,5 @@ export const emailVerificationEndpoints = {
  */
 export const socialMediaEndpoints = {
   generatePost: `/api/social-media/generate-post`,
+  generateCollage: `/api/social-media/generate-collage`,
 };

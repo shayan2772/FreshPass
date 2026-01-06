@@ -67,7 +67,7 @@ export const createStyles = (theme: Theme) =>
       justifyContent: "center",
     },
     featureTitle: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.white,
       textAlign: "center",

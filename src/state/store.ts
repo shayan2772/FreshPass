@@ -49,7 +49,7 @@ const generalPersistConfig = {
 const userPersistConfig = {
   key: "user",
   storage: SecureStorageAdapter,
-  whitelist: ["id", "name", "email",  "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone", "isGuest", "location", "discover", "selectBsnsCategory", "dateOfBirth", "countryZipCode", "countryName"], // Only persist these fields (businessStatus excluded)
+  whitelist: ["id", "name", "email",  "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone", "isGuest", "location", "discover", "selectBsnsCategory", "dateOfBirth", "countryZipCode", "countryName","business_id","business_name"], // Only persist these fields (businessStatus excluded)
 };
 
  

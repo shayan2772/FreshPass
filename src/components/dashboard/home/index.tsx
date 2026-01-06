@@ -156,18 +156,10 @@ export default function HomeScreen() {
             country_code: response.data.country_code,
             email_notifications: response.data.email_notifications,
             profile_image_url: response.data.profile_image_url,
+            business_id: response.data.business.id ?? "",
+            business_name: response.data.business.title ?? "",
           })
         );
-
-        if (response.data.business && businessStatus) {
-          dispatch(
-            setBusinessStatus({
-              ...businessStatus,
-              business_id: response.data.business.id,
-              business_name: response.data.business.title,
-            })
-          );
-        }
       }
     } catch (error: any) {}
   };

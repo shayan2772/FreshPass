@@ -32,7 +32,8 @@ interface GeneratePostResponse {
   business_id: number;
   images: {
     processed: string;
-    original: string;
+    original?: string; // For Generate Post (single image)
+    originals?: string[]; // For Generate Collage (multiple images)
   };
   content: {
     caption: string;
