@@ -7,7 +7,7 @@ import {
   Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { moderateWidthScale } from "@/src/theme/dimensions";
 import { createStyles } from "./styles";
@@ -17,12 +17,15 @@ import {
   GeneratePostIcon,
   GenerateCollageIcon,
   GenerateReelIcon,
+  PersonScissorsIcon,
 } from "@/assets/icons";
 
-export default function BusinessAiTools() {
+export default function ToolList() {
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
+  const user = useAppSelector((state) => state.user);
+  const userRole = user?.userRole;
 
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -32,7 +35,8 @@ export default function BusinessAiTools() {
   const boxesTranslateY = useRef(new Animated.Value(300)).current;
   const boxesOpacity = useRef(new Animated.Value(0)).current;
 
-  const features = [
+  // Business features
+  const businessFeatures = [
     {
       id: "generatePost",
       title: "Generate Post",
@@ -49,6 +53,22 @@ export default function BusinessAiTools() {
       icon: GenerateReelIcon,
     },
   ];
+
+  // Customer features
+  const customerFeatures = [
+    {
+      id: "hairTryon",
+      title: "Hair Tryon",
+      icon: PersonScissorsIcon,
+    },
+  ];
+
+  // Select features based on user role
+  // Business users see social media tools, customers/staff/others see Hair Tryon
+  const features = userRole === "business" ? businessFeatures : customerFeatures;
+  
+  // Header title based on role
+  const headerTitle = userRole === "business" ? "Social Media AI Tool" : "Hair Tryon";
 
   useEffect(() => {
     if (isExpanded) {
@@ -141,7 +161,7 @@ export default function BusinessAiTools() {
               end={{ x: 1, y: 1 }}
               style={styles.headerGradient}
             >
-              <Text style={styles.headerTitle}>Social Media AI Tool</Text>
+              <Text style={styles.headerTitle}>{headerTitle}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </Animated.View>

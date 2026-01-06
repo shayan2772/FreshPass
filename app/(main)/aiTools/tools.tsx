@@ -28,10 +28,8 @@ import {
 } from "@/src/services/mediaPermissionService";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ApiService } from "@/src/services/api";
 import { socialMediaEndpoints } from "@/src/services/endpoints";
 import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
-import ActionLoader from "@/src/components/actionLoader";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import axios from "axios";
@@ -49,7 +47,6 @@ interface AudioFile {
   name: string;
 }
 
- 
 export default function Tools() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -88,8 +85,7 @@ export default function Tools() {
   // Get business_id from Redux store
   const user = useAppSelector((state) => state.user);
   // const businessId = user?.business_id ??
-    const businessId ="1" ;
- 
+  const businessId = "1";
 
   const generateId = () => {
     return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -177,7 +173,12 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error selecting media:", error);
-      showBanner("Error", "Failed to select media. Please try again.", "error", 3000);
+      showBanner(
+        "Error",
+        "Failed to select media. Please try again.",
+        "error",
+        3000
+      );
     }
   }, [toolType, collageImages, reelMedia]);
 
@@ -205,7 +206,12 @@ export default function Tools() {
           setPostImage(asset.uri);
         } else if (toolType === "Generate Collage") {
           if (collageImages.length >= 6) {
-            showBanner("Limit Exceeded", "You can select maximum 6 images.", "warning", 3000);
+            showBanner(
+              "Limit Exceeded",
+              "You can select maximum 6 images.",
+              "warning",
+              3000
+            );
             return;
           }
           setCollageImages([
@@ -242,7 +248,12 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error taking photo:", error);
-      showBanner("Error", "Failed to take photo. Please try again.", "error", 3000);
+      showBanner(
+        "Error",
+        "Failed to take photo. Please try again.",
+        "error",
+        3000
+      );
     }
   }, [toolType, collageImages, reelMedia]);
 
@@ -298,7 +309,12 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error selecting audio file:", error);
-      showBanner("Error", "Failed to select audio file. Please try again.", "error", 3000);
+      showBanner(
+        "Error",
+        "Failed to select audio file. Please try again.",
+        "error",
+        3000
+      );
     }
   }, []);
 
@@ -306,7 +322,12 @@ export default function Tools() {
     // Validation
     if (toolType === "Generate Post") {
       if (!postImage) {
-        showBanner("Validation Error", "Please select an image.", "warning", 3000);
+        showBanner(
+          "Validation Error",
+          "Please select an image.",
+          "warning",
+          3000
+        );
         return;
       }
     } else if (toolType === "Generate Collage") {
@@ -344,9 +365,6 @@ export default function Tools() {
         );
         return;
       }
-      // TODO: Implement reel API when endpoint is available
-      showBanner("Coming Soon", "Generate Reel feature will be available soon.", "info", 3000);
-      return;
     }
 
     // Check if business_id is available
@@ -372,7 +390,8 @@ export default function Tools() {
       // API call with FormData
       // Use axios directly since we need a different baseURL than the default ApiService
       const aiToolBaseUrl = process.env.EXPO_PUBLIC_AITOOL_API_BASE_URL || "";
-      const aiApiBearerToken = process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
+      const aiApiBearerToken =
+        process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
 
       let endpoint = "";
       let response;
@@ -380,7 +399,8 @@ export default function Tools() {
       if (toolType === "Generate Post") {
         // Add image for Generate Post
         if (postImage) {
-          const fileExtension = postImage.split(".").pop()?.toLowerCase() || "jpg";
+          const fileExtension =
+            postImage.split(".").pop()?.toLowerCase() || "jpg";
           const fileName = `post_image.${fileExtension}`;
           const mimeType =
             fileExtension === "jpg" || fileExtension === "jpeg"
@@ -400,7 +420,8 @@ export default function Tools() {
         // Add images for Generate Collage
         // Backend expects 'images' as array, so we append each image with the same key
         collageImages.forEach((image, index) => {
-          const fileExtension = image.uri.split(".").pop()?.toLowerCase() || "jpg";
+          const fileExtension =
+            image.uri.split(".").pop()?.toLowerCase() || "jpg";
           const fileName = `collage_image_${index}.${fileExtension}`;
           const mimeType =
             fileExtension === "jpg" || fileExtension === "jpeg"
@@ -416,6 +437,63 @@ export default function Tools() {
           } as any);
         });
         endpoint = socialMediaEndpoints.generateCollage;
+      } else if (toolType === "Generate Reel") {
+        // Add media_files for Generate Reel
+        // Backend expects 'media_files' as array
+        reelMedia.forEach((media, index) => {
+          const fileExtension =
+            media.uri.split(".").pop()?.toLowerCase() || "jpg";
+          let fileName = "";
+          let mimeType = "";
+
+          if (media.type === "video") {
+            fileName = `reel_video_${index}.${fileExtension}`;
+            mimeType =
+              fileExtension === "mp4"
+                ? "video/mp4"
+                : fileExtension === "mov"
+                ? "video/quicktime"
+                : "video/mp4";
+          } else {
+            fileName = `reel_image_${index}.${fileExtension}`;
+            mimeType =
+              fileExtension === "jpg" || fileExtension === "jpeg"
+                ? "image/jpeg"
+                : fileExtension === "png"
+                ? "image/png"
+                : "image/jpeg";
+          }
+
+          formData.append("media_files", {
+            uri: media.uri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        });
+
+        // Add background_music if provided
+        if (backgroundMusic) {
+          const fileExtension =
+            backgroundMusic.uri.split(".").pop()?.toLowerCase() || "mp3";
+          const fileName =
+            backgroundMusic.name || `background_music.${fileExtension}`;
+          const mimeType =
+            fileExtension === "mp3"
+              ? "audio/mpeg"
+              : fileExtension === "wav"
+              ? "audio/wav"
+              : fileExtension === "m4a"
+              ? "audio/mp4"
+              : "audio/mpeg";
+
+          formData.append("background_music", {
+            uri: backgroundMusic.uri,
+            type: mimeType,
+            name: fileName,
+          } as any);
+        }
+
+        endpoint = socialMediaEndpoints.generateReel;
       }
 
       // Create axios instance with AI tool baseURL
@@ -445,7 +523,7 @@ export default function Tools() {
       setIsGenerating(false);
       dispatch(setActionLoader(false));
     }
-  } 
+  };
 
   const openImagePicker = useCallback(() => {
     setImagePickerVisible(true);
@@ -683,17 +761,14 @@ export default function Tools() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-         
-
           {toolType === "Generate Post" && renderPostContent()}
           {toolType === "Generate Collage" && renderCollageContent()}
           {toolType === "Generate Reel" && renderReelContent()}
         </ScrollView>
 
         <View style={styles.buttonContainer}>
-
-           {/* Show previous result button if result exists */}
-           {generatedResult && (
+          {/* Show previous result button if result exists */}
+          {generatedResult && (
             <TouchableOpacity
               style={{
                 backgroundColor: theme.orangeBrown30,
@@ -707,7 +782,9 @@ export default function Tools() {
               onPress={() => setResultModalVisible(true)}
               activeOpacity={0.7}
             >
-              <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+              <View
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
+              >
                 <MaterialIcons
                   name="visibility"
                   size={moderateWidthScale(20)}
@@ -838,7 +915,6 @@ export default function Tools() {
         result={generatedResult}
         toolType={toolType}
       />
-
     </SafeAreaView>
   );
 }

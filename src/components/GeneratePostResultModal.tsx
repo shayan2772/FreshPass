@@ -1,15 +1,15 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
-  ScrollView,
   Clipboard,
   Alert,
   Linking,
   ActivityIndicator,
 } from "react-native";
+import { Video, ResizeMode, AVPlaybackStatus } from "expo-av";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -30,12 +30,20 @@ import { OpenFullIcon } from "@/assets/icons";
 interface GeneratePostResponse {
   status: string;
   business_id: number;
-  images: {
+  images?: {
     processed: string;
     original?: string; // For Generate Post (single image)
     originals?: string[]; // For Generate Collage (multiple images)
   };
-  content: {
+  video?: {
+    url: string;
+    duration?: number;
+    format?: string;
+    resolution?: string;
+    fps?: number;
+    file_size_mb?: number;
+  };
+  content?: {
     caption: string;
     hashtags: string[];
     complete_post: string;
@@ -46,6 +54,16 @@ interface GeneratePostResponse {
     total_cost_usd: number;
   };
   processing_time?: number;
+  transitions?: {
+    style?: string;
+    applied?: string[];
+  };
+  music?: {
+    source?: string;
+    has_music?: boolean;
+    track?: string;
+  };
+  media_count?: number;
 }
 
 interface GeneratePostResultModalProps {
@@ -191,6 +209,56 @@ const createStyles = (theme: Theme) =>
       color: theme.orangeBrown30,
       textAlign: "center",
     },
+    videoContainer: {
+      width: "100%",
+      height: heightScale(400),
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
+      backgroundColor: theme.lightGreen2,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      marginBottom: moderateHeightScale(20),
+      position: "relative",
+    },
+    video: {
+      width: "100%",
+      height: "100%",
+    },
+    playButton: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    playButtonInner: {
+      width: moderateWidthScale(60),
+      height: moderateWidthScale(60),
+      borderRadius: moderateWidthScale(30),
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    videoInfoContainer: {
+      position: "absolute",
+      bottom: moderateHeightScale(16),
+      left: moderateWidthScale(16),
+      right: moderateWidthScale(16),
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    videoInfoText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.white,
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      paddingHorizontal: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(4),
+      borderRadius: moderateWidthScale(4),
+    },
   });
 
 export default function GeneratePostResultModal({
@@ -204,6 +272,19 @@ export default function GeneratePostResultModal({
   const theme = colors as Theme;
   const [downloading, setDownloading] = useState(false);
   const [fullImageModalVisible, setFullImageModalVisible] = useState(false);
+  const videoRef = useRef<Video>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [playbackStatus, setPlaybackStatus] = useState<AVPlaybackStatus | null>(
+    null
+  );
+
+  useEffect(() => {
+    if (!visible) {
+      // Pause video when modal closes
+      videoRef.current?.pauseAsync();
+      setIsPlaying(false);
+    }
+  }, [visible]);
 
   const handleCopy = async (text: string, label: string) => {
     try {
@@ -214,25 +295,56 @@ export default function GeneratePostResultModal({
     }
   };
 
-  const handleDownloadImage = async () => {
-    if (!result?.images?.processed) {
-      Alert.alert("Error", "No image available to download");
+  const handleDownload = async () => {
+    const downloadUri =
+      toolType === "Generate Reel"
+        ? result?.video?.url
+        : result?.images?.processed;
+
+    if (!downloadUri) {
+      Alert.alert(
+        "Error",
+        `No ${
+          toolType === "Generate Reel" ? "video" : "image"
+        } available to download`
+      );
       return;
     }
 
     setDownloading(true);
     try {
-      const imageUri = result.images.processed;
-      // Try to open the image URL in browser/device default handler
-      // This allows users to save the image manually
-      const canOpen = await Linking.canOpenURL(imageUri);
+      // Try to open the URL in browser/device default handler
+      // This allows users to save the file manually
+      const canOpen = await Linking.canOpenURL(downloadUri);
       if (canOpen) {
-        await Linking.openURL(imageUri);
+        await Linking.openURL(downloadUri);
       }
     } catch (error) {
-      console.error("Error opening image:", error);
+      console.error("Error opening file:", error);
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handlePlayPause = async () => {
+    if (!videoRef.current) return;
+
+    if (isPlaying) {
+      await videoRef.current.pauseAsync();
+      setIsPlaying(false);
+    } else {
+      await videoRef.current.playAsync();
+      setIsPlaying(true);
+    }
+  };
+
+  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
+    setPlaybackStatus(status);
+    if (status.isLoaded) {
+      setIsPlaying(status.isPlaying);
+      if (status.didJustFinish) {
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -261,7 +373,7 @@ export default function GeneratePostResultModal({
             <View style={styles.headerContainer}>
               <TouchableOpacity
                 style={styles.downloadButton}
-                onPress={handleDownloadImage}
+                onPress={handleDownload}
                 disabled={downloading}
                 activeOpacity={0.7}
               >
@@ -275,15 +387,114 @@ export default function GeneratePostResultModal({
                       color={theme.white}
                     />
                     <Text style={styles.downloadButtonText}>
-                      Download Image
+                      Download{" "}
+                      {toolType === "Generate Reel" ? "Video" : "Image"}
                     </Text>
                   </>
                 )}
               </TouchableOpacity>
             </View>
 
-            {/* Generated Image */}
-            {result.images?.processed && (
+            {/* Generated Video (for Reel) */}
+            {toolType === "Generate Reel" && result.video?.url && (
+              <View style={styles.videoContainer}>
+                <Video
+                  ref={videoRef}
+                  source={{ uri: result.video.url }}
+                  style={styles.video}
+                  resizeMode={ResizeMode.CONTAIN}
+                  isLooping={false}
+                  shouldPlay={false}
+                  onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
+                />
+                {!isPlaying && (
+                  <TouchableOpacity
+                    style={styles.playButton}
+                    onPress={handlePlayPause}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.playButtonInner}>
+                      <MaterialIcons
+                        name="play-arrow"
+                        size={moderateWidthScale(40)}
+                        color={theme.white}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                <View style={styles.videoInfoContainer}>
+                  {result.video.duration && (
+                    <Text style={styles.videoInfoText}>
+                      {result.video.duration.toFixed(1)}s
+                    </Text>
+                  )}
+                  <TouchableOpacity
+                    style={styles.openFullButton}
+                    onPress={async () => {
+                      try {
+                        const canOpen = await Linking.canOpenURL(
+                          result.video!.url
+                        );
+                        if (canOpen) {
+                          await Linking.openURL(result.video!.url);
+                        }
+                      } catch (error) {
+                        console.error("Error opening video URL:", error);
+                      }
+                    }}
+                  >
+                    <OpenFullIcon
+                      width={widthScale(14)}
+                      height={heightScale(14)}
+                      color={theme.white}
+                    />
+                    <Text style={styles.openFullButtonText}>Open in full</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
+            {/* Reel Info Section */}
+            {toolType === "Generate Reel" && result.video && (
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Video Details</Text>
+                <View style={styles.sectionContent}>
+                  {result.video.duration && (
+                    <Text style={styles.captionText}>
+                      Duration: {result.video.duration.toFixed(1)}s
+                    </Text>
+                  )}
+                  {result.video.resolution && (
+                    <Text style={styles.captionText}>
+                      Resolution: {result.video.resolution}
+                    </Text>
+                  )}
+                  {result.video.format && (
+                    <Text style={styles.captionText}>
+                      Format: {result.video.format}
+                    </Text>
+                  )}
+                  {result.video.file_size_mb && (
+                    <Text style={styles.captionText}>
+                      File Size: {result.video.file_size_mb.toFixed(2)} MB
+                    </Text>
+                  )}
+                  {result.media_count && (
+                    <Text style={styles.captionText}>
+                      Media Count: {result.media_count}
+                    </Text>
+                  )}
+                  {result.music?.has_music && (
+                    <Text style={styles.captionText}>
+                      Music: {result.music.track || "Library Music"}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+
+            {/* Generated Image (for Post and Collage) */}
+            {toolType !== "Generate Reel" && result.images?.processed && (
               <TouchableOpacity
                 style={styles.imageContainer}
                 onPress={() => setFullImageModalVisible(true)}
@@ -401,11 +612,13 @@ export default function GeneratePostResultModal({
       </View>
 
       {/* Full Image Modal */}
-      <FullImageModal
-        visible={fullImageModalVisible}
-        onClose={() => setFullImageModalVisible(false)}
-        imageUri={result?.images?.processed || null}
-      />
+      {toolType !== "Generate Reel" && (
+        <FullImageModal
+          visible={fullImageModalVisible}
+          onClose={() => setFullImageModalVisible(false)}
+          imageUri={result?.images?.processed || null}
+        />
+      )}
     </ModalizeBottomSheet>
   );
 }

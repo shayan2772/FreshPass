@@ -195,11 +195,9 @@ export default function AccountScreen() {
     } else if (key === "subscriptions") {
       router.push("./subscription");
     } else if (key === "aiTools") {
-      if (userRole === "business") {
-        router.push("/(main)/aiTools/business");
-      } else if (userRole === "customer") {
-        router.push("/(main)/aiTools/customer");
-      }
+      
+        router.push("/(main)/aiTools/toolList");
+       
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
