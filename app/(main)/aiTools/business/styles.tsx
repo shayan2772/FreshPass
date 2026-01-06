@@ -20,7 +20,6 @@ export const createStyles = (theme: Theme) =>
       justifyContent: "center",
     },
     headerContainer: {
-      marginBottom: moderateHeightScale(30),
       alignItems: "center",
     },
     headerButton: {
