@@ -92,10 +92,24 @@ export const createStyles = (theme: Theme) =>
       width: "100%",
       height: "100%",
     },
+    videoThumbnailContainer: {
+      width: "100%",
+      height: "100%",
+      position: "relative",
+    },
     videoThumbnail: {
       width: "100%",
       height: "100%",
       backgroundColor: theme.grey15,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    videoPlayIcon: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -134,8 +148,9 @@ export const createStyles = (theme: Theme) =>
       color: theme.text,
     },
     buttonContainer: {
-      marginTop: moderateHeightScale(32),
-      marginBottom: moderateHeightScale(16),
+      marginTop: moderateHeightScale(4),
+      marginBottom: moderateHeightScale(24),
+      paddingHorizontal: moderateWidthScale(20),
     },
     optionItem: {
       flexDirection: "row",

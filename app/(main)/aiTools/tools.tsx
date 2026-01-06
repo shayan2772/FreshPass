@@ -11,9 +11,7 @@ import {
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import {
-  moderateWidthScale,
-} from "@/src/theme/dimensions";
+import { moderateWidthScale } from "@/src/theme/dimensions";
 import { createStyles } from "./styles";
 import StackHeader from "@/src/components/StackHeader";
 import Button from "@/src/components/button";
@@ -25,11 +23,13 @@ import {
   handleCameraPermission,
 } from "@/src/services/mediaPermissionService";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 interface MediaFile {
   id: string;
   uri: string;
   type: "image" | "video";
+  thumbnailUri?: string; // For video thumbnails
 }
 
 interface AudioFile {
@@ -39,7 +39,7 @@ interface AudioFile {
 }
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
- 
+
 export default function Tools() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -124,11 +124,17 @@ export default function Tools() {
         } else if (toolType === "Generate Reel") {
           const newMedia: MediaFile[] = result.assets
             .filter((asset) => asset.uri)
-            .map((asset) => ({
-              id: generateId(),
-              uri: asset.uri,
-              type: asset.type === "video" ? "video" : "image",
-            }));
+            .map((asset) => {
+              const isVideo = asset.type === "video";
+              return {
+                id: generateId(),
+                uri: asset.uri,
+                type: isVideo ? "video" : "image",
+                thumbnailUri: isVideo
+                  ? (asset as any).thumbnailUri || asset.uri
+                  : undefined,
+              };
+            });
 
           const totalMedia = reelMedia.length + newMedia.length;
           if (totalMedia > 15) {
@@ -192,12 +198,16 @@ export default function Tools() {
             );
             return;
           }
+          const isVideo = asset.type === "video";
           setReelMedia([
             ...reelMedia,
             {
               id: generateId(),
               uri: asset.uri,
-              type: asset.type === "video" ? "video" : "image",
+              type: isVideo ? "video" : "image",
+              thumbnailUri: isVideo
+                ? (asset as any).thumbnailUri || asset.uri
+                : undefined,
             },
           ]);
         }
@@ -258,10 +268,7 @@ export default function Tools() {
       }
     } catch (error) {
       console.error("Error selecting audio file:", error);
-      Alert.alert(
-        "Error",
-        "Failed to select audio file. Please try again."
-      );
+      Alert.alert("Error", "Failed to select audio file. Please try again.");
     }
   }, []);
 
@@ -373,7 +380,10 @@ export default function Tools() {
         <View style={styles.mediaGrid}>
           {collageImages.map((image) => (
             <View key={image.id} style={styles.mediaItem}>
-              <Image source={{ uri: image.uri }} style={styles.mediaThumbnail} />
+              <Image
+                source={{ uri: image.uri }}
+                style={styles.mediaThumbnail}
+              />
               <TouchableOpacity
                 style={styles.deleteButtonSmall}
                 onPress={() => handleDeleteImage(image.id)}
@@ -401,7 +411,8 @@ export default function Tools() {
     <>
       <View style={styles.fieldContainer}>
         <Text style={styles.label}>
-          Media Files (3-15 images/videos) <Text style={styles.required}>*</Text>
+          Media Files (3-15 images/videos){" "}
+          <Text style={styles.required}>*</Text>
         </Text>
         <TouchableOpacity
           style={styles.fileInput}
@@ -429,12 +440,28 @@ export default function Tools() {
                     style={styles.mediaThumbnail}
                   />
                 ) : (
-                  <View style={styles.videoThumbnail}>
-                    <MaterialIcons
-                      name="videocam"
-                      size={moderateWidthScale(24)}
-                      color={theme.white}
-                    />
+                  <View style={styles.videoThumbnailContainer}>
+                    {media.thumbnailUri ? (
+                      <Image
+                        source={{ uri: media.thumbnailUri }}
+                        style={styles.mediaThumbnail}
+                      />
+                    ) : (
+                      <View style={styles.videoThumbnail}>
+                        <MaterialIcons
+                          name="videocam"
+                          size={moderateWidthScale(24)}
+                          color={theme.white}
+                        />
+                      </View>
+                    )}
+                    <View style={styles.videoPlayIcon}>
+                      <MaterialIcons
+                        name="videocam"
+                        size={moderateWidthScale(32)}
+                        color={theme.white}
+                      />
+                    </View>
                   </View>
                 )}
                 <TouchableOpacity
@@ -468,9 +495,7 @@ export default function Tools() {
           activeOpacity={0.7}
         >
           <Text style={styles.fileInputText}>
-            {backgroundMusic
-              ? backgroundMusic.name
-              : "Choose File"}
+            {backgroundMusic ? backgroundMusic.name : "Choose File"}
           </Text>
           <MaterialIcons
             name="arrow-drop-down"
@@ -506,7 +531,7 @@ export default function Tools() {
   );
 
   return (
-    <View style={styles.safeArea}>
+    <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title={headerTitle} />
 
       <ScrollView
@@ -517,14 +542,14 @@ export default function Tools() {
         {toolType === "Generate Post" && renderPostContent()}
         {toolType === "Generate Collage" && renderCollageContent()}
         {toolType === "Generate Reel" && renderReelContent()}
-
-        <View style={styles.buttonContainer}>
-          <Button
-            title={`Generate ${toolType.replace("Generate ", "")}`}
-            onPress={handleGenerate}
-          />
-        </View>
       </ScrollView>
+
+      <View style={styles.buttonContainer}>
+        <Button
+          title={`Generate ${toolType.replace("Generate ", "")}`}
+          onPress={handleGenerate}
+        />
+      </View>
 
       {/* Image Picker Modal for Post and Collage */}
       <ModalizeBottomSheet
@@ -616,6 +641,6 @@ export default function Tools() {
           <Text style={styles.optionText}>Choose Audio File</Text>
         </TouchableOpacity>
       </ModalizeBottomSheet>
-    </View>
+    </SafeAreaView>
   );
 }
