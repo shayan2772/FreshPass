@@ -183,3 +183,10 @@ export const socialMediaEndpoints = {
   generateCollage: `/api/social-media/generate-collage`,
   generateReel: `/api/social-media/generate-reel`,
 };
+
+/**
+ * Hair tryon endpoints
+ */
+export const hairTryonEndpoints = {
+  generateWithReplicate: `/api/hair_tryon/generate_with_replicate`,
+};

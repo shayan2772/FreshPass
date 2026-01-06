@@ -68,7 +68,7 @@ export default function ToolList() {
   const features = userRole === "business" ? businessFeatures : customerFeatures;
   
   // Header title based on role
-  const headerTitle = userRole === "business" ? "Social Media AI Tool" : "Hair Tryon";
+  const headerTitle = userRole === "business" ? "Social Media AI Tool" : "AI Tool";
 
   useEffect(() => {
     if (isExpanded) {

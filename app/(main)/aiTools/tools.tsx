@@ -7,6 +7,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -28,11 +29,10 @@ import {
 } from "@/src/services/mediaPermissionService";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { socialMediaEndpoints } from "@/src/services/endpoints";
 import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import axios from "axios";
+import { AiToolsService } from "@/src/services/aiToolsService";
 
 interface MediaFile {
   id: string;
@@ -52,13 +52,14 @@ export default function Tools() {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
   const { showBanner } = useNotificationContext();
+  const user = useAppSelector((state) => state.user);
   const params = useLocalSearchParams<{ toolType?: string }>();
-
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
-
   const toolType = params.toolType || "";
   const headerTitle = toolType || "Ai Tools";
+  // const businessId = user?.business_id ??
+  const businessId = "1";
 
   // State for Post (single image)
   const [postImage, setPostImage] = useState<string | null>(null);
@@ -72,6 +73,10 @@ export default function Tools() {
     null
   );
 
+  // State for Hair Tryon (source image + prompt)
+  const [hairTryonSourceImage, setHairTryonSourceImage] = useState<string | null>(null);
+  const [hairTryonPrompt, setHairTryonPrompt] = useState<string>("");
+
   // Modal states
   const [imagePickerVisible, setImagePickerVisible] = useState(false);
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
@@ -80,12 +85,8 @@ export default function Tools() {
 
   // API state
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedResult, setGeneratedResult] = useState<any>({"business_id": 1, "media_count": 3, "music": {"has_music": true, "source": "uploaded", "track": "user_uploaded"}, "processing_time": 97.95, "status": "success", "transitions": {"applied": ["zoom_in", "zoom_in"], "style": "dynamic"}, "video": {"duration": 13.58, "file_size_mb": 4.97, "format": "instagram_reel", "fps": 30, "resolution": "1080x1920", "url": "http://159.89.190.185:8001/outputs/social_media/business_1/reels/76b9bc5f_reel.mp4"}});
+  const [generatedResult, setGeneratedResult] = useState<any>(null);
   console.log("--->generatedResult", generatedResult);
-  // Get business_id from Redux store
-  const user = useAppSelector((state) => state.user);
-  // const businessId = user?.business_id ??
-  const businessId = "1";
 
   const generateId = () => {
     return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -115,6 +116,10 @@ export default function Tools() {
         if (toolType === "Generate Post") {
           if (result.assets[0]) {
             setPostImage(result.assets[0].uri);
+          }
+        } else if (toolType === "Hair Tryon") {
+          if (result.assets[0]) {
+            setHairTryonSourceImage(result.assets[0].uri);
           }
         } else if (toolType === "Generate Collage") {
           const newImages: MediaFile[] = result.assets
@@ -204,6 +209,8 @@ export default function Tools() {
         const asset = result.assets[0];
         if (toolType === "Generate Post") {
           setPostImage(asset.uri);
+        } else if (toolType === "Hair Tryon") {
+          setHairTryonSourceImage(asset.uri);
         } else if (toolType === "Generate Collage") {
           if (collageImages.length >= 6) {
             showBanner(
@@ -272,6 +279,10 @@ export default function Tools() {
     setPostImage(null);
   }, []);
 
+  const handleDeleteHairTryonImage = useCallback(() => {
+    setHairTryonSourceImage(null);
+  }, []);
+
   const handleDeleteAudio = useCallback(() => {
     setBackgroundMusic(null);
   }, []);
@@ -330,6 +341,25 @@ export default function Tools() {
         );
         return;
       }
+    } else if (toolType === "Hair Tryon") {
+      if (!hairTryonSourceImage) {
+        showBanner(
+          "Validation Error",
+          "Please select a source image.",
+          "warning",
+          3000
+        );
+        return;
+      }
+      if (!hairTryonPrompt.trim()) {
+        showBanner(
+          "Validation Error",
+          "Please enter a hairstyle description.",
+          "warning",
+          3000
+        );
+        return;
+      }
     } else if (toolType === "Generate Collage") {
       if (collageImages.length < 2) {
         showBanner(
@@ -367,8 +397,8 @@ export default function Tools() {
       }
     }
 
-    // Check if business_id is available
-    if (!businessId) {
+    // Check if business_id is available (only for social media tools)
+    if (toolType !== "Hair Tryon" && !businessId) {
       showBanner(
         "Error",
         "Business ID not found. Please complete your business profile.",
@@ -382,140 +412,63 @@ export default function Tools() {
     dispatch(setActionLoader(true));
 
     try {
-      const formData = new FormData();
-
-      // Add business_id
-      formData.append("business_id", businessId.toString());
-
-      // API call with FormData
-      // Use axios directly since we need a different baseURL than the default ApiService
-      const aiToolBaseUrl = process.env.EXPO_PUBLIC_AITOOL_API_BASE_URL || "";
-      const aiApiBearerToken =
-        process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
-
-      let endpoint = "";
       let response;
 
-      if (toolType === "Generate Post") {
-        // Add image for Generate Post
-        if (postImage) {
-          const fileExtension =
-            postImage.split(".").pop()?.toLowerCase() || "jpg";
-          const fileName = `post_image.${fileExtension}`;
-          const mimeType =
-            fileExtension === "jpg" || fileExtension === "jpeg"
-              ? "image/jpeg"
-              : fileExtension === "png"
-              ? "image/png"
-              : "image/jpeg";
-
-          formData.append("image", {
-            uri: postImage,
-            type: mimeType,
-            name: fileName,
-          } as any);
-        }
-        endpoint = socialMediaEndpoints.generatePost;
+      if (toolType === "Hair Tryon") {
+        // Generate Hair Tryon
+        response = await AiToolsService.generateHairTryon(
+          hairTryonSourceImage!,
+          hairTryonPrompt.trim(),
+          true // generate_all_views = true
+        );
+      } else if (toolType === "Generate Post") {
+        // Generate Post
+        response = await AiToolsService.generatePost(
+          businessId.toString(),
+          postImage!
+        );
       } else if (toolType === "Generate Collage") {
-        // Add images for Generate Collage
-        // Backend expects 'images' as array, so we append each image with the same key
-        collageImages.forEach((image, index) => {
-          const fileExtension =
-            image.uri.split(".").pop()?.toLowerCase() || "jpg";
-          const fileName = `collage_image_${index}.${fileExtension}`;
-          const mimeType =
-            fileExtension === "jpg" || fileExtension === "jpeg"
-              ? "image/jpeg"
-              : fileExtension === "png"
-              ? "image/png"
-              : "image/jpeg";
-
-          formData.append("images", {
-            uri: image.uri,
-            type: mimeType,
-            name: fileName,
-          } as any);
-        });
-        endpoint = socialMediaEndpoints.generateCollage;
+        // Generate Collage
+        const imageUris = collageImages.map((img) => img.uri);
+        response = await AiToolsService.generateCollage(
+          businessId.toString(),
+          imageUris
+        );
       } else if (toolType === "Generate Reel") {
-        // Add media_files for Generate Reel
-        // Backend expects 'media_files' as array
-        reelMedia.forEach((media, index) => {
-          const fileExtension =
-            media.uri.split(".").pop()?.toLowerCase() || "jpg";
-          let fileName = "";
-          let mimeType = "";
-
-          if (media.type === "video") {
-            fileName = `reel_video_${index}.${fileExtension}`;
-            mimeType =
-              fileExtension === "mp4"
-                ? "video/mp4"
-                : fileExtension === "mov"
-                ? "video/quicktime"
-                : "video/mp4";
-          } else {
-            fileName = `reel_image_${index}.${fileExtension}`;
-            mimeType =
-              fileExtension === "jpg" || fileExtension === "jpeg"
-                ? "image/jpeg"
-                : fileExtension === "png"
-                ? "image/png"
-                : "image/jpeg";
-          }
-
-          formData.append("media_files", {
-            uri: media.uri,
-            type: mimeType,
-            name: fileName,
-          } as any);
-        });
-
-        // Add background_music if provided
-        if (backgroundMusic) {
-          const fileExtension =
-            backgroundMusic.uri.split(".").pop()?.toLowerCase() || "mp3";
-          const fileName =
-            backgroundMusic.name || `background_music.${fileExtension}`;
-          const mimeType =
-            fileExtension === "mp3"
-              ? "audio/mpeg"
-              : fileExtension === "wav"
-              ? "audio/wav"
-              : fileExtension === "m4a"
-              ? "audio/mp4"
-              : "audio/mpeg";
-
-          formData.append("background_music", {
-            uri: backgroundMusic.uri,
-            type: mimeType,
-            name: fileName,
-          } as any);
-        }
-
-        endpoint = socialMediaEndpoints.generateReel;
+        // Generate Reel
+        const mediaFiles = reelMedia.map((media) => ({
+          uri: media.uri,
+          type: media.type,
+        }));
+        response = await AiToolsService.generateReel(
+          businessId.toString(),
+          mediaFiles,
+          backgroundMusic?.uri,
+          backgroundMusic?.name
+        );
+      } else {
+        throw new Error("Invalid tool type");
       }
-
-      // Create axios instance with AI tool baseURL
-      const aiToolClient = axios.create({
-        baseURL: aiToolBaseUrl,
-        timeout: 180000, // 3 min
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${aiApiBearerToken}`,
-        },
-      });
-
-      const axiosResponse = await aiToolClient.post(endpoint, formData);
-      response = axiosResponse.data;
 
       // Save the result
       setGeneratedResult(response);
       setResultModalVisible(true);
     } catch (error: any) {
       console.error(`Error generating ${toolType.toLowerCase()}:`, error);
+      
+      // Handle no internet error
+      if (error.isNoInternet) {
+        showBanner(
+          "No Internet Connection",
+          "Please check your internet connection and try again.",
+          "error",
+          2000
+        );
+        return;
+      }
+
+      // Handle other errors
       const errorMessage =
-        error.response?.data?.detail ||
         error.message ||
         `Failed to generate ${toolType.toLowerCase()}. Please try again.`;
       showBanner("Error", errorMessage, "error", 4000);
@@ -748,6 +701,72 @@ export default function Tools() {
     </>
   );
 
+  const renderHairTryonContent = () => (
+    <>
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>
+          Source Image <Text style={styles.required}>*</Text>
+        </Text>
+        <TouchableOpacity
+          style={styles.fileInput}
+          onPress={openImagePicker}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.fileInputText}>
+            {hairTryonSourceImage ? "Image Selected" : "Choose File"}
+          </Text>
+          <MaterialIcons
+            name="arrow-drop-down"
+            size={moderateWidthScale(24)}
+            color={theme.text}
+          />
+        </TouchableOpacity>
+        {hairTryonSourceImage && (
+          <View style={styles.imagePreviewContainer}>
+            <Image
+              source={{ uri: hairTryonSourceImage }}
+              style={styles.imagePreview}
+            />
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDeleteHairTryonImage}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons
+                name="delete"
+                size={moderateWidthScale(20)}
+                color={theme.white}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      <View style={styles.fieldContainer}>
+        <Text style={styles.label}>
+          Hairstyle Description <Text style={styles.required}>*</Text>
+        </Text>
+        <TextInput
+          style={[
+            styles.textArea,
+            {
+              backgroundColor: theme.background,
+              borderColor: theme.borderLine,
+              color: theme.text,
+            },
+          ]}
+          placeholder="e.g., Short bob haircut with side-swept bangs, blonde highlights."
+          placeholderTextColor={theme.lightGreen4}
+          value={hairTryonPrompt}
+          onChangeText={setHairTryonPrompt}
+          multiline
+          numberOfLines={6}
+          textAlignVertical="top"
+        />
+      </View>
+    </>
+  );
+
   return (
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title={headerTitle} />
@@ -764,6 +783,7 @@ export default function Tools() {
           {toolType === "Generate Post" && renderPostContent()}
           {toolType === "Generate Collage" && renderCollageContent()}
           {toolType === "Generate Reel" && renderReelContent()}
+          {toolType === "Hair Tryon" && renderHairTryonContent()}
         </ScrollView>
 
         <View style={styles.buttonContainer}>

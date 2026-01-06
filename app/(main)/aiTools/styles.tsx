@@ -171,4 +171,14 @@ export const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       flex: 1,
     },
+    textArea: {
+      borderWidth: 1,
+      borderRadius: moderateWidthScale(8),
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(12),
+      minHeight: moderateHeightScale(120),
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      textAlignVertical: "top",
+    },
   });

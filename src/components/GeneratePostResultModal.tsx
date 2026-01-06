@@ -29,11 +29,18 @@ import { OpenFullIcon } from "@/assets/icons";
 
 interface GeneratePostResponse {
   status: string;
-  business_id: number;
+  business_id?: number;
+  session_id?: string; // For Hair Tryon
+  original_prompt?: string; // For Hair Tryon
   images?: {
-    processed: string;
+    processed?: string;
     original?: string; // For Generate Post (single image)
     originals?: string[]; // For Generate Collage (multiple images)
+    // For Hair Tryon
+    front?: { url: string };
+    left?: { url: string };
+    right?: { url: string };
+    back?: { url: string };
   };
   video?: {
     url: string;
@@ -299,6 +306,62 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
+    hairTryonGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: moderateWidthScale(12),
+      marginBottom: moderateHeightScale(20),
+    },
+    hairTryonImageCard: {
+      width: "48%",
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
+      backgroundColor: theme.lightGreen2,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      marginBottom: moderateHeightScale(12),
+    },
+    hairTryonImageContainer: {
+      width: "100%",
+      aspectRatio: 1,
+      position: "relative",
+    },
+    hairTryonImage: {
+      width: "100%",
+      height: "100%",
+    },
+    hairTryonLabel: {
+      position: "absolute",
+      top: moderateHeightScale(8),
+      left: moderateWidthScale(8),
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
+      paddingHorizontal: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(4),
+      borderRadius: moderateWidthScale(4),
+    },
+    hairTryonLabelText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      textTransform: "capitalize",
+    },
+    hairTryonDownloadButton: {
+      position: "absolute",
+      bottom: moderateHeightScale(8),
+      right: moderateWidthScale(8),
+      backgroundColor: theme.primary,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(6),
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(4),
+    },
+    hairTryonDownloadText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+    },
   });
 
 export default function GeneratePostResultModal({
@@ -312,6 +375,9 @@ export default function GeneratePostResultModal({
   const theme = colors as Theme;
   const [downloading, setDownloading] = useState(false);
   const [fullImageModalVisible, setFullImageModalVisible] = useState(false);
+  const [selectedHairTryonImage, setSelectedHairTryonImage] = useState<
+    string | null
+  >(null);
   const videoRef = useRef<Video>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
@@ -345,13 +411,14 @@ export default function GeneratePostResultModal({
     }
   };
 
-  const handleDownload = async () => {
-    const downloadUri =
-      toolType === "Generate Reel"
+  const handleDownload = async (downloadUri?: string) => {
+    const uri =
+      downloadUri ||
+      (toolType === "Generate Reel"
         ? result?.video?.url
-        : result?.images?.processed;
+        : result?.images?.processed);
 
-    if (!downloadUri) {
+    if (!uri) {
       Alert.alert(
         "Error",
         `No ${
@@ -365,9 +432,9 @@ export default function GeneratePostResultModal({
     try {
       // Try to open the URL in browser/device default handler
       // This allows users to save the file manually
-      const canOpen = await Linking.canOpenURL(downloadUri);
+      const canOpen = await Linking.canOpenURL(uri);
       if (canOpen) {
-        await Linking.openURL(downloadUri);
+        await Linking.openURL(uri);
       }
     } catch (error) {
       console.error("Error opening file:", error);
@@ -446,31 +513,33 @@ export default function GeneratePostResultModal({
       <View style={styles.modalContent}>
         {result ? (
           <>
-            {/* Download Button */}
-            <View style={styles.headerContainer}>
-              <TouchableOpacity
-                style={styles.downloadButton}
-                onPress={handleDownload}
-                disabled={downloading}
-                activeOpacity={0.7}
-              >
-                {downloading ? (
-                  <ActivityIndicator size="small" color={theme.white} />
-                ) : (
-                  <>
-                    <Feather
-                      name="download"
-                      size={moderateWidthScale(16)}
-                      color={theme.white}
-                    />
-                    <Text style={styles.downloadButtonText}>
-                      Download{" "}
-                      {toolType === "Generate Reel" ? "Video" : "Image"}
-                    </Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            {/* Download Button - Hide for Hair Tryon (each image has its own download) */}
+            {toolType !== "Hair Tryon" && (
+              <View style={styles.headerContainer}>
+                <TouchableOpacity
+                  style={styles.downloadButton}
+                  onPress={() => handleDownload()}
+                  disabled={downloading}
+                  activeOpacity={0.7}
+                >
+                  {downloading ? (
+                    <ActivityIndicator size="small" color={theme.white} />
+                  ) : (
+                    <>
+                      <Feather
+                        name="download"
+                        size={moderateWidthScale(16)}
+                        color={theme.white}
+                      />
+                      <Text style={styles.downloadButtonText}>
+                        Download{" "}
+                        {toolType === "Generate Reel" ? "Video" : "Image"}
+                      </Text>
+                    </>
+                  )}
+                </TouchableOpacity>
+              </View>
+            )}
 
             {/* Generated Video (for Reel) */}
             {toolType === "Generate Reel" && result.video?.url && (
@@ -632,31 +701,200 @@ export default function GeneratePostResultModal({
               </View>
             )}
 
-            {/* Generated Image (for Post and Collage) */}
-            {toolType !== "Generate Reel" && result.images?.processed && (
-              <TouchableOpacity
-                style={styles.imageContainer}
-                onPress={() => setFullImageModalVisible(true)}
-                activeOpacity={1}
-              >
-                <Image
-                  source={{ uri: result.images.processed }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-                <TouchableOpacity
-                  style={styles.openFullButton}
-                  onPress={() => setFullImageModalVisible(true)}
-                >
-                  <OpenFullIcon
-                    width={widthScale(14)}
-                    height={heightScale(14)}
-                    color={theme.white}
-                  />
-                  <Text style={styles.openFullButtonText}>Open in full</Text>
-                </TouchableOpacity>
-              </TouchableOpacity>
+            {/* Hair Tryon Images */}
+            {toolType === "Hair Tryon" && result.images && (
+              <View style={styles.section}>
+                {result.original_prompt && (
+                  <View
+                    style={[
+                      styles.sectionContent,
+                      {
+                        marginVertical: moderateHeightScale(16),
+                        backgroundColor: theme.white,
+                      },
+                    ]}
+                  >
+                    <Text style={styles.captionText}>
+                      {result.original_prompt}
+                    </Text>
+                  </View>
+                )}
+                <View style={styles.hairTryonGrid}>
+                  {result.images.front && (
+                    <View style={styles.hairTryonImageCard}>
+                      <TouchableOpacity
+                        style={styles.hairTryonImageContainer}
+                        onPress={() => {
+                          setSelectedHairTryonImage(result.images.front.url);
+                          setFullImageModalVisible(true);
+                        }}
+                        activeOpacity={1}
+                      >
+                        <Image
+                          source={{ uri: result.images.front.url }}
+                          style={styles.hairTryonImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.hairTryonLabel}>
+                          <Text style={styles.hairTryonLabelText}>Front</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.hairTryonDownloadButton}
+                          onPress={() =>
+                            handleDownload(result.images.front.url)
+                          }
+                          activeOpacity={0.7}
+                        >
+                          <Feather
+                            name="download"
+                            size={moderateWidthScale(12)}
+                            color={theme.white}
+                          />
+                          <Text style={styles.hairTryonDownloadText}>
+                            Download
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {result.images.left && (
+                    <View style={styles.hairTryonImageCard}>
+                      <TouchableOpacity
+                        style={styles.hairTryonImageContainer}
+                        onPress={() => {
+                          setSelectedHairTryonImage(result.images.left.url);
+                          setFullImageModalVisible(true);
+                        }}
+                        activeOpacity={1}
+                      >
+                        <Image
+                          source={{ uri: result.images.left.url }}
+                          style={styles.hairTryonImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.hairTryonLabel}>
+                          <Text style={styles.hairTryonLabelText}>Left</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.hairTryonDownloadButton}
+                          onPress={() => handleDownload(result.images.left.url)}
+                          activeOpacity={0.7}
+                        >
+                          <Feather
+                            name="download"
+                            size={moderateWidthScale(12)}
+                            color={theme.white}
+                          />
+                          <Text style={styles.hairTryonDownloadText}>
+                            Download
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {result.images.right && (
+                    <View style={styles.hairTryonImageCard}>
+                      <TouchableOpacity
+                        style={styles.hairTryonImageContainer}
+                        onPress={() => {
+                          setSelectedHairTryonImage(result.images.right.url);
+                          setFullImageModalVisible(true);
+                        }}
+                        activeOpacity={1}
+                      >
+                        <Image
+                          source={{ uri: result.images.right.url }}
+                          style={styles.hairTryonImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.hairTryonLabel}>
+                          <Text style={styles.hairTryonLabelText}>Right</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.hairTryonDownloadButton}
+                          onPress={() =>
+                            handleDownload(result.images.right.url)
+                          }
+                          activeOpacity={0.7}
+                        >
+                          <Feather
+                            name="download"
+                            size={moderateWidthScale(12)}
+                            color={theme.white}
+                          />
+                          <Text style={styles.hairTryonDownloadText}>
+                            Download
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                  {result.images.back && (
+                    <View style={styles.hairTryonImageCard}>
+                      <TouchableOpacity
+                        style={styles.hairTryonImageContainer}
+                        onPress={() => {
+                          setSelectedHairTryonImage(result.images.back.url);
+                          setFullImageModalVisible(true);
+                        }}
+                        activeOpacity={1}
+                      >
+                        <Image
+                          source={{ uri: result.images.back.url }}
+                          style={styles.hairTryonImage}
+                          resizeMode="cover"
+                        />
+                        <View style={styles.hairTryonLabel}>
+                          <Text style={styles.hairTryonLabelText}>Back</Text>
+                        </View>
+                        <TouchableOpacity
+                          style={styles.hairTryonDownloadButton}
+                          onPress={() => handleDownload(result.images.back.url)}
+                          activeOpacity={0.7}
+                        >
+                          <Feather
+                            name="download"
+                            size={moderateWidthScale(12)}
+                            color={theme.white}
+                          />
+                          <Text style={styles.hairTryonDownloadText}>
+                            Download
+                          </Text>
+                        </TouchableOpacity>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
+              </View>
             )}
+
+            {/* Generated Image (for Post and Collage) */}
+            {toolType !== "Generate Reel" &&
+              toolType !== "Hair Tryon" &&
+              result.images?.processed && (
+                <TouchableOpacity
+                  style={styles.imageContainer}
+                  onPress={() => setFullImageModalVisible(true)}
+                  activeOpacity={1}
+                >
+                  <Image
+                    source={{ uri: result.images.processed }}
+                    style={styles.image}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    style={styles.openFullButton}
+                    onPress={() => setFullImageModalVisible(true)}
+                  >
+                    <OpenFullIcon
+                      width={widthScale(14)}
+                      height={heightScale(14)}
+                      color={theme.white}
+                    />
+                    <Text style={styles.openFullButtonText}>Open in full</Text>
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              )}
 
             {/* Caption Section */}
             {result.content?.caption && (
@@ -754,8 +992,15 @@ export default function GeneratePostResultModal({
       {toolType !== "Generate Reel" && (
         <FullImageModal
           visible={fullImageModalVisible}
-          onClose={() => setFullImageModalVisible(false)}
-          imageUri={result?.images?.processed || null}
+          onClose={() => {
+            setFullImageModalVisible(false);
+            setSelectedHairTryonImage(null);
+          }}
+          imageUri={
+            toolType === "Hair Tryon"
+              ? selectedHairTryonImage || result?.images?.front?.url || null
+              : result?.images?.processed || null
+          }
         />
       )}
     </ModalizeBottomSheet>
