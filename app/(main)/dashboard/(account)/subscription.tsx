@@ -82,9 +82,9 @@ const createStyles = (theme: Theme) =>
     headerCard: {
       marginHorizontal: moderateWidthScale(20),
       marginTop: moderateHeightScale(20),
-      borderRadius: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(8),
       overflow: "hidden",
-      marginBottom: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(12),
     },
     headerGradient: {
       padding: moderateWidthScale(24),
@@ -213,23 +213,63 @@ const createStyles = (theme: Theme) =>
       marginVertical: moderateHeightScale(16),
     },
     daysRemainingCard: {
-      backgroundColor: theme.orangeBrown30,
       borderRadius: moderateWidthScale(16),
-      padding: moderateWidthScale(20),
       marginHorizontal: moderateWidthScale(20),
       marginBottom: moderateHeightScale(20),
+      overflow: "hidden",   
+    },
+    cardGradient: {
+      flex: 1,
+      paddingHorizontal: moderateWidthScale(24),
+      paddingVertical: moderateHeightScale(12),
+      justifyContent: "space-between",
+    },
+    cardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: moderateHeightScale(20),
+    },
+    cardChip: {
+      width: moderateWidthScale(50),
+      height: moderateHeightScale(40),
+      borderRadius: moderateWidthScale(8),
+      backgroundColor: theme.white,
+      opacity: 0.3,
+    },
+    cardNetwork: {
+      width: moderateWidthScale(50),
+      height: moderateWidthScale(30),
+      borderRadius: moderateWidthScale(4),
+      backgroundColor: theme.white,
+      opacity: 0.2,
+    },
+    cardMiddle: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    cardNumberContainer: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      marginBottom: moderateHeightScale(8),
+    },
+    cardNumberText: {
+      fontSize: fontSize.size24,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      letterSpacing: moderateWidthScale(2),
     },
     daysRemainingLeft: {
       flex: 1,
     },
     daysRemainingLabel: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
+      color: theme.white,
+      opacity: 0.8,
       marginBottom: moderateHeightScale(4),
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
     },
     daysRemainingValue: {
       fontSize: fontSize.size24,
@@ -243,6 +283,26 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.lightBeige,
       alignItems: "center",
       justifyContent: "center",
+    },
+    cardBottom: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+    },
+    cardLabel: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.white,
+      opacity: 0.8,
+      marginBottom: moderateHeightScale(4),
+      letterSpacing: 0.5,
+      textTransform: "uppercase",
+    },
+    cardValue: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      letterSpacing: moderateWidthScale(1),
     },
     buttonContainer: {
       marginHorizontal: moderateWidthScale(20),
@@ -493,25 +553,27 @@ export default function SubscriptionScreen() {
 
         {/* Card Last 4 Digits Card */}
         <View style={styles.daysRemainingCard}>
-          <View style={styles.daysRemainingLeft}>
-            <Text style={styles.daysRemainingLabel}>Card</Text>
-            <Text style={styles.daysRemainingValue}>
-              {formatCardNumber(subscription.cardLastFour)}
-            </Text>
-          </View>
-          <View style={styles.daysRemainingIcon}>
-            <Feather
-              name="credit-card"
-              size={moderateWidthScale(28)}
-              color={theme.darkGreenLight}
-            />
-          </View>
+          <LinearGradient
+            colors={[theme.darkGreenLight, theme.darkGreen]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.cardGradient}
+          >
+            <View style={styles.cardMiddle}>
+              <Text style={styles.cardLabel}>Card Last 4 Digits</Text>
+              <View style={styles.cardNumberContainer}>
+                <Text style={styles.cardNumberText}>
+                  {formatCardNumber(subscription.cardLastFour)}
+                </Text>
+              </View>
+            </View>
+          </LinearGradient>
         </View>
 
         {/* Subscription Details */}
         <View style={styles.infoSection}>
           <Text style={styles.sectionTitle}>Subscription Details</Text>
-          <View style={[styles.infoCard]}>
+          <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Feather
