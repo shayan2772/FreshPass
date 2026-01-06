@@ -194,6 +194,12 @@ export default function AccountScreen() {
       }
     } else if (key === "subscriptions") {
       router.push("./subscription");
+    } else if (key === "aiTools") {
+      if (userRole === "business") {
+        router.push("/(main)/aiTools/business");
+      } else if (userRole === "customer") {
+        router.push("/(main)/aiTools/customer");
+      }
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -214,8 +220,10 @@ export default function AccountScreen() {
       | "rules"
       | "reviews"
       | "subscriptions"
+      | "aiTools"
       | "logout"
       | "delete";
+     
     title: string;
     subtitle?: string;
   };
@@ -252,6 +260,7 @@ export default function AccountScreen() {
       subtitle: "Turned ON",
     },
     ...(isCustomer ? [{ key: "reviews" as const, title: "Reviews" }] : []),
+    ...( userRole === "business" || userRole === "customer" ? [{ key: "aiTools" as const, title: "Ai Tools" }] : []),
     {
       key: "rules" as const,
       title: "Rules and terms",

@@ -4,7 +4,6 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
-  heightScale,
   moderateHeightScale,
   moderateWidthScale,
   widthScale,
