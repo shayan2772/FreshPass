@@ -22,7 +22,12 @@ import WelcomeSection from "./components/WelcomeSection";
 import DashboardHeader from "../../DashboardHeader";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
-import { setUserDetails, UserRole } from "@/src/state/slices/userSlice";
+import {
+  setUserDetails,
+  setBusinessStatus,
+  UserRole,
+  BusinessStatus,
+} from "@/src/state/slices/userSlice";
 import { ApiService, checkInternetConnection } from "@/src/services/api";
 import {
   userEndpoints,
@@ -108,11 +113,10 @@ export default function HomeScreen() {
   const [workHistoryTotalCount, setWorkHistoryTotalCount] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
- 
   const handleFetchUserStatus = async (): Promise<boolean> => {
     try {
       await dispatch(fetchUserStatus({ showError: true })).unwrap();
-      return true;  
+      return true;
     } catch (error: any) {
       showBanner(
         "API Failed",
@@ -136,6 +140,10 @@ export default function HomeScreen() {
           country_code: string | null;
           email_notifications: boolean | null;
           profile_image_url: string | null;
+          business: {
+            id: number;
+            title: string;
+          };
         };
       }>(userEndpoints.details);
 
@@ -150,6 +158,16 @@ export default function HomeScreen() {
             profile_image_url: response.data.profile_image_url,
           })
         );
+
+        if (response.data.business && businessStatus) {
+          dispatch(
+            setBusinessStatus({
+              ...businessStatus,
+              business_id: response.data.business.id,
+              business_name: response.data.business.title,
+            })
+          );
+        }
       }
     } catch (error: any) {}
   };
@@ -374,7 +392,7 @@ export default function HomeScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [ ]);
+  }, []);
 
   const fetchInitialData = async () => {
     const statusSuccess = await handleFetchUserStatus();
@@ -410,8 +428,7 @@ export default function HomeScreen() {
     };
   }, []);
 
-
-  const showLoadingState = 
+  const showLoadingState =
     (isLoading && !businessStatus && !apiError) ||
     (!businessStatus && !apiError);
   const showErrorState = apiError && !isLoading;
@@ -435,56 +452,56 @@ export default function HomeScreen() {
         </View>
       ) : (
         <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor={theme.primary}
-            colors={[theme.primary]}
-          />
-        }
-      >
-        {/* Welcome Section - Only for Staff role */}
-        {userRole === "staff" && <WelcomeSection />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={theme.primary}
+              colors={[theme.primary]}
+            />
+          }
+        >
+          {/* Welcome Section - Only for Staff role */}
+          {userRole === "staff" && <WelcomeSection />}
 
-        {/* Summary Statistics - All roles */}
-        <View style={styles.statsContainer}>
-          <SummaryStats
-            callApi={handleFetchDashboardStats}
-            data={dashboardStats}
-          />
-        </View>
+          {/* Summary Statistics - All roles */}
+          <View style={styles.statsContainer}>
+            <SummaryStats
+              callApi={handleFetchDashboardStats}
+              data={dashboardStats}
+            />
+          </View>
 
-        {/* Staff on Duty - Only for Business role */}
-        {userRole === "business" && (
-          <StaffOnDuty
-            data={staffData}
-            callApi={() => handleFetchStaff("active")}
-          />
-        )}
+          {/* Staff on Duty - Only for Business role */}
+          {userRole === "business" && (
+            <StaffOnDuty
+              data={staffData}
+              callApi={() => handleFetchStaff("active")}
+            />
+          )}
 
-        {/* Appointments - All roles */}
-        <View style={styles.appointmentsContainer}>
-          <AppointmentsSection
-            data={appointmentsData}
-            totalCount={appointmentsTotalCount}
-            callApi={handleFetchAppointments}
-          />
-        </View>
+          {/* Appointments - All roles */}
+          <View style={styles.appointmentsContainer}>
+            <AppointmentsSection
+              data={appointmentsData}
+              totalCount={appointmentsTotalCount}
+              callApi={handleFetchAppointments}
+            />
+          </View>
 
-        <View style={styles.line} />
+          <View style={styles.line} />
 
-        {/* Work History - All roles */}
-        <View style={styles.workHistoryContainer}>
-          <WorkHistory
-            data={workHistoryData}
-            totalCount={workHistoryTotalCount}
-            callApi={handleFetchWorkHistory}
-          />
-        </View>
-      </ScrollView>
+          {/* Work History - All roles */}
+          <View style={styles.workHistoryContainer}>
+            <WorkHistory
+              data={workHistoryData}
+              totalCount={workHistoryTotalCount}
+              callApi={handleFetchWorkHistory}
+            />
+          </View>
+        </ScrollView>
       )}
     </View>
   );

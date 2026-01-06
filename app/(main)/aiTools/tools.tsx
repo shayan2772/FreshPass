@@ -6,14 +6,17 @@ import {
   TouchableOpacity,
   Alert,
   Image,
-  Dimensions,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
+import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import { moderateWidthScale } from "@/src/theme/dimensions";
+import {
+  moderateWidthScale,
+  moderateHeightScale,
+} from "@/src/theme/dimensions";
+import { fontSize, fonts } from "@/src/theme/fonts";
 import { createStyles } from "./styles";
 import StackHeader from "@/src/components/StackHeader";
 import Button from "@/src/components/button";
@@ -26,6 +29,11 @@ import {
 } from "@/src/services/mediaPermissionService";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { ApiService } from "@/src/services/api";
+import { socialMediaEndpoints } from "@/src/services/endpoints";
+import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
+import ActionLoader from "@/src/components/actionLoader";
+import { setActionLoader } from "@/src/state/slices/generalSlice";
 
 interface MediaFile {
   id: string;
@@ -40,8 +48,7 @@ interface AudioFile {
   name: string;
 }
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-
+ 
 export default function Tools() {
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -70,6 +77,16 @@ export default function Tools() {
   const [imagePickerVisible, setImagePickerVisible] = useState(false);
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
   const [audioPickerVisible, setAudioPickerVisible] = useState(false);
+  const [resultModalVisible, setResultModalVisible] = useState(false);
+
+  // API state
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedResult, setGeneratedResult] = useState<any>(null);
+
+  // Get business_id from Redux store
+  const user = useAppSelector((state) => state.user);
+  const businessId = user.businessStatus?.business_id ;
+ 
 
   const generateId = () => {
     return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -274,7 +291,7 @@ export default function Tools() {
     }
   }, []);
 
-  const handleGenerate = useCallback(() => {
+  const handleGenerate = useCallback(async () => {
     // Validation
     if (toolType === "Generate Post") {
       if (!postImage) {
@@ -289,6 +306,12 @@ export default function Tools() {
         );
         return;
       }
+      // TODO: Implement collage API when endpoint is available
+      Alert.alert(
+        "Coming Soon",
+        "Generate Collage feature will be available soon."
+      );
+      return;
     } else if (toolType === "Generate Reel") {
       if (reelMedia.length < 3 || reelMedia.length > 15) {
         Alert.alert(
@@ -297,17 +320,78 @@ export default function Tools() {
         );
         return;
       }
+      // TODO: Implement reel API when endpoint is available
+      Alert.alert("Coming Soon", "Generate Reel feature will be available soon.");
+      return;
     }
 
-    // TODO: API call will be added here
-    console.log("Generate button pressed", {
-      toolType,
-      postImage,
-      collageImages,
-      reelMedia,
-      backgroundMusic,
-    });
-  }, [toolType, postImage, collageImages, reelMedia, backgroundMusic]);
+    // Check if business_id is available
+    if (!businessId) {
+      Alert.alert(
+        "Error",
+        "Business ID not found. Please complete your business profile."
+      );
+      return;
+    }
+
+    setIsGenerating(true);
+    dispatch(setActionLoader(true));
+
+    try {
+      const formData = new FormData();
+
+      // Add business_id
+      formData.append("business_id", businessId.toString());
+
+      // Add image for Generate Post
+      if (postImage) {
+        const fileExtension = postImage.split(".").pop() || "jpg";
+        const fileName = `post_image.${fileExtension}`;
+        const mimeType =
+          fileExtension === "jpg" || fileExtension === "jpeg"
+            ? "image/jpeg"
+            : fileExtension === "png"
+            ? "image/png"
+            : "image/jpeg";
+
+        formData.append("image", {
+          uri: postImage,
+          type: mimeType,
+          name: fileName,
+        } as any);
+      }
+
+      // API call with FormData
+      const aiToolBaseUrl = process.env.EXPO_PUBLIC_AITOOL_API_BASE_URL || "";
+      const aiApiBearerToken = process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
+      const config = {
+        baseURL: aiToolBaseUrl,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${aiApiBearerToken}`,
+        },
+      };
+
+      const response = await ApiService.post(
+        socialMediaEndpoints.generatePost,
+        formData,
+        config
+      );
+
+      // Save the result
+      setGeneratedResult(response);
+      setResultModalVisible(true);
+    } catch (error: any) {
+      console.error("Error generating post:", error);
+      Alert.alert(
+        "Error",
+        error.message || "Failed to generate post. Please try again."
+      );
+    } finally {
+      setIsGenerating(false);
+      dispatch(setActionLoader(false));
+    }
+  }, [toolType, postImage, businessId]);
 
   const openImagePicker = useCallback(() => {
     setImagePickerVisible(true);
@@ -545,15 +629,59 @@ export default function Tools() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
+         
+
           {toolType === "Generate Post" && renderPostContent()}
           {toolType === "Generate Collage" && renderCollageContent()}
           {toolType === "Generate Reel" && renderReelContent()}
         </ScrollView>
 
         <View style={styles.buttonContainer}>
+
+           {/* Show previous result button if result exists */}
+           {generatedResult && (
+            <TouchableOpacity
+              style={{
+                backgroundColor: theme.orangeBrown30,
+                borderRadius: moderateWidthScale(8),
+                padding: moderateWidthScale(16),
+                marginBottom: moderateHeightScale(16),
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+              onPress={() => setResultModalVisible(true)}
+              activeOpacity={0.7}
+            >
+              <View style={{ flexDirection: "row", alignItems: "center", flex: 1 }}>
+                <MaterialIcons
+                  name="visibility"
+                  size={moderateWidthScale(20)}
+                  color={theme.darkGreen}
+                  style={{ marginRight: moderateWidthScale(12) }}
+                />
+                <Text
+                  style={{
+                    fontSize: fontSize.size14,
+                    fontFamily: fonts.fontMedium,
+                    color: theme.darkGreen,
+                    flex: 1,
+                  }}
+                >
+                  View Previous Result
+                </Text>
+              </View>
+              <MaterialIcons
+                name="chevron-right"
+                size={moderateWidthScale(20)}
+                color={theme.darkGreen}
+              />
+            </TouchableOpacity>
+          )}
           <Button
             title={`Generate ${toolType.replace("Generate ", "")}`}
             onPress={handleGenerate}
+            disabled={isGenerating}
           />
         </View>
       </KeyboardAvoidingView>
@@ -648,6 +776,15 @@ export default function Tools() {
           <Text style={styles.optionText}>Choose Audio File</Text>
         </TouchableOpacity>
       </ModalizeBottomSheet>
+
+      {/* Result Modal */}
+      <GeneratePostResultModal
+        visible={resultModalVisible}
+        onClose={() => setResultModalVisible(false)}
+        result={generatedResult}
+        toolType={toolType}
+      />
+
     </SafeAreaView>
   );
 }

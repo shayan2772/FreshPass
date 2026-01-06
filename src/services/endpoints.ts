@@ -174,3 +174,10 @@ export const emailVerificationEndpoints = {
   verify: `/api/email/verify`,
   resendNotification: `/api/email/verification-notification`,
 };
+
+/**
+ * Social media endpoints
+ */
+export const socialMediaEndpoints = {
+  generatePost: `/api/social-media/generate-post`,
+};

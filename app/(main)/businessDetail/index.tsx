@@ -36,6 +36,7 @@ import {
   PhoneIconContact,
 } from "@/assets/icons";
 import InclusionsModal from "@/src/components/inclusionsModal";
+import FullImageModal from "@/src/components/fullImageModal";
 import Button from "@/src/components/button";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
@@ -568,29 +569,6 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-    },
-    imageModal: {
-      flex: 1,
-      backgroundColor: theme.black || "#000000",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modalCloseButton: {
-      position: "absolute",
-      top: moderateHeightScale(50),
-      right: moderateWidthScale(20),
-      zIndex: 10,
-      width: widthScale(40),
-      height: heightScale(40),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: "rgba(255, 255, 255, 0.2)",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    modalImage: {
-      width: SCREEN_WIDTH,
-      height: SCREEN_HEIGHT,
-      resizeMode: "contain",
     },
     serviceSection: {
       backgroundColor: theme.white,
@@ -2339,28 +2317,11 @@ export default function BusinessDetailScreen() {
       </ScrollView>
 
       {/* Image Modal */}
-      <Modal
+      <FullImageModal
         visible={imageModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setImageModalVisible(false)}
-      >
-        <View style={styles.imageModal}>
-          <Pressable
-            style={styles.modalCloseButton}
-            onPress={() => setImageModalVisible(false)}
-          >
-            <CloseIcon width={widthScale(24)} height={heightScale(24)} />
-          </Pressable>
-          {selectedImage && (
-            <Image
-              source={{ uri: selectedImage }}
-              style={styles.modalImage}
-              resizeMode="contain"
-            />
-          )}
-        </View>
-      </Modal>
+        onClose={() => setImageModalVisible(false)}
+        imageUri={selectedImage}
+      />
 
       {/* Inclusions Modal */}
       <InclusionsModal

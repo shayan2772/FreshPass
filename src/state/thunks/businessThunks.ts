@@ -79,6 +79,7 @@ export const fetchUserStatus = createAsyncThunk<
         ...response.data,
         active: response.data.active ?? false,
       };
+   
       dispatch(setBusinessStatus(businessStatusData));
       dispatch(setBusinessStatusError(false));
       return businessStatusData;
