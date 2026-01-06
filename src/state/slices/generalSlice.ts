@@ -59,6 +59,7 @@ const generalSlice = createSlice({
       state.isVisitFirst = action.payload;
     },
     resetGeneral(state) {
+      state.language = "en";
     },
   },
 });

@@ -199,7 +199,6 @@ const handleLogout = async () => {
   store.dispatch(resetCompleteProfile());
   store.dispatch(resetGeneral());
   store.dispatch(resetUser());
-
   router.replace(`/(main)/${MAIN_ROUTES.ROLE}`);
 };
 

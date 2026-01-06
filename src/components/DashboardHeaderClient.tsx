@@ -95,7 +95,7 @@ export default function DashboardHeaderClient() {
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const [selectedDate, setSelectedDate] = useState(dayjs());
 
-  const locationName = location?.locationName || "Miami-Dade County, FL";
+  const locationName = location?.locationName || "Select Location";
   
   const formatDate = (date: dayjs.Dayjs) => {
     return date.format("MMM D");

@@ -49,27 +49,17 @@ export default function RootLayout() {
           persistor={persistor}
           loading={null}
           onBeforeLift={async () => {
-            // Wait for rehydration to complete
+            // Wait for rehydration to complete from AsyncStorage
             await persistor.flush();
 
             // Sync i18n with Redux persisted language after rehydration
-            // Ensure i18n is initialized before calling changeLanguage
             if (!i18n || !i18n.isInitialized) {
               return;
             }
 
             const state = store.getState();
 
-            // Debug: Log persisted user data
-            if (__DEV__) {
-              console.log("🔐 Rehydrated user state:", {
-                hasAccessToken: !!state?.user?.accessToken,
-                hasRefreshToken: !!state?.user?.refreshToken,
-                userId: state?.user?.id,
-                userName: state?.user?.name,
-              });
-            }
-
+            // Sync language from persisted state
             if (
               state?.general?.language &&
               i18n.language !== state.general.language

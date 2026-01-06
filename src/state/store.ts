@@ -1,4 +1,4 @@
-import { SecureStorageService } from "@/src/services/storage";
+import { LocalStorageService } from "@/src/services/storage";
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { persistReducer, persistStore } from "redux-persist";
 import generalReducer from "./slices/generalSlice";
@@ -6,12 +6,12 @@ import completeProfileReducer from "./slices/completeProfileSlice";
 import userReducer from "./slices/userSlice";
 import bsnsReducer from "./slices/bsnsSlice";
 
-// ✅ Custom SecureStore adapter for redux-persist
+// ✅ Custom AsyncStorage adapter for redux-persist
 // Note: redux-persist supports async storage, but we need to ensure promises are properly handled
-const SecureStorageAdapter = {
+const LocalStorageAdapter = {
   setItem: async (key: string, value: string): Promise<void> => {
     try {
-      await SecureStorageService.setItem(key, value);
+      await LocalStorageService.setItem(key, value);
     } catch (error) {
       console.error(`❌ Failed to persist ${key}:`, error);
       // Don't throw - let redux-persist handle it gracefully
@@ -19,7 +19,7 @@ const SecureStorageAdapter = {
   },
   getItem: async (key: string): Promise<string | null> => {
     try {
-      const value = await SecureStorageService.getItem(key);
+      const value = await LocalStorageService.getItem(key);
       return value;
     } catch (error) {
       console.error(`❌ Failed to retrieve ${key}:`, error);
@@ -29,7 +29,7 @@ const SecureStorageAdapter = {
   },
   removeItem: async (key: string): Promise<void> => {
     try {
-      await SecureStorageService.removeItem(key);
+      await LocalStorageService.removeItem(key);
     } catch (error) {
       console.error(`❌ Failed to remove ${key}:`, error);
       // Don't throw - let redux-persist handle it gracefully
@@ -41,14 +41,14 @@ const SecureStorageAdapter = {
 // This approach is more reliable than using transforms at root level
 const generalPersistConfig = {
   key: "general",
-  storage: SecureStorageAdapter,
+  storage: LocalStorageAdapter,
   whitelist: ["theme", "themeType", "language", "savedPassword","registerEmail", "isVisitFirst"], // Only persist these fields
 };
 
 // ✅ Nested persist config for user slice - only persist name, id, email, tokens, userRole (businessStatus is NOT persisted)
 const userPersistConfig = {
   key: "user",
-  storage: SecureStorageAdapter,
+  storage: LocalStorageAdapter,
   whitelist: ["id", "name", "email",  "email_notifications", "profile_image_url", "accessToken", "userRole", "unreadCount","description","country_code","phone", "isGuest", "location", "discover", "selectBsnsCategory", "dateOfBirth", "countryZipCode", "countryName","business_id","business_name"], // Only persist these fields (businessStatus excluded)
 };
 
