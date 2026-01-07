@@ -9,7 +9,7 @@ import {
   RefreshControl,
   ScrollView,
 } from "react-native";
-import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -192,6 +192,8 @@ export default function NotificationsScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.user);
+  const isGuest = user.isGuest;
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -250,8 +252,14 @@ export default function NotificationsScreen() {
   };
 
   // Fetch notifications from API
-  const fetchNotifications = useCallback(
+  const fetchNotifications =  
     async (page: number = 1, append: boolean = false) => {
+      if (isGuest) {
+        setLoading(false);
+        setLoadingMore(false);
+        return;
+      }
+
       if (append) {
         setLoadingMore(true);
       } else {
@@ -293,12 +301,13 @@ export default function NotificationsScreen() {
         setLoading(false);
         setLoadingMore(false);
       }
-    },
-    [showBanner]
-  );
+    };
 
   // Fetch unread count
-  const handleFetchUnreadCount = useCallback(async () => {
+  const handleFetchUnreadCount = async () => {
+    if (isGuest) {
+      return;
+    }
     try {
       const response = await ApiService.get<{
         success: boolean;
@@ -314,10 +323,13 @@ export default function NotificationsScreen() {
     } catch (error: any) {
       // Silent fail - no banner or console
     }
-  }, [dispatch]);
+  };
 
   // Mark notification as read
   const handleMarkAsRead = async (notificationId: number, itemId: string) => {
+    if (isGuest) {
+      return;
+    }
     try {
       const response = await ApiService.post<{
         success: boolean;
@@ -346,6 +358,9 @@ export default function NotificationsScreen() {
 
   // Mark all notifications as read
   const handleMarkAllAsRead = async () => {
+    if (isGuest) {
+      return;
+    }
     setMarkAllAsReadLoading(true);
     try {
       const response = await ApiService.post<{
@@ -371,12 +386,21 @@ export default function NotificationsScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchNotifications(1, false);
-      handleFetchUnreadCount();
-    }, [handleFetchUnreadCount])
+      if (!isGuest) {
+        fetchNotifications(1, false);
+        handleFetchUnreadCount();
+      } else {
+        setLoading(false);
+      }
+    }, [isGuest])
   );
 
-  const handleRefresh = useCallback(async () => {
+  const handleRefresh = async () => {
+    if (isGuest) {
+      setRefreshing(false);
+      return;
+    }
+
     setRefreshing(true);
 
     try {
@@ -404,13 +428,16 @@ export default function NotificationsScreen() {
     } finally {
       setRefreshing(false);
     }
-  }, [fetchNotifications, handleFetchUnreadCount, showBanner]);
+  } 
 
-  const loadMore = useCallback(() => {
+  const loadMore =  () => {
+    if (isGuest) {
+      return;
+    }
     if (!loadingMore && currentPage < totalPages) {
       fetchNotifications(currentPage + 1, true);
     }
-  }, [loadingMore, currentPage, totalPages, fetchNotifications]);
+  } 
 
   const sections = useMemo<NotificationSection[]>(() => {
     if (notifications.length === 0) {

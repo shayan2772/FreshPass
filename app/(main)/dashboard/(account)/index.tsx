@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useTheme, useAppSelector } from "@/src/hooks/hooks";
-import { useTranslation } from "react-i18next";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -83,8 +82,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { i18n } = useTranslation();
-
+   
   const user = useAppSelector((state) => state.user);
   const userRole = user.userRole;
   const isGuest = user.isGuest;
@@ -103,8 +101,8 @@ export default function AccountScreen() {
 
   const handleLogout = async () => {
     Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
+     isGuest? "Sign in": "Logout",
+      `Are you sure you want to ${isGuest ?"sign in":"logout}"} ?`,
       [
         {
           text: "Cancel",
@@ -195,9 +193,7 @@ export default function AccountScreen() {
     } else if (key === "subscriptions") {
       router.push("./subscription");
     } else if (key === "aiTools") {
-      
         router.push("/(main)/aiTools/toolList");
-       
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -227,7 +223,7 @@ export default function AccountScreen() {
   };
 
   const rows: Row[] = [
-    { key: "personal", title: "Personal information" },
+    ...(!isGuest ? [{ key: "personal" as const, title: "Personal information" }] : []),
       ...((userRole === "business" || userRole === "staff") &&
     !isGuest &&
     !isCustomer
@@ -263,8 +259,8 @@ export default function AccountScreen() {
       key: "rules" as const,
       title: "Rules and terms",
     },
-    { key: "logout", title: "Log out" },
-    { key: "delete", title: "Delete account" },
+    { key: "logout", title: isGuest ? "Sign in" : "Log out" },
+    ...(!isGuest ? [{ key: "delete" as const, title: "Delete account" }] : []),
   ];
 
   return (
