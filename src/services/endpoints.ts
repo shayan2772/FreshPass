@@ -65,6 +65,7 @@ export const businessEndpoints = {
   },
   cancelTrial: (subscriptionId: number) => `/api/subscriptions/${subscriptionId}/cancel-trial`,
   cancelSubscription: (subscriptionId: number) => `/api/subscriptions/${subscriptionId}/cancel`,
+  businessDetails: (businessId: string | number) => `/api/business/details?business_id=${businessId}`,
 };
 
 /**

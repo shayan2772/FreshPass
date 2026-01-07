@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -13,6 +13,7 @@ import {
   Linking,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
@@ -50,6 +51,9 @@ import {
 import InclusionsModal from "@/src/components/inclusionsModal";
 import FullImageModal from "@/src/components/fullImageModal";
 import Button from "@/src/components/button";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import RetryButton from "@/src/components/retryButton";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -264,7 +268,7 @@ const createStyles = (theme: Theme) =>
     },
     contentContainer: {
       backgroundColor: theme.background,
-      paddingTop: moderateHeightScale(20),
+      // paddingTop: moderateHeightScale(20),
     },
     sectionContent: {
       paddingHorizontal: moderateWidthScale(20),
@@ -365,6 +369,7 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
       alignItems: "center",
       marginBottom: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
     },
     viewAllLink: {
       fontSize: fontSize.size14,
@@ -374,7 +379,7 @@ const createStyles = (theme: Theme) =>
     hoursCardsContainer: {
       flexDirection: "row",
       gap: moderateWidthScale(12),
-      paddingHorizontal: moderateWidthScale(20),
+     paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(12),
     },
     hoursCard: {
@@ -393,6 +398,27 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+    },
+    hoursBreak: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen5,
+      marginTop: moderateHeightScale(4),
+    },
+    viewBreaksLink: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.orangeBrown,
+      marginTop: moderateHeightScale(4),
+      textDecorationLine: "underline",
+    },
+    noHoursText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginTop: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
     },
     serviceSection: {
       backgroundColor: theme.white,
@@ -855,7 +881,6 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(12),
     },
   });
-
 export default function BusinessDetailScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -879,6 +904,8 @@ export default function BusinessDetailScreen() {
   const [selectedServiceFilter, setSelectedServiceFilter] = useState("All");
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
+  const [breaksModalVisible, setBreaksModalVisible] = useState(false);
+  const [selectedBreaks, setSelectedBreaks] = useState<Array<{ start: string; end: string }>>([]);
   const [showAllStaff, setShowAllStaff] = useState(false);
   const [fullReviewModalVisible, setFullReviewModalVisible] = useState(false);
   const [selectedReview, setSelectedReview] = useState<
@@ -894,12 +921,61 @@ export default function BusinessDetailScreen() {
   const staffSectionRef = useRef<View>(null);
   const sectionPositions = useRef<{ [key: string]: number }>({});
 
-  // Dummy business data
-  const businessPhone = "(619) 315-5437";
-  const businessName = "Ra Benjamin Styles LLC";
-  const businessLatitude = 34.0522; // Dummy latitude (Los Angeles area)
-  const businessLongitude = -118.2437; // Dummy longitude
-  const businessAddress = "240 E Exchange Blvd, Columbia, SC 29209, United States";
+  // Default portfolio images
+  const DEFAULT_PORTFOLIO_IMAGES = [
+    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80",
+    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80",
+    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
+    "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80",
+  ];
+
+  // API state
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [businessData, setBusinessData] = useState<any>(null);
+
+  // Fetch business details
+  const fetchBusinessDetails = useCallback(async () => {
+    if (!params.business_id) {
+      setError("Business ID is required");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          business: any;
+        };
+      }>(businessEndpoints.businessDetails(params.business_id));
+
+      if (response.success && response.data?.business) {
+        setBusinessData(response.data.business);
+      } else {
+        setError("Failed to load business details");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load business details");
+    } finally {
+      setLoading(false);
+    }
+  }, [params.business_id]);
+
+  useEffect(() => {
+    fetchBusinessDetails();
+  }, [fetchBusinessDetails]);
+
+  // Map API data to component data
+  const businessPhone = businessData?.owner_contact || "(619) 315-5437";
+  const businessName = businessData?.title || "Ra Benjamin Styles LLC";
+  const businessLatitude = parseFloat(businessData?.latitude || "34.0522");
+  const businessLongitude = parseFloat(businessData?.longitude || "-118.2437");
+  const businessAddress = businessData?.address || "240 E Exchange Blvd, Columbia, SC 29209, United States";
 
   // Handle phone call
   const handleCallNow = async () => {
@@ -941,17 +1017,30 @@ export default function BusinessDetailScreen() {
     }
   };
 
-  // Dummy data with different images
-  const thumbnails = [
-    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80",
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80",
-    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
-    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
-    "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80",
-    "https://images.unsplash.com/photo-1516975080664-ed2fc6a32937?w=800&q=80",
-    "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=800&q=80",
-    "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800&q=80",
-  ];
+  // Map portfolio photos from API or use defaults
+  const portfolioPhotos = useMemo(() => {
+    if (businessData?.portfolio_photos && businessData.portfolio_photos.length > 0) {
+      return businessData.portfolio_photos.map((photo: any) => {
+        if (photo.url) return photo.url;
+        if (photo.path) {
+          return photo.path.startsWith('http') 
+            ? photo.path 
+            : `${process.env.EXPO_PUBLIC_API_BASE_URL}${photo.path}`;
+        }
+        return DEFAULT_PORTFOLIO_IMAGES[0];
+      });
+    }
+    return DEFAULT_PORTFOLIO_IMAGES;
+  }, [businessData]);
+
+  // Update hero image when portfolio photos change
+  useEffect(() => {
+    if (portfolioPhotos.length > 0) {
+      setCurrentHeroImage(portfolioPhotos[0]);
+    }
+  }, [portfolioPhotos]);
+
+  const thumbnails = portfolioPhotos;
 
   const handleOpenFullImage = () => {
     setSelectedImage(currentHeroImage);
@@ -968,16 +1057,49 @@ export default function BusinessDetailScreen() {
     setCurrentHeroImage(image);
   };
 
-  // Business hours data
-  const businessHours = [
-    { day: "Monday", time: "9:00 AM - 6:00 PM" },
-    { day: "Tuesday", time: "9:00 AM - 6:00 PM" },
-    { day: "Wednesday", time: "10:00 AM - 7:30 PM" },
-    { day: "Thursday", time: "10:00 AM - 7:30 PM" },
-    { day: "Friday", time: "10:00 AM - 8:00 PM" },
-    { day: "Saturday", time: "10:00 AM - 7:30 PM" },
-    { day: "Sunday", time: "Holiday/Closed" },
-  ];
+  // Map business hours from API
+  const formatTime = (time: string | null) => {
+    if (!time) return "Closed";
+    const [hours, minutes] = time.split(":");
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 || 12;
+    return `${displayHour}:${minutes} ${ampm}`;
+  };
+
+  const businessHours = useMemo(() => {
+    if (!businessData?.hours || (Array.isArray(businessData.hours) && businessData.hours.length === 0)) {
+      return [];
+    }
+
+    const dayNames: { [key: string]: string } = {
+      monday: "Monday",
+      tuesday: "Tuesday",
+      wednesday: "Wednesday",
+      thursday: "Thursday",
+      friday: "Friday",
+      saturday: "Saturday",
+      sunday: "Sunday",
+    };
+
+    return businessData.hours.map((hour: any) => {
+      const dayName = dayNames[hour.day.toLowerCase()] || hour.day;
+      if (hour.closed) {
+        return { day: dayName, time: "Holiday/Closed", breakHours: [] };
+      }
+      const openingTime = formatTime(hour.opening_time);
+      const closingTime = formatTime(hour.closing_time);
+      const breakHours = hour.break_hours || [];
+      return { 
+        day: dayName, 
+        time: `${openingTime} - ${closingTime}`,
+        breakHours: breakHours.map((breakHour: any) => ({
+          start: formatTime(breakHour.start),
+          end: formatTime(breakHour.end),
+        })),
+      };
+    });
+  }, [businessData]);
 
   // Get current day name
   const getCurrentDayName = () => {
@@ -993,105 +1115,49 @@ export default function BusinessDetailScreen() {
     return days[new Date().getDay()];
   };
 
-  // Service data
-  const membershipSubscriptions = [
-    {
-      id: 1,
-      title: "The Full Luxury Experience",
-      visits: "8 visit per month",
-      price: 300.99,
-      originalPrice: 50.99,
-      inclusions: [
-        "1. 2 Premium Haircuts",
-        "2. 1 Free Styling Service",
-        "3. 1 Free Facial per month",
-        "4. Free Hair Products",
-        "5. Priority Booking",
-      ],
-    },
-    {
-      id: 2,
-      title: "The Full Luxury Experience",
-      visits: "5 visit per month",
-      price: 145.99,
-      originalPrice: 50.99,
-      inclusions: [
-        "1. 2 Premium Haircuts",
-        "2. 1 Free Styling Service",
-        "3. 1 Free Facial per month",
-        "4. Free Hair Products",
-      ],
-    },
-    {
-      id: 3,
-      title: "The Full Luxury Experience",
-      visits: "3 visit per month",
-      price: 45.99,
-      originalPrice: 50.99,
-      inclusions: [
-        "1. 2 Premium Haircuts",
-        "2. 1 Free Styling Service",
-        "3. 1 Free Facial per month",
-      ],
-    },
-  ];
+  // Map subscription plans from API
+  const membershipSubscriptions = useMemo(() => {
+    if (!businessData?.subscription_plans) return [];
+    return businessData.subscription_plans.map((plan: any) => ({
+      id: plan.id,
+      title: plan.name,
+      visits: `${plan.visits} visit${plan.visits !== 1 ? "s" : ""} per month`,
+      price: parseFloat(plan.price),
+      originalPrice: parseFloat(plan.price) * 0.8, // Estimate original price
+      inclusions: plan.services?.map((service: any, index: number) => 
+        `${index + 1}. ${service.name}`
+      ) || [],
+    }));
+  }, [businessData]);
 
-  const individualServices = [
-    {
-      id: 1,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: "Save $20",
-    },
-    {
-      id: 2,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: "NEW",
-    },
-    {
-      id: 3,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: null,
-    },
-    {
-      id: 4,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: null,
-    },
-    {
-      id: 5,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: "Single sessions",
-    },
-    {
-      id: 6,
-      name: "Wet Haircut",
-      description: "This service includes we wash and cut",
-      price: 45.99,
-      originalPrice: 50.89,
-      duration: "45 Mins",
-      label: "Best value",
-    },
-  ];
+  // Map services from API
+  const individualServices = useMemo(() => {
+    if (!businessData?.services) return [];
+    return businessData.services.map((service: any) => {
+      const hours = service.duration_hours || 0;
+      const minutes = service.duration_minutes || 0;
+      let duration = "";
+      if (hours > 0 && minutes > 0) {
+        duration = `${hours}h ${minutes}m`;
+      } else if (hours > 0) {
+        duration = `${hours}h`;
+      } else if (minutes > 0) {
+        duration = `${minutes} Mins`;
+      } else {
+        duration = "45 Mins";
+      }
+
+      return {
+        id: service.id,
+        name: service.name,
+        description: service.description || service.name,
+        price: parseFloat(service.price),
+        originalPrice: parseFloat(service.price) * 1.1, // Estimate original price
+        duration: duration,
+        label: null,
+      };
+    });
+  }, [businessData]);
 
   const membershipFilters = [
     "All",
@@ -1108,165 +1174,52 @@ export default function BusinessDetailScreen() {
     "Manicure",
   ];
 
-  // Dummy reviews data
-  const reviews = [
-    {
-      id: 1,
+  // Map reviews from API
+  const reviews = useMemo(() => {
+    if (!businessData?.reviews) return [];
+    return businessData.reviews.map((review: any) => ({
+      id: review.id,
       user: {
-        name: "Ofir Kiran",
-        profile_image_url: null,
+        name: review.user?.name || "User",
+        profile_image_url: review.user?.profile_image_url || null,
       },
-      overall_rating: "5",
-      comment:
-        "Super professional and right on time. Loved the attention to detail. From booking to the cut—it's a smooth experience every time.",
-      created_at: "2023-09-28T10:00:00Z",
-    },
-    {
-      id: 2,
-      user: {
-        name: "John Smith",
-        profile_image_url: null,
-      },
-      overall_rating: "4.5",
-      comment:
-        "Great service and friendly staff. The haircut was exactly what I wanted. Will definitely come back again!",
-      created_at: "2023-10-15T14:30:00Z",
-    },
-    {
-      id: 3,
-      user: {
-        name: "Sarah Johnson",
-        profile_image_url: null,
-      },
-      overall_rating: "5",
-      comment:
-        "Amazing experience! The stylist was very professional and took time to understand what I wanted. Highly recommend!",
-      created_at: "2023-10-20T11:00:00Z",
-    },
-    {
-      id: 4,
-      user: {
-        name: "Michael Brown",
-        profile_image_url: null,
-      },
-      overall_rating: "4",
-      comment:
-        "Good service overall. The place is clean and well-maintained. Staff is courteous and professional.",
-      created_at: "2023-10-25T16:00:00Z",
-    },
-    {
-      id: 5,
-      user: {
-        name: "Emily Davis",
-        profile_image_url: null,
-      },
-      overall_rating: "5",
-      comment:
-        "Best salon experience I've had! The attention to detail is incredible. Worth every penny!",
-      created_at: "2023-11-01T09:00:00Z",
-    },
-    {
-      id: 6,
-      user: {
-        name: "David Wilson",
-        profile_image_url: null,
-      },
-      overall_rating: "4.5",
-      comment:
-        "Very satisfied with the service. The staff is knowledgeable and the atmosphere is relaxing.",
-      created_at: "2023-11-05T13:00:00Z",
-    },
-    {
-      id: 7,
-      user: {
-        name: "Lisa Anderson",
-        profile_image_url: null,
-      },
-      overall_rating: "5",
-      comment:
-        "Excellent service! The stylist really listened to what I wanted and delivered perfectly. Will be back!",
-      created_at: "2023-11-08T10:00:00Z",
-    },
-  ];
+      overall_rating: review.overall_rating?.toString() || "0",
+      comment: review.comment || "",
+      created_at: review.created_at || new Date().toISOString(),
+    }));
+  }, [businessData]);
 
-  // Dummy staff data
-  const staffMembers = [
-    {
-      id: 1,
-      name: "Umut Hasanoglu",
-      experience: 1,
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-    },
-    {
-      id: 2,
-      name: "Sanna Granqvist",
-      experience: 6,
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-    },
-    {
-      id: 3,
-      name: "Suman Pramanik",
-      experience: 12,
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-    },
-    {
-      id: 4,
-      name: "Md Biplob Um Hos...",
-      experience: 11,
-      image:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
-    },
-    {
-      id: 5,
-      name: "Safayet Hossain",
-      experience: 4,
-      image:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
-    },
-    {
-      id: 6,
-      name: "Md Shariful Islam K...",
-      experience: 19,
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&q=80",
-    },
-    {
-      id: 7,
-      name: "John Smith",
-      experience: 8,
-      image:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
-    },
-    {
-      id: 8,
-      name: "Sarah Johnson",
-      experience: 5,
-      image:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-    },
-    {
-      id: 9,
-      name: "Michael Brown",
-      experience: 15,
-      image:
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-    },
-    {
-      id: 10,
-      name: "Emily Davis",
-      experience: 3,
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-    },
-  ];
+  // Map staff from API
+  const staffMembers = useMemo(() => {
+    if (!businessData?.staff) return [];
+    const defaultStaffImages = [
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
+      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
+      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
+    ];
+    
+    return businessData.staff
+      .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
+      .map((staff: any, index: number) => {
+        let image = defaultStaffImages[index % defaultStaffImages.length];
+        if (staff.avatar) {
+          image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
+        }
+        return {
+          id: index + 1,
+          name: staff.name || "Staff Member",
+          experience: 0, // API doesn't provide experience
+          image: image,
+        };
+      });
+  }, [businessData]);
 
   const DEFAULT_AVATAR_URL =
     "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
-  const averageRating = 4.9;
-  const totalReviews = reviews.length;
+  const averageRating = businessData?.average_rating || 0;
+  const totalReviews = businessData?.ratings_count || reviews.length;
   const textWrapLength = 115;
 
   const handleTabPress = (tab: "Details" | "Service" | "Ratings" | "Staff") => {
@@ -1402,7 +1355,7 @@ export default function BusinessDetailScreen() {
   };
 
   const renderDetailsContent = () => {
-    const aboutText =
+    const aboutText = businessData?.description || 
       "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
     const shouldShowReadMore = aboutText.length > 220;
     const displayText = isAboutExpanded
@@ -1503,7 +1456,7 @@ export default function BusinessDetailScreen() {
 
         {/* Business hours */}
         <View style={styles.sectionDivider} />
-        <View style={styles.sectionContentFullWidth}>
+        <View style={[styles.sectionContentFullWidth,{paddingHorizontal:0}]}>
           <View
             style={[
               styles.businessHoursHeader,
@@ -1512,22 +1465,46 @@ export default function BusinessDetailScreen() {
           >
             <Text style={styles.sectionTitle}>Business hours</Text>
           </View>
+          {businessHours.length === 0 ? (
+            <Text style={styles.noHoursText}>No any hours added</Text>
+          ) : (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.hoursCardsContainer}
+            >
+              {sortedBusinessHours.map((item: any, index: number) => {
+                const displayDay = item.day === currentDay ? "Today" : item.day;
+                const breakHours = item.breakHours || [];
+                const hasBreaks = breakHours.length > 0;
+                const hasMultipleBreaks = breakHours.length > 1;
+                const isClosed = item.time === "Holiday/Closed";
+                
+                return (
+                  <View key={index} style={[styles.hoursCard, styles.shadow]}>
+                    <Text style={styles.hoursDay}>{displayDay}</Text>
+                    <Text style={styles.hoursTime}>{item.time}</Text>
+                    {!isClosed && hasBreaks && !hasMultipleBreaks && (
+                      <Text style={styles.hoursBreak}>
+                        Break: {breakHours[0].start} - {breakHours[0].end}
+                      </Text>
+                    )}
+                    {!isClosed && hasMultipleBreaks && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setSelectedBreaks(breakHours);
+                          setBreaksModalVisible(true);
+                        }}
+                      >
+                        <Text style={styles.viewBreaksLink}>View breaks</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          )}
         </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.hoursCardsContainer}
-        >
-          {sortedBusinessHours.map((item, index) => {
-            const displayDay = item.day === currentDay ? "Today" : item.day;
-            return (
-              <View key={index} style={[styles.hoursCard, styles.shadow]}>
-                <Text style={styles.hoursDay}>{displayDay}</Text>
-                <Text style={styles.hoursTime}>{item.time}</Text>
-              </View>
-            );
-          })}
-        </ScrollView>
       </View>
     );
   };
@@ -1600,7 +1577,7 @@ export default function BusinessDetailScreen() {
               ))}
             </ScrollView>
 
-            {membershipSubscriptions.map((subscription, index) => (
+            {membershipSubscriptions.map((subscription: any, index: number) => (
               <View
                 key={subscription.id}
                 style={[
@@ -1623,7 +1600,7 @@ export default function BusinessDetailScreen() {
                         <>
                           {subscription.inclusions
                             .slice(0, 2)
-                            .map((inclusion, index) => (
+                            .map((inclusion: string, index: number) => (
                               <Text key={index} style={styles.inclusionItem}>
                                 {inclusion}
                               </Text>
@@ -1640,7 +1617,7 @@ export default function BusinessDetailScreen() {
                           </TouchableOpacity>
                         </>
                       ) : (
-                        subscription.inclusions.map((inclusion, index) => (
+                        subscription.inclusions.map((inclusion: string, index: number) => (
                           <Text key={index} style={styles.inclusionItem}>
                             {inclusion}
                           </Text>
@@ -1724,7 +1701,7 @@ export default function BusinessDetailScreen() {
               ))}
             </ScrollView>
 
-            {individualServices.map((service, index) => (
+            {individualServices.map((service: any, index: number) => (
               <View
                 key={service.id}
                 style={[
@@ -1764,13 +1741,37 @@ export default function BusinessDetailScreen() {
                       style={styles.bookNowButton}
                       onPress={() => {
                         // Set business data in Redux
+                        const serviceData = {
+                          id: service.id,
+                          name: service.name,
+                          description: service.description,
+                          price: service.price,
+                          originalPrice: service.originalPrice,
+                          duration: service.duration,
+                          label: service.label || null,
+                        };
+                        const allServicesData = individualServices.map((s: any) => ({
+                          id: s.id,
+                          name: s.name,
+                          description: s.description,
+                          price: s.price,
+                          originalPrice: s.originalPrice,
+                          duration: s.duration,
+                          label: s.label || null,
+                        }));
+                        const staffMembersData = staffMembers.map((s: any) => ({
+                          id: s.id,
+                          name: s.name,
+                          experience: s.experience || null,
+                          image: s.image || null,
+                        }));
                         dispatch(
                           setBusinessData({
-                            selectedService: service,
-                            allServices: individualServices,
-                            staffMembers: staffMembers,
+                            selectedService: serviceData,
+                            allServices: allServicesData,
+                            staffMembers: staffMembersData,
                             businessId: params.business_id || "",
-                          })
+                          }) as any
                         );
                         // Navigate to bookingNow without params
                         router.push({
@@ -1809,7 +1810,7 @@ export default function BusinessDetailScreen() {
             Staff members ({staffMembers.length})
           </Text>
           <View style={styles.staffGrid}>
-            {displayedStaff.map((staff) => (
+            {displayedStaff.map((staff: any) => (
               <View key={staff.id} style={[styles.staffCard, styles.shadow]}>
                 <Image
                   source={{ uri: staff.image }}
@@ -1844,7 +1845,7 @@ export default function BusinessDetailScreen() {
 
   const renderRatingsContent = () => {
     const displayedReviews = reviews.slice(0, 5);
-    const hasMoreReviews = reviews.length > 5;
+    const hasMoreReviews = reviews.length > 5 && reviews.length > 0;
 
     return (
       <View
@@ -1876,7 +1877,7 @@ export default function BusinessDetailScreen() {
               </Text>
             </View>
             <Text style={styles.averageRatingText}>
-              {averageRating} Average
+              {averageRating > 0 ? averageRating.toFixed(1) : "0"} Average
             </Text>
           </View>
 
@@ -1886,7 +1887,7 @@ export default function BusinessDetailScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.reviewsHorizontalScroll}
           >
-            {displayedReviews.map((review) => (
+            {displayedReviews.map((review: any) => (
               <View key={review.id}>{renderReviewCard(review, true)}</View>
             ))}
           </ScrollView>
@@ -1952,6 +1953,33 @@ export default function BusinessDetailScreen() {
   };
 
  
+  // Loading state
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color={theme.buttonBack} />
+        </View>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <StatusBar barStyle="light-content" />
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", paddingHorizontal: moderateWidthScale(20) }}>
+          <Text style={{ fontSize: fontSize.size16, fontFamily: fonts.fontRegular, color: theme.text, textAlign: "center", marginBottom: moderateHeightScale(16) }}>
+            {error}
+          </Text>
+          <RetryButton onPress={fetchBusinessDetails} loading={loading} />
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -2033,7 +2061,7 @@ export default function BusinessDetailScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.thumbnailScroll}
             >
-              {thumbnails.map((thumbnail, index) => (
+              {thumbnails.map((thumbnail: string, index: number) => (
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleThumbnailSelect(thumbnail)}
@@ -2081,9 +2109,11 @@ export default function BusinessDetailScreen() {
                 height={heightScale(12)}
                 color={theme.selectCard}
               />
-              <Text style={styles.ratingText}>4.9/ 64 reviews</Text>
+              <Text style={styles.ratingText}>
+                {averageRating.toFixed(1)}/ {totalReviews} reviews
+              </Text>
             </View>
-            <Text style={styles.businessName}>Ra Benjamin Styles LLC</Text>
+            <Text style={styles.businessName}>{businessName}</Text>
             <View style={styles.addressRow}>
               <LocationPinIconBusinessDetail
                 width={widthScale(12)}
@@ -2091,7 +2121,7 @@ export default function BusinessDetailScreen() {
                 color={theme.selectCard}
               />
               <Text style={styles.addressText}>
-                240 E Exchange Blvd, Columbia, SC 29209, United States{" "}
+                {businessAddress}{" "}
                 <Text style={{ fontFamily: fonts.fontBold }}>
                   • 10 min away
                 </Text>
@@ -2103,7 +2133,9 @@ export default function BusinessDetailScreen() {
                 height={heightScale(12)}
                 color={theme.selectCard}
               />
-              <Text style={styles.staffText}>16 staff members</Text>
+              <Text style={styles.staffText}>
+                {businessData?.staffCount || staffMembers.length} staff member{businessData?.staffCount !== 1 ? "s" : ""}
+              </Text>
             </View>
           </View>
 
@@ -2152,6 +2184,16 @@ export default function BusinessDetailScreen() {
         visible={inclusionsModalVisible}
         onClose={() => setInclusionsModalVisible(false)}
         inclusions={selectedInclusions}
+      />
+
+      {/* Breaks Modal */}
+      <InclusionsModal
+        visible={breaksModalVisible}
+        onClose={() => setBreaksModalVisible(false)}
+        inclusions={selectedBreaks.map((breakHour, index) => 
+          `${index + 1}. Break: ${breakHour.start} - ${breakHour.end}`
+        )}
+        title="Break Hours"
       />
 
       {/* Full Review Modal */}
