@@ -1219,7 +1219,6 @@ export default function DashboardContent() {
     } else if (selectedCategory === "all") {
       setVerifiedSalons([]);
       setBusinessesCount(0);
-      setAppointments([]);
     }
   }, [selectedCategory]);
 
@@ -1571,7 +1570,7 @@ export default function DashboardContent() {
           <Text style={styles.resultsText}>
             Showing:{" "}
             <Text style={styles.resultsTextBold}>
-              {businessesCount} results
+              {appointments.length > 0 ? appointments.length : businessesCount} results
             </Text>{" "}
             for {getCategoryName()}
           </Text>
@@ -1641,7 +1640,7 @@ export default function DashboardContent() {
               loading={businessesLoading || appointmentsLoading}
             />
           </View>
-        ) : appointments.length > 9 ? (
+        ) : appointments.length > 0 ? (
           appointments.map((appointment, index) => (
             <View
               key={appointment.id}
