@@ -8,8 +8,6 @@ import {
   Image,
   Animated,
   Dimensions,
-  Modal,
-  Pressable,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useTheme } from "@/src/hooks/hooks";
@@ -23,58 +21,15 @@ import {
   widthScale,
 } from "@/src/theme/dimensions";
 import Button from "@/src/components/button";
-import { SvgXml } from "react-native-svg";
 import {
   PersonIcon,
   MonitorIcon,
   PlatformVerifiedStarIcon,
+  StarIconSmall,
+  ChevronDownIcon,
+  ChevronRight,
 } from "@/assets/icons";
 import InclusionsModal from "@/src/components/inclusionsModal";
-
-// Star Icon SVG
-const starIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M8 0L10.163 5.528L16 6.112L12 10.056L12.944 16L8 13.056L3.056 16L4 10.056L0 6.112L5.837 5.528L8 0Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Chevron Down Icon
-const chevronDownSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 1L6 6L11 1" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`;
-
-// Chevron Right Icon
-const chevronRightSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 1L6 6L1 11" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`;
-
-const StarIcon = ({ width = 16, height = 16, color = "#DDA15E" }) => {
-  const svgXml = starIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const ChevronDown = ({ width = 12, height = 8, color = "#283618" }) => {
-  const svgXml = chevronDownSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const ChevronRight = ({ width = 8, height = 12, color = "#FFFFFF" }) => {
-  const svgXml = chevronRightSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -1269,7 +1224,7 @@ export default function DashboardContent() {
             <Text style={styles.sortByValueText}>
               {tab === "individual" ? "Nearest to you" : "Recommended"}
             </Text>
-            <ChevronDown
+            <ChevronDownIcon
               width={widthScale(8)}
               height={heightScale(4)}
               color={theme.lightGreen}
@@ -1428,7 +1383,7 @@ export default function DashboardContent() {
                   </View>
                   <View style={styles.verifiedSalonBottomRow}>
                     <View style={styles.verifiedSalonRatingButton}>
-                      <StarIcon
+                      <StarIconSmall
                         width={widthScale(12)}
                         height={heightScale(12)}
                         color={theme.orangeBrown}

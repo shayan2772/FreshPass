@@ -1193,6 +1193,58 @@ export const ChevronDownIcon: React.FC<ChevronDownIconProps> = ({
   return <SvgXml xml={svgXml} />;
 };
 
+// Chevron Right Icon SVG
+const chevronRightSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M1 1L6 6L1 11" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+`;
+
+interface ChevronRightProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const ChevronRight: React.FC<ChevronRightProps> = ({
+  width = 8,
+  height = 12,
+  color = "#FFFFFF",
+}) => {
+  const svgXml = chevronRightSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
+// Star Icon SVG (Small variant - 16x16)
+const starIconSmallSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M8 0L10.163 5.528L16 6.112L12 10.056L12.944 16L8 13.056L3.056 16L4 10.056L0 6.112L5.837 5.528L8 0Z" fill="{{COLOR}}"/>
+</svg>
+`;
+
+interface StarIconSmallProps {
+  width?: number;
+  height?: number;
+  color?: string;
+}
+
+export const StarIconSmall: React.FC<StarIconSmallProps> = ({
+  width = 16,
+  height = 16,
+  color = "#DDA15E",
+}) => {
+  const svgXml = starIconSmallSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString())
+    .replace(/{{COLOR}}/g, color);
+
+  return <SvgXml xml={svgXml} />;
+};
+
 // Search Icon SVG
 const searchIconSvg = `
 <svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1697,6 +1749,7 @@ export default {
   AccountIcon,
   DollarCheckIcon,
   StarIcon,
+  StarIconSmall,
   UserAvatarIcon,
   NotificationBellOutlineIcon,
   ProposalDocumentIcon,
@@ -1714,6 +1767,7 @@ export default {
   CheckRealTimeAvailabilityIcon,
   LocationPinIcon,
   ChevronDownIcon,
+  ChevronRight,
   SearchIcon,
   FilterIcon,
   PlatformVerifiedStarIcon,
