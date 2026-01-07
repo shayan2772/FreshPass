@@ -8,6 +8,7 @@ import {
   Image,
   Animated,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useTheme } from "@/src/hooks/hooks";
@@ -30,6 +31,10 @@ import {
   ChevronRight,
 } from "@/assets/icons";
 import InclusionsModal from "@/src/components/inclusionsModal";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import RetryButton from "@/src/components/retryButton";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -663,21 +668,7 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-// Static data
-const categories = [
-  { id: 1, name: "Hair Salon", image: null },
-  { id: 2, name: "Barber Shop", image: null },
-  { id: 3, name: "Nail Salon", image: null },
-  { id: 4, name: "Brows & Lashes", image: null },
-  { id: 5, name: "Massage", image: null },
-  { id: 6, name: "Nail Salon", image: null },
-  { id: 7, name: "Brows & Lashes", image: null },
-  { id: 8, name: "Massage", image: null },
-  { id: 9, name: "Spa", image: null },
-  { id: 10, name: "Makeup Studio", image: null },
-  { id: 11, name: "Skincare", image: null },
-  { id: 12, name: "Wellness Center", image: null },
-];
+// Static data - categories will be fetched from API
 
 const serviceFilters = [
   { id: "services", label: "Services", isPrimary: true },
@@ -877,16 +868,26 @@ const verifiedSalons = [
   },
 ];
 
+interface Category {
+  id: number;
+  name: string;
+  image: string | null;
+}
+
 export default function DashboardContent() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
+  const { showBanner } = useNotificationContext();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [categoriesError, setCategoriesError] = useState(false);
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
     "subscriptions"
   );
   const [selectedCategory, setSelectedCategory] = useState<string | number>(
-    categories.length > 0 ? categories[0].id : 1
+    "all"
   );
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
   const [selectedServiceFilter, setSelectedServiceFilter] =
@@ -909,10 +910,45 @@ export default function DashboardContent() {
   const tabsContainerHeight = useRef(0);
   const tabsContainerRef = useRef<View>(null);
 
+  const fetchCategories = async () => {
+    try {
+      setCategoriesLoading(true);
+      setCategoriesError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          imageUrl: string | null;
+        }>;
+      }>(businessEndpoints.categories);
 
-  useEffect(()=>{
+      if (response.success && response.data) {
+        // Map API response to component format (imageUrl -> image)
+        const mappedCategories: Category[] = response.data.map((item) => ({
+          id: item.id,
+          name: item.name,
+          image: item.imageUrl,
+        }));
+        setCategories(mappedCategories);
+        // Set first category as selected if categories exist
+        if (mappedCategories.length > 0) {
+          setSelectedCategory(mappedCategories[0].id);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch categories:", error);
+      setCategoriesError(true);
+      showBanner("API Failed", "API failed to fetch categories", "error", 2500);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  };
 
-  },[])
+  useEffect(() => {
+    fetchCategories();
+  }, []);
   
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
@@ -925,10 +961,10 @@ export default function DashboardContent() {
 
   // Set first category as selected by default when categories data is available
   useEffect(() => {
-    if (categories.length > 0) {
+    if (categories.length > 0 && selectedCategory === "all") {
       setSelectedCategory(categories[0].id);
     }
-  }, []);
+  }, [categories]);
 
   // Animate sticky tabs and category section when showCategoryTabs changes
   useEffect(() => {
@@ -1145,73 +1181,115 @@ export default function DashboardContent() {
         ]}
         pointerEvents={!showCategoryTabs ? "auto" : "none"}
       >
-        <ScrollView
-          ref={categoryScrollRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.categoriesContainer}
-          contentContainerStyle={styles.categoriesScroll}
-          nestedScrollEnabled={true}
-          onTouchStart={() => {
-            isCategoryScrollingRef.current = true;
-          }}
-          onTouchEnd={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
-          }}
-          onScrollBeginDrag={() => {
-            isCategoryScrollingRef.current = true;
-          }}
-          onScrollEndDrag={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
-          }}
-          onMomentumScrollEnd={() => {
-            setTimeout(() => {
-              isCategoryScrollingRef.current = false;
-            }, 100);
-          }}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category.id}
-              style={styles.categoryItem}
-              onPress={() => setSelectedCategory(category.id)}
-              activeOpacity={0.8}
+        {categoriesLoading ? (
+          <View
+            style={[
+              styles.categoriesContainer,
+              {
+                paddingVertical: moderateHeightScale(20),
+                alignItems: "center",
+                justifyContent: "center",
+              },
+            ]}
+          >
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : categoriesError ? (
+          <View
+            style={[
+              styles.categoriesContainer,
+              {
+                paddingVertical: moderateHeightScale(20),
+                alignItems: "center",
+                justifyContent: "center",
+                gap: moderateHeightScale(12),
+              },
+            ]}
+          >
+            <Text
+              style={{
+                fontSize: fontSize.size14,
+                fontFamily: fonts.fontRegular,
+                color: theme.lightGreen,
+                textAlign: "center",
+              }}
             >
-              <Image
-                source={{
-                  uri:
-                    category?.image ||
-                    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-                }}
-                style={[
-                  styles.categoryImage,
-                  selectedCategory === category.id &&
-                    styles.categoryImageActive,
-                  {
-                    borderWidth: moderateWidthScale(
-                      selectedCategory === category.id ? 3 : 1
-                    ),
-                  },
-                ]}
-                resizeMode="cover"
-              />
-              <Text
-                style={
-                  selectedCategory === category.id
-                    ? styles.categoryTextActive
-                    : styles.categoryText
-                }
-                numberOfLines={2}
+              Failed to load categories
+            </Text>
+            <RetryButton
+              onPress={fetchCategories}
+              loading={categoriesLoading}
+            />
+          </View>
+        ) : categories.length > 0 ? (
+          <ScrollView
+            ref={categoryScrollRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoriesContainer}
+            contentContainerStyle={styles.categoriesScroll}
+            nestedScrollEnabled={true}
+            onTouchStart={() => {
+              isCategoryScrollingRef.current = true;
+            }}
+            onTouchEnd={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+            onScrollBeginDrag={() => {
+              isCategoryScrollingRef.current = true;
+            }}
+            onScrollEndDrag={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+            onMomentumScrollEnd={() => {
+              setTimeout(() => {
+                isCategoryScrollingRef.current = false;
+              }, 100);
+            }}
+          >
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category.id}
+                style={styles.categoryItem}
+                onPress={() => setSelectedCategory(category.id)}
+                activeOpacity={0.8}
               >
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+                <Image
+                  source={{
+                    uri:
+                      category?.image ||
+                      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                  }}
+                  style={[
+                    styles.categoryImage,
+                    selectedCategory === category.id &&
+                      styles.categoryImageActive,
+                    {
+                      borderWidth: moderateWidthScale(
+                        selectedCategory === category.id ? 3 : 1
+                      ),
+                    },
+                  ]}
+                  resizeMode="cover"
+                />
+                <Text
+                  style={
+                    selectedCategory === category.id
+                      ? styles.categoryTextActive
+                      : styles.categoryText
+                  }
+                  numberOfLines={2}
+                >
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        ) : null}
       </Animated.View>
 
       {/* Results Summary */}
