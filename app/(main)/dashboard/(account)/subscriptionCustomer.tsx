@@ -24,6 +24,7 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { Feather } from "@expo/vector-icons";
 import { Skeleton } from "@/src/components/skeletons";
 import RetryButton from "@/src/components/retryButton";
+import { Dropdown } from "react-native-element-dropdown";
 
 interface SubscriptionData {
   id: number;
@@ -313,6 +314,51 @@ const createStyles = (theme: Theme) =>
       opacity: 0.75,
       lineHeight: fontSize.size22,
     },
+    headerRow: {
+      marginHorizontal: moderateWidthScale(20),
+      marginTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(24),
+    },
+    headerDescriptionRow: {  
+      
+    },
+    filterDropdown: {
+      backgroundColor: theme.background,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      borderRadius: moderateWidthScale(8),
+      paddingHorizontal: moderateWidthScale(8),
+      paddingVertical: moderateHeightScale(8),
+      width:140,
+      alignSelf:"flex-end"
+    },
+    filterDropdownText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+    },
+    filterDropdownContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(8),
+      borderWidth: 1,
+      borderColor: theme.borderLine,
+      marginTop: moderateHeightScale(4),
+    },
+    filterDropdownItem: {
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(16),
+      borderBottomWidth: 1,
+      borderBottomColor: theme.borderLight,
+    },
+    filterDropdownItemText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+    },
+    filterDropdownItemTextSelected: {
+      fontFamily: fonts.fontBold,
+      color: theme.orangeBrown,
+    },
   });
 
 export default function subscriptionCustomer() {
@@ -330,9 +376,11 @@ export default function subscriptionCustomer() {
   const [apiError, setApiError] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<string>("active");
 
   const fetchSubscriptions = useCallback(
-    async (page: number = 1, append: boolean = false) => {
+    async (page: number = 1, append: boolean = false, status?: string) => {
+      const filterStatus = status !== undefined ? status : statusFilter;
       if (append) {
         setLoadingMore(true);
       } else {
@@ -342,10 +390,12 @@ export default function subscriptionCustomer() {
       setApiError(false);
 
       try {
+        const statusParam = filterStatus === "all" ? undefined : filterStatus;
+        const baseUrl = businessEndpoints.subscriptions(statusParam);
+        // Use ? if no query params exist, otherwise use &
+        const separator = baseUrl.includes("?") ? "&" : "?";
         const response = await ApiService.get<SubscriptionResponse>(
-          `${businessEndpoints.subscriptions(
-            "active"
-          )}&page=${page}&per_page=10`
+          `${baseUrl}${separator}page=${page}&per_page=10`
         );
 
         if (response.success && response.data?.data) {
@@ -378,12 +428,24 @@ export default function subscriptionCustomer() {
         setLoadingMore(false);
       }
     },
-    [showBanner]
+    [showBanner, statusFilter]
   );
 
   useEffect(() => {
     fetchSubscriptions(1, false);
-  }, [fetchSubscriptions]);
+  }, [statusFilter]);
+
+  const handleStatusFilterChange = useCallback(
+    (status: string) => {
+      // Reset data when filter changes
+      setSubscriptions([]);
+      setCurrentPage(1);
+      setTotalPages(1);
+      setStatusFilter(status);
+      // useEffect will handle the API call when statusFilter changes
+    },
+    []
+  );
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && currentPage < totalPages) {
@@ -563,13 +625,88 @@ export default function subscriptionCustomer() {
     );
   }, [loadingMore, styles.footerLoader, theme.buttonBack]);
 
+  const statusOptions = [
+    { label: "All", value: "all" },
+    { label: "Pending", value: "pending" },
+    { label: "Active", value: "active" },
+    { label: "Paused", value: "paused" },
+    { label: "Expired", value: "expired" },
+    { label: "Cancelled", value: "cancelled" },
+  ];
+
+  const renderFilterItem = useCallback(
+    (item: { label: string; value: string }) => {
+      const isSelected = item.value === statusFilter;
+      return (
+        <View style={styles.filterDropdownItem}>
+          <Text
+            style={[
+              styles.filterDropdownItemText,
+              isSelected && styles.filterDropdownItemTextSelected,
+            ]}
+          >
+            {item.label}
+          </Text>
+        </View>
+      );
+    },
+    [statusFilter, styles]
+  );
+
   const renderHeader = useCallback(() => {
     return (
-      <Text style={styles.headerDescription}>
-        Manage your active subscriptions and billing information here.
-      </Text>
+      <View style={styles.headerRow}>
+        <View style={styles.headerDescriptionRow}>
+          <Text style={styles.headerDescription}>
+            Manage your active subscriptions and billing information here.
+          </Text>
+        </View>
+        <Dropdown
+          style={styles.filterDropdown}
+          containerStyle={styles.filterDropdownContainer}
+          activeColor={theme.orangeBrown015}
+          showsVerticalScrollIndicator={false}
+          dropdownPosition="auto"
+          placeholderStyle={styles.filterDropdownText}
+          selectedTextStyle={styles.filterDropdownText}
+          data={statusOptions}
+          maxHeight={moderateHeightScale(200)}
+          labelField="label"
+          valueField="value"
+          placeholder="Status"
+          value={statusFilter}
+          onChange={(item) => handleStatusFilterChange(item.value)}
+          renderItem={renderFilterItem}
+          renderRightIcon={() => (
+            <Feather
+              name="chevron-down"
+              size={moderateWidthScale(16)}
+              color={theme.darkGreen}
+            />
+          )}
+        />
+      </View>
     );
-  }, [styles.headerDescription]);
+  }, [
+    styles,
+    statusFilter,
+    statusOptions,
+    handleStatusFilterChange,
+    renderFilterItem,
+    theme,
+  ]);
+
+  const getEmptyText = useCallback((filter: string) => {
+    const filterLabels: { [key: string]: string } = {
+      all: "No subscriptions",
+      active: "No active subscriptions",
+      pending: "No pending subscriptions",
+      paused: "No paused subscriptions",
+      expired: "No expired subscriptions",
+      cancelled: "No cancelled subscriptions",
+    };
+    return filterLabels[filter] || "No subscriptions";
+  }, []);
 
   const renderEmpty = useCallback(() => {
     if (loading) {
@@ -587,13 +724,13 @@ export default function subscriptionCustomer() {
           color={theme.lightGreen}
           style={styles.emptyIcon}
         />
-        <Text style={styles.emptyText}>No active subscriptions</Text>
+        <Text style={styles.emptyText}>{getEmptyText(statusFilter)}</Text>
         <Text style={styles.emptySubtext}>
           Manage your active subscriptions and billing information here.
         </Text>
       </View>
     );
-  }, [loading, styles, theme]);
+  }, [loading, styles, theme, statusFilter, getEmptyText]);
 
   if (apiError && !loading) {
     return (
