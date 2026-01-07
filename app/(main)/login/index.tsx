@@ -24,6 +24,7 @@ import FloatingInput from "@/src/components/floatingInput";
 import RegisterHeader from "@/src/components/registerHeader";
 import SocialAuthOptions from "@/src/components/socialAuthOptions";
 import SectionSeparator from "@/src/components/sectionSeparator";
+import VerificationCodeModal from "@/src/components/verificationCodeModal";
 import { validateEmail } from "@/src/services/validationService";
 import { useRouter } from "expo-router";
 import { MAIN_ROUTES } from "@/src/constant/routes";
@@ -156,7 +157,7 @@ export default function Login() {
   const currentBusinessStatus = useAppSelector(
     (state) => state.user.businessStatus
   );
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
 
   // Get saved email from general state (if exists)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
@@ -168,6 +169,8 @@ export default function Login() {
   const [savePassword, setSavePassword] = useState(!!savedPassword);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isVerificationModalVisible, setIsVerificationModalVisible] =
+    useState(false);
 
   // Validate email when it changes
   useEffect(() => {
@@ -201,7 +204,7 @@ export default function Login() {
   }, []);
 
   const setUserData = (response: any) => {
-    const { user, token } = response.data;
+    const { user, token } = response;
     dispatch(
       setUser({
         id: user.id,
@@ -246,6 +249,7 @@ export default function Login() {
           } else if (user?.role?.toLowerCase() === "customer") {
             if (email_verification_required) {
               setData(response.data);
+              setIsVerificationModalVisible(true);
             } else {
               setUserData(response.data);
               router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
@@ -358,6 +362,18 @@ export default function Login() {
   const handleSignup = useCallback(() => {
     router.push(`/${MAIN_ROUTES.REGISTER}`);
   }, [router]);
+
+  const handleCloseVerificationModal = useCallback(() => {
+    setIsVerificationModalVisible(false);
+  }, []);
+
+  const handleVerificationCodeComplete = useCallback(() => {
+    if (data) {
+      setUserData(data);
+      router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+    }
+    handleCloseVerificationModal();
+  }, [data, router, handleCloseVerificationModal]);
 
   const isFormValid =
     email.length > 0 && password.length > 0 && validateEmail(email).isValid;
@@ -477,6 +493,14 @@ export default function Login() {
           </View>
         </View>
       </TouchableWithoutFeedback>
+
+      <VerificationCodeModal
+        visible={isVerificationModalVisible}
+        onClose={handleCloseVerificationModal}
+        email={email}
+        onCodeComplete={handleVerificationCodeComplete}
+        accessToken={data?.token || null}
+      />
     </SafeAreaView>
   );
 }

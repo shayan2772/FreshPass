@@ -236,8 +236,6 @@ export default function VerificationCodeModal({
     setLocalBannerVisible(true);
   };
 
- 
-
   const handleResendCode = async (isInitial = false) => {
     if (isInitial) {
       setIsInitialLoading(true);
@@ -328,82 +326,74 @@ export default function VerificationCodeModal({
     }
   }, [visible]);
 
-  const handleVerifyCode =  
-    async (verificationCode: string) => {
-      // setIsVerifying(true);
-      // try {
-      //   // Use accessToken prop if provided, otherwise let interceptor use Redux token
-      //   // The interceptor will automatically add token from Redux if Authorization header is not set
-      //   const config = accessToken
-      //     ? {
-      //         headers: {
-      //           Authorization: `Bearer ${accessToken}`,
-      //         },
-      //       }
-      //     : {}; // Pass empty config to ensure interceptor runs
+  const handleVerifyCode = async (verificationCode: string) => {
+    setIsVerifying(true);
+    try {
+      // Use accessToken prop if provided, otherwise let interceptor use Redux token
+      // The interceptor will automatically add token from Redux if Authorization header is not set
+      const config = accessToken
+        ? {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        : {}; // Pass empty config to ensure interceptor runs
 
-      //   const response = await ApiService.post<{
-      //     success: boolean;
-      //     message: string;
-      //   }>(
-      //     emailVerificationEndpoints.verify,
-      //     {
-      //       code: verificationCode,
-      //     },
-      //     config
-      //   );
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+      }>(
+        emailVerificationEndpoints.verify,
+        {
+          code: verificationCode,
+        },
+        config
+      );
 
-      //   if (response.success) {
-      //     showLocalBanner(
-      //       "Success",
-      //       response.message || "Email verified successfully.",
-      //       "success",
-      //       3000
-      //     );
-      //     // Call onCodeComplete callback on success
-      //     onCodeComplete?.();
-      //   } else {
-      //     showLocalBanner(
-      //       "Error",
-      //       response.message || "Invalid verification code.",
-      //       "error",
-      //       3000
-      //     );
-      //     // Reset code on error
-      //     setCode(["", "", "", "", ""]);
-      //     setTimeout(() => {
-      //       inputRefs.current[0]?.focus();
-      //     }, 100);
-      //   }
-      // } catch (error: any) {
-      //   console.error("Failed to verify email:", error);
-      //   // Get actual API error message from response data
-      //   const errorMessage = 
-      //     error.data?.message || 
-      //     error.response?.data?.message || 
-      //     error.message || 
-      //     "Failed to verify email. Please try again.";
-        
-      //   showLocalBanner(
-      //     "Error",
-      //     errorMessage,
-      //     "error",
-      //     3000
-      //   );
-      //   // Reset code on error
-      //   setCode(["", "", "", "", ""]);
-      //   setTimeout(() => {
-      //     inputRefs.current[0]?.focus();
-      //   }, 100);
-      // } finally {
-      //   setIsVerifying(false);
-      // }
+      if (response.success) {
+        showLocalBanner(
+          "Success",
+          response.message || "Email verified successfully.",
+          "success",
+          3000
+        );
+        // Call onCodeComplete callback on success
+        onCodeComplete?.();
+      } else {
+        showLocalBanner(
+          "Error",
+          response.message || "Invalid verification code.",
+          "error",
+          3000
+        );
+        // Reset code on error
+        setCode(["", "", "", "", ""]);
+        setTimeout(() => {
+          inputRefs.current[0]?.focus();
+        }, 100);
+      }
+    } catch (error: any) {
+      console.error("Failed to verify email:", error);
+      // Get actual API error message from response data
+      const errorMessage =
+        error.data?.message ||
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to verify email. Please try again.";
 
-    onCodeComplete?.();
-    };
-    
- 
- 
+      showLocalBanner("Error", errorMessage, "error", 3000);
+      // Reset code on error
+      setCode(["", "", "", "", ""]);
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
+    } finally {
+      setIsVerifying(false);
+    }
+
+    // onCodeComplete?.();
+  };
+
   const handleCodeChange = useCallback(
     (text: string, index: number) => {
       // Don't allow changes while verifying
@@ -466,8 +456,6 @@ export default function VerificationCodeModal({
           style={styles.container}
           onPress={(e) => e.stopPropagation()}
         >
-          
-
           {/* Header */}
           <View
             style={[
@@ -574,13 +562,13 @@ export default function VerificationCodeModal({
 
       {/* Local notification banner rendered above this modal */}
       <NotificationBanner
-            visible={localBannerVisible}
-            title={localBannerTitle}
-            message={localBannerMessage}
-            type={localBannerType}
-            duration={localBannerDuration}
-            onDismiss={() => setLocalBannerVisible(false)}
-          />
+        visible={localBannerVisible}
+        title={localBannerTitle}
+        message={localBannerMessage}
+        type={localBannerType}
+        duration={localBannerDuration}
+        onDismiss={() => setLocalBannerVisible(false)}
+      />
     </Modal>
   );
 }
