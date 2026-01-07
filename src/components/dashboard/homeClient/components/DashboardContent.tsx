@@ -909,6 +909,11 @@ export default function DashboardContent() {
   const tabsContainerHeight = useRef(0);
   const tabsContainerRef = useRef<View>(null);
 
+
+  useEffect(()=>{
+
+  },[])
+  
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
     // Set initial position without animation
