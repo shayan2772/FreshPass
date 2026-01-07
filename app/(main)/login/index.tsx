@@ -38,7 +38,6 @@ import {
   setAboutYourself,
   setBusinessName,
   setFullName,
-  setProfileImageUri,
   setSalonBusinessHours,
 } from "@/src/state/slices/completeProfileSlice";
 
@@ -157,6 +156,7 @@ export default function Login() {
   const currentBusinessStatus = useAppSelector(
     (state) => state.user.businessStatus
   );
+  const [data, setData] = useState(null);
 
   // Get saved email from general state (if exists)
   const savedEmail = useAppSelector((state) => state.general.registerEmail);
@@ -200,6 +200,23 @@ export default function Login() {
     setSavePassword((prev) => !prev);
   }, []);
 
+  const setUserData = (response: any) => {
+    const { user, token } = response.data;
+    dispatch(
+      setUser({
+        id: user.id,
+        name: user?.name || "",
+        email: user.email || email.trim(),
+        description: user?.description || "",
+        phone: user?.phone || "",
+        country_code: user?.country_code || "",
+        profile_image_url: user?.profile_image_url || "",
+        accessToken: token,
+        userRole: user?.role?.toLowerCase() || null,
+      })
+    );
+  };
+
   const handleLogin = useCallback(async () => {
     Keyboard.dismiss();
     setIsLoading(true);
@@ -211,23 +228,10 @@ export default function Login() {
 
       // Handle successful login
       if (response.success && response.data) {
-        const { user, token } = response.data;
+        const { user, token, email_verification_required } = response.data;
 
         // Set user data in Redux
         if (user && token) {
-          dispatch(
-            setUser({
-              id: user.id,
-              name: user?.name || "",
-              email: user.email || email.trim(),
-              description: user?.description || "",
-              phone: user?.phone || "",
-              country_code: user?.country_code || "",
-              profile_image_url: user?.profile_image_url || "",
-              accessToken: token,
-              userRole: user?.role?.toLowerCase() || null,
-            })
-          );
           dispatch(setRegisterEmail(user.email || email.trim()));
           if (savePassword) {
             dispatch(setSavedPassword(password));
@@ -235,9 +239,19 @@ export default function Login() {
             // Clear saved password if checkbox is unchecked
             dispatch(setSavedPassword(null));
           }
-          if (user?.role?.toLowerCase() === "business" || user?.role?.toLowerCase() === "customer") {
+
+          if (user?.role?.toLowerCase() === "business") {
+            setUserData(response.data);
             router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+          } else if (user?.role?.toLowerCase() === "customer") {
+            if (email_verification_required) {
+              setData(response.data);
+            } else {
+              setUserData(response.data);
+              router.replace(`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any);
+            }
           } else if (user?.role?.toLowerCase() === "staff") {
+            setUserData(response.data);
             // Save salon business hours from login response if available
             if (user?.business_hours && Array.isArray(user.business_hours)) {
               const parsedBusinessHours: {
@@ -311,7 +325,6 @@ export default function Login() {
                 `/(main)/${MAIN_ROUTES.COMPLETE_STAFF_PROFILE}` as any
               );
             }
-
             if (currentBusinessStatus) {
               dispatch(
                 setBusinessStatus({
@@ -320,7 +333,7 @@ export default function Login() {
                 })
               );
             }
-          } 
+          }
         } else {
           Alert.alert("Error", "Invalid response from server");
         }

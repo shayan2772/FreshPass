@@ -185,7 +185,6 @@ export default function RegisterPassword() {
   }, []);
 
   const handleVerificationCodeComplete = () => {
-    handleCloseVerificationModal();
     const { user, token, refreshToken } = data as any;
     dispatch(
       setUser({
@@ -198,6 +197,7 @@ export default function RegisterPassword() {
       })
     );
     router.replace(`/${MAIN_ROUTES.COMPLETE_CUSTOMER_PROFILE}`);
+    handleCloseVerificationModal();
   };
 
   const handleCloseVerificationModal = useCallback(() => {
