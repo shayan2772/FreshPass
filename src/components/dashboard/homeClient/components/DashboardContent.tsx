@@ -1420,7 +1420,7 @@ export default function DashboardContent() {
               loading={businessesLoading}
             />
           </View>
-        ) : appointments.length > 0 ? (
+        ) : appointments.length > 9 ? (
           appointments.map((appointment, index) => (
             <View
               key={appointment.id}
@@ -1595,7 +1595,27 @@ export default function DashboardContent() {
               </View>
             </View>
           ))
-        ) : null}
+        ) : (
+          <View
+            style={{
+              paddingVertical: moderateHeightScale(20),
+              alignItems: "center",
+              justifyContent: "center",
+              width: SCREEN_WIDTH,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: fontSize.size14,
+                fontFamily: fonts.fontMedium,
+                color: theme.lightGreen,
+                textAlign: "center",
+              }}
+            >
+              No data found
+            </Text>
+          </View>
+        )}
       </ScrollView>
 
       {/* Service Filters (for Individual Services) */}
