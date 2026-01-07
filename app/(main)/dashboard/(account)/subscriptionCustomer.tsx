@@ -7,6 +7,8 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   Alert,
+  Modal,
+  Pressable,
 } from "react-native";
 import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -22,7 +24,6 @@ import { useRouter } from "expo-router";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { Feather } from "@expo/vector-icons";
-import { Skeleton } from "@/src/components/skeletons";
 import RetryButton from "@/src/components/retryButton";
 import { Dropdown } from "react-native-element-dropdown";
 
@@ -359,6 +360,112 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.orangeBrown,
     },
+    modalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    modalContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(16),
+      padding: moderateWidthScale(24),
+      width: "85%",
+      maxWidth: moderateWidthScale(400),
+    },
+    modalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(20),
+    },
+    modalTitle: {
+      fontSize: fontSize.size22,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    modalCloseButton: {
+      width: moderateWidthScale(32),
+      height: moderateHeightScale(32),
+      borderRadius: moderateWidthScale(16),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    modalQuestion: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(20),
+      lineHeight: fontSize.size22,
+    },
+    modalQuestionBold: {
+      fontFamily: fonts.fontBold,
+    },
+    consequencesBox: {
+      backgroundColor: theme.lightGreen015,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(20),
+    },
+    consequenceItem: {
+      flexDirection: "row",
+      marginBottom: moderateHeightScale(12),
+    },
+    consequenceBullet: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginRight: moderateWidthScale(8),
+    },
+    consequenceText: {
+      flex: 1,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: fontSize.size20,
+    },
+    checkboxContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(24),
+    },
+    checkbox: {
+      width: moderateWidthScale(20),
+      height: moderateHeightScale(20),
+      borderRadius: moderateWidthScale(4),
+      borderWidth: 2,
+      borderColor: theme.darkGreen,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(12),
+    },
+    checkboxChecked: {
+      backgroundColor: theme.darkGreen,
+    },
+    checkboxText: {
+      flex: 1,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: fontSize.size20,
+    },
+    confirmButton: {
+      backgroundColor: theme.buttonBack,
+      paddingVertical: moderateHeightScale(14),
+      paddingHorizontal: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(12),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    confirmButtonText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+    },
+    confirmButtonDisabled: {
+      opacity: 0.5,
+    },
   });
 
 export default function subscriptionCustomer() {
@@ -377,6 +484,9 @@ export default function subscriptionCustomer() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("active");
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionData | null>(null);
+  const [confirmChecked, setConfirmChecked] = useState(false);
 
   const fetchSubscriptions = useCallback(
     async (page: number = 1, append: boolean = false, status?: string) => {
@@ -455,61 +565,54 @@ export default function subscriptionCustomer() {
 
   const handleCancelSubscription = useCallback(
     (subscription: SubscriptionData) => {
-      Alert.alert(
-        "Cancel Subscription",
-        `Are you sure you want to cancel your "${subscription.subscriptionPlan}" subscription?`,
-        [
-          {
-            text: "No",
-            style: "cancel",
-          },
-          {
-            text: "Yes, Cancel",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                const response = await ApiService.patch<{
-                  success: boolean;
-                  message: string;
-                  data: {};
-                }>(businessEndpoints.cancelSubscription(subscription.id), {});
-
-                if (response.success) {
-                  showBanner(
-                    "Success",
-                    "Subscription cancelled successfully",
-                    "success",
-                    2500
-                  );
-                  // Clear data and fetch page 1
-                  setSubscriptions([]);
-                  setCurrentPage(1);
-                  setTotalPages(1);
-                  await fetchSubscriptions(1, false);
-                } else {
-                  showBanner(
-                    "Error",
-                    response.message || "Failed to cancel subscription",
-                    "error",
-                    2500
-                  );
-                }
-              } catch (err: any) {
-                showBanner(
-                  "Error",
-                  err.message || "Failed to cancel subscription",
-                  "error",
-                  2500
-                );
-              }
-            },
-          },
-        ],
-        { cancelable: true }
-      );
+      setSelectedSubscription(subscription);
+      setCancelModalVisible(true);
     },
-    [showBanner, fetchSubscriptions]
+    []
   );
+
+  const handleConfirmCancellation = useCallback(async () => {
+    if (!selectedSubscription || !confirmChecked) return;
+
+    try {
+      const response = await ApiService.patch<{
+        success: boolean;
+        message: string;
+        data: {};
+      }>(businessEndpoints.cancelSubscription(selectedSubscription.id), {});
+
+      if (response.success) {
+        showBanner(
+          "Success",
+          "Subscription cancelled successfully",
+          "success",
+          2500
+        );
+        setCancelModalVisible(false);
+        setSelectedSubscription(null);
+        setConfirmChecked(true);
+        // Clear data and fetch page 1
+        setSubscriptions([]);
+        setCurrentPage(1);
+        setTotalPages(1);
+        await fetchSubscriptions(1, false);
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to cancel subscription",
+          "error",
+          2500
+        );
+      }
+    } catch (err: any) {
+      showBanner(
+        "Error",
+        err.message || "Failed to cancel subscription",
+        "error",
+        2500
+      );
+    }
+  }, [selectedSubscription, confirmChecked, showBanner, fetchSubscriptions]);
 
   const renderItem = useCallback(
     ({ item }: { item: SubscriptionData }) => {
@@ -711,8 +814,8 @@ export default function subscriptionCustomer() {
   const renderEmpty = useCallback(() => {
     if (loading) {
       return (
-        <View style={styles.contentContainer}>
-          <Skeleton screenType="BusinessPlans" styles={styles} />
+        <View style={[styles.emptyContainer, { justifyContent: "center" }]}>
+          <ActivityIndicator size="large" color={theme.buttonBack} />
         </View>
       );
     }
@@ -762,6 +865,110 @@ export default function subscriptionCustomer() {
         ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
       />
+
+      {/* Cancel Subscription Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setCancelModalVisible(false)}
+      >
+        <Pressable
+          style={styles.modalOverlay}
+          onPress={() => setCancelModalVisible(false)}
+        >
+          <Pressable
+            style={styles.modalContainer}
+            onPress={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Cancel Subscription</Text>
+              <TouchableOpacity
+                style={styles.modalCloseButton}
+                onPress={() => setCancelModalVisible(false)}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name="x"
+                  size={moderateWidthScale(20)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
+            </View>
+
+            {/* Question */}
+            <Text style={styles.modalQuestion}>
+              Are you sure you want to cancel your{" "}
+              <Text style={styles.modalQuestionBold}>
+                {selectedSubscription?.subscriptionPlan}
+              </Text>
+              ?
+            </Text>
+
+            {/* Consequences Box */}
+            <View style={styles.consequencesBox}>
+              <View style={styles.consequenceItem}>
+                <Text style={styles.consequenceBullet}>•</Text>
+                <Text style={styles.consequenceText}>
+                  You will lose access to the benefits at the end of the current
+                  billing cycle.
+                </Text>
+              </View>
+              <View style={styles.consequenceItem}>
+                <Text style={styles.consequenceBullet}>•</Text>
+                <Text style={styles.consequenceText}>
+                  This action cannot be undone automatically.
+                </Text>
+              </View>
+              <View style={styles.consequenceItem}>
+                <Text style={styles.consequenceBullet}>•</Text>
+                <Text style={styles.consequenceText}>
+                  You can re-subscribe at any time.
+                </Text>
+              </View>
+            </View>
+
+            {/* Checkbox */}
+            <TouchableOpacity
+              style={styles.checkboxContainer}
+              onPress={() => setConfirmChecked(!confirmChecked)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.checkbox,
+                  confirmChecked && styles.checkboxChecked,
+                ]}
+              >
+                {confirmChecked && (
+                  <Feather
+                    name="check"
+                    size={moderateWidthScale(14)}
+                    color={theme.white}
+                  />
+                )}
+              </View>
+              <Text style={styles.checkboxText}>
+                I understand that my subscription will be cancelled.
+              </Text>
+            </TouchableOpacity>
+
+            {/* Confirm Button */}
+            <TouchableOpacity
+              style={[
+                styles.confirmButton,
+                !confirmChecked && styles.confirmButtonDisabled,
+              ]}
+              onPress={handleConfirmCancellation}
+              disabled={!confirmChecked}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.confirmButtonText}>Confirm Cancellation</Text>
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
