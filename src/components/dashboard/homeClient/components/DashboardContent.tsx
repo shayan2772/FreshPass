@@ -32,7 +32,10 @@ import {
 } from "@/assets/icons";
 import InclusionsModal from "@/src/components/inclusionsModal";
 import { ApiService } from "@/src/services/api";
-import { businessEndpoints } from "@/src/services/endpoints";
+import {
+  businessEndpoints,
+  appointmentsEndpoints,
+} from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import RetryButton from "@/src/components/retryButton";
 
@@ -294,6 +297,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.white,
+      textTransform: "capitalize",
     },
     verifiedCardInfoRow: {
       flexDirection: "row",
@@ -332,7 +336,6 @@ const createStyles = (theme: Theme) =>
       gap: moderateWidthScale(12),
       width: widthScale(310),
     },
-
     verifiedSalonImage: {
       width: widthScale(100),
       height: heightScale(110),
@@ -824,28 +827,70 @@ const subscriptionSections: ServiceSection[] = [
   },
 ];
 
-const appointments = [
-  {
-    id: 1,
-    badgeText: "Upcoming appointment",
-    dateTime: "Tue, Oct 15 at 3:00 PM",
-    image:
-      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-    salonName: "Premium Haircut & Styling",
-    membershipInfo: "Golder member • 2 visit left",
-    stylistName: "Sanna Granqvist",
-  },
-  {
-    id: 2,
-    badgeText: "Upcoming appointment",
-    dateTime: "Wed, Oct 16 at 2:30 PM",
-    image:
-      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-    salonName: "Elite Hair Studio",
-    membershipInfo: "Silver member • 5 visit left",
-    stylistName: "John Anderson",
-  },
-];
+interface Appointment {
+  id: number;
+  businessId: number;
+  businessTitle: string;
+  businessAddress: string;
+  businessLatitude: string;
+  businessLongitude: string;
+  businessLogoUrl: string | null;
+  businessAverageRating: number;
+  userId: number;
+  user: string;
+  userEmail: string;
+  appointmentType: "subscription" | "service";
+  paymentMethod: string;
+  subscriptionId: number | null;
+  subscription: string | null;
+  subscriptionPlanType: string | null;
+  subscriptionPlanDescription: string | null;
+  services: any;
+  totalPrice: number | {};
+  subscriptionServices:
+    | Array<{
+        id: number;
+        name: string;
+        description: string;
+        price: string;
+        duration: {
+          hours: number;
+          minutes: number;
+        };
+      }>
+    | {};
+  subscriptionVisits: {
+    used: number;
+    upcoming: number;
+    total: number;
+    remaining: number;
+  } | null;
+  staffId: number | null;
+  staffName: string | null;
+  staffEmail: string | null;
+  staffImage: string | null;
+  appointmentDate: string;
+  appointmentTime: string;
+  status: string;
+  paidAmount: string;
+  notes: string | null;
+  cancelReason: string | null;
+  cancelDate: string | null;
+  createdAt: string;
+  deleted_at: string | null;
+}
+
+interface AppointmentCard {
+  id: number;
+  badgeText: string;
+  dateTime: string;
+  image: string;
+  salonName: string;
+  membershipInfo: string;
+  stylistName: string;
+  stylistImage: string;
+  originalAppointment?: Appointment;
+}
 
 interface Category {
   id: number;
@@ -880,12 +925,15 @@ export default function DashboardContent() {
   const [businessesLoading, setBusinessesLoading] = useState(false);
   const [businessesError, setBusinessesError] = useState(false);
   const [businessesCount, setBusinessesCount] = useState(0);
+  const [appointments, setAppointments] = useState<AppointmentCard[]>([]);
+  const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [appointmentsError, setAppointmentsError] = useState(false);
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
     "subscriptions"
   );
-  const [selectedCategory, setSelectedCategory] = useState<string | number>(
-    "all"
-  );
+  const [selectedCategory, setSelectedCategory] = useState<
+    string | number | undefined
+  >(undefined);
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
   const [selectedServiceFilter, setSelectedServiceFilter] =
     useState<string>("haircut");
@@ -975,8 +1023,11 @@ export default function DashboardContent() {
           address: item.address,
           rating: item.average_rating || 0,
           reviewCount: item.ratings_count || 0,
-          image: item.image_url,
+          image: item.image_url
+            ? process.env.EXPO_PUBLIC_API_BASE_URL + item.image_url
+            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
         }));
+        console.log("mappedSalons", mappedSalons);
         setVerifiedSalons(mappedSalons);
         setBusinessesCount(response.data.length);
       }
@@ -991,19 +1042,184 @@ export default function DashboardContent() {
     }
   };
 
+  const formatAppointmentDateTime = (date: string, time: string): string => {
+    try {
+      // Parse date format "MM/DD/YYYY"
+      const dateParts = date.split("/");
+      const month = parseInt(dateParts[0]);
+      const day = parseInt(dateParts[1]);
+      const year = parseInt(dateParts[2]);
+
+      // Parse time format "HH:mm"
+      const [hours, minutes] = time.split(":").map(Number);
+      const dateObj = new Date(year, month - 1, day, hours, minutes);
+
+      // Format as "Day, Mon DD at H:MM AM/PM"
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const dayName = days[dateObj.getDay()];
+      const monthName = months[dateObj.getMonth()];
+      let hours12 = dateObj.getHours();
+      const ampm = hours12 >= 12 ? "PM" : "AM";
+      hours12 = hours12 % 12;
+      hours12 = hours12 ? hours12 : 12;
+      const minutesStr = dateObj.getMinutes().toString().padStart(2, "0");
+
+      return `${dayName}, ${monthName} ${day} at ${hours12}:${minutesStr} ${ampm}`;
+    } catch (error) {
+      return `${date} at ${time}`;
+    }
+  };
+
+  const formatMembershipInfo = (appointment: Appointment): string => {
+    if (appointment.appointmentType === "subscription") {
+      if (appointment.subscriptionVisits) {
+        const { remaining } = appointment.subscriptionVisits;
+        const subscriptionName = "Subscription";
+        return `${subscriptionName} • ${remaining} visit${
+          remaining !== 1 ? "s" : ""
+        } left`;
+      }
+      return appointment.subscription || "Subscription";
+    } else {
+      // For service type, return service info
+      if (
+        Array.isArray(appointment.services) &&
+        appointment.services.length > 0
+      ) {
+        return `${appointment.services.length} service${
+          appointment.services.length !== 1 ? "s" : ""
+        }`;
+      }
+      return "Service";
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      setAppointmentsLoading(true);
+      setAppointmentsError(false);
+
+      // Fetch appointments without appointment_type filter to get both subscription and service types
+      // This is similar to how verified salons work - fetch all when category is selected
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          data: Appointment[];
+          meta: {
+            current_page: number;
+            per_page: number;
+            total: number;
+            last_page: number;
+          };
+        };
+      }>(
+        appointmentsEndpoints.list({
+          status: "scheduled",
+          page: 1,
+          per_page: 10,
+        })
+      );
+
+      const allAppointments: Appointment[] = [];
+
+      if (response.success && response.data?.data) {
+        allAppointments.push(...response.data.data);
+      }
+
+      // Map API appointments to AppointmentCard format
+      const mappedAppointments: AppointmentCard[] = allAppointments.map(
+        (appointment) => {
+          const imageUrl = appointment.businessLogoUrl
+            ? process.env.EXPO_PUBLIC_API_BASE_URL + appointment.businessLogoUrl
+            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+
+          const staffImageUrl = appointment.staffImage
+            ? process.env.EXPO_PUBLIC_API_BASE_URL + appointment.staffImage
+            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+
+          const dateTime = formatAppointmentDateTime(
+            appointment.appointmentDate,
+            appointment.appointmentTime
+          );
+
+          const membershipInfo = formatMembershipInfo(appointment);
+
+          const stylistName =
+            appointment.staffId && appointment.staffName
+              ? appointment.staffName
+              : "anyone";
+
+          const name =
+            appointment.appointmentType === "subscription"
+              ? appointment.subscription || appointment.businessTitle
+              : Array.isArray(appointment.services) &&
+                appointment.services.length > 0
+              ? appointment.services
+                  .map((service: any) => service.name)
+                  .join(" , ")
+              : appointment.businessTitle;
+
+          return {
+            id: appointment.id,
+            badgeText: "Upcoming appointment",
+            dateTime: dateTime,
+            image: imageUrl,
+            salonName: name,
+            membershipInfo: membershipInfo,
+            stylistName: stylistName,
+            stylistImage: staffImageUrl,
+            originalAppointment: appointment,
+          };
+        }
+      );
+
+      setAppointments(mappedAppointments);
+    } catch (error) {
+      console.error("Failed to fetch appointments:", error);
+      setAppointmentsError(true);
+      showBanner(
+        "API Failed",
+        "API failed to fetch appointments",
+        "error",
+        2500
+      );
+      setAppointments([]);
+    } finally {
+      setAppointmentsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isCusotmerandGuest) {
       fetchCategories();
+      fetchAppointments();
     }
   }, []);
 
   // Fetch businesses when category changes
   useEffect(() => {
-    if (isCusotmerandGuest && selectedCategory !== "all") {
+    if (isCusotmerandGuest && selectedCategory && selectedCategory !== "all") {
       fetchBusinesses(selectedCategory);
     } else if (selectedCategory === "all") {
       setVerifiedSalons([]);
       setBusinessesCount(0);
+      setAppointments([]);
     }
   }, [selectedCategory]);
 
@@ -1384,7 +1600,7 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {businessesLoading ? (
+        {appointmentsLoading || businessesLoading ? (
           <View
             style={{
               paddingVertical: moderateHeightScale(20),
@@ -1395,7 +1611,7 @@ export default function DashboardContent() {
           >
             <ActivityIndicator size="large" color={theme.primary} />
           </View>
-        ) : businessesError ? (
+        ) : appointmentsError || businessesError ? (
           <View
             style={{
               paddingVertical: moderateHeightScale(20),
@@ -1413,11 +1629,16 @@ export default function DashboardContent() {
                 textAlign: "center",
               }}
             >
-              Failed to load businesses
+              Failed to load data
             </Text>
             <RetryButton
-              onPress={() => fetchBusinesses(selectedCategory)}
-              loading={businessesLoading}
+              onPress={() => {
+                if (selectedCategory) {
+                  fetchBusinesses(selectedCategory);
+                  fetchAppointments();
+                }
+              }}
+              loading={businessesLoading || appointmentsLoading}
             />
           </View>
         ) : appointments.length > 9 ? (
@@ -1446,7 +1667,7 @@ export default function DashboardContent() {
               <View style={styles.verifiedCardContent}>
                 <Image
                   source={{
-                    uri: appointment.image,
+                    uri: appointment.stylistImage,
                   }}
                   style={styles.verifiedCardImage}
                   resizeMode="cover"
@@ -1485,7 +1706,8 @@ export default function DashboardContent() {
                     <TouchableOpacity
                       style={styles.viewDetailLink}
                       onPress={() => {
-                        // Map appointment to BookingItem format
+                        // Find the original appointment data to get full details
+                        // For now, use the mapped appointment data
                         const bookingItem = {
                           id: appointment.id.toString(),
                           serviceName: appointment.salonName,
@@ -1538,9 +1760,7 @@ export default function DashboardContent() {
             >
               <Image
                 source={{
-                  uri: salon?.image
-                    ? process.env.EXPO_PUBLIC_API_BASE_URL + salon.image
-                    : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                  uri: salon.image ?? "",
                 }}
                 style={styles.verifiedSalonImage}
                 resizeMode="cover"
