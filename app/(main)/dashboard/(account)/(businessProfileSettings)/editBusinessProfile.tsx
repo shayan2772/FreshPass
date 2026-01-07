@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
-  Alert,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -26,6 +25,8 @@ import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { name } from "dayjs";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({

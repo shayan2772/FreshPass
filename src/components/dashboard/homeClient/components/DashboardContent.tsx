@@ -847,30 +847,18 @@ const appointments = [
   },
 ];
 
-const verifiedSalons = [
-  {
-    id: 1,
-    businessName: "Ra Benjamin Styles LLC",
-    address: "9853 E Fern ST, Palmetto Bay, 33157",
-    rating: 4.9,
-    reviewCount: 64,
-    image:
-      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-  },
-  {
-    id: 2,
-    businessName: "Elite Hair Studio",
-    address: "123 Main St, Miami, 33101",
-    rating: 4.8,
-    reviewCount: 120,
-    image:
-      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-  },
-];
-
 interface Category {
   id: number;
   name: string;
+  image: string | null;
+}
+
+interface VerifiedSalon {
+  id: number;
+  businessName: string;
+  address: string;
+  rating: number;
+  reviewCount: number;
   image: string | null;
 }
 
@@ -884,11 +872,14 @@ export default function DashboardContent() {
   const isGuest = useAppSelector((state: any) => state.user.isGuest);
 
   const isCusotmerandGuest = isGuest || userRole === "customer";
-  
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
+  const [verifiedSalons, setVerifiedSalons] = useState<VerifiedSalon[]>([]);
+  const [businessesLoading, setBusinessesLoading] = useState(false);
+  const [businessesError, setBusinessesError] = useState(false);
+  const [businessesCount, setBusinessesCount] = useState(0);
   const [activeTab, setActiveTab] = useState<"subscriptions" | "individual">(
     "subscriptions"
   );
@@ -952,11 +943,69 @@ export default function DashboardContent() {
     }
   };
 
+  const fetchBusinesses = async (categoryId: number | string) => {
+    // Don't fetch if "all" is selected
+    if (categoryId === "all") {
+      setVerifiedSalons([]);
+      setBusinessesCount(0);
+      return;
+    }
+
+    try {
+      setBusinessesLoading(true);
+      setBusinessesError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          title: string;
+          address: string;
+          average_rating: number;
+          ratings_count: number;
+          image_url: string | null;
+        }>;
+      }>(businessEndpoints.businesses(categoryId as number));
+
+      if (response.success && response.data) {
+        // Map API response to VerifiedSalon format
+        const mappedSalons: VerifiedSalon[] = response.data.map((item) => ({
+          id: item.id,
+          businessName: item.title,
+          address: item.address,
+          rating: item.average_rating || 0,
+          reviewCount: item.ratings_count || 0,
+          image: item.image_url,
+        }));
+        setVerifiedSalons(mappedSalons);
+        setBusinessesCount(response.data.length);
+      }
+    } catch (error) {
+      console.error("Failed to fetch businesses:", error);
+      setBusinessesError(true);
+      showBanner("API Failed", "API failed to fetch businesses", "error", 2500);
+      setVerifiedSalons([]);
+      setBusinessesCount(0);
+    } finally {
+      setBusinessesLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isCusotmerandGuest) {
       fetchCategories();
     }
   }, []);
+
+  // Fetch businesses when category changes
+  useEffect(() => {
+    if (isCusotmerandGuest && selectedCategory !== "all") {
+      fetchBusinesses(selectedCategory);
+    } else if (selectedCategory === "all") {
+      setVerifiedSalons([]);
+      setBusinessesCount(0);
+    }
+  }, [selectedCategory]);
 
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
@@ -1304,8 +1353,11 @@ export default function DashboardContent() {
       <View style={styles.resultsHeader}>
         <View style={styles.resultsTextContainer}>
           <Text style={styles.resultsText}>
-            Showing: <Text style={styles.resultsTextBold}>870 results</Text> for{" "}
-            {getCategoryName()}
+            Showing:{" "}
+            <Text style={styles.resultsTextBold}>
+              {businessesCount} results
+            </Text>{" "}
+            for {getCategoryName()}
           </Text>
         </View>
 
@@ -1332,179 +1384,218 @@ export default function DashboardContent() {
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointments.length > 9
-          ? appointments.map((appointment, index) => (
-              <View
-                key={appointment.id}
-                style={[
-                  styles.verifiedSalonCard,
-                  index < appointments.length - 1 && {
-                    marginRight: moderateWidthScale(15),
-                  },
-                ]}
-              >
-                <View style={styles.verifiedCardTopRow}>
-                  <View style={styles.verifiedBadge}>
-                    <Text style={styles.verifiedBadgeText}>
-                      {appointment.badgeText}
-                    </Text>
-                  </View>
-                  <View style={styles.dateTimeBadge}>
-                    <Text style={styles.dateTimeBadgeText}>
-                      {appointment.dateTime}
-                    </Text>
-                  </View>
+        {businessesLoading ? (
+          <View
+            style={{
+              paddingVertical: moderateHeightScale(20),
+              alignItems: "center",
+              justifyContent: "center",
+              width: SCREEN_WIDTH,
+            }}
+          >
+            <ActivityIndicator size="large" color={theme.primary} />
+          </View>
+        ) : businessesError ? (
+          <View
+            style={{
+              paddingVertical: moderateHeightScale(20),
+              alignItems: "center",
+              justifyContent: "center",
+              width: SCREEN_WIDTH,
+              gap: moderateHeightScale(12),
+            }}
+          >
+            <Text
+              style={{
+                fontSize: fontSize.size14,
+                fontFamily: fonts.fontRegular,
+                color: theme.lightGreen,
+                textAlign: "center",
+              }}
+            >
+              Failed to load businesses
+            </Text>
+            <RetryButton
+              onPress={() => fetchBusinesses(selectedCategory)}
+              loading={businessesLoading}
+            />
+          </View>
+        ) : appointments.length > 0 ? (
+          appointments.map((appointment, index) => (
+            <View
+              key={appointment.id}
+              style={[
+                styles.verifiedSalonCard,
+                index < appointments.length - 1 && {
+                  marginRight: moderateWidthScale(15),
+                },
+              ]}
+            >
+              <View style={styles.verifiedCardTopRow}>
+                <View style={styles.verifiedBadge}>
+                  <Text style={styles.verifiedBadgeText}>
+                    {appointment.badgeText}
+                  </Text>
                 </View>
-                <View style={styles.verifiedCardContent}>
-                  <Image
-                    source={{
-                      uri: appointment.image,
-                    }}
-                    style={styles.verifiedCardImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.verifiedCardTextContainer}>
-                    <Text numberOfLines={1} style={styles.salonName}>
-                      {appointment.salonName}
+                <View style={styles.dateTimeBadge}>
+                  <Text style={styles.dateTimeBadgeText}>
+                    {appointment.dateTime}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.verifiedCardContent}>
+                <Image
+                  source={{
+                    uri: appointment.image,
+                  }}
+                  style={styles.verifiedCardImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.verifiedCardTextContainer}>
+                  <Text numberOfLines={1} style={styles.salonName}>
+                    {appointment.salonName}
+                  </Text>
+                  <View style={styles.verifiedCardInfoRow}>
+                    <MonitorIcon
+                      width={widthScale(16)}
+                      height={heightScale(16)}
+                      color={theme.white}
+                    />
+                    <Text style={styles.verifiedCardInfoText}>
+                      {appointment.membershipInfo}
                     </Text>
-                    <View style={styles.verifiedCardInfoRow}>
-                      <MonitorIcon
+                  </View>
+                  <View style={styles.verifiedCardInfoRow2}>
+                    <View
+                      style={[styles.verifiedCardInfoRow, { width: "58%" }]}
+                    >
+                      <PersonIcon
                         width={widthScale(16)}
                         height={heightScale(16)}
                         color={theme.white}
                       />
-                      <Text style={styles.verifiedCardInfoText}>
-                        {appointment.membershipInfo}
+                      <Text
+                        numberOfLines={1}
+                        style={styles.verifiedCardInfoText}
+                      >
+                        {appointment.stylistName}
                       </Text>
                     </View>
-                    <View style={styles.verifiedCardInfoRow2}>
-                      <View
-                        style={[styles.verifiedCardInfoRow, { width: "58%" }]}
-                      >
-                        <PersonIcon
-                          width={widthScale(16)}
-                          height={heightScale(16)}
-                          color={theme.white}
-                        />
-                        <Text
-                          numberOfLines={1}
-                          style={styles.verifiedCardInfoText}
-                        >
-                          {appointment.stylistName}
-                        </Text>
-                      </View>
 
-                      <TouchableOpacity
-                        style={styles.viewDetailLink}
-                        onPress={() => {
-                          // Map appointment to BookingItem format
-                          const bookingItem = {
-                            id: appointment.id.toString(),
-                            serviceName: appointment.salonName,
-                            membershipType:
-                              appointment.membershipInfo
-                                ?.split("•")[0]
-                                ?.trim() || "",
-                            staffName: appointment.stylistName,
-                            location: appointment.salonName,
-                            dateTime: appointment.dateTime,
-                            duration: "30 min", // Default duration
-                            price: "$0", // Default price
-                            status: appointment.badgeText
-                              ?.toLowerCase()
-                              .includes("upcoming")
-                              ? ("active" as const)
-                              : ("ongoing" as const),
-                          };
-
-                          router.push({
-                            pathname: "/(main)/bookingDetailsById",
-                            params: {
-                              bookingId: appointment.id.toString(),
-                              booking: JSON.stringify(bookingItem),
-                            },
-                          });
-                        }}
-                      >
-                        <Text style={styles.viewDetailText}>View detail</Text>
-                        <ChevronRight
-                          width={widthScale(4)}
-                          height={heightScale(8)}
-                          color={theme.orangeBrown}
-                        />
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </View>
-              </View>
-            ))
-          : verifiedSalons.map((salon, index) => (
-              <View
-                key={salon.id}
-                style={[
-                  styles.verifiedSalonCardNew,
-                  index < verifiedSalons.length - 1 && {
-                    marginRight: moderateWidthScale(15),
-                  },
-                ]}
-              >
-                <Image
-                  source={{
-                    uri: salon.image,
-                  }}
-                  style={styles.verifiedSalonImage}
-                  resizeMode="cover"
-                />
-
-                <View style={styles.verifiedSalonContent}>
-                  <View style={styles.platformVerifiedBadge}>
-                    <PlatformVerifiedStarIcon
-                      width={widthScale(10)}
-                      height={heightScale(10)}
-                    />
-                    <Text style={styles.platformVerifiedText}>
-                      Platform verified
-                    </Text>
-                  </View>
-                  <View style={{ gap: moderateHeightScale(6) }}>
-                    <Text
-                      numberOfLines={1}
-                      style={styles.verifiedSalonBusinessName}
-                    >
-                      {salon.businessName}
-                    </Text>
-                    <Text numberOfLines={1} style={styles.verifiedSalonAddress}>
-                      {salon.address}
-                    </Text>
-                  </View>
-                  <View style={styles.verifiedSalonBottomRow}>
-                    <View style={styles.verifiedSalonRatingButton}>
-                      <StarIconSmall
-                        width={widthScale(12)}
-                        height={heightScale(12)}
-                        color={theme.orangeBrown}
-                      />
-                      <Text style={styles.verifiedSalonRatingText}>
-                        {salon.rating}/ {salon.reviewCount} reviews
-                      </Text>
-                    </View>
                     <TouchableOpacity
-                      style={styles.verifiedSalonViewDetail}
+                      style={styles.viewDetailLink}
                       onPress={() => {
+                        // Map appointment to BookingItem format
+                        const bookingItem = {
+                          id: appointment.id.toString(),
+                          serviceName: appointment.salonName,
+                          membershipType:
+                            appointment.membershipInfo?.split("•")[0]?.trim() ||
+                            "",
+                          staffName: appointment.stylistName,
+                          location: appointment.salonName,
+                          dateTime: appointment.dateTime,
+                          duration: "30 min", // Default duration
+                          price: "$0", // Default price
+                          status: appointment.badgeText
+                            ?.toLowerCase()
+                            .includes("upcoming")
+                            ? ("active" as const)
+                            : ("ongoing" as const),
+                        };
+
                         router.push({
-                          pathname: "/(main)/businessDetail",
-                          params: { business_id: "1" }, // Dummy business ID
-                        } as any);
+                          pathname: "/(main)/bookingDetailsById",
+                          params: {
+                            bookingId: appointment.id.toString(),
+                            booking: JSON.stringify(bookingItem),
+                          },
+                        });
                       }}
                     >
-                      <Text style={styles.verifiedSalonViewDetailText}>
-                        View detail
-                      </Text>
+                      <Text style={styles.viewDetailText}>View detail</Text>
+                      <ChevronRight
+                        width={widthScale(4)}
+                        height={heightScale(8)}
+                        color={theme.orangeBrown}
+                      />
                     </TouchableOpacity>
                   </View>
                 </View>
               </View>
-            ))}
+            </View>
+          ))
+        ) : verifiedSalons.length > 0 ? (
+          verifiedSalons.map((salon, index) => (
+            <View
+              key={salon.id}
+              style={[
+                styles.verifiedSalonCardNew,
+                index < verifiedSalons.length - 1 && {
+                  marginRight: moderateWidthScale(15),
+                },
+              ]}
+            >
+              <Image
+                source={{
+                  uri: salon?.image
+                    ? process.env.EXPO_PUBLIC_API_BASE_URL + salon.image
+                    : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                }}
+                style={styles.verifiedSalonImage}
+                resizeMode="cover"
+              />
+
+              <View style={styles.verifiedSalonContent}>
+                <View style={styles.platformVerifiedBadge}>
+                  <PlatformVerifiedStarIcon
+                    width={widthScale(10)}
+                    height={heightScale(10)}
+                  />
+                  <Text style={styles.platformVerifiedText}>
+                    Platform verified
+                  </Text>
+                </View>
+                <View style={{ gap: moderateHeightScale(6) }}>
+                  <Text
+                    numberOfLines={1}
+                    style={styles.verifiedSalonBusinessName}
+                  >
+                    {salon.businessName}
+                  </Text>
+                  <Text numberOfLines={1} style={styles.verifiedSalonAddress}>
+                    {salon.address}
+                  </Text>
+                </View>
+                <View style={styles.verifiedSalonBottomRow}>
+                  <View style={styles.verifiedSalonRatingButton}>
+                    <StarIconSmall
+                      width={widthScale(12)}
+                      height={heightScale(12)}
+                      color={theme.orangeBrown}
+                    />
+                    <Text style={styles.verifiedSalonRatingText}>
+                      {salon.rating || 0}/ {salon.reviewCount || 0} reviews
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.verifiedSalonViewDetail}
+                    onPress={() => {
+                      router.push({
+                        pathname: "/(main)/businessDetail",
+                        params: { business_id: salon.id.toString() },
+                      } as any);
+                    }}
+                  >
+                    <Text style={styles.verifiedSalonViewDetailText}>
+                      View detail
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          ))
+        ) : null}
       </ScrollView>
 
       {/* Service Filters (for Individual Services) */}

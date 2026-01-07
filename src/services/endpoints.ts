@@ -39,6 +39,13 @@ export const businessEndpoints = {
   serviceTemplates: (categoryId: number) => `/api/service-templates?category_id=${categoryId}`,
   services: `/api/services?status=active`,
   profile: `/api/business/profile`,
+  businesses: (categoryIds?: number | number[]) => {
+    if (categoryIds) {
+      const ids = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+      return `/api/businesses?category_ids=${ids.join(',')}`;
+    }
+    return `/api/businesses`;
+  },
   moduleData: (module: string, businessId?: number) => {
     const queryParams = new URLSearchParams();
     queryParams.append('module', module);
