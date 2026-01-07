@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { useRouter } from "expo-router";
@@ -880,6 +880,12 @@ export default function DashboardContent() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const { showBanner } = useNotificationContext();
+  const userRole = useAppSelector((state: any) => state.user.userRole);
+  const isGuest = useAppSelector((state: any) => state.user.isGuest);
+
+  const isCusotmerandGuest = isGuest || userRole === "customer";
+  
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [categoriesError, setCategoriesError] = useState(false);
@@ -947,9 +953,11 @@ export default function DashboardContent() {
   };
 
   useEffect(() => {
-    fetchCategories();
+    if (isCusotmerandGuest) {
+      fetchCategories();
+    }
   }, []);
-  
+
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
     // Set initial position without animation
@@ -1393,17 +1401,22 @@ export default function DashboardContent() {
                           const bookingItem = {
                             id: appointment.id.toString(),
                             serviceName: appointment.salonName,
-                            membershipType: appointment.membershipInfo?.split("•")[0]?.trim() || "",
+                            membershipType:
+                              appointment.membershipInfo
+                                ?.split("•")[0]
+                                ?.trim() || "",
                             staffName: appointment.stylistName,
                             location: appointment.salonName,
                             dateTime: appointment.dateTime,
                             duration: "30 min", // Default duration
                             price: "$0", // Default price
-                            status: appointment.badgeText?.toLowerCase().includes("upcoming") 
-                              ? "active" as const 
-                              : "ongoing" as const,
+                            status: appointment.badgeText
+                              ?.toLowerCase()
+                              .includes("upcoming")
+                              ? ("active" as const)
+                              : ("ongoing" as const),
                           };
-                          
+
                           router.push({
                             pathname: "/(main)/bookingDetailsById",
                             params: {
