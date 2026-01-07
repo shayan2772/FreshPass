@@ -645,11 +645,14 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: moderateHeightScale(8),
+  
+      width:"100%"
     },
     subscriptionPriceContainer: {
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(4),
+      maxWidth:"55%"
     },
     subscriptionButtonContainer: {
       alignSelf: "flex-end",
@@ -718,114 +721,7 @@ interface ServiceSection {
   subscriptions?: SubscriptionItem[];
 }
 
-const serviceSections: ServiceSection[] = [
-  {
-    id: 1,
-    businessName: "Ra Benjamin Styles LLC",
-    type: "individual",
-    services: [
-      {
-        id: 1,
-        title: "Wet Haircut",
-        price: 45.99,
-        originalPrice: 50.99,
-        description: "This service includes we wash and cut",
-        duration: "45 mins",
-      },
-      {
-        id: 2,
-        title: "Wet Haircut",
-        price: 45.99,
-        originalPrice: 50.99,
-        description: "This service includes we wash and cut",
-        duration: "45 mins",
-      },
-    ],
-  },
-  {
-    id: 2,
-    businessName: "Beach Club Salon & Spa",
-    type: "individual",
-    services: [
-      {
-        id: 113,
-        title: "Wet Haircut",
-        price: 45.99,
-        originalPrice: 50.99,
-        description: "This service includes we wash and cut",
-        duration: "45 mins",
-      },
-      {
-        id: 114,
-        title: "Wet Haircut",
-        price: 45.99,
-        originalPrice: 50.99,
-        description: "This service includes we wash and cut",
-        duration: "45 mins",
-      },
-    ],
-  },
-];
-
-const subscriptionSections: ServiceSection[] = [
-  {
-    id: 1,
-    businessName: "Ra Benjamin Styles LLC",
-    type: "subscription",
-    subscriptions: [
-      {
-        id: 1,
-        title: "The Full Luxury Experience",
-        price: 45.99,
-        originalPrice: 50.99,
-        offer: "15% Off All Products",
-        offer2: "Get 1 free facial per month",
-        inclusions: [
-          "1. 2 Premium Haircuts",
-          "2. 1 Free Styling Service",
-          "3. 1 Free Facial per month",
-        ],
-        image: null,
-      },
-      {
-        id: 2,
-        title: "Premium Care Package",
-        price: 89.99,
-        originalPrice: 99.99,
-        offer: "20% Off First Month",
-        offer2: "Free Consultation",
-        inclusions: [
-          "1. 4 Premium Haircuts",
-          "2. 2 Free Styling Services",
-          "3. 2 Free Facials per month",
-          "4. Free Hair Products",
-        ],
-        image: null,
-      },
-    ],
-  },
-  {
-    id: 2,
-    businessName: "Beach Club Salon & Spa",
-    type: "subscription",
-    subscriptions: [
-      {
-        id: 3,
-        title: "Elite Spa Membership",
-        price: 129.99,
-        originalPrice: 149.99,
-        offer: "25% Off All Services",
-        inclusions: [
-          "1. Unlimited Haircuts",
-          "2. Monthly Spa Treatment",
-          "3. Free Hair Products",
-          "4. Priority Booking",
-        ],
-        image: null,
-      },
-    ],
-  },
-];
+// Static data removed - now using API data
 
 interface Appointment {
   id: number;
@@ -941,6 +837,10 @@ export default function DashboardContent() {
     useState<string>("all");
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
+  const [serviceSections, setServiceSections] = useState<ServiceSection[]>([]);
+  const [subscriptionSections, setSubscriptionSections] = useState<ServiceSection[]>([]);
+  const [sectionsLoading, setSectionsLoading] = useState(false);
+  const [sectionsError, setSectionsError] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
   const stickyTabsOpacity = useRef(new Animated.Value(0)).current;
   const stickyTabsTranslateY = useRef(new Animated.Value(-20)).current;
@@ -992,13 +892,6 @@ export default function DashboardContent() {
   };
 
   const fetchBusinesses = async (categoryId: number | string) => {
-    // Don't fetch if "all" is selected
-    if (categoryId === "all") {
-      setVerifiedSalons([]);
-      setBusinessesCount(0);
-      return;
-    }
-
     try {
       setBusinessesLoading(true);
       setBusinessesError(false);
@@ -1039,6 +932,149 @@ export default function DashboardContent() {
       setBusinessesCount(0);
     } finally {
       setBusinessesLoading(false);
+    }
+  };
+
+  const fetchBusinessesWithData = async (
+    categoryId: number | string,
+    tab: "individual" | "subscriptions"
+  ) => {
+    try {
+      setSectionsLoading(true);
+      setSectionsError(false);
+
+      // Build API URL with appropriate query parameter
+      const queryParam =
+        tab === "individual" ? "with_services=true" : "with_subscription_plans=true";
+      const url = `${businessEndpoints.businesses(categoryId as number)}&${queryParam}`;
+
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          title: string;
+          image_url: string | null;
+          portfolio_photos?: Array<{
+            id: number;
+            path: string;
+            url: string;
+          }>;
+          services?: Array<{
+            id: number;
+            name: string;
+            description: string | null;
+            price: string;
+            duration_hours: number;
+            duration_minutes: number;
+          }>;
+          subscription_plans?: Array<{
+            id: number;
+            name: string;
+            description: string;
+            price: string;
+            visits: number;
+            planType: string;
+            active: boolean;
+            services: Array<{
+              id: number;
+              name: string;
+            }>;
+          }>;
+        }>;
+      }>(url);
+
+      if (response.success && response.data) {
+        if (tab === "individual") {
+          // Transform services data
+          const mappedSections: ServiceSection[] = response.data
+            .filter((business) => business.services && business.services.length > 0)
+            .map((business) => ({
+              id: business.id,
+              businessName: business.title,
+              type: "individual" as const,
+              services: business.services!.map((service) => {
+                const durationHours = service.duration_hours || 0;
+                const durationMinutes = service.duration_minutes || 0;
+                let durationText = "";
+                if (durationHours > 0 && durationMinutes > 0) {
+                  durationText = `${durationHours} hr ${durationMinutes} min`;
+                } else if (durationHours > 0) {
+                  durationText = `${durationHours} hr`;
+                } else if (durationMinutes > 0) {
+                  durationText = `${durationMinutes} min`;
+                } else {
+                  durationText = "N/A";
+                }
+
+                return {
+                  id: service.id,
+                  title: service.name,
+                  price: parseFloat(service.price),
+                  originalPrice: parseFloat((parseFloat(service.price) * 1.1).toFixed(2)), // Approximate original price
+                  description: service.description || "No description available",
+                  duration: durationText,
+                };
+              }),
+            }));
+          
+          setServiceSections(mappedSections);
+        } else {
+          // Transform subscription plans data
+          const mappedSections: ServiceSection[] = response.data
+            .filter(
+              (business) =>
+                business.subscription_plans && business.subscription_plans.length > 0
+            )
+            .map((business) => ({
+              id: business.id,
+              businessName: business.title,
+              type: "subscription" as const,
+              subscriptions: business.subscription_plans!.map((plan) => {
+                // Create inclusions from services
+                const inclusions = plan.services.map(
+                  (service, index) => `${index + 1}. ${service.name}`
+                );
+
+                return {
+                  id: plan.id,
+                  title: plan.name,
+                  price: parseFloat(plan.price),
+                  originalPrice: parseFloat((parseFloat(plan.price) * 1.15).toFixed(2)), // Approximate original price
+                  offer: `${plan.visits} visits included`,
+                  offer2: plan.planType === "user" ? "User Plan" : undefined,
+                  inclusions: inclusions.length > 0 ? inclusions : ["No services included"],
+                  image: null,
+                };
+              }),
+            }));
+            
+          setSubscriptionSections( mappedSections);
+        }
+      } else {
+        // Empty response
+        if (tab === "individual") {
+          setServiceSections([]);
+        } else {
+          setSubscriptionSections([]);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch businesses with data:", error);
+      setSectionsError(true);
+      showBanner(
+        "API Failed",
+        `API failed to fetch ${tab === "individual" ? "services" : "subscriptions"}`,
+        "error",
+        2500
+      );
+      if (tab === "individual") {
+        setServiceSections([]);
+      } else {
+        setSubscriptionSections([]);
+      }
+    } finally {
+      setSectionsLoading(false);
     }
   };
 
@@ -1214,14 +1250,13 @@ export default function DashboardContent() {
 
   // Fetch businesses when category changes
   useEffect(() => {
-    if (isCusotmerandGuest && selectedCategory && selectedCategory !== "all") {
+    if (isCusotmerandGuest && selectedCategory) {
       fetchBusinesses(selectedCategory);
-    } else if (selectedCategory === "all") {
-      setVerifiedSalons([]);
-      setBusinessesCount(0);
+      fetchBusinessesWithData(selectedCategory, activeTab);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory,activeTab]);
 
+  
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
     // Set initial position without animation
@@ -1231,13 +1266,7 @@ export default function DashboardContent() {
     });
   }, []);
 
-  // Set first category as selected by default when categories data is available
-  useEffect(() => {
-    if (categories.length > 0 && selectedCategory === "all") {
-      setSelectedCategory(categories[0].id);
-    }
-  }, [categories]);
-
+  
   // Animate sticky tabs and category section when showCategoryTabs changes
   useEffect(() => {
     if (showCategoryTabs) {
@@ -1355,9 +1384,6 @@ export default function DashboardContent() {
   };
 
   const getCategoryName = () => {
-    if (selectedCategory === "all") {
-      return "All Salons/Shops";
-    }
     const category = categories.find((cat) => cat.id === selectedCategory);
     return category ? category.name : "Hair Salon";
   };
@@ -1855,42 +1881,91 @@ export default function DashboardContent() {
 
       {/* Sections */}
       <Text style={styles.sectionTitle}>Nearest to you</Text>
-      {(tab === "individual" ? serviceSections : subscriptionSections).map(
-        (section, sectionIndex) => (
-          <View key={section.id} style={styles.sectionContainer}>
-            {/* Section Header */}
-            <View
-              style={[
-                styles.sectionHeader,
-                {
-                  marginTop:
-                    sectionIndex === 0
-                      ? moderateHeightScale(16)
-                      : moderateHeightScale(24),
-                  marginBottom: moderateHeightScale(10),
-                },
-              ]}
-            >
-              <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => {
-                  router.push({
-                    pathname: "/(main)/dashboard/(home)/businessList",
-                    params: {
-                      data: JSON.stringify({
-                        businessName: section.businessName,
-                        type: section.type,
-                        services: section.services,
-                        subscriptions: section.subscriptions,
-                      }),
+      {sectionsLoading ? (
+        <View
+          style={{
+            paddingVertical: moderateHeightScale(40),
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color={theme.primary} />
+        </View>
+      ) : sectionsError ? (
+        <View
+          style={{
+            paddingVertical: moderateHeightScale(40),
+            alignItems: "center",
+            justifyContent: "center",
+            gap: moderateHeightScale(12),
+          }}
+        >
+          <Text
+            style={{
+              fontSize: fontSize.size14,
+              fontFamily: fonts.fontRegular,
+              color: theme.lightGreen,
+              textAlign: "center",
+            }}
+          >
+            Failed to load data
+          </Text>
+          <RetryButton
+            onPress={() => {
+              if (selectedCategory) {
+                fetchBusinessesWithData(selectedCategory, tab);
+              }
+            }}
+            loading={sectionsLoading}
+          />
+        </View>
+      ) : (tab === "individual" ? serviceSections : subscriptionSections).length >
+        0 ? (
+        (tab === "individual" ? serviceSections : subscriptionSections).map(
+          (section, sectionIndex) => {
+            const itemsCount =
+              tab === "individual"
+                ? section.services?.length || 0
+                : section.subscriptions?.length || 0;
+            const showViewMore = itemsCount >= 2;
+
+            return (
+              <View key={section.id} style={styles.sectionContainer}>
+                {/* Section Header */}
+                <View
+                  style={[
+                    styles.sectionHeader,
+                    {
+                      marginTop:
+                        sectionIndex === 0
+                          ? moderateHeightScale(16)
+                          : moderateHeightScale(24),
+                      marginBottom: moderateHeightScale(10),
                     },
-                  });
-                }}
-              >
-                <Text style={styles.sectionViewMore}>View more</Text>
-              </TouchableOpacity>
-            </View>
+                  ]}
+                >
+                  <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
+                  {showViewMore && (
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/(main)/dashboard/(home)/businessList",
+                          params: {
+                            data: JSON.stringify({
+                              businessName: section.businessName,
+                              type: section.type,
+                              services: section.services,
+                              subscriptions: section.subscriptions,
+                            }),
+                          },
+                        });
+                      }}
+                    >
+                      <Text style={styles.sectionViewMore}>View more</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
 
             {/* Services or Subscriptions */}
             {tab === "individual" && section.services ? (
@@ -2097,8 +2172,29 @@ export default function DashboardContent() {
                 </ScrollView>
               )
             )}
-          </View>
+              </View>
+            );
+          }
         )
+      ) : (
+        <View
+          style={{
+            paddingVertical: moderateHeightScale(40),
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{
+              fontSize: fontSize.size14,
+              fontFamily: fonts.fontRegular,
+              color: theme.lightGreen,
+              textAlign: "center",
+            }}
+          >
+            No businesses found
+          </Text>
+        </View>
       )}
     </ScrollView>
   );
@@ -2177,22 +2273,6 @@ export default function DashboardContent() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryTabs}
         >
-          <TouchableOpacity
-            style={styles.categoryTab}
-            onPress={() => setSelectedCategory("all")}
-          >
-            <Text
-              style={[
-                styles.categoryTabText,
-                selectedCategory === "all" && styles.categoryTabTextActive,
-              ]}
-            >
-              All Salons/Shops
-            </Text>
-            {selectedCategory === "all" && (
-              <View style={styles.categoryTabUnderline} />
-            )}
-          </TouchableOpacity>
           {categories.map((category) => (
             <TouchableOpacity
               key={category.id}
