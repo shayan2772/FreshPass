@@ -191,7 +191,7 @@ export default function AccountScreen() {
         } as any);
       }
     } else if (key === "subscriptions") {
-      router.push("./subscription");
+      router.push(isCustomer?"./subscriptionCustomer" : "./subscription");
     } else if (key === "aiTools") {
         router.push("/(main)/aiTools/toolList");
     } else if (key === "logout") {
@@ -247,7 +247,7 @@ export default function AccountScreen() {
       title: "Language",
       subtitle: `Current language (${getLanguageName(currentLanguage)})`,
     },
-    ...( userRole === "business" ? [{ key: "subscriptions" as const, title: "Subscription" }] : []),
+    ...( userRole === "business" || isCustomer ? [{ key: "subscriptions" as const, title: "Subscription" }] : []),
     {
       key: "notifications",
       title: "Notification settings",
