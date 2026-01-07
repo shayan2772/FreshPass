@@ -27,207 +27,31 @@ import {
   widthScale,
 } from "@/src/theme/dimensions";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { SvgXml } from "react-native-svg";
 import {
   PlatformVerifiedStarIcon,
   LeafLogo,
   OpenFullIcon,
   MapPinIcon,
   PhoneIconContact,
+  ShareIcon,
+  BookmarkIcon,
+  GlobeIcon,
+  StarIconBusinessDetail,
+  LocationPinIconBusinessDetail,
+  PhoneIconBusinessDetail,
+  PhoneIconWhite,
+  PeopleIcon,
+  CloseIconBusinessDetail,
+  BackArrowIcon,
+  ChevronUpIcon,
+  ChevronDownIcon,
+  ChevronRightIconBusinessDetail,
 } from "@/assets/icons";
 import InclusionsModal from "@/src/components/inclusionsModal";
 import FullImageModal from "@/src/components/fullImageModal";
 import Button from "@/src/components/button";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
-
-// Share Icon SVG
-const shareIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.61 16.39 21.92 18 21.92C19.61 21.92 20.92 20.61 20.92 19C20.92 17.39 19.61 16.08 18 16.08Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Bookmark Icon SVG
-const bookmarkIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M17 3H7C5.9 3 5 3.9 5 5V21L12 18L19 21V5C19 3.9 18.1 3 17 3ZM17 18L12 15.82L7 18V5H17V18Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Globe Icon SVG
-const globeIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM13 17.93C13 17.97 12.99 18 12.96 18C11.29 18 9.9 17.36 8.97 16.24L10.59 14.62C11.07 15.31 11.7 15.79 12.4 16.03V17.93H13ZM15.95 15.96C15.67 15.25 15.1 14.71 14.28 14.36C13.46 14.01 12.43 13.84 11.2 13.84C9.97 13.84 8.94 14.01 8.12 14.36C7.3 14.71 6.73 15.25 6.45 15.96C5.68 15.36 5.06 14.57 4.64 13.64C5.2 13.28 5.75 12.9 6.29 12.5C6.83 12.1 7.31 11.68 7.73 11.24C8.15 10.8 8.5 10.35 8.78 9.89C9.06 9.43 9.2 8.98 9.2 8.54C9.2 8.1 9.06 7.65 8.78 7.19C8.5 6.73 8.15 6.28 7.73 5.84C7.31 5.4 6.83 4.98 6.29 4.58C5.75 4.18 5.2 3.8 4.64 3.44C5.06 2.51 5.68 1.72 6.45 1.12C7.3 1.77 8.12 2.22 8.94 2.57C9.76 2.92 10.79 3.09 12.02 3.09C13.25 3.09 14.28 2.92 15.1 2.57C15.92 2.22 16.7 1.77 17.55 1.12C18.32 1.72 18.94 2.51 19.36 3.44C18.8 3.8 18.25 4.18 17.71 4.58C17.17 4.98 16.69 5.4 16.27 5.84C15.85 6.28 15.5 6.73 15.22 7.19C14.94 7.65 14.8 8.1 14.8 8.54C14.8 8.98 14.94 9.43 15.22 9.89C15.5 10.35 15.85 10.8 16.27 11.24C16.69 11.68 17.17 12.1 17.71 12.5C18.25 12.9 18.8 13.28 19.36 13.64C18.94 14.57 18.32 15.36 17.55 15.96H15.95Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Star Icon SVG
-const starIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M8 0L10.163 5.528L16 6.112L12 10.056L12.944 16L8 13.056L3.056 16L4 10.056L0 6.112L5.837 5.528L8 0Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Location Pin Icon SVG
-const locationPinIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M12 2C8.13 2 5 5.13 5 9C5 14.25 12 22 12 22C12 22 19 14.25 19 9C19 5.13 15.87 2 12 2ZM12 11.5C10.62 11.5 9.5 10.38 9.5 9C9.5 7.62 10.62 6.5 12 6.5C13.38 6.5 14.5 7.62 14.5 9C14.5 10.38 13.38 11.5 12 11.5Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Phone Icon SVG
-const phoneIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M6.62 10.79C8.06 13.62 10.38 15.94 13.21 17.38L15.41 15.18C15.69 14.9 16.08 14.82 16.43 14.93C17.55 15.3 18.75 15.5 20 15.5C20.55 15.5 21 15.95 21 16.5V20C21 20.55 20.55 21 20 21C10.61 21 3 13.39 3 4C3 3.45 3.45 3 4 3H7.5C8.05 3 8.5 3.45 8.5 4C8.5 5.25 8.7 6.45 9.07 7.57C9.18 7.92 9.1 8.31 8.82 8.59L6.62 10.79Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// People Icon SVG
-const peopleIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M16 11C17.66 11 18.99 9.66 18.99 8C18.99 6.34 17.66 5 16 5C14.34 5 13 6.34 13 8C13 9.66 14.34 11 16 11ZM8 11C9.66 11 10.99 9.66 10.99 8C10.99 6.34 9.66 5 8 5C6.34 5 5 6.34 5 8C5 9.66 6.34 11 8 11ZM8 13C5.67 13 1 14.17 1 16.5V19H15V16.5C15 14.17 10.33 13 8 13ZM16 13C15.71 13 15.38 13.02 15.03 13.05C16.19 13.89 17 15 17 16.5V19H23V16.5C23 14.17 18.33 13 16 13Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Close Icon SVG
-const closeIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Back Arrow Icon SVG
-const backArrowIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-// Chevron Up Icon SVG
-const chevronUpSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 7L6 2L11 7" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`;
-
-// Chevron Down Icon SVG
-const chevronDownSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 1L6 6L11 1" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`;
-
-// Chevron Right Icon SVG
-const chevronRightSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 8 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M1 1L6 6L1 11" stroke="{{COLOR}}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
-`;
-
-const ShareIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
-  const svgXml = shareIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const BookmarkIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
-  const svgXml = bookmarkIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const GlobeIcon = ({ width = 16, height = 16, color = "#FFFFFF" }) => {
-  const svgXml = globeIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const StarIcon = ({ width = 16, height = 16, color = "#DDA15E" }) => {
-  const svgXml = starIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const LocationPinIcon = ({ width = 16, height = 16, color = "#FFFFFF" }) => {
-  const svgXml = locationPinIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const PhoneIcon = ({ width = 20, height = 20, color = "#283618" }) => {
-  const svgXml = phoneIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const PeopleIcon = ({ width = 16, height = 16, color = "#FFFFFF" }) => {
-  const svgXml = peopleIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const PhoneIconWhite = ({ width = 20, height = 20, color = "#FFFFFF" }) => {
-  const svgXml = phoneIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const CloseIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
-  const svgXml = closeIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const BackArrowIcon = ({ width = 24, height = 24, color = "#FFFFFF" }) => {
-  const svgXml = backArrowIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const ChevronUpIcon = ({ width = 12, height = 8, color = "#283618" }) => {
-  const svgXml = chevronUpSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const ChevronDownIcon = ({ width = 12, height = 8, color = "#283618" }) => {
-  const svgXml = chevronDownSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
-
-const ChevronRightIcon = ({ width = 8, height = 12, color = "#283618" }) => {
-  const svgXml = chevronRightSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -2042,7 +1866,7 @@ export default function BusinessDetailScreen() {
             ]}
           >
             <View style={styles.ratingBadgeContainer}>
-              <StarIcon
+              <StarIconBusinessDetail
                 width={widthScale(12)}
                 height={heightScale(12)}
                 color={theme.selectCard}
@@ -2106,7 +1930,7 @@ export default function BusinessDetailScreen() {
             <Text style={styles.policyItemText}>
               Payment & cancelation policy
             </Text>
-            <ChevronRightIcon
+            <ChevronRightIconBusinessDetail
               width={widthScale(6)}
               height={heightScale(10)}
               color={theme.darkGreen}
@@ -2116,7 +1940,7 @@ export default function BusinessDetailScreen() {
           {/* Report */}
           <TouchableOpacity style={styles.policyItem}>
             <Text style={styles.policyItemText}>Report</Text>
-            <ChevronRightIcon
+            <ChevronRightIconBusinessDetail
               width={widthScale(6)}
               height={heightScale(10)}
               color={theme.darkGreen}
@@ -2252,7 +2076,7 @@ export default function BusinessDetailScreen() {
               </View>
             </View>
             <View style={styles.ratingBadge}>
-              <StarIcon
+              <StarIconBusinessDetail
                 width={widthScale(12)}
                 height={heightScale(12)}
                 color={theme.selectCard}
@@ -2261,7 +2085,7 @@ export default function BusinessDetailScreen() {
             </View>
             <Text style={styles.businessName}>Ra Benjamin Styles LLC</Text>
             <View style={styles.addressRow}>
-              <LocationPinIcon
+              <LocationPinIconBusinessDetail
                 width={widthScale(12)}
                 height={heightScale(12)}
                 color={theme.selectCard}
@@ -2351,7 +2175,7 @@ export default function BusinessDetailScreen() {
                 style={styles.reviewModalCloseButton}
                 onPress={() => setFullReviewModalVisible(false)}
               >
-                <CloseIcon width={widthScale(20)} height={heightScale(20)} />
+                <CloseIconBusinessDetail width={widthScale(20)} height={heightScale(20)} />
               </TouchableOpacity>
             </View>
             {selectedReview && (
