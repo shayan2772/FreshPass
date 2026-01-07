@@ -488,6 +488,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(8),
+      textTransform:"capitalize"
     },
     membershipVisits: {
       fontSize: fontSize.size13,
@@ -559,6 +560,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
+      textTransform:"capitalize"
     },
     serviceDescription: {
       fontSize: fontSize.size12,
@@ -1150,7 +1152,7 @@ export default function BusinessDetailScreen() {
       return {
         id: service.id,
         name: service.name,
-        description: service.description || service.name,
+        description: service.description || "No description",
         price: parseFloat(service.price),
         originalPrice: parseFloat(service.price) * 1.1, // Estimate original price
         duration: duration,
@@ -1192,25 +1194,19 @@ export default function BusinessDetailScreen() {
   // Map staff from API
   const staffMembers = useMemo(() => {
     if (!businessData?.staff) return [];
-    const defaultStaffImages = [
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&q=80",
-      "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&q=80",
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&q=80",
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&q=80",
-      "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&q=80",
-    ];
+    
     
     return businessData.staff
-      .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
+      // .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
       .map((staff: any, index: number) => {
-        let image = defaultStaffImages[index % defaultStaffImages.length];
+        let image = "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
         if (staff.avatar) {
           image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
         }
         return {
           id: index + 1,
           name: staff.name || "Staff Member",
-          experience: 0, // API doesn't provide experience
+          description: staff.description || null,
           image: image,
         };
       });
@@ -1355,8 +1351,7 @@ export default function BusinessDetailScreen() {
   };
 
   const renderDetailsContent = () => {
-    const aboutText = businessData?.description || 
-      "I'm go-to destination for premium grooming services tailored exclusively for men. Whether you're here for a sharp haircut, a flawless fade, or a relaxing beard treatment, our expert barbers deliver style and precision in every service. Experience a modern blend of tradition, comfort, and class—";
+    const aboutText = businessData?.description ?? "No description found";
     const shouldShowReadMore = aboutText.length > 220;
     const displayText = isAboutExpanded
       ? aboutText
@@ -1378,7 +1373,7 @@ export default function BusinessDetailScreen() {
         onLayout={() => {
           measureSectionPosition(detailsSectionRef, "details");
         }}
-        style={styles.contentContainer}
+        style={[styles.contentContainer,{paddingTop: moderateHeightScale(20)}]}
       >
         {/* About me */}
         <View style={styles.sectionContentFullWidth}>
@@ -1762,7 +1757,7 @@ export default function BusinessDetailScreen() {
                         const staffMembersData = staffMembers.map((s: any) => ({
                           id: s.id,
                           name: s.name,
-                          experience: s.experience || null,
+                          description: s.description || null,
                           image: s.image || null,
                         }));
                         dispatch(
@@ -1792,6 +1787,25 @@ export default function BusinessDetailScreen() {
   );
 
   const renderStaffContent = () => {
+    if (staffMembers.length === 0) {
+      return (
+        <View
+          ref={staffSectionRef}
+          onLayout={() => {
+            measureSectionPosition(staffSectionRef, "staff");
+          }}
+          style={styles.contentContainer}
+        >
+          <View style={styles.sectionContentFullWidth}>
+            <Text style={styles.staffSectionTitle}>
+              Staff members
+            </Text>
+            <Text style={styles.noHoursText}>No staff found</Text>
+          </View>
+        </View>
+      );
+    }
+
     const displayedStaff = showAllStaff
       ? staffMembers
       : staffMembers.slice(0, 6);
@@ -1820,9 +1834,9 @@ export default function BusinessDetailScreen() {
                   <Text style={styles.staffName} numberOfLines={1}>
                     {staff.name}
                   </Text>
-                  {staff.experience !== null && (
+                  {staff.description && (
                     <Text numberOfLines={1} style={styles.staffExperience}>
-                      {staff.experience} years of exp.
+                      {staff.description}
                     </Text>
                   )}
                 </View>
