@@ -1,5 +1,13 @@
-import React, { useMemo } from "react";
-import { StyleSheet, ScrollView } from "react-native";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
+import {
+  StyleSheet,
+  FlatList,
+  View,
+  Text,
+  ActivityIndicator,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -11,6 +19,55 @@ import StackHeader from "@/src/components/StackHeader";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { useRouter } from "expo-router";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
+import { Feather } from "@expo/vector-icons";
+import { Skeleton } from "@/src/components/skeletons";
+import RetryButton from "@/src/components/retryButton";
+
+interface SubscriptionData {
+  id: number;
+  subscriptionPlanId: number;
+  subscriptionPlan: string;
+  subscriptionPlanPrice: string;
+  subscriptionPlanType: string;
+  subscriptionPlanDescription: string;
+  userId: number;
+  user: string;
+  businessId: number;
+  business: string;
+  subscriber: string;
+  visits: {
+    used: number;
+    upcoming: number;
+    total: number;
+    remaining: number;
+  };
+  status: string;
+  paymentDate: string | null;
+  nextPaymentDate: string;
+  remainingDays: number;
+  stripePaymentIntentId: string | null;
+  stripePaymentUrl: string;
+  cardLastFour: string | null;
+  createdAt: string;
+  deleted_at: string | null;
+  appointments: any[];
+}
+
+interface SubscriptionResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: SubscriptionData[];
+    meta: {
+      current_page: number;
+      per_page: number;
+      total: number;
+      last_page: number;
+    };
+  };
+}
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -18,244 +75,192 @@ const createStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.background,
     },
-    content: {
-      flex: 1,
-    },
     contentContainer: {
       paddingBottom: moderateHeightScale(30),
     },
-    headerCard: {
+    subscriptionCard: {
       marginHorizontal: moderateWidthScale(20),
-      marginTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(16),
       borderRadius: moderateWidthScale(12),
-      overflow: "hidden",
-      marginBottom: moderateHeightScale(12),
-    },
-    headerGradient: {
-      padding: moderateWidthScale(24),
-      paddingTop: moderateHeightScale(28),
-      paddingBottom: moderateHeightScale(28),
-    },
-    headerTop: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: moderateHeightScale(16),
-    },
-    statusBadge: {
-      paddingHorizontal: moderateWidthScale(14),
-      paddingVertical: moderateHeightScale(8),
-      borderRadius: moderateWidthScale(20),
-      backgroundColor: theme.white,
-      opacity: 0.95,
-    },
-    statusText: {
-      fontSize: fontSize.size11,
-      fontFamily: fonts.fontBold,
-      color: theme.buttonBack,
-      letterSpacing: 0.5,
-    },
-    planName: {
-      fontSize: fontSize.size22,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-      marginBottom: moderateHeightScale(8),
-      textTransform: "capitalize",
-    },
-    planPriceContainer: {
-      flexDirection: "row",
-      alignItems: "baseline",
-      marginBottom: moderateHeightScale(4),
-    },
-    currencySymbol: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-      marginRight: moderateWidthScale(4),
-      opacity: 0.9,
-    },
-    planPrice: {
-      fontSize: fontSize.size30,
-      fontFamily: fonts.fontExtraBold,
-      color: theme.white,
-    },
-    pricePeriod: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
-      color: theme.white,
-      opacity: 0.85,
-      marginLeft: moderateWidthScale(4),
-    },
-    planDescription: {
-      fontSize: fontSize.size15,
-      fontFamily: fonts.fontRegular,
-      color: theme.white,
-      opacity: 0.9,
-      lineHeight: fontSize.size20,
-      marginTop: moderateHeightScale(8),
-    },
-    infoSection: {
-      marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(20),
-    },
-    sectionTitle: {
-      fontSize: fontSize.size18,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(16),
-    },
-    infoCard: {
-      paddingVertical: moderateHeightScale(12),
-      flexDirection: "row",
-      alignItems: "center",
+      backgroundColor: theme.orangeBrown015,
+      padding: moderateWidthScale(18),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
     shadow: {
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
-        height: 2,
+        height: 1,
       },
-      shadowOpacity: 0.1,
-      shadowRadius: 8,
-      elevation: 4,
+      shadowOpacity: 0.2,
+      shadowRadius: 1.41,
+      elevation: 2,
     },
-    infoRow: {
-      flexDirection: "column",
+    cardHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(12),
+    },
+    planTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      flex: 1,
+      marginRight: moderateWidthScale(10),
+    },
+    starIcon: {
+      marginRight: moderateWidthScale(8),
+    },
+    planTitle: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      textTransform: "capitalize",
+      flex: 1,
+    },
+    statusBadge: {
+      paddingHorizontal: moderateWidthScale(10),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(12),
+      backgroundColor: "#FFD700",
+    },
+    statusText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      letterSpacing: 0.5,
+    },
+    topSection: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(10),
+    },
+    userInfoRow: {
+      flexDirection: "row",
       alignItems: "center",
       flex: 1,
     },
-    infoRowLast: {
-      marginBottom: 0,
+    userIcon: {
+      marginRight: moderateWidthScale(6),
     },
-    infoIconContainer: {
-      width: moderateWidthScale(40),
-      height: moderateWidthScale(40),
+    userText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      opacity: 0.8,
+    },
+    priceBadge: {
+      backgroundColor: theme.buttonBack,
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(10),
       borderRadius: moderateWidthScale(10),
-      backgroundColor: theme.orangeBrown30,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: moderateHeightScale(8),
-    },
-    infoIcon: {
-      // Icon styling handled by Feather component
-    },
-    infoContent: {
       alignItems: "center",
     },
-    infoLabel: {
-      fontSize: fontSize.size10,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
-      textAlign: "center",
-    },
-    infoValue: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
-      textAlign: "center",
-    },
-    divider: {
-      width: 1,
-      height: moderateHeightScale(60),
-      backgroundColor: theme.borderLight,
-      marginHorizontal: moderateWidthScale(12),
-    },
-    daysRemainingCard: {
-      borderRadius: moderateWidthScale(16),
-      marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(20),
-      overflow: "hidden",
-    },
-    cardGradient: {
-      flex: 1,
-      paddingHorizontal: moderateWidthScale(24),
-      paddingVertical: moderateHeightScale(12),
-      justifyContent: "space-between",
-    },
-    cardTop: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      marginBottom: moderateHeightScale(20),
-    },
-    cardChip: {
-      width: moderateWidthScale(50),
-      height: moderateHeightScale(40),
-      borderRadius: moderateWidthScale(8),
-      backgroundColor: theme.white,
-      opacity: 0.3,
-    },
-    cardNetwork: {
-      width: moderateWidthScale(50),
-      height: moderateWidthScale(30),
-      borderRadius: moderateWidthScale(4),
-      backgroundColor: theme.white,
-      opacity: 0.2,
-    },
-    cardMiddle: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    cardNumberContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginBottom: moderateHeightScale(8),
-    },
-    cardNumberText: {
-      fontSize: fontSize.size24,
-      fontFamily: fonts.fontBold,
-      color: theme.white,
-      letterSpacing: moderateWidthScale(2),
-    },
-    daysRemainingLeft: {
-      flex: 1,
-    },
-    daysRemainingLabel: {
-      fontSize: fontSize.size11,
-      fontFamily: fonts.fontMedium,
-      color: theme.white,
-      opacity: 0.8,
-      marginBottom: moderateHeightScale(4),
-      letterSpacing: 0.5,
-      textTransform: "uppercase",
-    },
-    daysRemainingValue: {
-      fontSize: fontSize.size24,
-      fontFamily: fonts.fontExtraBold,
-      color: theme.buttonBack,
-    },
-    daysRemainingIcon: {
-      width: moderateWidthScale(56),
-      height: moderateWidthScale(56),
-      borderRadius: moderateWidthScale(28),
-      backgroundColor: theme.lightBeige,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    cardBottom: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-end",
-    },
-    cardLabel: {
-      fontSize: fontSize.size11,
-      fontFamily: fonts.fontMedium,
-      color: theme.white,
-      opacity: 0.8,
-      marginBottom: moderateHeightScale(4),
-      letterSpacing: 0.5,
-      textTransform: "uppercase",
-    },
-    cardValue: {
+    priceText: {
       fontSize: fontSize.size18,
       fontFamily: fonts.fontBold,
       color: theme.white,
-      letterSpacing: moderateWidthScale(1),
     },
-    buttonContainer: {
-      marginHorizontal: moderateWidthScale(20),
-      marginVertical: moderateHeightScale(24),
+    planPriceLabel: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontRegular,
+      color: theme.white,
+      marginTop: moderateHeightScale(2),
+      opacity: 0.9,
+    },
+    descriptionText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(14),
+      opacity: 0.7,
+    },
+    usageSection: {
+      marginTop: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(14),
+      paddingTop: moderateHeightScale(14),
+      borderTopWidth: 1,
+      borderTopColor: theme.lightGreen05,
+    },
+    usageHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(12),
+    },
+    usageTitle: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginLeft: moderateWidthScale(8),
+      flex: 1,
+    },
+    checkIcon: {
+      marginLeft: moderateWidthScale(6),
+    },
+    usageStats: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginTop: moderateHeightScale(8),
+    },
+    usageItem: {
+      alignItems: "center",
+      flex: 1,
+      paddingVertical: moderateHeightScale(10),
+      backgroundColor: theme.lightGreen05,
+      borderRadius: moderateWidthScale(8),
+      marginHorizontal: moderateWidthScale(3),
+    },
+    usageLabel: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+      opacity: 0.7,
+    },
+    usageValue: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    nextRenewalSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(14),
+      paddingTop: moderateHeightScale(14),
+      borderTopWidth: 1,
+      borderTopColor: theme.lightGreen05,
+    },
+    nextRenewalLabel: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      marginLeft: moderateWidthScale(8),
+      letterSpacing: 0.5,
+    },
+    nextRenewalDate: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginLeft: moderateWidthScale(10),
+    },
+    cancelButton: {
+      backgroundColor: theme.red,
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(8),
+      alignSelf: "center",
+      marginTop: moderateHeightScale(4),
+      width: "100%",
+      alignItems: "center",
+    },
+    cancelButtonText: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      letterSpacing: 0.5,
     },
     emptyContainer: {
       flex: 1,
@@ -268,14 +273,14 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(20),
     },
     emptyText: {
-      fontSize: fontSize.size16,
-      fontFamily: fonts.fontRegular,
-      color: theme.text,
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
       textAlign: "center",
       marginBottom: moderateHeightScale(8),
     },
     emptySubtext: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size15,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textAlign: "center",
@@ -294,6 +299,20 @@ const createStyles = (theme: Theme) =>
       textAlign: "center",
       marginBottom: moderateHeightScale(16),
     },
+    footerLoader: {
+      paddingVertical: moderateHeightScale(20),
+      alignItems: "center",
+    },
+    headerDescription: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginHorizontal: moderateWidthScale(20),
+      marginTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(24),
+      opacity: 0.75,
+      lineHeight: fontSize.size22,
+    },
   });
 
 export default function subscriptionCustomer() {
@@ -304,17 +323,308 @@ export default function subscriptionCustomer() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
 
+  const [subscriptions, setSubscriptions] = useState<SubscriptionData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [apiError, setApiError] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const fetchSubscriptions = useCallback(
+    async (page: number = 1, append: boolean = false) => {
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+      }
+      setError(null);
+      setApiError(false);
+
+      try {
+        const response = await ApiService.get<SubscriptionResponse>(
+          `${businessEndpoints.subscriptions(
+            "active"
+          )}&page=${page}&per_page=10`
+        );
+
+        if (response.success && response.data?.data) {
+          if (append) {
+            setSubscriptions((prev) => [...prev, ...response.data.data]);
+          } else {
+            setSubscriptions(response.data.data);
+          }
+          setCurrentPage(response.data.meta.current_page);
+          setTotalPages(response.data.meta.last_page);
+        } else {
+          if (!append) {
+            setError("No subscriptions found");
+            setApiError(true);
+          }
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to load subscriptions");
+        setApiError(true);
+        if (!append) {
+          showBanner(
+            "Error",
+            err.message || "Failed to load subscriptions",
+            "error",
+            2500
+          );
+        }
+      } finally {
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [showBanner]
+  );
+
+  useEffect(() => {
+    fetchSubscriptions(1, false);
+  }, [fetchSubscriptions]);
+
+  const handleLoadMore = useCallback(() => {
+    if (!loadingMore && currentPage < totalPages) {
+      fetchSubscriptions(currentPage + 1, true);
+    }
+  }, [loadingMore, currentPage, totalPages, fetchSubscriptions]);
+
+  const handleCancelSubscription = useCallback(
+    (subscription: SubscriptionData) => {
+      Alert.alert(
+        "Cancel Subscription",
+        `Are you sure you want to cancel your "${subscription.subscriptionPlan}" subscription?`,
+        [
+          {
+            text: "No",
+            style: "cancel",
+          },
+          {
+            text: "Yes, Cancel",
+            style: "destructive",
+            onPress: async () => {
+              try {
+                const response = await ApiService.patch<{
+                  success: boolean;
+                  message: string;
+                  data: {};
+                }>(businessEndpoints.cancelSubscription(subscription.id), {});
+
+                if (response.success) {
+                  showBanner(
+                    "Success",
+                    "Subscription cancelled successfully",
+                    "success",
+                    2500
+                  );
+                  // Clear data and fetch page 1
+                  setSubscriptions([]);
+                  setCurrentPage(1);
+                  setTotalPages(1);
+                  await fetchSubscriptions(1, false);
+                } else {
+                  showBanner(
+                    "Error",
+                    response.message || "Failed to cancel subscription",
+                    "error",
+                    2500
+                  );
+                }
+              } catch (err: any) {
+                showBanner(
+                  "Error",
+                  err.message || "Failed to cancel subscription",
+                  "error",
+                  2500
+                );
+              }
+            },
+          },
+        ],
+        { cancelable: true }
+      );
+    },
+    [showBanner, fetchSubscriptions]
+  );
+
+  const renderItem = useCallback(
+    ({ item }: { item: SubscriptionData }) => {
+      return (
+        <View style={styles.subscriptionCard}>
+          {/* Header: Plan Name and Status */}
+          <View style={styles.cardHeader}>
+            <View style={styles.planTitleRow}>
+              <Feather
+                name="star"
+                size={moderateWidthScale(18)}
+                color={theme.orangeBrown}
+                style={styles.starIcon}
+              />
+              <Text style={styles.planTitle}>{item.subscriptionPlan}</Text>
+            </View>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>{item.status.toUpperCase()}</Text>
+            </View>
+          </View>
+
+          {/* User Info and Price Badge */}
+          <View style={styles.topSection}>
+            <View style={styles.userInfoRow}>
+              <Feather
+                name="user"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+                style={styles.userIcon}
+              />
+              <Text style={styles.userText}>{item.business}</Text>
+            </View>
+            <View style={styles.priceBadge}>
+              <Text style={styles.priceText}>
+                ${item.subscriptionPlanPrice}/mo
+              </Text>
+              <Text style={styles.planPriceLabel}>Plan Price</Text>
+            </View>
+          </View>
+
+          {/* Description */}
+          {item.subscriptionPlanDescription && (
+            <Text style={styles.descriptionText}>
+              {item.subscriptionPlanDescription}
+            </Text>
+          )}
+
+          {/* Usage Section */}
+          <View style={styles.usageSection}>
+            <View style={styles.usageHeader}>
+              <Feather
+                name="zap"
+                size={moderateWidthScale(16)}
+                color={theme.orangeBrown}
+              />
+              <Text style={styles.usageTitle}>
+                {item.visits.total} Visits Per Month
+              </Text>
+              <Feather
+                name="check"
+                size={moderateWidthScale(16)}
+                color={theme.buttonBack}
+                style={styles.checkIcon}
+              />
+            </View>
+            <View style={styles.usageStats}>
+              <View style={styles.usageItem}>
+                <Text style={styles.usageLabel}>Used</Text>
+                <Text style={styles.usageValue}>{item.visits.used}</Text>
+              </View>
+              <View style={styles.usageItem}>
+                <Text style={styles.usageLabel}>Upcoming</Text>
+                <Text style={styles.usageValue}>{item.visits.upcoming}</Text>
+              </View>
+              <View style={styles.usageItem}>
+                <Text style={styles.usageLabel}>Left</Text>
+                <Text style={styles.usageValue}>{item.visits.remaining}</Text>
+              </View>
+            </View>
+          </View>
+
+          {/* Next Renewal */}
+          <View style={styles.nextRenewalSection}>
+            <Feather
+              name="calendar"
+              size={moderateWidthScale(16)}
+              color={theme.darkGreen}
+            />
+            <Text style={styles.nextRenewalLabel}>NEXT RENEWAL</Text>
+            <Text style={styles.nextRenewalDate}>{item.nextPaymentDate}</Text>
+          </View>
+
+          {/* Cancel Button */}
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => handleCancelSubscription(item)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.cancelButtonText}>Cancel Subscription</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    },
+    [styles, theme, handleCancelSubscription]
+  );
+
+  const renderFooter = useCallback(() => {
+    if (!loadingMore) return null;
+    return (
+      <View style={styles.footerLoader}>
+        <ActivityIndicator size="small" color={theme.buttonBack} />
+      </View>
+    );
+  }, [loadingMore, styles.footerLoader, theme.buttonBack]);
+
+  const renderHeader = useCallback(() => {
+    return (
+      <Text style={styles.headerDescription}>
+        Manage your active subscriptions and billing information here.
+      </Text>
+    );
+  }, [styles.headerDescription]);
+
+  const renderEmpty = useCallback(() => {
+    if (loading) {
+      return (
+        <View style={styles.contentContainer}>
+          <Skeleton screenType="BusinessPlans" styles={styles} />
+        </View>
+      );
+    }
+    return (
+      <View style={styles.emptyContainer}>
+        <Feather
+          name="credit-card"
+          size={moderateWidthScale(64)}
+          color={theme.lightGreen}
+          style={styles.emptyIcon}
+        />
+        <Text style={styles.emptyText}>No active subscriptions</Text>
+        <Text style={styles.emptySubtext}>
+          Manage your active subscriptions and billing information here.
+        </Text>
+      </View>
+    );
+  }, [loading, styles, theme]);
+
+  if (apiError && !loading) {
+    return (
+      <SafeAreaView edges={["bottom"]} style={styles.container}>
+        <StackHeader title="Subscriptions" />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <RetryButton
+            onPress={() => fetchSubscriptions(1, false)}
+            loading={loading}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Subscriptions" />
-      <ScrollView
-        style={styles.content}
+      <FlatList
+        data={subscriptions}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.contentContainer}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.3}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={renderEmpty}
         showsVerticalScrollIndicator={false}
-      >
-
-        
-      </ScrollView>
+      />
     </SafeAreaView>
   );
 }

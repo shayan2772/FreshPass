@@ -130,7 +130,10 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("subscription");
-
+  const isSubscriptionCustomerScreen =
+    Array.isArray(segments) &&
+    segments.includes("(account)") &&
+    segments.includes("subscriptionCustomer");
   return (
     <Tabs
       initialRouteName={"(home)"}
@@ -159,7 +162,8 @@ export default function DashboardLayout() {
             isStaffAvailabilityScreen ||
             isBusinessListScreen ||
             isBusinessDetailScreen ||
-            isSubscriptionScreen) && { display: "none" },
+            isSubscriptionScreen ||
+            isSubscriptionCustomerScreen) && { display: "none" },
         ],
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarHideOnKeyboard: true,
