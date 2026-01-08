@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StatusBar,
   StyleSheet,
@@ -7,8 +7,9 @@ import {
   View,
   ScrollView,
   Clipboard,
+  BackHandler,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
@@ -476,9 +477,36 @@ export default function BookingDetail() {
     );
   };
 
+  const handleBackNavigation = useCallback(() => {
+    if (params.businessId) {
+      router.push("/(main)/dashboard/(home)" as any);
+      // router.replace({
+      //   pathname: "/(main)/businessDetail",
+      //   params: { business_id: params.businessId },
+      // });
+    }  
+  }, [params.businessId, router]);
+
+  // Handle Android hardware back button
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        handleBackNavigation();
+        return true; // Prevent default back behavior
+      };
+
+      const subscription = BackHandler.addEventListener(
+        "hardwareBackPress",
+        onBackPress
+      );
+
+      return () => subscription.remove();
+    }, [handleBackNavigation])
+  );
+
   const handleViewBooking = () => {
-    // Handle view booking functionality
-    // router.back();
+    // Navigate to booking tab
+    router.push("/(main)/dashboard/(calendar)" as any);
   };
 
   // Dummy business data (in real app, fetch from businessId)
@@ -500,9 +528,7 @@ export default function BookingDetail() {
         <View style={styles.headerLeft}>
           <TouchableOpacity
             style={styles.backButton}
-            onPress={() => {
-              router.back();
-            }}
+            onPress={handleBackNavigation}
           >
             <BackArrowIcon
               width={widthScale(25)}

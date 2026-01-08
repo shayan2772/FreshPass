@@ -1065,11 +1065,7 @@ export default function Checkout() {
       subscription_id?: number;
     } = {
       business_id: parseInt(businessId || "0", 10),
-      appointment_type: isAnyoneSelected
-        ? "service"
-        : subscriptionId
-        ? "subscription"
-        : "individual",
+      appointment_type: subscriptionId ? "subscription" : "service",
       payment_method: paymentMethod === "payNow" ? "pay_now" : "pay_later",
       service_ids: selectedServices.map((service) => service.id),
       appointment_date: selectedDate.format("YYYY-MM-DD"),
@@ -1126,16 +1122,25 @@ export default function Checkout() {
       // { success: true, message: "...", data: { id: ... } }
       // But terminal shows nested structure, so check both
       const isSuccess = response?.success || response?.data?.success;
-      
+
       console.log("isSuccess:", isSuccess, "response:", response);
-      
+
       if (isSuccess) {
         // Extract appointment ID and date from response
         // Response structure: response.data.id and response.data.appointmentDate
-        const appointmentId = (response?.data as any)?.id || (response?.data as any)?.data?.id || null;
-        const appointmentDate = (response?.data as any)?.appointmentDate || (response?.data as any)?.data?.appointmentDate || null;
-        console.log("appointmentId:", appointmentId);
-        console.log("appointmentDate:", appointmentDate);
+        const appointmentId =
+          (response?.data as any)?.id ||
+          (response?.data as any)?.data?.id ||
+          null;
+        const appointmentDate =
+          (response?.data as any)?.appointmentDate ||
+          (response?.data as any)?.data?.appointmentDate ||
+          null;
+
+
+          if(paymentMethod === "payNow"){
+             
+          }
 
         if (paymentMethod === "payLater") {
           // Create bookingId: appointmentDate (YYYYMMDD format) + appointmentId
@@ -1146,10 +1151,16 @@ export default function Checkout() {
             const dateParts = appointmentDate.split("/");
             if (dateParts.length === 3) {
               const [month, day, year] = dateParts;
-              dateFormatted = `${year}${month.padStart(2, "0")}${day.padStart(2, "0")}`;
+              dateFormatted = `${year}${month.padStart(2, "0")}${day.padStart(
+                2,
+                "0"
+              )}`;
             }
           }
-          const bookingId = appointmentId && dateFormatted ? `${dateFormatted}${appointmentId}` : `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+          const bookingId =
+            appointmentId && dateFormatted
+              ? `${dateFormatted}${appointmentId}`
+              : `${Date.now()}${Math.floor(Math.random() * 10000)}`;
 
           router.push({
             pathname: "/(main)/bookingDetail",
@@ -1172,6 +1183,8 @@ export default function Checkout() {
             },
           });
         }
+
+
       } else {
         showBanner(
           "Booking Failed",
