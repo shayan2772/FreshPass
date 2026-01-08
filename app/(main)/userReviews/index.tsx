@@ -6,6 +6,7 @@ import {
   FlatList,
   Image,
   ActivityIndicator,
+  StatusBar,
 } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -324,7 +325,8 @@ export default function UserReviewsScreen() {
           </View>
           <View>
             <Text style={styles.nameText}>{getUserName(item.user)}</Text>
-            <Text style={styles.dateText}>{formatDate(item.created_at)}</Text>
+            {/* <Text style={styles.dateText}>{formatDate(item.created_at)}</Text> */}
+            <Text style={styles.dateText}>{item.created_at}</Text>
           </View>
         </View>
 
@@ -410,6 +412,7 @@ export default function UserReviewsScreen() {
   return (
     <View style={styles.container}>
       <StackHeader title="User reviews rate" />
+      <StatusBar barStyle={"dark-content"} />
       {loading   ? (
         <View style={styles.contentContainer}>
           <Skeleton screenType="Reviews" styles={styles} />
