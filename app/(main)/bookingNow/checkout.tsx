@@ -272,6 +272,12 @@ const createStyles = (theme: Theme) =>
     dayNumberSelectedText: {
       color: theme.darkGreen,
     },
+    dayNumberDisabled: {
+      opacity: 0.3,
+    },
+    dayNumberDisabledText: {
+      color: theme.lightGreen,
+    },
     timezoneText: {
       fontSize: fontSize.size11,
       fontFamily: fonts.fontRegular,
@@ -347,6 +353,17 @@ const createStyles = (theme: Theme) =>
     },
     timeSlotTextSelected: {
       color: theme.white,
+    },
+    noSlotsContainer: {
+      paddingVertical: moderateHeightScale(20),
+      paddingHorizontal: moderateWidthScale(20),
+      alignItems: "center",
+    },
+    noSlotsText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
     },
     // Payment Method Section
     paymentCard: {
@@ -603,6 +620,7 @@ export default function Checkout() {
     staffMembers,
     selectedStaff: reduxSelectedStaff,
     businessId,
+    businessHours,
   } = businessData;
 
   // Use Redux directly - no local state needed
@@ -613,8 +631,12 @@ export default function Checkout() {
     useState(false);
   const [selectedStaffMember, setSelectedStaffMember] =
     useState<StaffMember | null>(null);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
-  const [week, setWeek] = useState(getWeekDays(dayjs()));
+  // Initialize with today's date (not in past)
+  const [selectedDate, setSelectedDate] = useState(() => {
+    const today = dayjs();
+    return today;
+  });
+  const [week, setWeek] = useState(() => getWeekDays(dayjs()));
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<
     "morning" | "evening" | "night"
@@ -623,12 +645,6 @@ export default function Checkout() {
     "payNow"
   );
   const scrollViewRef = useRef<ScrollView>(null);
-
-  // Categorize time slots
-  const { morning, evening, night } = useMemo(
-    () => categorizeTimeSlots(allTimeSlots),
-    []
-  );
 
   // Get all slots in order (morning, evening, night)
   const getAllSlots = () => {
@@ -807,7 +823,16 @@ export default function Checkout() {
 
   const prevWeek = () => {
     const newWeek = week[0].subtract(1, "week");
-    setWeek(getWeekDays(newWeek));
+    const newWeekDays = getWeekDays(newWeek);
+    // Don't allow going to past weeks
+    const today = dayjs().startOf("day");
+    const weekStart = newWeekDays[0].startOf("day");
+    if (weekStart.isBefore(today)) {
+      // If the week start is in the past, set to current week
+      setWeek(getWeekDays(dayjs()));
+    } else {
+      setWeek(newWeekDays);
+    }
   };
 
   const nextWeek = () => {
@@ -816,9 +841,106 @@ export default function Checkout() {
   };
 
   const handleDateSelect = (date: dayjs.Dayjs) => {
+    // Don't allow selecting past dates or closed days
+    if (isDateDisabled(date)) {
+      return;
+    }
     setSelectedDate(date);
     setWeek(getWeekDays(date));
   };
+
+  // Check if a date is disabled (past date or closed day)
+  const isDateDisabled = (date: dayjs.Dayjs): boolean => {
+    const today = dayjs().startOf("day");
+    const selectedDay = date.startOf("day");
+    
+    // Disable past dates
+    if (selectedDay.isBefore(today)) {
+      return true;
+    }
+    
+    // Check if business is closed on this day
+    if (businessHours) {
+      const dayName = getDayNameFromDate(date);
+      const dayHours = businessHours[dayName];
+      if (dayHours && !dayHours.isOpen) {
+        return true;
+      }
+    }
+    
+    return false;
+  };
+
+  // Get day name from date (e.g., "Monday", "Tuesday")
+  const getDayNameFromDate = (date: dayjs.Dayjs): string => {
+    const dayIndex = date.day();
+    const dayNamesFull = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ];
+    return dayNamesFull[dayIndex];
+  };
+
+  // Get available time slots for selected date based on business hours
+  const availableTimeSlots = useMemo(() => {
+    if (!businessHours || !selectedDate) {
+      return allTimeSlots;
+    }
+
+    const dayName = getDayNameFromDate(selectedDate);
+    const dayHours = businessHours[dayName];
+
+    // If business is closed on this day, return empty array
+    if (!dayHours || !dayHours.isOpen) {
+      return [];
+    }
+
+    // Calculate opening and closing time in minutes from midnight
+    const openingMinutes = dayHours.fromHours * 60 + dayHours.fromMinutes;
+    const closingMinutes = dayHours.tillHours * 60 + dayHours.tillMinutes;
+
+    // Get break times
+    const breakTimes = (dayHours.breaks || []).map((breakTime: any) => {
+      const breakStart = breakTime.fromHours * 60 + breakTime.fromMinutes;
+      const breakEnd = breakTime.tillHours * 60 + breakTime.tillMinutes;
+      return { start: breakStart, end: breakEnd };
+    });
+
+    // Filter slots that are within business hours and not during breaks
+    const availableSlots = allTimeSlots.filter((slot) => {
+      const [hours, minutes] = slot.split(":").map(Number);
+      const slotMinutes = hours * 60 + minutes;
+
+      // Check if slot is within business hours
+      if (slotMinutes < openingMinutes || slotMinutes >= closingMinutes) {
+        return false;
+      }
+
+      // Check if slot is during a break
+      const isDuringBreak = breakTimes.some(
+        (breakTime) =>
+          slotMinutes >= breakTime.start && slotMinutes < breakTime.end
+      );
+      if (isDuringBreak) {
+        return false;
+      }
+
+      return true;
+    });
+
+    return availableSlots;
+  }, [businessHours, selectedDate]);
+
+  // Re-categorize available slots
+  const { morning, evening, night } = useMemo(
+    () => categorizeTimeSlots(availableTimeSlots),
+    [availableTimeSlots]
+  );
 
   const getTimezoneText = () => {
     try {
@@ -910,22 +1032,27 @@ export default function Checkout() {
             <View style={styles.daysRow}>
               {week.map((day) => {
                 const isSelected = day.isSame(selectedDate, "day");
+                const isDisabled = isDateDisabled(day);
                 return (
                   <TouchableOpacity
                     key={day.format("YYYY-MM-DD")}
                     style={styles.dayContainer}
                     onPress={() => handleDateSelect(day)}
+                    disabled={isDisabled}
+                    activeOpacity={isDisabled ? 1 : 0.7}
                   >
                     <View
                       style={[
                         styles.dayNumberContainer,
                         isSelected && styles.dayNumberSelected,
+                        isDisabled && styles.dayNumberDisabled,
                       ]}
                     >
                       <Text
                         style={[
                           styles.dayNumber,
                           isSelected && styles.dayNumberSelectedText,
+                          isDisabled && styles.dayNumberDisabledText,
                         ]}
                       >
                         {day.format("D")}
@@ -1039,26 +1166,34 @@ export default function Checkout() {
               style={styles.timeSlotsContainer}
               contentContainerStyle={styles.timeSlotsContentContainer}
             >
-              {getAllSlots().map((slot) => (
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  key={slot}
-                  style={[
-                    styles.timeSlotButton,
-                    selectedTimeSlot === slot && styles.timeSlotButtonSelected,
-                  ]}
-                  onPress={() => handleSlotSelect(slot)}
-                >
-                  <Text
+              {availableTimeSlots.length > 0 ? (
+                getAllSlots().map((slot) => (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    key={slot}
                     style={[
-                      styles.timeSlotText,
-                      selectedTimeSlot === slot && styles.timeSlotTextSelected,
+                      styles.timeSlotButton,
+                      selectedTimeSlot === slot && styles.timeSlotButtonSelected,
                     ]}
+                    onPress={() => handleSlotSelect(slot)}
                   >
-                    {convertTo12Hour(slot)}
+                    <Text
+                      style={[
+                        styles.timeSlotText,
+                        selectedTimeSlot === slot && styles.timeSlotTextSelected,
+                      ]}
+                    >
+                      {convertTo12Hour(slot)}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <View style={styles.noSlotsContainer}>
+                  <Text style={styles.noSlotsText}>
+                    No available time slots for this day
                   </Text>
-                </TouchableOpacity>
-              ))}
+                </View>
+              )}
             </ScrollView>
           </View>
         </View>
