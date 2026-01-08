@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
-import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { setBusinessData } from "@/src/state/slices/bsnsSlice";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -972,12 +972,98 @@ export default function BusinessDetailScreen() {
     fetchBusinessDetails();
   }, [fetchBusinessDetails]);
 
+  // Get user location from Redux
+  const userLocation = useAppSelector((state) => state.user.location);
+
   // Map API data to component data
   const businessPhone = businessData?.owner_contact || "(619) 315-5437";
   const businessName = businessData?.title || "Ra Benjamin Styles LLC";
-  const businessLatitude = parseFloat(businessData?.latitude || "34.0522");
-  const businessLongitude = parseFloat(businessData?.longitude || "-118.2437");
+  const businessLatitude = businessData?.latitude ? parseFloat(businessData.latitude) : null;
+  const businessLongitude = businessData?.longitude ? parseFloat(businessData.longitude) : null;
   const businessAddress = businessData?.address || "240 E Exchange Blvd, Columbia, SC 29209, United States";
+
+  // Calculate distance between two coordinates using Haversine formula
+  const calculateDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+  };
+
+  // Format travel time to readable format (days, hours, minutes)
+  const formatTravelTime = (minutes: number): string => {
+    if (minutes < 60) {
+      return `${minutes} min away`;
+    }
+
+    const days = Math.floor(minutes / (24 * 60));
+    const hours = Math.floor((minutes % (24 * 60)) / 60);
+    const mins = minutes % 60;
+
+    const parts: string[] = [];
+    
+    if (days > 0) {
+      parts.push(`${days} day${days > 1 ? "s" : ""}`);
+    }
+    if (hours > 0) {
+      parts.push(`${hours} hour${hours > 1 ? "s" : ""}`);
+    }
+    if (mins > 0 && days === 0) {
+      // Only show minutes if less than a day
+      parts.push(`${mins} min${mins > 1 ? "s" : ""}`);
+    }
+
+    return parts.join(" ") + " away";
+  };
+
+  // Calculate travel time in minutes
+  const calculateTravelTime = useMemo(() => {
+    // Check if user location is valid (not null)
+    if (
+      userLocation?.lat === null ||
+      userLocation?.lat === undefined ||
+      userLocation?.long === null ||
+      userLocation?.long === undefined
+    ) {
+      return null;
+    }
+
+    // Check if business location is valid (not null)
+    if (
+      businessLatitude === null ||
+      businessLatitude === undefined ||
+      businessLongitude === null ||
+      businessLongitude === undefined
+    ) {
+      return null;
+    }
+
+    const distance = calculateDistance(
+      userLocation.lat,
+      userLocation.long,
+      businessLatitude,
+      businessLongitude
+    );
+
+    // Average speed: 30 km/h for city driving (0.5 km/min)
+    const averageSpeedKmPerMin = 0.5;
+    const travelTimeMinutes = Math.round(distance / averageSpeedKmPerMin);
+
+    return travelTimeMinutes;
+  }, [userLocation?.lat, userLocation?.long, businessLatitude, businessLongitude]);
 
   // Handle phone call
   const handleCallNow = async () => {
@@ -2135,10 +2221,12 @@ export default function BusinessDetailScreen() {
                 color={theme.selectCard}
               />
               <Text style={styles.addressText}>
-                {businessAddress}{" "}
-                <Text style={{ fontFamily: fonts.fontBold }}>
-                  • 10 min away
-                </Text>
+                {businessAddress}
+                {calculateTravelTime !== null && (
+                  <Text style={{ fontFamily: fonts.fontBold }}>
+                    {" "}• {formatTravelTime(calculateTravelTime)}
+                  </Text>
+                )}
               </Text>
             </View>
             <View style={styles.staffRow}>
