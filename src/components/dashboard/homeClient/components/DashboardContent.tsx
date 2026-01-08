@@ -1758,7 +1758,7 @@ export default function DashboardContent() {
               loading={businessesLoading || appointmentsLoading}
             />
           </View>
-        ) : appointments.length > 9 ? (
+        ) : appointments.length > 100 ? (
           appointments.map((appointment, index) => (
             <View
               key={appointment.id}

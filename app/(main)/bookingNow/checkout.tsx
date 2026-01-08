@@ -18,6 +18,7 @@ import {
   Pressable,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from "react-native";
 import { FlatList } from "react-native";
 import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
@@ -32,6 +33,8 @@ import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import ApiService from "@/src/services/api";
 import { appointmentsEndpoints } from "@/src/services/endpoints";
+import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
+import { fetchAppointmentPaymentSheetParams } from "@/src/services/stripeService";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -643,15 +646,44 @@ const createStyles = (theme: Theme) =>
       right: moderateWidthScale(12),
       zIndex: 1,
     },
+    processingOverlay: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    processingContainer: {
+      backgroundColor: theme.background,
+      borderRadius: moderateWidthScale(16),
+      padding: moderateWidthScale(24),
+      alignItems: "center",
+      justifyContent: "center",
+      minWidth: widthScale(120),
+      minHeight: heightScale(120),
+    },
+    processingText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+      marginTop: moderateHeightScale(16),
+      textAlign: "center",
+    },
   });
 
-export default function Checkout() {
+function CheckoutContent() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { initPaymentSheet, presentPaymentSheet } = useStripe();
+  const user = useAppSelector((state: any) => state.user);
 
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
@@ -686,6 +718,7 @@ export default function Checkout() {
     "payNow"
   );
   const [note, setNote] = useState<string>("");
+  const [processingPayment, setProcessingPayment] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Get all slots in order (morning, evening, night)
@@ -1137,10 +1170,145 @@ export default function Checkout() {
           (response?.data as any)?.data?.appointmentDate ||
           null;
 
-
-          if(paymentMethod === "payNow"){
-             
+        if (paymentMethod === "payNow") {
+          if (!appointmentId) {
+            showBanner(
+              "Payment Failed",
+              "Appointment ID is missing. Please try again.",
+              "error",
+              4000
+            );
+            return;
           }
+
+          try {
+            // Step 1: Fetch payment sheet parameters from backend
+            const {
+              paymentIntent,
+              customerSessionClientSecret,
+              ephemeralKey,
+              customer,
+            } = await fetchAppointmentPaymentSheetParams(appointmentId);
+
+            // Step 2: Initialize payment sheet
+            const paymentConfig: any = {
+              merchantDisplayName: "Fresh Pass",
+              customerId: customer,
+              allowsDelayedPaymentMethods: true,
+              defaultBillingDetails: {
+                name: user.name || undefined,
+                email: user.email || undefined,
+              },
+              customFlow: false,
+            };
+
+            // Use CustomerSession (newer approach) if available, otherwise fall back to EphemeralKey
+            if (customerSessionClientSecret) {
+              paymentConfig.customerSessionClientSecret = customerSessionClientSecret;
+            } else if (ephemeralKey) {
+              paymentConfig.customerEphemeralKeySecret = ephemeralKey;
+            } else {
+              throw new Error(
+                "Either customerSessionClientSecret or ephemeralKey must be provided"
+              );
+            }
+
+            // Use paymentIntent for appointment payment
+            if (paymentIntent && paymentIntent.trim() !== "") {
+              paymentConfig.paymentIntentClientSecret = paymentIntent;
+            } else {
+              throw new Error("Payment Intent must be provided");
+            }
+
+            const { error: initError } = await initPaymentSheet(paymentConfig);
+
+            if (initError) {
+              throw new Error(initError.message || "Failed to initialize payment");
+            }
+
+            // Step 3: Present payment sheet to user
+            const { error: presentError } = await presentPaymentSheet();
+
+            if (presentError) {
+              // Payment was cancelled or failed
+              if (!presentError.code?.includes("Canceled")) {
+                showBanner(
+                  "Payment Failed",
+                  presentError.message || "Payment could not be completed",
+                  "error",
+                  4000
+                );
+              }
+              // If user canceled, don't show error (silent cancel)
+              return;
+            }
+
+            // Show processing loader
+            setProcessingPayment(true);
+
+            // Wait 2 seconds before showing success and navigating
+            setTimeout(() => {
+              setProcessingPayment(false);
+              showBanner("Success", "Payment successful! Your booking is confirmed.", "success", 3000);
+
+              // Create bookingId: appointmentDate (YYYYMMDD format) + appointmentId
+              let dateFormatted = "";
+              if (appointmentDate) {
+                // Parse date from "MM/DD/YYYY" format and convert to "YYYYMMDD"
+                const dateParts = appointmentDate.split("/");
+                if (dateParts.length === 3) {
+                  const [month, day, year] = dateParts;
+                  dateFormatted = `${year}${month.padStart(2, "0")}${day.padStart(
+                    2,
+                    "0"
+                  )}`;
+                }
+              }
+              const bookingId =
+                appointmentId && dateFormatted
+                  ? `${dateFormatted}${appointmentId}`
+                  : `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+
+              // Navigate to booking detail page
+              router.push({
+                pathname: "/(main)/bookingDetail",
+                params: {
+                  appointmentId: appointmentId ? appointmentId.toString() : "",
+                  bookingId: bookingId,
+                  selectedServices: JSON.stringify(selectedServices),
+                  selectedStaff: selectedStaffId,
+                  selectedStaffMember: selectedStaffMember
+                    ? JSON.stringify(selectedStaffMember)
+                    : "",
+                  selectedDate: selectedDate.format("YYYY-MM-DD"),
+                  selectedTimeSlot: selectedTimeSlot || "",
+                  paymentMethod: paymentMethod,
+                  totalPrice: totalPrice.toFixed(2),
+                  tax: tax.toFixed(2),
+                  estimatedTotal: estimatedTotal.toFixed(2),
+                  businessId: businessId || "",
+                  note: note || "",
+                },
+              });
+            }, 2000);
+          } catch (err: any) {
+            // Extract clean error message
+            let errorMessage = "Failed to process payment";
+
+            // Check error response data first (from API)
+            if (err.data?.message) {
+              errorMessage = err.data.message;
+            } else if (err.data?.error) {
+              errorMessage = err.data.error;
+            } else if (err.message) {
+              // Use error message directly (API service already extracts clean message)
+              errorMessage = err.message;
+            }
+
+            showBanner("Payment Failed", errorMessage, "error", 4000);
+          }
+          return;
+        }
 
         if (paymentMethod === "payLater") {
           // Create bookingId: appointmentDate (YYYYMMDD format) + appointmentId
@@ -1183,8 +1351,6 @@ export default function Checkout() {
             },
           });
         }
-
-
       } else {
         showBanner(
           "Booking Failed",
@@ -1786,6 +1952,26 @@ export default function Checkout() {
           }
         }}
       />
+
+      {/* Processing Payment Overlay */}
+      {processingPayment && (
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color={theme.primary} />
+            <Text style={styles.processingText}>Processing payment...</Text>
+          </View>
+        </View>
+      )}
     </SafeAreaView>
+  );
+}
+
+export default function Checkout() {
+  return (
+    <StripeProvider
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
+    >
+      <CheckoutContent />
+    </StripeProvider>
   );
 }

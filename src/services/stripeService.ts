@@ -55,4 +55,44 @@ export const fetchPaymentSheetParams = async (
   }
 };
 
+interface AppointmentPaymentSheetApiResponse {
+  success: boolean;
+  message: string;
+  data: {
+    customer: string;
+    customerSessionClientSecret?: string;
+    ephemeralKey?: string;
+    paymentIntent: string;
+  };
+}
+
+export const fetchAppointmentPaymentSheetParams = async (
+  appointmentId: number
+): Promise<PaymentSheetParams> => {
+  try {
+    const response = await ApiService.post<AppointmentPaymentSheetApiResponse>(
+      stripeEndpoints.paymentSheet,
+      {
+        appointment_id: appointmentId,
+      }
+    );
+
+    // Extract data from nested response structure
+    if (response.success && response.data) {
+      return {
+        customer: response.data.customer,
+        customerSessionClientSecret: response.data.customerSessionClientSecret,
+        ephemeralKey: response.data.ephemeralKey,
+        paymentIntent: response.data.paymentIntent || "",
+      };
+    }
+
+    throw new Error(
+      response.message || "Failed to fetch payment sheet parameters"
+    );
+  } catch (error) {
+    throw error;
+  }
+};
+
 export { StripeProvider, useStripe };
