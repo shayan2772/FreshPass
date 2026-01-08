@@ -29,6 +29,7 @@ export const themes = {
     orangeBrown: "#DDA15E",
     orangeBrown30: "rgba(221, 161, 94, 0.3)",
     orangeBrown015:"rgba(175, 138, 37, 0.15)",
+    orangeBrown01:"rgba(188, 108, 37, 0.1)",
     lightBeige: "rgba(40, 54, 24, 0.05)",
     white: "#FFFFFF",
     white80: "rgba(255, 255, 255, 0.8)",

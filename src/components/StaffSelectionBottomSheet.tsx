@@ -81,7 +81,7 @@ const createStyles = (theme: Theme) =>
     },
     selectedTag: {
       alignSelf: "flex-start",
-      backgroundColor: theme.orangeBrown30,
+      backgroundColor: theme.orangeBrown01,
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(4),
       borderRadius: moderateWidthScale(4),
@@ -89,7 +89,7 @@ const createStyles = (theme: Theme) =>
     selectedTagText: {
       fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
-      color: theme.orangeBrown,
+      color: theme.darkGreen,
     },
   });
 

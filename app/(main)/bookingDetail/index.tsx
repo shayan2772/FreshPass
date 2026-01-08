@@ -404,6 +404,7 @@ export default function BookingDetail() {
     tax?: string;
     estimatedTotal?: string;
     businessId?: string;
+    note?: string;
   }>();
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);

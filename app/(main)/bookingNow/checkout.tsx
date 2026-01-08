@@ -14,6 +14,8 @@ import {
   Image,
   StatusBar,
   BackHandler,
+  TextInput,
+  Pressable,
 } from "react-native";
 import { FlatList } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -32,7 +34,7 @@ import { SvgXml } from "react-native-svg";
 import Button from "@/src/components/button";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons, Feather, Octicons } from "@expo/vector-icons";
-import { MorningIcon, EveningIcon, NightIcon } from "@/assets/icons";
+import { MorningIcon, EveningIcon, NightIcon, CloseIcon } from "@/assets/icons";
 import AddServiceBottomSheet from "@/src/components/AddServiceBottomSheet";
 import StaffSelectionBottomSheet from "@/src/components/StaffSelectionBottomSheet";
 import dayjs from "dayjs";
@@ -602,6 +604,42 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
     },
+    // Note Input Section
+    noteInputContainer: {
+      marginTop: moderateHeightScale(16),
+      marginBottom: moderateHeightScale(20),
+      marginHorizontal: moderateWidthScale(20),
+      position: "relative",
+    },
+    noteInput: {
+      borderRadius: moderateWidthScale(12),
+      borderWidth: 1,
+      borderColor: theme.lightGreen2,
+      backgroundColor: theme.white,
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(12),
+      paddingRight: moderateWidthScale(40),
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      minHeight: heightScale(100),
+      textAlignVertical: "top",
+    },
+    noteInputIcon: {
+      position: "absolute",
+      left: moderateWidthScale(16),
+      top: moderateHeightScale(12),
+      zIndex: 1,
+    },
+    noteInputWithIcon: {
+      paddingLeft: moderateWidthScale(48),
+    },
+    noteClearButton: {
+      position: "absolute",
+      top: moderateHeightScale(12),
+      right: moderateWidthScale(12),
+      zIndex: 1,
+    },
   });
 
 export default function Checkout() {
@@ -644,6 +682,7 @@ export default function Checkout() {
   const [paymentMethod, setPaymentMethod] = useState<"payNow" | "payLater">(
     "payNow"
   );
+  const [note, setNote] = useState<string>("");
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Get all slots in order (morning, evening, night)
@@ -997,6 +1036,7 @@ export default function Checkout() {
         tax: tax.toFixed(2),
         estimatedTotal: estimatedTotal.toFixed(2),
         businessId: businessId || "",
+        note: note || "",
       },
     });
   };
@@ -1480,6 +1520,38 @@ export default function Checkout() {
             . Your personal data will be processed by the partner with whom
             you're booking an appointment.
           </Text>
+        </View>
+
+        {/* Leave a Note Section */}
+        <View style={styles.noteInputContainer}>
+          <View style={styles.noteInputIcon}>
+            <Feather
+              name="file-text"
+              size={moderateWidthScale(18)}
+              color={theme.lightGreen}
+            />
+          </View>
+          <TextInput
+            style={[
+              styles.noteInput,
+              styles.noteInputWithIcon,
+            ]}
+            value={note}
+            onChangeText={setNote}
+            placeholder="Leave a note (optional)"
+            placeholderTextColor={theme.lightGreen2}
+            multiline
+            numberOfLines={4}
+          />
+          {note.length > 0 && (
+            <Pressable
+              onPress={() => setNote("")}
+              style={styles.noteClearButton}
+              hitSlop={moderateWidthScale(8)}
+            >
+              <CloseIcon color={theme.darkGreen} />
+            </Pressable>
+          )}
         </View>
       </ScrollView>
 
