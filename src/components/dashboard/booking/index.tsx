@@ -616,7 +616,8 @@ export default function BookingScreen() {
             color={theme.lightGreen}
           />
           <Text style={styles.dateTimeText}>
-            {item.dateTime} • {item.duration}
+            {item.dateTime} 
+            {/* • {item.duration} */}
           </Text>
         </View>
       </View>
