@@ -678,6 +678,7 @@ const createStyles = (theme: Theme) =>
 
 const serviceFilters = [
   { id: "services", label: "Services", isPrimary: true },
+  { id: "all", label: "All", isPrimary: false },
   { id: "beard-trim", label: "Beard Trim", isPrimary: false },
   { id: "haircut", label: "Haircut", isPrimary: false },
   { id: "blow-dry", label: "Blow dry", isPrimary: false },
@@ -832,7 +833,7 @@ export default function DashboardContent() {
   >(undefined);
   const [showCategoryTabs, setShowCategoryTabs] = useState(false);
   const [selectedServiceFilter, setSelectedServiceFilter] =
-    useState<string>("haircut");
+    useState<string>("all");
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState<string>("all");
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
