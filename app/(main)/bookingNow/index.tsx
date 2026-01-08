@@ -14,6 +14,7 @@ import {
   setSelectedServices,
   setSelectedStaff,
   clearBusinessData,
+  type StaffMember,
 } from "@/src/state/slices/bsnsSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
@@ -54,13 +55,6 @@ interface Service {
   originalPrice: number;
   duration: string;
   label?: string | null;
-}
-
-interface StaffMember {
-  id: number;
-  name: string;
-  experience: number | null;
-  image: string | null;
 }
 
 const createStyles = (theme: Theme) =>

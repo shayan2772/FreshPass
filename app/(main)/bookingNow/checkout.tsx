@@ -20,7 +20,7 @@ import {
 import { FlatList } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
-import { setSelectedServices, setSelectedStaff } from "@/src/state/slices/bsnsSlice";
+import { setSelectedServices, setSelectedStaff, type StaffMember, type BusinessHours } from "@/src/state/slices/bsnsSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -67,13 +67,6 @@ interface Service {
   originalPrice: number;
   duration: string;
   label?: string | null;
-}
-
-interface StaffMember {
-  id: number;
-  name: string;
-  experience: number | null;
-  image: string | null;
 }
 
 const getWeekDays = (date: dayjs.Dayjs) => {
@@ -824,6 +817,7 @@ export default function Checkout() {
     name: "Md Shariful Islam Khan",
     experience: 5,
     image: null,
+    working_hours: null,
   };
 
   const totalPrice = selectedServices.reduce(
@@ -849,6 +843,8 @@ export default function Checkout() {
         setSelectedStaffMember(dummyStaff);
       }
     }
+    // Clear selected time slot when staff changes
+    setSelectedTimeSlot(null);
   }, [selectedStaffId, staffMembers]);
   
   // Update Redux when local state changes
@@ -925,16 +921,35 @@ export default function Checkout() {
     return dayNamesFull[dayIndex];
   };
 
-  // Get available time slots for selected date based on business hours
+  // Get available time slots for selected date based on business hours or staff working hours
   const availableTimeSlots = useMemo(() => {
-    if (!businessHours || !selectedDate) {
+    if (!selectedDate) {
+      return allTimeSlots;
+    }
+
+    // Determine which hours to use: staff working_hours if staff is selected, otherwise business hours
+    let hoursToUse = businessHours;
+    
+    if (selectedStaffId !== "anyone") {
+      // Staff member is selected
+      if (selectedStaffMember?.working_hours) {
+        // Use staff member's working hours if available
+        hoursToUse = selectedStaffMember.working_hours;
+      } else {
+        // Staff member selected but has no working_hours (null or empty) - show no slots
+        return [];
+      }
+    }
+
+    // If no hours available (for "anyone" case), return all slots
+    if (!hoursToUse) {
       return allTimeSlots;
     }
 
     const dayName = getDayNameFromDate(selectedDate);
-    const dayHours = businessHours[dayName];
+    const dayHours = hoursToUse[dayName];
 
-    // If business is closed on this day, return empty array
+    // If business/staff is closed on this day, return empty array
     if (!dayHours || !dayHours.isOpen) {
       return [];
     }
@@ -950,12 +965,12 @@ export default function Checkout() {
       return { start: breakStart, end: breakEnd };
     });
 
-    // Filter slots that are within business hours and not during breaks
+    // Filter slots that are within business/staff hours and not during breaks
     const availableSlots = allTimeSlots.filter((slot) => {
       const [hours, minutes] = slot.split(":").map(Number);
       const slotMinutes = hours * 60 + minutes;
 
-      // Check if slot is within business hours
+      // Check if slot is within hours
       if (slotMinutes < openingMinutes || slotMinutes >= closingMinutes) {
         return false;
       }
@@ -973,7 +988,7 @@ export default function Checkout() {
     });
 
     return availableSlots;
-  }, [businessHours, selectedDate]);
+  }, [businessHours, selectedDate, selectedStaffId, selectedStaffMember]);
 
   // Re-categorize available slots
   const { morning, evening, night } = useMemo(

@@ -2134,13 +2134,6 @@ export default function BusinessDetailScreen() {
                             label: s.label || null,
                           })
                         );
-                        const staffMembersData = staffMembers.map((s: any) => ({
-                          id: s.id,
-                          name: s.name,
-                          experience: s.description ?? null,
-                          image: s.image ?? null,
-                        }));
-
                         // Parse business hours from API format to Redux format
                         const parseTimeToHoursMinutes = (
                           timeString: string | null | undefined
@@ -2265,9 +2258,32 @@ export default function BusinessDetailScreen() {
                           return businessHours;
                         };
 
+                        // Map staff members with working_hours
+                        const staffMembersData = (businessData?.staff || []).map((staff: any) => {
+                          // Construct image URL from API response
+                          let image =
+                            "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+                          if (staff.avatar) {
+                            image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
+                          }
+                          
+                          // Parse working_hours if available (even if empty array)
+                          const staffWorkingHours = parseBusinessHours(staff.working_hours);
+                          
+                          return {
+                            id: staff.id || staff.user_id || 0,
+                            name: staff.name || "Staff Member",
+                            experience: staff?.description ?? null,
+                            image: image,
+                            working_hours: staffWorkingHours,
+                          };
+                        });
+
                         const businessHoursData = parseBusinessHours(
                           businessData?.hours
                         );
+
+                      
 
                         const businessPayload = {
                           selectedService: serviceData,
@@ -2276,6 +2292,7 @@ export default function BusinessDetailScreen() {
                           businessId: params.business_id || "",
                           businessHours: businessHoursData,
                         };
+                        console.log(staffMembersData)
                         dispatch(setBusinessDataAction(businessPayload));
                         // Navigate to bookingNow without params
                         router.push({
