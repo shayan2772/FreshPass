@@ -16,6 +16,8 @@ import {
   BackHandler,
   TextInput,
   Pressable,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { FlatList } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
@@ -825,7 +827,7 @@ export default function Checkout() {
     0
   );
   // Tax rate (5% = 0.1)
-  const taxRate = 0.05;
+  const taxRate = 0.00;
   const tax = totalPrice * taxRate;
   const estimatedTotal = totalPrice + tax;
 
@@ -1080,10 +1082,18 @@ export default function Checkout() {
 
       <View style={styles.line} />
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+      <View style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "padding"}
+          enabled={true}
+          keyboardVerticalOffset={0}
+        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+          >
         {/* Availability Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Availability</Text>
@@ -1568,22 +1578,24 @@ export default function Checkout() {
             </Pressable>
           )}
         </View>
-      </ScrollView>
+        </ScrollView>
 
-      <View style={styles.bottom}>
-        {/* Final Total */}
-        <View style={styles.totalSection}>
-          <Text style={styles.totalLabel}>Order total:</Text>
-          <Text style={styles.totalValue}>
-            ${estimatedTotal.toFixed(2)} USD
-          </Text>
+        <View style={styles.bottom}>
+          {/* Final Total */}
+          <View style={styles.totalSection}>
+            <Text style={styles.totalLabel}>Order total:</Text>
+            <Text style={styles.totalValue}>
+              ${estimatedTotal.toFixed(2)} USD
+            </Text>
+          </View>
+
+          {/* Checkout Button */}
+          <Button
+            title="Book now"
+            onPress={handleBookNow}
+          />
         </View>
-
-        {/* Checkout Button */}
-        <Button
-          title="Book now"
-          onPress={handleBookNow}
-        />
+        </KeyboardAvoidingView>
       </View>
 
       {/* Add Service Bottom Sheet */}
