@@ -29,6 +29,8 @@ export const createStyles = (theme: Theme) =>
       alignItems: "center",
       marginBottom: moderateHeightScale(20),
       gap: moderateWidthScale(12),
+      // paddingHorizontal: moderateWidthScale(20),
+      // paddingTop: moderateHeightScale(20),
     },
     businessLogo: {
       width: widthScale(50),
@@ -39,6 +41,7 @@ export const createStyles = (theme: Theme) =>
     },
     businessInfoText: {
       flex: 1,
+      maxWidth:"60%"
     },
     businessName: {
       fontSize: fontSize.size16,
@@ -50,6 +53,7 @@ export const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+      
     },
     navigateButton: {
       width: widthScale(40),
@@ -115,11 +119,55 @@ export const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    line:{
+    line: {
       height: 1,
       backgroundColor: theme.borderLight,
       marginBottom: moderateHeightScale(12),
-
-    }
+    },
+    ratingScreenContainer: {
+      flex: 1,
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(40),
+      alignItems: "center",
+    },
+    ratingScreenTitle: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(40),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    starsContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: moderateWidthScale(16),
+      marginBottom: moderateHeightScale(32),
+    },
+    starButton: {
+      padding: moderateWidthScale(4),
+    },
+    rateServiceTitle: {
+      fontSize: fontSize.size28,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(24),
+    },
+    ratingScreenDescription: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textAlign: "center",
+      lineHeight: moderateHeightScale(22),
+      marginBottom: moderateHeightScale(40),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    sendFeedbackButtonContainer: {
+      width: "100%",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingBottom: moderateHeightScale(24),
+    },
   });
 

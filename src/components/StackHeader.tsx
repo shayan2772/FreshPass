@@ -14,6 +14,7 @@ import { useRouter } from "expo-router";
 
 type StackHeaderProps = {
   title: string;
+  onBack?: () => void;
 };
 
 const createStyles = (theme: Theme) =>
@@ -43,12 +44,20 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function StackHeader({ title }: StackHeaderProps) {
+export default function StackHeader({ title, onBack }: StackHeaderProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
 
   return (
     <View>
@@ -61,7 +70,7 @@ export default function StackHeader({ title }: StackHeaderProps) {
         <View style={styles.header}>
           <TouchableOpacity
             activeOpacity={0.7}
-            onPress={() => router.back()}
+            onPress={handleBack}
             style={styles.backIconWrapper}
           >
             <MaterialIcons
