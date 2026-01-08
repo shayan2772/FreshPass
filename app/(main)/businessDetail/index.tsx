@@ -1065,7 +1065,7 @@ export default function BusinessDetailScreen() {
   const [selectedReview, setSelectedReview] = useState<
     (typeof reviews)[0] | null
   >(null);
-  const [writeReviewModalVisible, setWriteReviewModalVisible] = useState(false);
+ 
   const [reviewTitle, setReviewTitle] = useState("Amazing haircut by Carlos!");
   const [reviewDetails, setReviewDetails] = useState("Carlos is a true professional! He listened exactly to what I wanted and gave me the best fade I've had in years. The salon was clean and the atmosphere was great. I'll definitely be coming back and asking for him again. Highly recommend!");
 
@@ -2285,7 +2285,20 @@ export default function BusinessDetailScreen() {
             <Button
               backgroundColor={theme.darkGreen}
               title="Write a review"
-              onPress={() => setWriteReviewModalVisible(true)}
+              onPress={() => {
+                const logoUrl = getBusinessLogoUrl();
+                router.push({
+                  pathname: "/(main)/leaveReview",
+                  params: {
+                    business_id: params.business_id || "",
+                    business_name: businessName,
+                    business_address: businessAddress,
+                    business_logo_url: logoUrl,
+                    business_latitude: businessLatitude?.toString() || "",
+                    business_longitude: businessLongitude?.toString() || "",
+                  },
+                });
+              }}
             />
           </View>
 
@@ -2661,145 +2674,7 @@ export default function BusinessDetailScreen() {
         </Pressable>
       </Modal>
 
-      {/* Write Review Modal */}
-      <Modal
-        visible={writeReviewModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setWriteReviewModalVisible(false)}
-      >
-        <View style={styles.writeReviewModalOverlay}>
-          <Pressable
-            style={{ flex: 1 }}
-            onPress={() => setWriteReviewModalVisible(false)}
-          >
-            <Pressable
-              style={styles.writeReviewModalContainer}
-              onPress={(e) => e.stopPropagation()}
-            >
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-              >
-                {/* Header */}
-                <View style={styles.writeReviewModalHeader}>
-                  <Text style={styles.writeReviewModalTitle}>Leave a review</Text>
-                  <TouchableOpacity
-                    style={styles.writeReviewModalCloseButton}
-                    onPress={() => setWriteReviewModalVisible(false)}
-                  >
-                    <CloseIconBusinessDetail
-                      width={widthScale(20)}
-                      height={heightScale(20)}
-                      color={theme.darkGreen}
-                    />
-                  </TouchableOpacity>
-                </View>
-
-                {/* Content */}
-                <View style={styles.writeReviewModalContent}>
-                  {/* Business Info */}
-                  <View style={styles.writeReviewBusinessInfo}>
-                    <Image
-                      source={{ uri: getBusinessLogoUrl() }}
-                      style={styles.writeReviewBusinessLogo}
-                    />
-                    <View style={styles.writeReviewBusinessInfoText}>
-                      <Text style={styles.writeReviewBusinessName}>
-                        {businessName}
-                      </Text>
-                      <Text style={styles.writeReviewBusinessAddress}>
-                        {businessAddress}
-                      </Text>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.writeReviewNavigateButton}
-                      onPress={handleReviewModalNavigate}
-                    >
-                      <MapPinIcon
-                        width={widthScale(20)}
-                        height={heightScale(20)}
-                        color={theme.primary}
-                      />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Heading */}
-                  <Text style={styles.writeReviewHeading}>
-                    Write your experience.
-                  </Text>
-                  <Text style={styles.writeReviewSubheading}>
-                    Help others discover the best services by sharing your visit.
-                  </Text>
-
-                  {/* Questions */}
-                  <Text style={styles.writeReviewQuestions}>
-                    What did you love about the service? How was the stylist? Would you recommend this salon to others?
-                  </Text>
-
-                  {/* Review Title Input */}
-                  <View style={styles.writeReviewInputContainer}>
-                    <Text style={styles.writeReviewInputLabel}>
-                      Give your review a title.
-                    </Text>
-                    <View style={styles.writeReviewInputWrapper}>
-                      <TextInput
-                        style={styles.writeReviewInput}
-                        value={reviewTitle}
-                        onChangeText={setReviewTitle}
-                        placeholder="Enter review title"
-                        placeholderTextColor={theme.lightGreen2}
-                      />
-                      {reviewTitle.length > 0 && (
-                        <TouchableOpacity
-                          style={styles.writeReviewClearButton}
-                          onPress={() => setReviewTitle("")}
-                        >
-                          <CloseIconBusinessDetail
-                            width={widthScale(12)}
-                            height={heightScale(12)}
-                            color={theme.darkGreen}
-                          />
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </View>
-
-                  {/* Review Details Input */}
-                  <View style={styles.writeReviewInputContainer}>
-                    <Text style={styles.writeReviewInputLabel}>
-                      Review details.
-                    </Text>
-                    <View style={styles.writeReviewTextAreaWrapper}>
-                      <TextInput
-                        style={styles.writeReviewTextArea}
-                        value={reviewDetails}
-                        onChangeText={setReviewDetails}
-                        placeholder="Share your experience..."
-                        placeholderTextColor={theme.lightGreen2}
-                        multiline
-                        textAlignVertical="top"
-                      />
-                    </View>
-                  </View>
-
-                  {/* Continue Button */}
-                  <View style={styles.writeReviewContinueButton}>
-                    <Button
-                      backgroundColor={theme.darkGreen}
-                      title="Continue"
-                      onPress={() => {
-                        // TODO: Handle review submission
-                        setWriteReviewModalVisible(false);
-                      }}
-                    />
-                  </View>
-                </View>
-              </ScrollView>
-            </Pressable>
-          </Pressable>
-        </View>
-      </Modal>
+    
     </View>
   );
 }

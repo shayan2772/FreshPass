@@ -586,7 +586,7 @@ export default function LocationModal({
               <TouchableOpacity
                 onPress={handleUseCurrentLocation}
                 disabled={isResolvingLocation}
-                activeOpacity={0.7}
+                activeOpacity={0.6}
                 style={styles.currentLocControls}
               >
                 <Feather
