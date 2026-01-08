@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useCallback, useEffect, useRef } from "react";
+import React, {
+  useMemo,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
 import {
   ScrollView,
   View,
@@ -32,6 +38,7 @@ import { MapPinIcon, CloseIcon, ChevronDownIcon } from "@/assets/icons";
 import ReviewSuggestionsDropdown from "@/src/components/ReviewSuggestionsDropdown";
 import { ApiService } from "@/src/services/api";
 import { reviewsEndpoints } from "@/src/services/endpoints";
+import { StatusBar } from "react-native";
 
 export default function LeaveReview() {
   const router = useRouter();
@@ -51,15 +58,23 @@ export default function LeaveReview() {
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewDetails, setReviewDetails] = useState("");
   const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
-  const [reviewSuggestions, setReviewSuggestions] = useState<Array<{ id: number; title: string }>>([]);
+  const [reviewSuggestions, setReviewSuggestions] = useState<
+    Array<{ id: number; title: string }>
+  >([]);
   const reviewTitleInputRef = useRef<View>(null);
 
   // Get business data from params
   const businessName = params.business_name || "Business Name";
   const businessAddress = params.business_address || "Business Address";
-  const businessLogoUrl = params.business_logo_url || "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
-  const businessLatitude = params.business_latitude ? parseFloat(params.business_latitude) : null;
-  const businessLongitude = params.business_longitude ? parseFloat(params.business_longitude) : null;
+  const businessLogoUrl =
+    params.business_logo_url ||
+    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  const businessLatitude = params.business_latitude
+    ? parseFloat(params.business_latitude)
+    : null;
+  const businessLongitude = params.business_longitude
+    ? parseFloat(params.business_longitude)
+    : null;
 
   const handleReviewModalNavigate = async () => {
     if (!businessLatitude || !businessLongitude) {
@@ -68,7 +83,7 @@ export default function LeaveReview() {
     }
     const encodedName = encodeURIComponent(businessName);
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${businessLatitude},${businessLongitude}&query_place_id=${encodedName}`;
-    
+
     try {
       const canOpen = await Linking.canOpenURL(googleMapsUrl);
       if (canOpen) {
@@ -134,10 +149,10 @@ export default function LeaveReview() {
     router.back();
   };
 
-  return ( 
+  return (
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title="Leave review" />
-
+      <StatusBar barStyle={"dark-content"} />
       <KeyboardAvoidingView
         style={styles.contentContainer}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -154,12 +169,8 @@ export default function LeaveReview() {
               style={styles.businessLogo}
             />
             <View style={styles.businessInfoText}>
-              <Text style={styles.businessName}>
-                {businessName}
-              </Text>
-              <Text style={styles.businessAddress}>
-                {businessAddress}
-              </Text>
+              <Text style={styles.businessName}>{businessName}</Text>
+              <Text style={styles.businessAddress}>{businessAddress}</Text>
             </View>
             <TouchableOpacity
               style={styles.navigateButton}
@@ -172,18 +183,18 @@ export default function LeaveReview() {
               />
             </TouchableOpacity>
           </View>
+          <View style={styles.line} />
 
           {/* Heading */}
-          <Text style={styles.heading}>
-            Write your experience.
-          </Text>
+          <Text style={styles.heading}>Write your experience.</Text>
           <Text style={styles.subheading}>
             Help others discover the best services by sharing your visit.
           </Text>
 
           {/* Questions */}
           <Text style={styles.questions}>
-            What did you love about the service? How was the stylist? Would you recommend this salon to others?
+            What did you love about the service? How was the stylist? Would you
+            recommend this salon to others?
           </Text>
 
           {/* Review Title Input - Using FloatingInput with Dropdown */}
@@ -221,9 +232,7 @@ export default function LeaveReview() {
 
           {/* Review Details Input - Using description style */}
           <View style={styles.inputContainer}>
-            <Text style={styles.questions}>
-              Review details.
-            </Text>
+            <Text style={styles.questions}>Review details.</Text>
             <View style={styles.textInputContainer}>
               <TextInput
                 style={styles.textInput}
@@ -247,14 +256,10 @@ export default function LeaveReview() {
             </View>
           </View>
         </ScrollView>
+        <View style={styles.continueButtonContainer}>
+          <Button title="Continue" onPress={handleContinue} />
+        </View>
       </KeyboardAvoidingView>
-
-      <View style={styles.continueButtonContainer}>
-        <Button
-          title="Continue"
-          onPress={handleContinue}
-        />
-      </View>
     </SafeAreaView>
   );
 }

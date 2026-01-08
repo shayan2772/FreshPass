@@ -115,5 +115,11 @@ export const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "center",
     },
+    line:{
+      height: 1,
+      backgroundColor: theme.borderLight,
+      marginBottom: moderateHeightScale(12),
+
+    }
   });
 
