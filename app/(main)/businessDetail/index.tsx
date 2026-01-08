@@ -14,6 +14,7 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  TextInput,
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
@@ -882,6 +883,157 @@ const createStyles = (theme: Theme) =>
       lineHeight: moderateHeightScale(22),
       marginTop: moderateHeightScale(12),
     },
+    writeReviewModalOverlay: {
+      flex: 1,
+      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      justifyContent: "flex-end",
+    },
+    writeReviewModalContainer: {
+      backgroundColor: theme.background,
+      borderTopLeftRadius: moderateWidthScale(20),
+      borderTopRightRadius: moderateWidthScale(20),
+      maxHeight: SCREEN_HEIGHT * 0.9,
+      paddingBottom: moderateHeightScale(20),
+    },
+    writeReviewModalHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(20),
+      paddingBottom: moderateHeightScale(16),
+      borderBottomWidth: moderateWidthScale(1),
+      borderBottomColor: theme.borderLight,
+    },
+    writeReviewModalTitle: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+    },
+    writeReviewModalCloseButton: {
+      width: widthScale(32),
+      height: heightScale(32),
+      borderRadius: moderateWidthScale(16),
+      backgroundColor: theme.lightGreen015,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    writeReviewModalContent: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingTop: moderateHeightScale(20),
+    },
+    writeReviewBusinessInfo: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(20),
+      gap: moderateWidthScale(12),
+    },
+    writeReviewBusinessLogo: {
+      width: widthScale(50),
+      height: widthScale(50),
+      borderRadius: moderateWidthScale(25),
+      backgroundColor: theme.lightGreen2,
+      overflow: "hidden",
+    },
+    writeReviewBusinessLogoImage: {
+      width: "100%",
+      height: "100%",
+    },
+    writeReviewBusinessInfoText: {
+      flex: 1,
+    },
+    writeReviewBusinessName: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    writeReviewBusinessAddress: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
+    writeReviewNavigateButton: {
+      width: widthScale(40),
+      height: widthScale(40),
+      borderRadius: moderateWidthScale(20),
+      backgroundColor: theme.lightGreen015,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    writeReviewHeading: {
+      fontSize: fontSize.size18,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    writeReviewSubheading: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(20),
+    },
+    writeReviewQuestions: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(20),
+      lineHeight: moderateHeightScale(20),
+    },
+    writeReviewInputContainer: {
+      marginBottom: moderateHeightScale(20),
+    },
+    writeReviewInputLabel: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    writeReviewInputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      borderRadius: moderateWidthScale(8),
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.darkGreen,
+      backgroundColor: theme.white,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(12),
+    },
+    writeReviewInput: {
+      flex: 1,
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      padding: 0,
+    },
+    writeReviewTextAreaWrapper: {
+      borderRadius: moderateWidthScale(8),
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.darkGreen,
+      backgroundColor: theme.white,
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(12),
+      minHeight: heightScale(120),
+    },
+    writeReviewTextArea: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      textAlignVertical: "top",
+      padding: 0,
+    },
+    writeReviewClearButton: {
+      width: widthScale(24),
+      height: heightScale(24),
+      borderRadius: moderateWidthScale(12),
+      backgroundColor: theme.lightGreen2,
+      alignItems: "center",
+      justifyContent: "center",
+      marginLeft: moderateWidthScale(8),
+    },
+    writeReviewContinueButton: {
+      marginTop: moderateHeightScale(20),
+    },
   });
 export default function BusinessDetailScreen() {
   const { colors } = useTheme();
@@ -913,6 +1065,9 @@ export default function BusinessDetailScreen() {
   const [selectedReview, setSelectedReview] = useState<
     (typeof reviews)[0] | null
   >(null);
+  const [writeReviewModalVisible, setWriteReviewModalVisible] = useState(false);
+  const [reviewTitle, setReviewTitle] = useState("Amazing haircut by Carlos!");
+  const [reviewDetails, setReviewDetails] = useState("Carlos is a true professional! He listened exactly to what I wanted and gave me the best fade I've had in years. The salon was clean and the atmosphere was great. I'll definitely be coming back and asking for him again. Highly recommend!");
 
   // Refs for scroll positions
   const scrollViewRef = useRef<ScrollView>(null);
@@ -1103,6 +1258,42 @@ export default function BusinessDetailScreen() {
     } catch (error) {
       Alert.alert("Error", "Unable to open maps");
     }
+  };
+
+  // Handle navigation to Google Maps from review modal
+  const handleReviewModalNavigate = async () => {
+    if (!businessLatitude || !businessLongitude) {
+      Alert.alert("Error", "Location not available");
+      return;
+    }
+    const encodedName = encodeURIComponent(businessName);
+    const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${businessLatitude},${businessLongitude}&query_place_id=${encodedName}`;
+    
+    try {
+      const canOpen = await Linking.canOpenURL(googleMapsUrl);
+      if (canOpen) {
+        await Linking.openURL(googleMapsUrl);
+      } else {
+        // Fallback to Apple Maps on iOS if Google Maps not available
+        if (Platform.OS === "ios") {
+          const appleMapsUrl = `http://maps.apple.com/?ll=${businessLatitude},${businessLongitude}&q=${encodedName}`;
+          await Linking.openURL(appleMapsUrl);
+        } else {
+          Alert.alert("Error", "Unable to open maps");
+        }
+      }
+    } catch (error) {
+      Alert.alert("Error", "Unable to open maps");
+    }
+  };
+
+  // Get business logo URL
+  const getBusinessLogoUrl = () => {
+    if (businessData?.logo_url) {
+      const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+      return `${baseUrl}${businessData.logo_url}`;
+    }
+    return "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
   };
 
   // Map portfolio photos from API or use defaults
@@ -2094,7 +2285,7 @@ export default function BusinessDetailScreen() {
             <Button
               backgroundColor={theme.darkGreen}
               title="Write a review"
-              onPress={() => {}}
+              onPress={() => setWriteReviewModalVisible(true)}
             />
           </View>
 
@@ -2468,6 +2659,146 @@ export default function BusinessDetailScreen() {
             )}
           </Pressable>
         </Pressable>
+      </Modal>
+
+      {/* Write Review Modal */}
+      <Modal
+        visible={writeReviewModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setWriteReviewModalVisible(false)}
+      >
+        <View style={styles.writeReviewModalOverlay}>
+          <Pressable
+            style={{ flex: 1 }}
+            onPress={() => setWriteReviewModalVisible(false)}
+          >
+            <Pressable
+              style={styles.writeReviewModalContainer}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Header */}
+                <View style={styles.writeReviewModalHeader}>
+                  <Text style={styles.writeReviewModalTitle}>Leave a review</Text>
+                  <TouchableOpacity
+                    style={styles.writeReviewModalCloseButton}
+                    onPress={() => setWriteReviewModalVisible(false)}
+                  >
+                    <CloseIconBusinessDetail
+                      width={widthScale(20)}
+                      height={heightScale(20)}
+                      color={theme.darkGreen}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Content */}
+                <View style={styles.writeReviewModalContent}>
+                  {/* Business Info */}
+                  <View style={styles.writeReviewBusinessInfo}>
+                    <Image
+                      source={{ uri: getBusinessLogoUrl() }}
+                      style={styles.writeReviewBusinessLogo}
+                    />
+                    <View style={styles.writeReviewBusinessInfoText}>
+                      <Text style={styles.writeReviewBusinessName}>
+                        {businessName}
+                      </Text>
+                      <Text style={styles.writeReviewBusinessAddress}>
+                        {businessAddress}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.writeReviewNavigateButton}
+                      onPress={handleReviewModalNavigate}
+                    >
+                      <MapPinIcon
+                        width={widthScale(20)}
+                        height={heightScale(20)}
+                        color={theme.primary}
+                      />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Heading */}
+                  <Text style={styles.writeReviewHeading}>
+                    Write your experience.
+                  </Text>
+                  <Text style={styles.writeReviewSubheading}>
+                    Help others discover the best services by sharing your visit.
+                  </Text>
+
+                  {/* Questions */}
+                  <Text style={styles.writeReviewQuestions}>
+                    What did you love about the service? How was the stylist? Would you recommend this salon to others?
+                  </Text>
+
+                  {/* Review Title Input */}
+                  <View style={styles.writeReviewInputContainer}>
+                    <Text style={styles.writeReviewInputLabel}>
+                      Give your review a title.
+                    </Text>
+                    <View style={styles.writeReviewInputWrapper}>
+                      <TextInput
+                        style={styles.writeReviewInput}
+                        value={reviewTitle}
+                        onChangeText={setReviewTitle}
+                        placeholder="Enter review title"
+                        placeholderTextColor={theme.lightGreen2}
+                      />
+                      {reviewTitle.length > 0 && (
+                        <TouchableOpacity
+                          style={styles.writeReviewClearButton}
+                          onPress={() => setReviewTitle("")}
+                        >
+                          <CloseIconBusinessDetail
+                            width={widthScale(12)}
+                            height={heightScale(12)}
+                            color={theme.darkGreen}
+                          />
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* Review Details Input */}
+                  <View style={styles.writeReviewInputContainer}>
+                    <Text style={styles.writeReviewInputLabel}>
+                      Review details.
+                    </Text>
+                    <View style={styles.writeReviewTextAreaWrapper}>
+                      <TextInput
+                        style={styles.writeReviewTextArea}
+                        value={reviewDetails}
+                        onChangeText={setReviewDetails}
+                        placeholder="Share your experience..."
+                        placeholderTextColor={theme.lightGreen2}
+                        multiline
+                        textAlignVertical="top"
+                      />
+                    </View>
+                  </View>
+
+                  {/* Continue Button */}
+                  <View style={styles.writeReviewContinueButton}>
+                    <Button
+                      backgroundColor={theme.darkGreen}
+                      title="Continue"
+                      onPress={() => {
+                        // TODO: Handle review submission
+                        setWriteReviewModalVisible(false);
+                      }}
+                    />
+                  </View>
+                </View>
+              </ScrollView>
+            </Pressable>
+          </Pressable>
+        </View>
       </Modal>
     </View>
   );
