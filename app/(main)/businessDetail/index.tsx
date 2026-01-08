@@ -2007,7 +2007,25 @@ export default function BusinessDetailScreen() {
                         ${subscription.originalPrice.toFixed(2)}
                       </Text>
                     </View>
-                    <TouchableOpacity style={styles.bookNowButton}>
+                    <TouchableOpacity
+                      style={styles.bookNowButton}
+                      onPress={() => {
+                        router.push({
+                          pathname: "/(main)/bookingNow/checkoutSubscription",
+                          params: {
+                            subscriptionId: subscription.id.toString(),
+                            subscriptionName: subscription.title,
+                            subscriptionPrice: subscription.price.toString(),
+                            subscriptionOriginalPrice: subscription.originalPrice.toString(),
+                            subscriptionVisits: subscription.visits,
+                            subscriptionInclusions: JSON.stringify(subscription.inclusions),
+                            businessId: businessData?.id?.toString() || params.business_id || "",
+                            businessName: businessData?.name || "",
+                            businessLogo: businessData?.logo_url || "",
+                          },
+                        });
+                      }}
+                    >
                       <Text style={styles.bookNowButtonText}>Book Now</Text>
                     </TouchableOpacity>
                   </View>

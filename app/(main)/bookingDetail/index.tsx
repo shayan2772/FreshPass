@@ -479,7 +479,7 @@ export default function BookingDetail() {
 
   const handleBackNavigation = useCallback(() => {
     if (params.businessId) {
-      router.push("/(main)/dashboard/(home)" as any);
+      router.navigate("/(main)/dashboard/(home)" as any);
       // router.replace({
       //   pathname: "/(main)/businessDetail",
       //   params: { business_id: params.businessId },
@@ -506,7 +506,7 @@ export default function BookingDetail() {
 
   const handleViewBooking = () => {
     // Navigate to booking tab
-    router.push("/(main)/dashboard/(calendar)" as any);
+    router.navigate("/(main)/dashboard/(calendar)" as any);
   };
 
   // Dummy business data (in real app, fetch from businessId)
@@ -522,7 +522,7 @@ export default function BookingDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStle="dark-content" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -736,7 +736,7 @@ export default function BookingDetail() {
 
       {/* Bottom Button */}
       <View style={styles.bottomButton}>
-        <Button title="View booking" onPress={handleViewBooking} />
+        <Button title="View bookings" onPress={handleViewBooking} />
       </View>
     </SafeAreaView>
   );
