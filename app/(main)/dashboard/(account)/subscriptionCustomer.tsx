@@ -320,9 +320,7 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(20),
       marginBottom: moderateHeightScale(24),
     },
-    headerDescriptionRow: {  
-      
-    },
+    headerDescriptionRow: {},
     filterDropdown: {
       backgroundColor: theme.background,
       borderWidth: 1,
@@ -330,8 +328,8 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(8),
       paddingHorizontal: moderateWidthScale(8),
       paddingVertical: moderateHeightScale(8),
-      width:140,
-      alignSelf:"flex-end"
+      width: 140,
+      alignSelf: "flex-end",
     },
     filterDropdownText: {
       fontSize: fontSize.size14,
@@ -485,7 +483,8 @@ export default function subscriptionCustomer() {
   const [totalPages, setTotalPages] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>("active");
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [selectedSubscription, setSelectedSubscription] = useState<SubscriptionData | null>(null);
+  const [selectedSubscription, setSelectedSubscription] =
+    useState<SubscriptionData | null>(null);
   const [confirmChecked, setConfirmChecked] = useState(false);
 
   const fetchSubscriptions = useCallback(
@@ -545,17 +544,14 @@ export default function subscriptionCustomer() {
     fetchSubscriptions(1, false);
   }, [statusFilter]);
 
-  const handleStatusFilterChange = useCallback(
-    (status: string) => {
-      // Reset data when filter changes
-      setSubscriptions([]);
-      setCurrentPage(1);
-      setTotalPages(1);
-      setStatusFilter(status);
-      // useEffect will handle the API call when statusFilter changes
-    },
-    []
-  );
+  const handleStatusFilterChange = useCallback((status: string) => {
+    // Reset data when filter changes
+    setSubscriptions([]);
+    setCurrentPage(1);
+    setTotalPages(1);
+    setStatusFilter(status);
+    // useEffect will handle the API call when statusFilter changes
+  }, []);
 
   const handleLoadMore = useCallback(() => {
     if (!loadingMore && currentPage < totalPages) {
@@ -706,13 +702,15 @@ export default function subscriptionCustomer() {
           </View>
 
           {/* Cancel Button */}
-          <TouchableOpacity
-            style={styles.cancelButton}
-            onPress={() => handleCancelSubscription(item)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.cancelButtonText}>Cancel Subscription</Text>
-          </TouchableOpacity>
+          {item.status?.trim()?.toLowerCase() === "active" && (
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={() => handleCancelSubscription(item)}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.cancelButtonText}>Cancel Subscription</Text>
+            </TouchableOpacity>
+          )}
         </View>
       );
     },
@@ -729,10 +727,10 @@ export default function subscriptionCustomer() {
   }, [loadingMore, styles.footerLoader, theme.buttonBack]);
 
   const statusOptions = [
-    { label: "All", value: "all" },
-    { label: "Pending", value: "pending" },
+    // { label: "All", value: "all" },
+    // { label: "Pending", value: "pending" },
     { label: "Active", value: "active" },
-    { label: "Paused", value: "paused" },
+    // { label: "Paused", value: "paused" },
     { label: "Expired", value: "expired" },
     { label: "Cancelled", value: "cancelled" },
   ];
