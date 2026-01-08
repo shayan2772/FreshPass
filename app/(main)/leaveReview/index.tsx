@@ -62,13 +62,16 @@ export default function LeaveReview() {
   const theme = colors as Theme;
 
   const [showRatingScreen, setShowRatingScreen] = useState(true);
+  const [showSuccessScreen, setShowSuccessScreen] = useState(false);
   const [rating, setRating] = useState(0);
   const [reviewTitle, setReviewTitle] = useState("");
   const [reviewDetails, setReviewDetails] = useState("");
+  const [selectedSuggestionId, setSelectedSuggestionId] = useState<number | null>(null);
   const [showSuggestionsDropdown, setShowSuggestionsDropdown] = useState(false);
   const [reviewSuggestions, setReviewSuggestions] = useState<
     Array<{ id: number; title: string }>
   >([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const reviewTitleInputRef = useRef<View>(null);
 
   // Get business data from params
@@ -146,8 +149,11 @@ export default function LeaveReview() {
     fetchReviewSuggestions();
   }, [showBanner]);
 
-  const handleSuggestionSelect = useCallback((title: string) => {
+  const handleSuggestionSelect = useCallback((title: string, id?: number) => {
     setReviewTitle(title);
+    if (id) {
+      setSelectedSuggestionId(id);
+    }
     setShowSuggestionsDropdown(false);
   }, []);
 
@@ -162,17 +168,25 @@ export default function LeaveReview() {
   }, [rating]);
 
   const handleBack = useCallback(() => {
+    if (showSuccessScreen) {
+      router.back();
+      return;
+    }
     if (!showRatingScreen) {
       setShowRatingScreen(true);
       return;
     }
     router.back();
-  }, [showRatingScreen, router]);
+  }, [showRatingScreen, showSuccessScreen, router]);
 
   // Handle Android back button
   useFocusEffect(
     useCallback(() => {
       const onBackPress = () => {
+        if (showSuccessScreen) {
+          router.back();
+          return true;
+        }
         if (!showRatingScreen) {
           setShowRatingScreen(true);
           return true;
@@ -186,14 +200,56 @@ export default function LeaveReview() {
       );
 
       return () => subscription.remove();
-    }, [showRatingScreen])
+    }, [showRatingScreen, showSuccessScreen, router])
   );
 
   const handleContinue = async () => {
-    // TODO: Handle review submission
-    showBanner("Success", "Review submitted successfully", "success", 3000);
-    router.back();
+    if (!params.business_id) {
+      showBanner("Error", "Business ID is required", "error", 3000);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const requestBody = {
+        business_id: parseInt(params.business_id),
+        overall_rating: rating,
+        comment: reviewDetails.trim(),
+        review_suggestion_id: selectedSuggestionId || null,
+      };
+
+      const response = await ApiService.post<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(reviewsEndpoints.create, requestBody);
+
+      if (response.success) {
+        setShowSuccessScreen(true);
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to submit review",
+          "error",
+          3000
+        );
+      }
+    } catch (error: any) {
+      console.error("Failed to submit review:", error);
+      showBanner(
+        "Error",
+        error.message || "Failed to submit review. Please try again.",
+        "error",
+        3000
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const handleExploreMore = useCallback(() => {
+    router.back();
+  }, [router]);
 
   const renderRatingScreen = () => (
     <>
@@ -296,7 +352,7 @@ export default function LeaveReview() {
           <ReviewSuggestionsDropdown
             visible={showSuggestionsDropdown}
             suggestions={reviewSuggestions}
-            onSelect={handleSuggestionSelect}
+            onSelect={(title, id) => handleSuggestionSelect(title, id)}
             onClose={() => setShowSuggestionsDropdown(false)}
             buttonRef={reviewTitleInputRef}
           />
@@ -329,7 +385,12 @@ export default function LeaveReview() {
         </View>
       </ScrollView>
       <View style={styles.continueButtonContainer}>
-        <Button title="Continue" onPress={handleContinue} />
+        <Button
+          title="Continue"
+          onPress={handleContinue}
+          disabled={isSubmitting}
+          loading={isSubmitting}
+        />
       </View>
     </KeyboardAvoidingView>
   );
@@ -367,14 +428,23 @@ export default function LeaveReview() {
       >
         {/* Business Info */}
         {renderBusineesInfo()}
-       
+
+        <View style={styles.successContainer}>
+          <Text style={styles.successTitle}>Thank you for your review!</Text>
+
+          <Text style={styles.successDescription}>
+            Your feedback helps others discover the perfect salon and service. It
+            also helps our partner businesses continue to improve.
+          </Text>
+
+          <Text style={styles.successDescription}>
+            Reviews are typically posted within 24 hours but can sometimes take
+            longer - we're working to get your review live as soon as possible!
+          </Text>
+        </View>
       </ScrollView>
       <View style={styles.sendFeedbackButtonContainer}>
-        <Button
-          title="Explore more"
-          onPress={()=>{}}
-          
-        />
+        <Button title="Explore more" onPress={handleExploreMore} />
       </View>
     </>
   );
@@ -383,7 +453,11 @@ export default function LeaveReview() {
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title="Leave review" onBack={handleBack} />
       <StatusBar barStyle={"dark-content"} />
-      {showRatingScreen ? renderRatingScreen() : renderReviewForm()}
+      {showSuccessScreen
+        ? renderSuccess()
+        : showRatingScreen
+        ? renderRatingScreen()
+        : renderReviewForm()}
     </SafeAreaView>
   );
 }

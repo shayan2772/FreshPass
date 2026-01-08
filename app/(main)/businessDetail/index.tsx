@@ -28,7 +28,7 @@ import {
   moderateWidthScale,
   widthScale,
 } from "@/src/theme/dimensions";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import {
   PlatformVerifiedStarIcon,
   LeafLogo,
@@ -1123,10 +1123,11 @@ export default function BusinessDetailScreen() {
     }
   }, [params.business_id]);
 
-  useEffect(() => {
-    fetchBusinessDetails();
-  }, [fetchBusinessDetails]);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchBusinessDetails();
+    }, [fetchBusinessDetails])
+  );
   // Get user location from Redux
   const userLocation = useAppSelector((state) => state.user.location);
 
@@ -2355,7 +2356,7 @@ export default function BusinessDetailScreen() {
 
  
   // Loading state
-  if (loading) {
+  if (loading && businessData==null) {
     return (
       <View style={styles.container}>
         <StatusBar barStyle="light-content" />

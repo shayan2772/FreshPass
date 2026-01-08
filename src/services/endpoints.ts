@@ -153,6 +153,7 @@ export const reviewsEndpoints = {
     const queryString = queryParams.toString();
     return `/api/reviews${queryString ? `?${queryString}` : ''}`;
   },
+  create: `/api/reviews`,
   suggestions: `/api/review-suggestions`,
 };
 

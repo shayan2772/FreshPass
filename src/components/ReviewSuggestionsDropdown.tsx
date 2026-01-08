@@ -24,7 +24,7 @@ interface ReviewSuggestion {
 interface ReviewSuggestionsDropdownProps {
   visible: boolean;
   suggestions: ReviewSuggestion[];
-  onSelect: (title: string) => void;
+  onSelect: (title: string, id: number) => void;
   onClose: () => void;
   buttonRef?: React.RefObject<View | null>;
 }
@@ -101,8 +101,8 @@ export default function ReviewSuggestionsDropdown({
 
   if (!visible) return null;
 
-  const handleMenuItemPress = (title: string) => {
-    onSelect(title);
+  const handleMenuItemPress = (suggestion: ReviewSuggestion) => {
+    onSelect(suggestion.title, suggestion.id);
     onClose();
   };
 
@@ -141,7 +141,7 @@ export default function ReviewSuggestionsDropdown({
                     />
                   )}
                   <TouchableOpacity
-                    onPress={() => handleMenuItemPress(suggestion.title)}
+                    onPress={() => handleMenuItemPress(suggestion)}
                     style={styles.dropdownItem}
                   >
                     <Text style={styles.dropdownItemText}>

@@ -169,5 +169,23 @@ export const createStyles = (theme: Theme) =>
       paddingBottom: moderateHeightScale(24),
       paddingTop: moderateHeightScale(16),
     },
+    successContainer: {
+      paddingTop: moderateHeightScale(40),
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    successTitle: {
+      fontSize: fontSize.size28,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(32),
+    },
+    successDescription: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      lineHeight: moderateHeightScale(22),
+      marginBottom: moderateHeightScale(20),
+    },
   });
 
