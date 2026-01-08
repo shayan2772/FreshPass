@@ -486,6 +486,7 @@ export default function subscriptionCustomer() {
   const [selectedSubscription, setSelectedSubscription] =
     useState<SubscriptionData | null>(null);
   const [confirmChecked, setConfirmChecked] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const fetchSubscriptions = useCallback(
     async (page: number = 1, append: boolean = false, status?: string) => {
@@ -568,8 +569,9 @@ export default function subscriptionCustomer() {
   );
 
   const handleConfirmCancellation = useCallback(async () => {
-    if (!selectedSubscription || !confirmChecked) return;
+    if (!selectedSubscription || !confirmChecked || isCancelling) return;
 
+    setIsCancelling(true);
     try {
       const response = await ApiService.patch<{
         success: boolean;
@@ -586,7 +588,7 @@ export default function subscriptionCustomer() {
         );
         setCancelModalVisible(false);
         setSelectedSubscription(null);
-        setConfirmChecked(true);
+        setConfirmChecked(false);
         // Clear data and fetch page 1
         setSubscriptions([]);
         setCurrentPage(1);
@@ -607,8 +609,10 @@ export default function subscriptionCustomer() {
         "error",
         2500
       );
+    } finally {
+      setIsCancelling(false);
     }
-  }, [selectedSubscription, confirmChecked, showBanner, fetchSubscriptions]);
+  }, [selectedSubscription, confirmChecked, isCancelling, showBanner, fetchSubscriptions]);
 
   const renderItem = useCallback(
     ({ item }: { item: SubscriptionData }) => {
@@ -956,13 +960,17 @@ export default function subscriptionCustomer() {
             <TouchableOpacity
               style={[
                 styles.confirmButton,
-                !confirmChecked && styles.confirmButtonDisabled,
+                (!confirmChecked || isCancelling) && styles.confirmButtonDisabled,
               ]}
               onPress={handleConfirmCancellation}
-              disabled={!confirmChecked}
+              disabled={!confirmChecked || isCancelling}
               activeOpacity={0.8}
             >
-              <Text style={styles.confirmButtonText}>Confirm Cancellation</Text>
+              {isCancelling ? (
+                <ActivityIndicator size="small" color={theme.white} />
+              ) : (
+                <Text style={styles.confirmButtonText}>Confirm Cancellation</Text>
+              )}
             </TouchableOpacity>
           </Pressable>
         </Pressable>
