@@ -1203,7 +1203,19 @@ export default function BusinessDetailScreen() {
   const currentUserId = useAppSelector((state) => state.user.id);
 
   // Map API data to component data
-  const businessPhone = businessData?.owner_contact || "(619) 315-5437";
+  // Combine owner_country_code and owner_contact if both are available
+  const businessPhone = useMemo(() => {
+    const ownerContact = businessData?.owner_contact;
+    const ownerCountryCode = businessData?.owner_country_code;
+    
+    if (ownerContact && ownerCountryCode) {
+      // Combine country code and contact number
+      return `${ownerCountryCode}${ownerContact}`;
+    } else if (ownerContact) {
+      return ownerContact;
+    }
+    return "(619) 315-5437"; // Default fallback
+  }, [businessData?.owner_contact, businessData?.owner_country_code]);
   const businessName = businessData?.title || "Ra Benjamin Styles LLC";
   const businessLatitude = businessData?.latitude
     ? parseFloat(businessData.latitude)
