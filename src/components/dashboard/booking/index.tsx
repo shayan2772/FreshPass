@@ -31,7 +31,7 @@ import dayjs from "dayjs";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
-type BookingStatus = "ongoing" | "active" | "complete" | "cancelled";
+type BookingStatus = "ongoing" | "active" | "complete" | "cancelled" | "expired" | "without_scheduled";
 
 interface BookingItem {
   id: string;
@@ -256,6 +256,12 @@ const createStyles = (theme: Theme) =>
     statusCancelled: {
       backgroundColor: "#FFEBEE",
     },
+    statusExpired: {
+      backgroundColor: "#FFF3E0",
+    },
+    statusWithoutScheduled: {
+      backgroundColor: "#F3E5F5",
+    },
     statusText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
@@ -271,6 +277,12 @@ const createStyles = (theme: Theme) =>
     },
     statusTextCancelled: {
       color: "#D32F2F",
+    },
+    statusTextExpired: {
+      color: "#E65100",
+    },
+    statusTextWithoutScheduled: {
+      color: "#7B1FA2",
     },
     emptyContainer: {
       flex: 1,
@@ -321,6 +333,10 @@ export default function BookingScreen() {
         return styles.statusComplete;
       case "cancelled":
         return styles.statusCancelled;
+      case "expired":
+        return styles.statusExpired;
+      case "without_scheduled":
+        return styles.statusWithoutScheduled;
       default:
         return styles.statusActive;
     }
@@ -336,6 +352,10 @@ export default function BookingScreen() {
         return styles.statusTextComplete;
       case "cancelled":
         return styles.statusTextCancelled;
+      case "expired":
+        return styles.statusTextExpired;
+      case "without_scheduled":
+        return styles.statusTextWithoutScheduled;
       default:
         return styles.statusTextActive;
     }
@@ -352,13 +372,17 @@ export default function BookingScreen() {
         return "Complete";
       case "cancelled":
         return "You canceled";
+      case "expired":
+        return "Expired";
+      case "without_scheduled":
+        return "Without Scheduled";
       default:
         return "Active";
     }
   };
 
   const mapApiStatusToBookingStatus = (apiStatus: string): BookingStatus => {
-    switch (apiStatus) {
+    switch (apiStatus.toLowerCase()) {
       case "scheduled":
         return "ongoing";
       case "pending":
@@ -367,7 +391,15 @@ export default function BookingScreen() {
         return "complete";
       case "cancelled":
         return "cancelled";
+      case "expired":
+        return "expired";
+      case "without_scheduled":
+        return "without_scheduled";
       default:
+        // Return the status as-is if it matches one of our BookingStatus types
+        if (["ongoing", "active", "complete", "cancelled", "expired", "without_scheduled"].includes(apiStatus.toLowerCase())) {
+          return apiStatus.toLowerCase() as BookingStatus;
+        }
         return "active";
     }
   };
