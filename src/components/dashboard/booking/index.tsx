@@ -428,12 +428,12 @@ export default function BookingScreen() {
         : "Service";
 
     const firstService = allServices[0];
-    const duration = firstService?.duration
-      ? formatDuration(
-          firstService.duration.hours,
-          firstService.duration.minutes
-        )
-      : "N/A";
+    // const duration = firstService?.duration
+    //   ? formatDuration(
+    //       firstService.duration.hours,
+    //       firstService.duration.minutes
+    //     )
+    //   : "N/A";
 
     const location = apiAppointment.businessAddress
       ? apiAppointment.businessAddress.length > 20
@@ -458,7 +458,7 @@ export default function BookingScreen() {
         apiAppointment.appointmentDate,
         apiAppointment.appointmentTime
       ),
-      duration,
+       duration:"",
       price: formatPrice(apiAppointment.totalPrice),
       status: mapApiStatusToBookingStatus(apiAppointment.status),
       appointmentType: apiAppointment.appointmentType,
