@@ -958,6 +958,49 @@ export default function Checkout() {
     }
   };
 
+  const handleBookNow = () => {
+    if (!selectedTimeSlot) {
+      showBanner(
+        "Time Slot Required",
+        "Please select a time slot to proceed with booking.",
+        "warning",
+        4000
+      );
+      return;
+    }
+    if (selectedServices.length === 0) {
+      showBanner(
+        "No Service Selected",
+        "Please select at least one service to proceed with checkout.",
+        "warning",
+        4000
+      );
+      return;
+    }
+    
+    // Generate booking ID
+    const bookingId = `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+    
+    // Navigate to booking detail with all data
+    // Note: bookingDetail might still need params for booking-specific data
+    router.push({
+      pathname: "/(main)/bookingDetail",
+      params: {
+        bookingId: bookingId,
+        selectedServices: JSON.stringify(selectedServices),
+        selectedStaff: selectedStaffId,
+        selectedStaffMember: selectedStaffMember ? JSON.stringify(selectedStaffMember) : "",
+        selectedDate: selectedDate.format("YYYY-MM-DD"),
+        selectedTimeSlot: selectedTimeSlot || "",
+        paymentMethod: paymentMethod,
+        totalPrice: totalPrice.toFixed(2),
+        tax: tax.toFixed(2),
+        estimatedTotal: estimatedTotal.toFixed(2),
+        businessId: businessId || "",
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -1452,48 +1495,7 @@ export default function Checkout() {
         {/* Checkout Button */}
         <Button
           title="Book now"
-          onPress={() => {
-            if (!selectedTimeSlot) {
-              showBanner(
-                "Time Slot Required",
-                "Please select a time slot to proceed with booking.",
-                "warning",
-                4000
-              );
-              return;
-            }
-            if (selectedServices.length === 0) {
-              showBanner(
-                "No Service Selected",
-                "Please select at least one service to proceed with checkout.",
-                "warning",
-                4000
-              );
-              return;
-            }
-            
-            // Generate booking ID
-            const bookingId = `${Date.now()}${Math.floor(Math.random() * 10000)}`;
-            
-            // Navigate to booking detail with all data
-            // Note: bookingDetail might still need params for booking-specific data
-            router.push({
-              pathname: "/(main)/bookingDetail",
-              params: {
-                bookingId: bookingId,
-                selectedServices: JSON.stringify(selectedServices),
-                selectedStaff: selectedStaffId,
-                selectedStaffMember: selectedStaffMember ? JSON.stringify(selectedStaffMember) : "",
-                selectedDate: selectedDate.format("YYYY-MM-DD"),
-                selectedTimeSlot: selectedTimeSlot || "",
-                paymentMethod: paymentMethod,
-                totalPrice: totalPrice.toFixed(2),
-                tax: tax.toFixed(2),
-                estimatedTotal: estimatedTotal.toFixed(2),
-                businessId: businessId || "",
-              },
-            });
-          }}
+          onPress={handleBookNow}
         />
       </View>
 
