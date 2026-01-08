@@ -31,7 +31,7 @@ import dayjs from "dayjs";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
-type BookingStatus = "ongoing" | "active" | "complete" | "cancelled";
+type BookingStatus = "ongoing" | "active" | "completed" | "cancelled";
 
 interface BookingItem {
   id: string;
@@ -305,7 +305,7 @@ export default function BookingScreen() {
   const [selectedTab, setSelectedTab] = useState<TabType>("all");
   const [listType, setListType] = useState<ListType>("individual");
   const [bookings, setBookings] = useState<BookingItem[]>([]);
-  console.log("bookings : ", bookings);
+
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -348,7 +348,7 @@ export default function BookingScreen() {
         return "On-going apt.";
       case "active":
         return "Active";
-      case "complete":
+      case "completed":
         return "Complete";
       case "cancelled":
         return "You canceled";
@@ -356,21 +356,7 @@ export default function BookingScreen() {
         return "Active";
     }
   };
-
-  const mapApiStatusToBookingStatus = (apiStatus: string): BookingStatus => {
-    switch (apiStatus) {
-      case "scheduled":
-        return "ongoing";
-      case "pending":
-        return "active";
-      case "completed":
-        return "complete";
-      case "cancelled":
-        return "cancelled";
-      default:
-        return "active";
-    }
-  };
+ 
 
   const formatDuration = (hours: number, minutes: number): string => {
     const totalMinutes = hours * 60 + minutes;
@@ -384,15 +370,7 @@ export default function BookingScreen() {
   };
 
   const formatDateTime = (date: string, time: string): string => {
-    try {
-      const dateObj = dayjs(date, "MM/DD/YYYY");
-      const formattedDate = dateObj.format("M/D/YYYY");
-      const timeObj = dayjs(time, "HH:mm");
-      const formattedTime = timeObj.format("h:mm A").toLowerCase();
-      return `${formattedDate} - ${formattedTime}`;
-    } catch (error) {
-      return `${date} - ${time}`;
-    }
+    return `${date} - ${time}`;
   };
 
   const formatPrice = (price: number | string): string => {
@@ -427,13 +405,7 @@ export default function BookingScreen() {
         ? allServices.map((s: any) => s.name).join(" + ")
         : "Service";
 
-    const firstService = allServices[0];
-    // const duration = firstService?.duration
-    //   ? formatDuration(
-    //       firstService.duration.hours,
-    //       firstService.duration.minutes
-    //     )
-    //   : "N/A";
+   
 
     const location = apiAppointment.businessAddress
       ? apiAppointment.businessAddress.length > 20
@@ -445,6 +417,12 @@ export default function BookingScreen() {
 
     const membershipType = apiAppointment.subscriptionPlanType || "----";
 
+    const dateTime = formatDateTime(
+      apiAppointment.appointmentDate,
+      apiAppointment.appointmentTime
+    );
+ 
+
     return {
       id: apiAppointment.id.toString(),
       serviceName:
@@ -454,13 +432,10 @@ export default function BookingScreen() {
       membershipType,
       staffName,
       location,
-      dateTime: formatDateTime(
-        apiAppointment.appointmentDate,
-        apiAppointment.appointmentTime
-      ),
-       duration:"",
+      dateTime: dateTime,
+      duration: "",
       price: formatPrice(apiAppointment.totalPrice),
-      status: mapApiStatusToBookingStatus(apiAppointment.status),
+      status: apiAppointment.status,
       appointmentType: apiAppointment.appointmentType,
     };
   };
@@ -616,7 +591,7 @@ export default function BookingScreen() {
             color={theme.lightGreen}
           />
           <Text style={styles.dateTimeText}>
-            {item.dateTime} 
+            {item.dateTime}
             {/* • {item.duration} */}
           </Text>
         </View>
