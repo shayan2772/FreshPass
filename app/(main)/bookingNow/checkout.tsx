@@ -20,10 +20,18 @@ import {
   Platform,
 } from "react-native";
 import { FlatList } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
-import { setSelectedServices, setSelectedStaff, type StaffMember, type BusinessHours } from "@/src/state/slices/bsnsSlice";
+import {
+  setSelectedServices,
+  setSelectedStaff,
+  type StaffMember,
+  type BusinessHours,
+} from "@/src/state/slices/bsnsSlice";
+import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import ApiService from "@/src/services/api";
+import { appointmentsEndpoints } from "@/src/services/endpoints";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -489,7 +497,7 @@ const createStyles = (theme: Theme) =>
     serviceDetailsStaffImage: {
       width: widthScale(32),
       height: widthScale(32),
-      borderRadius: widthScale(32/2),
+      borderRadius: widthScale(32 / 2),
       backgroundColor: theme.emptyProfileImage,
       borderWidth: 1,
       borderColor: theme.borderLight,
@@ -644,7 +652,7 @@ export default function Checkout() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  
+
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
   const {
@@ -729,22 +737,25 @@ export default function Checkout() {
     const slotWidth = widthScale(90);
     const gap = moderateWidthScale(12);
     const paddingHorizontal = moderateWidthScale(20);
-    
+
     // Calculate which slot index is currently visible (centered)
     const visibleIndex = Math.round(
       (scrollX - paddingHorizontal + slotWidth / 2) / (slotWidth + gap)
     );
-    
+
     // Clamp to valid range
     const allSlots = getAllSlots();
-    const clampedIndex = Math.max(0, Math.min(visibleIndex, allSlots.length - 1));
-    
+    const clampedIndex = Math.max(
+      0,
+      Math.min(visibleIndex, allSlots.length - 1)
+    );
+
     // Get the slot at this index
     const visibleSlot = allSlots[clampedIndex];
-    
+
     // Determine category based on visible slot
     const category = getSlotCategory(visibleSlot);
-    
+
     // Update selected category if it changed
     if (category !== selectedCategory) {
       setSelectedCategory(category);
@@ -827,7 +838,7 @@ export default function Checkout() {
     0
   );
   // Tax rate (5% = 0.1)
-  const taxRate = 0.00;
+  const taxRate = 0.0;
   const tax = totalPrice * taxRate;
   const estimatedTotal = totalPrice + tax;
 
@@ -848,7 +859,7 @@ export default function Checkout() {
     // Clear selected time slot when staff changes
     setSelectedTimeSlot(null);
   }, [selectedStaffId, staffMembers]);
-  
+
   // Update Redux when local state changes
   useEffect(() => {
     dispatch(setSelectedServices(selectedServices));
@@ -890,12 +901,12 @@ export default function Checkout() {
   const isDateDisabled = (date: dayjs.Dayjs): boolean => {
     const today = dayjs().startOf("day");
     const selectedDay = date.startOf("day");
-    
+
     // Disable past dates
     if (selectedDay.isBefore(today)) {
       return true;
     }
-    
+
     // Check if business is closed on this day
     if (businessHours) {
       const dayName = getDayNameFromDate(date);
@@ -904,7 +915,7 @@ export default function Checkout() {
         return true;
       }
     }
-    
+
     return false;
   };
 
@@ -931,7 +942,7 @@ export default function Checkout() {
 
     // Determine which hours to use: staff working_hours if staff is selected, otherwise business hours
     let hoursToUse = businessHours;
-    
+
     if (selectedStaffId !== "anyone") {
       // Staff member is selected
       if (selectedStaffMember?.working_hours) {
@@ -1014,9 +1025,12 @@ export default function Checkout() {
     }
   };
 
- 
+  const params = useLocalSearchParams<{ subscription_id?: string }>();
+  const subscriptionId = params.subscription_id
+    ? parseInt(params.subscription_id, 10)
+    : undefined;
 
-  const handleBookNow = () => {
+  const handleBookNow = async () => {
     if (!selectedTimeSlot) {
       showBanner(
         "Time Slot Required",
@@ -1036,35 +1050,150 @@ export default function Checkout() {
       return;
     }
 
+    // Prepare request body
+    const isAnyoneSelected = selectedStaffId === "anyone";
 
-     
-    // // Generate booking ID
-    // const bookingId = `${Date.now()}${Math.floor(Math.random() * 10000)}`;
-    
-    // // Navigate to booking detail with all data
-    // // Note: bookingDetail might still need params for booking-specific data
-    // router.push({
-    //   pathname: "/(main)/bookingDetail",
-    //   params: {
-    //     bookingId: bookingId,
-    //     selectedServices: JSON.stringify(selectedServices),
-    //     selectedStaff: selectedStaffId,
-    //     selectedStaffMember: selectedStaffMember ? JSON.stringify(selectedStaffMember) : "",
-    //     selectedDate: selectedDate.format("YYYY-MM-DD"),
-    //     selectedTimeSlot: selectedTimeSlot || "",
-    //     paymentMethod: paymentMethod,
-    //     totalPrice: totalPrice.toFixed(2),
-    //     tax: tax.toFixed(2),
-    //     estimatedTotal: estimatedTotal.toFixed(2),
-    //     businessId: businessId || "",
-    //     note: note || "",
-    //   },
-    // });
+    const requestBody: {
+      business_id: number;
+      appointment_type: string;
+      payment_method: string;
+      service_ids: number[];
+      appointment_date: string;
+      appointment_time: string;
+      notes?: string;
+      staff_id?: number;
+      subscription_id?: number;
+    } = {
+      business_id: parseInt(businessId || "0", 10),
+      appointment_type: isAnyoneSelected
+        ? "service"
+        : subscriptionId
+        ? "subscription"
+        : "individual",
+      payment_method: paymentMethod === "payNow" ? "pay_now" : "pay_later",
+      service_ids: selectedServices.map((service) => service.id),
+      appointment_date: selectedDate.format("YYYY-MM-DD"),
+      appointment_time: selectedTimeSlot || "",
+    };
 
+    // Add notes only if it exists
+    if (note && note.trim()) {
+      requestBody.notes = note.trim();
+    }
 
+    // Add staff_id only if staff is selected (not "anyone")
+    if (!isAnyoneSelected) {
+      requestBody.staff_id = parseInt(selectedStaffId, 10);
+    }
 
+    // Add subscription_id only if it exists
+    if (subscriptionId) {
+      requestBody.subscription_id = subscriptionId;
+    }
 
-   
+    console.log("requestBody", requestBody);
+
+    // Show loader
+    dispatch(setActionLoader(true));
+
+    try {
+      const response = (await ApiService.post(
+        appointmentsEndpoints.create,
+        requestBody
+      )) as {
+        success?: boolean;
+        message?: string;
+        data?: {
+          success: boolean;
+          message: string;
+          data: {
+            id: number;
+            [key: string]: any;
+          };
+        };
+      };
+
+      // Hide loader
+      dispatch(setActionLoader(false));
+
+      // Console log response
+      console.log(
+        "Appointment API Response:",
+        JSON.stringify(response, null, 2)
+      );
+
+      // Check success - ApiService.post returns response.data, so structure is:
+      // { success: true, message: "...", data: { id: ... } }
+      // But terminal shows nested structure, so check both
+      const isSuccess = response?.success || response?.data?.success;
+      
+      console.log("isSuccess:", isSuccess, "response:", response);
+      
+      if (isSuccess) {
+        // Extract appointment ID and date from response
+        // Response structure: response.data.id and response.data.appointmentDate
+        const appointmentId = (response?.data as any)?.id || (response?.data as any)?.data?.id || null;
+        const appointmentDate = (response?.data as any)?.appointmentDate || (response?.data as any)?.data?.appointmentDate || null;
+        console.log("appointmentId:", appointmentId);
+        console.log("appointmentDate:", appointmentDate);
+
+        if (paymentMethod === "payLater") {
+          // Create bookingId: appointmentDate (YYYYMMDD format) + appointmentId
+          // Example: "01/08/2026" -> "20260108" + "54" = "2026010854"
+          let dateFormatted = "";
+          if (appointmentDate) {
+            // Parse date from "MM/DD/YYYY" format and convert to "YYYYMMDD"
+            const dateParts = appointmentDate.split("/");
+            if (dateParts.length === 3) {
+              const [month, day, year] = dateParts;
+              dateFormatted = `${year}${month.padStart(2, "0")}${day.padStart(2, "0")}`;
+            }
+          }
+          const bookingId = appointmentId && dateFormatted ? `${dateFormatted}${appointmentId}` : `${Date.now()}${Math.floor(Math.random() * 10000)}`;
+
+          router.push({
+            pathname: "/(main)/bookingDetail",
+            params: {
+              appointmentId: appointmentId ? appointmentId.toString() : "",
+              bookingId: bookingId,
+              selectedServices: JSON.stringify(selectedServices),
+              selectedStaff: selectedStaffId,
+              selectedStaffMember: selectedStaffMember
+                ? JSON.stringify(selectedStaffMember)
+                : "",
+              selectedDate: selectedDate.format("YYYY-MM-DD"),
+              selectedTimeSlot: selectedTimeSlot || "",
+              paymentMethod: paymentMethod,
+              totalPrice: totalPrice.toFixed(2),
+              tax: tax.toFixed(2),
+              estimatedTotal: estimatedTotal.toFixed(2),
+              businessId: businessId || "",
+              note: note || "",
+            },
+          });
+        }
+      } else {
+        showBanner(
+          "Booking Failed",
+          response?.message || "Failed to book appointment. Please try again.",
+          "error",
+          4000
+        );
+      }
+    } catch (error: any) {
+      // Hide loader
+      dispatch(setActionLoader(false));
+
+      // Console log error
+      console.error("Appointment API Error:", error);
+
+      showBanner(
+        "Booking Failed",
+        error?.message || "Failed to book appointment. Please try again.",
+        "error",
+        4000
+      );
+    }
   };
 
   return (
@@ -1103,507 +1232,513 @@ export default function Checkout() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-        {/* Availability Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Availability</Text>
+            {/* Availability Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Availability</Text>
 
-          {/* Week Navigation */}
-          <View style={styles.weekNavigation}>
-            <TouchableOpacity
-              onPress={prevWeek}
-              style={styles.weekNavigationButton}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name="chevron-left"
-                size={moderateWidthScale(17)}
-                color={theme.darkGreen}
-              />
-            </TouchableOpacity>
-            <Text style={styles.weekRangeText}>{formatWeekRange(week)}</Text>
-            <TouchableOpacity
-              onPress={nextWeek}
-              style={styles.weekNavigationButton}
-              activeOpacity={0.7}
-            >
-              <Feather
-                name="chevron-right"
-                size={moderateWidthScale(17)}
-                color={theme.darkGreen}
-              />
-            </TouchableOpacity>
-          </View>
+              {/* Week Navigation */}
+              <View style={styles.weekNavigation}>
+                <TouchableOpacity
+                  onPress={prevWeek}
+                  style={styles.weekNavigationButton}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="chevron-left"
+                    size={moderateWidthScale(17)}
+                    color={theme.darkGreen}
+                  />
+                </TouchableOpacity>
+                <Text style={styles.weekRangeText}>
+                  {formatWeekRange(week)}
+                </Text>
+                <TouchableOpacity
+                  onPress={nextWeek}
+                  style={styles.weekNavigationButton}
+                  activeOpacity={0.7}
+                >
+                  <Feather
+                    name="chevron-right"
+                    size={moderateWidthScale(17)}
+                    color={theme.darkGreen}
+                  />
+                </TouchableOpacity>
+              </View>
 
-          {/* Calendar Grid */}
-          <View style={styles.calendarGrid}>
-            {/* Days Header */}
-            <View style={styles.daysHeader}>
-              {dayNames.map((dayName) => (
-                <View key={dayName} style={styles.dayHeader}>
-                  <Text style={styles.dayHeaderText}>{dayName}</Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Days Row */}
-            <View style={styles.daysRow}>
-              {week.map((day) => {
-                const isSelected = day.isSame(selectedDate, "day");
-                const isDisabled = isDateDisabled(day);
-                return (
-                  <TouchableOpacity
-                    key={day.format("YYYY-MM-DD")}
-                    style={styles.dayContainer}
-                    onPress={() => handleDateSelect(day)}
-                    disabled={isDisabled}
-                    activeOpacity={isDisabled ? 1 : 0.7}
-                  >
-                    <View
-                      style={[
-                        styles.dayNumberContainer,
-                        isSelected && styles.dayNumberSelected,
-                        isDisabled && styles.dayNumberDisabled,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.dayNumber,
-                          isSelected && styles.dayNumberSelectedText,
-                          isDisabled && styles.dayNumberDisabledText,
-                        ]}
-                      >
-                        {day.format("D")}
-                      </Text>
+              {/* Calendar Grid */}
+              <View style={styles.calendarGrid}>
+                {/* Days Header */}
+                <View style={styles.daysHeader}>
+                  {dayNames.map((dayName) => (
+                    <View key={dayName} style={styles.dayHeader}>
+                      <Text style={styles.dayHeaderText}>{dayName}</Text>
                     </View>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Timezone Information */}
-          <Text style={styles.timezoneText}>{getTimezoneText()}</Text>
-
-          {/* Time Slots */}
-          <View style={styles.timeSlotSection}>
-            {/* Category Selector - Horizontal Tabs */}
-            <View style={styles.timeSlotCategoryRow}>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.timeSlotCategoryButton}
-                onPress={() => {
-                  setSelectedCategory("morning");
-                  scrollToCategory("morning");
-                }}
-              >
-                <View style={styles.timeSlotCategoryIcon}>
-                  <MorningIcon
-                    width={moderateWidthScale(18)}
-                    height={moderateHeightScale(13)}
-                  />
+                  ))}
                 </View>
-                <Text
-                  style={[
-                    styles.timeSlotCategoryText,
-                    selectedCategory === "morning" &&
-                      styles.timeSlotCategoryTextSelected,
-                  ]}
-                >
-                  Morning
-                </Text>
-                {selectedCategory === "morning" && (
-                  <View style={styles.timeSlotCategoryUnderline} />
-                )}
-              </TouchableOpacity>
 
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.timeSlotCategoryButton}
-                onPress={() => {
-                  setSelectedCategory("evening");
-                  scrollToCategory("evening");
-                }}
-              >
-                <View style={styles.timeSlotCategoryIcon}>
-                  <EveningIcon
-                    width={moderateWidthScale(18)}
-                    height={moderateHeightScale(10)}
-                  />
+                {/* Days Row */}
+                <View style={styles.daysRow}>
+                  {week.map((day) => {
+                    const isSelected = day.isSame(selectedDate, "day");
+                    const isDisabled = isDateDisabled(day);
+                    return (
+                      <TouchableOpacity
+                        key={day.format("YYYY-MM-DD")}
+                        style={styles.dayContainer}
+                        onPress={() => handleDateSelect(day)}
+                        disabled={isDisabled}
+                        activeOpacity={isDisabled ? 1 : 0.7}
+                      >
+                        <View
+                          style={[
+                            styles.dayNumberContainer,
+                            isSelected && styles.dayNumberSelected,
+                            isDisabled && styles.dayNumberDisabled,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.dayNumber,
+                              isSelected && styles.dayNumberSelectedText,
+                              isDisabled && styles.dayNumberDisabledText,
+                            ]}
+                          >
+                            {day.format("D")}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-                <Text
-                  style={[
-                    styles.timeSlotCategoryText,
-                    selectedCategory === "evening" &&
-                      styles.timeSlotCategoryTextSelected,
-                  ]}
-                >
-                  Evening
-                </Text>
-                {selectedCategory === "evening" && (
-                  <View style={styles.timeSlotCategoryUnderline} />
-                )}
-              </TouchableOpacity>
+              </View>
 
-              <TouchableOpacity
-                activeOpacity={0.7}
-                style={styles.timeSlotCategoryButton}
-                onPress={() => {
-                  setSelectedCategory("night");
-                  scrollToCategory("night");
-                }}
-              >
-                <View style={styles.timeSlotCategoryIcon}>
-                  <NightIcon
-                    width={moderateWidthScale(15)}
-                    height={moderateHeightScale(15)}
-                  />
-                </View>
-                <Text
-                  style={[
-                    styles.timeSlotCategoryText,
-                    selectedCategory === "night" &&
-                      styles.timeSlotCategoryTextSelected,
-                  ]}
-                >
-                  Night
-                </Text>
-                {selectedCategory === "night" && (
-                  <View style={styles.timeSlotCategoryUnderline} />
-                )}
-              </TouchableOpacity>
-            </View>
+              {/* Timezone Information */}
+              <Text style={styles.timezoneText}>{getTimezoneText()}</Text>
 
-            {/* Time Slots - All slots in one horizontal scroll */}
-            <ScrollView
-              ref={scrollViewRef}
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-              style={styles.timeSlotsContainer}
-              contentContainerStyle={styles.timeSlotsContentContainer}
-            >
-              {availableTimeSlots.length > 0 ? (
-                getAllSlots().map((slot) => (
+              {/* Time Slots */}
+              <View style={styles.timeSlotSection}>
+                {/* Category Selector - Horizontal Tabs */}
+                <View style={styles.timeSlotCategoryRow}>
                   <TouchableOpacity
                     activeOpacity={0.7}
-                    key={slot}
+                    style={styles.timeSlotCategoryButton}
+                    onPress={() => {
+                      setSelectedCategory("morning");
+                      scrollToCategory("morning");
+                    }}
+                  >
+                    <View style={styles.timeSlotCategoryIcon}>
+                      <MorningIcon
+                        width={moderateWidthScale(18)}
+                        height={moderateHeightScale(13)}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.timeSlotCategoryText,
+                        selectedCategory === "morning" &&
+                          styles.timeSlotCategoryTextSelected,
+                      ]}
+                    >
+                      Morning
+                    </Text>
+                    {selectedCategory === "morning" && (
+                      <View style={styles.timeSlotCategoryUnderline} />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    style={styles.timeSlotCategoryButton}
+                    onPress={() => {
+                      setSelectedCategory("evening");
+                      scrollToCategory("evening");
+                    }}
+                  >
+                    <View style={styles.timeSlotCategoryIcon}>
+                      <EveningIcon
+                        width={moderateWidthScale(18)}
+                        height={moderateHeightScale(10)}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.timeSlotCategoryText,
+                        selectedCategory === "evening" &&
+                          styles.timeSlotCategoryTextSelected,
+                      ]}
+                    >
+                      Evening
+                    </Text>
+                    {selectedCategory === "evening" && (
+                      <View style={styles.timeSlotCategoryUnderline} />
+                    )}
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    style={styles.timeSlotCategoryButton}
+                    onPress={() => {
+                      setSelectedCategory("night");
+                      scrollToCategory("night");
+                    }}
+                  >
+                    <View style={styles.timeSlotCategoryIcon}>
+                      <NightIcon
+                        width={moderateWidthScale(15)}
+                        height={moderateHeightScale(15)}
+                      />
+                    </View>
+                    <Text
+                      style={[
+                        styles.timeSlotCategoryText,
+                        selectedCategory === "night" &&
+                          styles.timeSlotCategoryTextSelected,
+                      ]}
+                    >
+                      Night
+                    </Text>
+                    {selectedCategory === "night" && (
+                      <View style={styles.timeSlotCategoryUnderline} />
+                    )}
+                  </TouchableOpacity>
+                </View>
+
+                {/* Time Slots - All slots in one horizontal scroll */}
+                <ScrollView
+                  ref={scrollViewRef}
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  onScroll={handleScroll}
+                  scrollEventThrottle={16}
+                  style={styles.timeSlotsContainer}
+                  contentContainerStyle={styles.timeSlotsContentContainer}
+                >
+                  {availableTimeSlots.length > 0 ? (
+                    getAllSlots().map((slot) => (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        key={slot}
+                        style={[
+                          styles.timeSlotButton,
+                          selectedTimeSlot === slot &&
+                            styles.timeSlotButtonSelected,
+                        ]}
+                        onPress={() => handleSlotSelect(slot)}
+                      >
+                        <Text
+                          style={[
+                            styles.timeSlotText,
+                            selectedTimeSlot === slot &&
+                              styles.timeSlotTextSelected,
+                          ]}
+                        >
+                          {convertTo12Hour(slot)}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View style={styles.noSlotsContainer}>
+                      <Text style={styles.noSlotsText}>
+                        No available time slots for this day
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
+              </View>
+            </View>
+
+            <View style={[styles.line, { marginTop: 0 }]} />
+
+            {/* Payment Method Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Choose payment method</Text>
+
+              <View style={[styles.paymentCard, styles.shadow]}>
+                <TouchableOpacity
+                  style={styles.paymentOption}
+                  onPress={() => setPaymentMethod("payNow")}
+                >
+                  <View
                     style={[
-                      styles.timeSlotButton,
-                      selectedTimeSlot === slot && styles.timeSlotButtonSelected,
+                      styles.paymentRadioButton,
+                      paymentMethod === "payNow" &&
+                        styles.paymentRadioButtonSelected,
                     ]}
-                    onPress={() => handleSlotSelect(slot)}
+                  >
+                    {paymentMethod === "payNow" && (
+                      <View style={styles.paymentRadioButtonInner} />
+                    )}
+                  </View>
+                  <View style={styles.paymentOptionContent}>
+                    <Text style={styles.paymentOptionTitle}>Pay now</Text>
+                    <Text style={styles.paymentOptionDescription}>
+                      Securely pay online to confirm your booking instantly.
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                <View style={styles.paymentDivider} />
+
+                <TouchableOpacity
+                  style={styles.paymentOption}
+                  onPress={() => setPaymentMethod("payLater")}
+                >
+                  <View
+                    style={[
+                      styles.paymentRadioButton,
+                      paymentMethod === "payLater" &&
+                        styles.paymentRadioButtonSelected,
+                    ]}
+                  >
+                    {paymentMethod === "payLater" && (
+                      <View style={styles.paymentRadioButtonInner} />
+                    )}
+                  </View>
+                  <View style={styles.paymentOptionContent}>
+                    <Text style={styles.paymentOptionTitle}>Pay later</Text>
+                    <Text style={styles.paymentOptionDescription}>
+                      Pay in person at the salon.
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={styles.line} />
+
+            {/* Service Details Section */}
+
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>You're paying for:</Text>
+              <View style={styles.serviceDetailsCard}>
+                {selectedServices.length > 0 &&
+                  selectedServices.map((service, index) => (
+                    <React.Fragment key={service.id}>
+                      <View style={styles.serviceItem}>
+                        <View style={styles.serviceDetailsHeader}>
+                          <Text style={styles.serviceDetailsName}>
+                            {service.name}
+                            <Text style={{ fontFamily: fonts.fontRegular }}>
+                              {" "}
+                              - {service.description}
+                            </Text>
+                          </Text>
+                          <View style={styles.serviceDetailsPriceContainer}>
+                            <View style={styles.serviceDetailsPriceColumn}>
+                              <Text style={styles.serviceDetailsPrice}>
+                                ${service.price.toFixed(2)} USD
+                              </Text>
+                              <Text style={styles.serviceDetailsOriginalPrice}>
+                                ${service.originalPrice.toFixed(2)}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() => handleDeleteService(service.id)}
+                              activeOpacity={0.5}
+                            >
+                              <MaterialIcons
+                                name="delete-outline"
+                                size={moderateWidthScale(20)}
+                                color={theme.red}
+                              />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                      {index < selectedServices.length - 1 && (
+                        <View style={styles.serviceDivider} />
+                      )}
+                    </React.Fragment>
+                  ))}
+                {/* Add Service Button - Always show */}
+                {selectedServices.length > 0 && (
+                  <View style={styles.serviceDivider} />
+                )}
+                {selectedServices.length <= 0 && (
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handleAddService}
+                    style={[
+                      styles.serviceItem,
+                      {
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      },
+                    ]}
                   >
                     <Text
                       style={[
-                        styles.timeSlotText,
-                        selectedTimeSlot === slot && styles.timeSlotTextSelected,
+                        styles.serviceDetailsName,
+                        { fontFamily: fonts.fontRegular },
                       ]}
                     >
-                      {convertTo12Hour(slot)}
+                      Add another service
+                    </Text>
+                    <View style={styles.addServiceButton}>
+                      <Octicons
+                        name="plus"
+                        size={moderateWidthScale(16)}
+                        color={theme.selectCard}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                )}
+                {/* Staff Section - Always show */}
+                <View
+                  style={[styles.serviceDivider, { marginHorizontal: 0 }]}
+                />
+                <View style={styles.serviceDetailsStaff}>
+                  {selectedStaffId === "anyone" ? (
+                    <>
+                      <Image
+                        source={{
+                          uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                        }}
+                        style={styles.serviceDetailsStaffImage}
+                        resizeMode="cover"
+                      />
+                      <Text style={styles.serviceDetailsStaffName}>
+                        Anyone available
+                      </Text>
+                    </>
+                  ) : selectedStaffMember ? (
+                    <>
+                      {selectedStaffMember.image ? (
+                        <Image
+                          source={{ uri: selectedStaffMember.image }}
+                          style={styles.serviceDetailsStaffImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <Image
+                          source={{
+                            uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                          }}
+                          style={styles.serviceDetailsStaffImage}
+                        />
+                      )}
+                      <Text style={styles.serviceDetailsStaffName}>
+                        {selectedStaffMember.name}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Image
+                        source={{
+                          uri: "https://www.w3schools.com/howto/img_avatar2.png",
+                        }}
+                        style={styles.serviceDetailsStaffImage}
+                        resizeMode="cover"
+                      />
+                      <Text style={styles.serviceDetailsStaffName}>
+                        Anyone available
+                      </Text>
+                    </>
+                  )}
+                  <TouchableOpacity
+                    style={styles.serviceDetailsChangeButton}
+                    onPress={() => setStaffSelectionModalVisible(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.serviceDetailsChangeButtonText}>
+                      Change
                     </Text>
                   </TouchableOpacity>
-                ))
-              ) : (
-                <View style={styles.noSlotsContainer}>
-                  <Text style={styles.noSlotsText}>
-                    No available time slots for this day
-                  </Text>
                 </View>
-              )}
-            </ScrollView>
-          </View>
-        </View>
-
-        <View style={[styles.line, { marginTop: 0 }]} />
-
-        {/* Payment Method Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Choose payment method</Text>
-
-          <View style={[styles.paymentCard, styles.shadow]}>
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setPaymentMethod("payNow")}
-            >
-              <View
-                style={[
-                  styles.paymentRadioButton,
-                  paymentMethod === "payNow" &&
-                    styles.paymentRadioButtonSelected,
-                ]}
-              >
-                {paymentMethod === "payNow" && (
-                  <View style={styles.paymentRadioButtonInner} />
-                )}
               </View>
-              <View style={styles.paymentOptionContent}>
-                <Text style={styles.paymentOptionTitle}>Pay now</Text>
-                <Text style={styles.paymentOptionDescription}>
-                  Securely pay online to confirm your booking instantly.
+            </View>
+
+            {/* Price Breakdown Section */}
+            <View style={styles.priceBreakdown}>
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Subtotal:</Text>
+                <Text style={styles.priceValue}>
+                  ${totalPrice.toFixed(2)} USD
                 </Text>
               </View>
-            </TouchableOpacity>
-
-            <View style={styles.paymentDivider} />
-
-            <TouchableOpacity
-              style={styles.paymentOption}
-              onPress={() => setPaymentMethod("payLater")}
-            >
+              <View style={styles.priceRow}>
+                <Text style={styles.priceLabel}>Tax:</Text>
+                <Text style={styles.priceValue}>${tax.toFixed(2)} USD</Text>
+              </View>
               <View
                 style={[
-                  styles.paymentRadioButton,
-                  paymentMethod === "payLater" &&
-                    styles.paymentRadioButtonSelected,
-                ]}
-              >
-                {paymentMethod === "payLater" && (
-                  <View style={styles.paymentRadioButtonInner} />
-                )}
-              </View>
-              <View style={styles.paymentOptionContent}>
-                <Text style={styles.paymentOptionTitle}>Pay later</Text>
-                <Text style={styles.paymentOptionDescription}>
-                  Pay in person at the salon.
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.line} />
-
-        {/* Service Details Section */}
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>You're paying for:</Text>
-          <View style={styles.serviceDetailsCard}>
-            {selectedServices.length > 0 &&
-              selectedServices.map((service, index) => (
-                <React.Fragment key={service.id}>
-                  <View style={styles.serviceItem}>
-                    <View style={styles.serviceDetailsHeader}>
-                      <Text style={styles.serviceDetailsName}>
-                        {service.name}
-                        <Text style={{ fontFamily: fonts.fontRegular }}>
-                          {" "}
-                          - {service.description}
-                        </Text>
-                      </Text>
-                      <View style={styles.serviceDetailsPriceContainer}>
-                        <View style={styles.serviceDetailsPriceColumn}>
-                          <Text style={styles.serviceDetailsPrice}>
-                            ${service.price.toFixed(2)} USD
-                          </Text>
-                          <Text style={styles.serviceDetailsOriginalPrice}>
-                            ${service.originalPrice.toFixed(2)}
-                          </Text>
-                        </View>
-                        <TouchableOpacity
-                          onPress={() => handleDeleteService(service.id)}
-                          activeOpacity={0.5}
-                        >
-                          <MaterialIcons
-                            name="delete-outline"
-                            size={moderateWidthScale(20)}
-                            color={theme.red}
-                          />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  </View>
-                  {index < selectedServices.length - 1 && (
-                    <View style={styles.serviceDivider} />
-                  )}
-                </React.Fragment>
-              ))}
-            {/* Add Service Button - Always show */}
-            {selectedServices.length > 0 && (
-              <View style={styles.serviceDivider} />
-            )}
-            {selectedServices.length <= 0 && (
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={handleAddService}
-                style={[
-                  styles.serviceItem,
+                  styles.line,
                   {
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    alignItems: "center",
+                    backgroundColor: theme.lightGreen2,
+                    marginBottom: moderateHeightScale(12),
                   },
                 ]}
-              >
+              />
+              <View style={styles.priceRow}>
                 <Text
-                  style={[
-                    styles.serviceDetailsName,
-                    { fontFamily: fonts.fontRegular },
-                  ]}
+                  style={[styles.priceLabel, { fontFamily: fonts.fontBold }]}
                 >
-                  Add another service
+                  Estimated Total:
                 </Text>
-                <View style={styles.addServiceButton}>
-                  <Octicons
-                    name="plus"
-                    size={moderateWidthScale(16)}
-                    color={theme.selectCard}
-                  />
-                </View>
-              </TouchableOpacity>
-            )}
-            {/* Staff Section - Always show */}
-            <View style={[styles.serviceDivider, { marginHorizontal: 0 }]} />
-            <View style={styles.serviceDetailsStaff}>
-              {selectedStaffId === "anyone" ? (
-                <>
-                  <Image
-                    source={{
-                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                    }}
-                    style={styles.serviceDetailsStaffImage}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.serviceDetailsStaffName}>
-                    Anyone available
-                  </Text>
-                </>
-              ) : selectedStaffMember ? (
-                <>
-                  {selectedStaffMember.image ? (
-                    <Image
-                      source={{ uri: selectedStaffMember.image }}
-                      style={styles.serviceDetailsStaffImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <Image
-                      source={{
-                        uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                      }}
-                      style={styles.serviceDetailsStaffImage}
-                    />
-                  )}
-                  <Text style={styles.serviceDetailsStaffName}>
-                    {selectedStaffMember.name}
-                  </Text>
-                </>
-              ) : (
-                <>
-                  <Image
-                    source={{
-                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                    }}
-                    style={styles.serviceDetailsStaffImage}
-                    resizeMode="cover"
-                  />
-                  <Text style={styles.serviceDetailsStaffName}>
-                    Anyone available
-                  </Text>
-                </>
-              )}
-              <TouchableOpacity
-                style={styles.serviceDetailsChangeButton}
-                onPress={() => setStaffSelectionModalVisible(true)}
-                activeOpacity={0.7}
-              >
-                <Text style={styles.serviceDetailsChangeButtonText}>
-                  Change
+                <Text
+                  style={[styles.priceValue, { fontFamily: fonts.fontBold }]}
+                >
+                  ${estimatedTotal.toFixed(2)} USD
                 </Text>
-              </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </View>
 
-        {/* Price Breakdown Section */}
-        <View style={styles.priceBreakdown}>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Subtotal:</Text>
-            <Text style={styles.priceValue}>${totalPrice.toFixed(2)} USD</Text>
-          </View>
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Tax:</Text>
-            <Text style={styles.priceValue}>${tax.toFixed(2)} USD</Text>
-          </View>
-          <View
-            style={[
-              styles.line,
-              {
-                backgroundColor: theme.lightGreen2,
-                marginBottom: moderateHeightScale(12),
-              },
-            ]}
-          />
-          <View style={styles.priceRow}>
-            <Text style={[styles.priceLabel, { fontFamily: fonts.fontBold }]}>
-              Estimated Total:
-            </Text>
-            <Text style={[styles.priceValue, { fontFamily: fonts.fontBold }]}>
-              ${estimatedTotal.toFixed(2)} USD
-            </Text>
-          </View>
-        </View>
+            {/* Privacy Policy Section */}
+            <View style={styles.section}>
+              <Text style={styles.privacyText}>
+                By placing this order, you agree to our{" "}
+                <Text style={styles.privacyLink} onPress={() => {}}>
+                  Privacy Policy
+                </Text>
+                . Your personal data will be processed by the partner with whom
+                you're booking an appointment.
+              </Text>
+            </View>
 
-        {/* Privacy Policy Section */}
-        <View style={styles.section}>
-          <Text style={styles.privacyText}>
-            By placing this order, you agree to our{" "}
-            <Text style={styles.privacyLink} onPress={() => {}}>
-              Privacy Policy
-            </Text>
-            . Your personal data will be processed by the partner with whom
-            you're booking an appointment.
-          </Text>
-        </View>
+            {/* Leave a Note Section */}
+            <View style={styles.noteInputContainer}>
+              <View style={styles.noteInputIcon}>
+                <Feather
+                  name="file-text"
+                  size={moderateWidthScale(18)}
+                  color={theme.lightGreen}
+                />
+              </View>
+              <TextInput
+                style={[styles.noteInput, styles.noteInputWithIcon]}
+                value={note}
+                onChangeText={setNote}
+                placeholder="Leave a note (optional)"
+                placeholderTextColor={theme.lightGreen2}
+                multiline
+                numberOfLines={4}
+              />
+              {note.length > 0 && (
+                <Pressable
+                  onPress={() => setNote("")}
+                  style={styles.noteClearButton}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <CloseIcon color={theme.darkGreen} />
+                </Pressable>
+              )}
+            </View>
+          </ScrollView>
 
-        {/* Leave a Note Section */}
-        <View style={styles.noteInputContainer}>
-          <View style={styles.noteInputIcon}>
-            <Feather
-              name="file-text"
-              size={moderateWidthScale(18)}
-              color={theme.lightGreen}
-            />
+          <View style={styles.bottom}>
+            {/* Final Total */}
+            <View style={styles.totalSection}>
+              <Text style={styles.totalLabel}>Order total:</Text>
+              <Text style={styles.totalValue}>
+                ${estimatedTotal.toFixed(2)} USD
+              </Text>
+            </View>
+
+            {/* Checkout Button */}
+            <Button title="Book now" onPress={handleBookNow} />
           </View>
-          <TextInput
-            style={[
-              styles.noteInput,
-              styles.noteInputWithIcon,
-            ]}
-            value={note}
-            onChangeText={setNote}
-            placeholder="Leave a note (optional)"
-            placeholderTextColor={theme.lightGreen2}
-            multiline
-            numberOfLines={4}
-          />
-          {note.length > 0 && (
-            <Pressable
-              onPress={() => setNote("")}
-              style={styles.noteClearButton}
-              hitSlop={moderateWidthScale(8)}
-            >
-              <CloseIcon color={theme.darkGreen} />
-            </Pressable>
-          )}
-        </View>
-        </ScrollView>
-
-        <View style={styles.bottom}>
-          {/* Final Total */}
-          <View style={styles.totalSection}>
-            <Text style={styles.totalLabel}>Order total:</Text>
-            <Text style={styles.totalValue}>
-              ${estimatedTotal.toFixed(2)} USD
-            </Text>
-          </View>
-
-          {/* Checkout Button */}
-          <Button
-            title="Book now"
-            onPress={handleBookNow}
-          />
-        </View>
         </KeyboardAvoidingView>
       </View>
 

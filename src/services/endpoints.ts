@@ -131,6 +131,7 @@ export const appointmentsEndpoints = {
     const queryString = queryParams.toString();
     return `/api/appointments${queryString ? `?${queryString}` : ''}`;
   },
+  create: `/api/appointments`,
 };
 
 /**

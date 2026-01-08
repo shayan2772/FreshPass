@@ -305,6 +305,22 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       lineHeight: moderateHeightScale(20),
     },
+    noteCard: {
+      paddingHorizontal: moderateWidthScale(20),
+      paddingVertical: moderateHeightScale(12),
+    },
+    noteLabel: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(8),
+    },
+    noteText: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      lineHeight: moderateHeightScale(18),
+    },
     staffCard: {
       padding: moderateWidthScale(20),
     },
@@ -393,6 +409,7 @@ export default function BookingDetail() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const params = useLocalSearchParams<{
+    appointmentId?:string;
     bookingId?: string;
     selectedServices?: string;
     selectedStaff?: string;
@@ -617,6 +634,14 @@ export default function BookingDetail() {
           <Text style={styles.salonName}>{businessName}</Text>
           <Text style={styles.salonAddress}>{businessAddress}</Text>
         </View>
+
+        {/* Note Section */}
+        {params.note && params.note.trim() && (
+          <View style={styles.noteCard}>
+            <Text style={styles.noteLabel}>Note:</Text>
+            <Text style={styles.noteText}>{params.note}</Text>
+          </View>
+        )}
 
         {/* Staff Member */}
         {selectedStaffMember && (
