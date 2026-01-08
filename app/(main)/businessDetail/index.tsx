@@ -19,7 +19,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import dayjs from "dayjs";
 import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import { setBusinessData } from "@/src/state/slices/bsnsSlice";
+import { setBusinessData as setBusinessDataAction } from "@/src/state/slices/bsnsSlice";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   heightScale,
@@ -1284,15 +1284,15 @@ export default function BusinessDetailScreen() {
     
     return businessData.staff
       // .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
-      .map((staff: any, index: number) => {
+      .map((staff: any) => {
         let image = "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
         if (staff.avatar) {
           image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
         }
         return {
-          id: index + 1,
+          id: staff.id || staff.user_id || 0,
           name: staff.name || "Staff Member",
-          description: staff.description || null,
+          experience: staff?.description || null,
           image: image,
         };
       });
@@ -1843,17 +1843,114 @@ export default function BusinessDetailScreen() {
                         const staffMembersData = staffMembers.map((s: any) => ({
                           id: s.id,
                           name: s.name,
-                          description: s.description || null,
-                          image: s.image || null,
+                          experience: s.description ?? null,
+                          image: s.image ?? null,
                         }));
-                        dispatch(
-                          setBusinessData({
-                            selectedService: serviceData,
-                            allServices: allServicesData,
-                            staffMembers: staffMembersData,
-                            businessId: params.business_id || "",
-                          }) as any
-                        );
+                        
+                        // Parse business hours from API format to Redux format
+                        const parseTimeToHoursMinutes = (timeString: string | null | undefined): { hours: number; minutes: number } => {
+                          if (!timeString || typeof timeString !== 'string') {
+                            return { hours: 0, minutes: 0 };
+                          }
+                          const [hours, minutes] = timeString.split(":").map(Number);
+                          return { hours: hours || 0, minutes: minutes || 0 };
+                        };
+
+                        const getDayDisplayFormat = (day: string): string => {
+                          if (!day) return day;
+                          const dayLower = day.toLowerCase();
+                          const dayMap: { [key: string]: string } = {
+                            monday: "Monday",
+                            tuesday: "Tuesday",
+                            wednesday: "Wednesday",
+                            thursday: "Thursday",
+                            friday: "Friday",
+                            saturday: "Saturday",
+                            sunday: "Sunday",
+                          };
+                          return dayMap[dayLower] || day;
+                        };
+
+                        const parseBusinessHours = (hoursArray: any[] | null | undefined) => {
+                          if (!hoursArray || !Array.isArray(hoursArray) || hoursArray.length === 0) {
+                            return null;
+                          }
+
+                          const businessHours: { [key: string]: any } = {};
+                          
+                          // Initialize all days with default closed state
+                          const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+                          DAYS.forEach((day) => {
+                            businessHours[day] = {
+                              isOpen: false,
+                              fromHours: 0,
+                              fromMinutes: 0,
+                              tillHours: 0,
+                              tillMinutes: 0,
+                              breaks: [],
+                            };
+                          });
+
+                          // Parse API hours
+                          hoursArray.forEach((dayData: any) => {
+                            const dayName = getDayDisplayFormat(dayData.day);
+                            if (!DAYS.includes(dayName)) return;
+
+                            let fromHours = 0;
+                            let fromMinutes = 0;
+                            let tillHours = 0;
+                            let tillMinutes = 0;
+
+                            if (dayData.opening_time) {
+                              const parsed = parseTimeToHoursMinutes(dayData.opening_time);
+                              fromHours = parsed.hours;
+                              fromMinutes = parsed.minutes;
+                            }
+
+                            if (dayData.closing_time) {
+                              const parsed = parseTimeToHoursMinutes(dayData.closing_time);
+                              tillHours = parsed.hours;
+                              tillMinutes = parsed.minutes;
+                            }
+
+                            const breaks = (dayData.break_hours || []).map((breakTime: any) => {
+                              const { hours: breakFromHours, minutes: breakFromMinutes } = parseTimeToHoursMinutes(
+                                breakTime.start || "00:00"
+                              );
+                              const { hours: breakTillHours, minutes: breakTillMinutes } = parseTimeToHoursMinutes(
+                                breakTime.end || "00:00"
+                              );
+                              return {
+                                fromHours: breakFromHours,
+                                fromMinutes: breakFromMinutes,
+                                tillHours: breakTillHours,
+                                tillMinutes: breakTillMinutes,
+                              };
+                            });
+
+                            businessHours[dayName] = {
+                              isOpen: !dayData.closed,
+                              fromHours,
+                              fromMinutes,
+                              tillHours,
+                              tillMinutes,
+                              breaks,
+                            };
+                          });
+
+                          return businessHours;
+                        };
+
+                        const businessHoursData = parseBusinessHours(businessData?.hours);
+                        
+                        const businessPayload = {
+                          selectedService: serviceData,
+                          allServices: allServicesData,
+                          staffMembers: staffMembersData,
+                          businessId: params.business_id || "",
+                          businessHours: businessHoursData,
+                        };
+                        dispatch(setBusinessDataAction(businessPayload));
                         // Navigate to bookingNow without params
                         router.push({
                           pathname: "/(main)/bookingNow",
@@ -1920,9 +2017,9 @@ export default function BusinessDetailScreen() {
                   <Text style={styles.staffName} numberOfLines={1}>
                     {staff.name}
                   </Text>
-                  {staff.description && (
+                  {staff.experience && (
                     <Text numberOfLines={1} style={styles.staffExperience}>
-                      {staff.description}
+                      {staff.experience}
                     </Text>
                   )}
                 </View>

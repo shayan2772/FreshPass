@@ -352,7 +352,7 @@ export default function BookingNow() {
     ...staffMembers.map((staff) => ({
       id: staff.id.toString(),
       name: staff.name,
-      experience: `${staff.experience ?? 0} years of exp.`,
+      experience: staff.experience ?? null,
       image: staff.image,
     })),
   ];

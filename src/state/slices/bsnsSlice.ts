@@ -17,6 +17,22 @@ export interface StaffMember {
   image: string | null;
 }
 
+export interface BusinessHours {
+  [key: string]: {
+    isOpen: boolean;
+    fromHours: number;
+    fromMinutes: number;
+    tillHours: number;
+    tillMinutes: number;
+    breaks: Array<{
+      fromHours: number;
+      fromMinutes: number;
+      tillHours: number;
+      tillMinutes: number;
+    }>;
+  };
+}
+
 export interface BusinessState {
   selectedService: Service | null;
   allServices: Service[];
@@ -24,6 +40,7 @@ export interface BusinessState {
   businessId: string;
   selectedServices: Service[];
   selectedStaff: string; // "anyone" or staff id as string
+  businessHours: BusinessHours | null;
 }
 
 const initialState: BusinessState = {
@@ -33,6 +50,7 @@ const initialState: BusinessState = {
   businessId: "",
   selectedServices: [],
   selectedStaff: "anyone",
+  businessHours: null,
 };
 
 const bsnsSlice = createSlice({
@@ -46,6 +64,7 @@ const bsnsSlice = createSlice({
         allServices?: Service[];
         staffMembers?: StaffMember[];
         businessId?: string;
+        businessHours?: BusinessHours | null;
       }>
     ) {
       if (action.payload.selectedService !== undefined) {
@@ -67,6 +86,9 @@ const bsnsSlice = createSlice({
       }
       if (action.payload.businessId !== undefined) {
         state.businessId = action.payload.businessId;
+      }
+      if (action.payload.businessHours !== undefined) {
+        state.businessHours = action.payload.businessHours;
       }
     },
     setSelectedServices(state, action: PayloadAction<Service[]>) {
@@ -93,6 +115,7 @@ const bsnsSlice = createSlice({
       state.allServices = [];
       state.staffMembers = [];
       state.businessId = "";
+      state.businessHours = null;
     },
     resetBusinessState(state) {
       return initialState;
