@@ -165,9 +165,9 @@ export const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
     },
     sendFeedbackButtonContainer: {
-      width: "100%",
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(24),
+      paddingTop: moderateHeightScale(16),
     },
   });
 

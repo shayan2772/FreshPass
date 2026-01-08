@@ -196,51 +196,52 @@ export default function LeaveReview() {
   };
 
   const renderRatingScreen = () => (
-    <ScrollView
-    contentContainerStyle={styles.scrollContent}
-    showsVerticalScrollIndicator={false}
-    keyboardShouldPersistTaps="handled"
-  >
-      {/* Business Info */}
-      {renderBusineesInfo()}
-      <View style={styles.ratingScreenContainer}>
-        <Text style={styles.ratingScreenTitle}>
-          How was your experience from {businessName}
-        </Text>
+    <>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Business Info */}
+        {renderBusineesInfo()}
+        <View style={styles.ratingScreenContainer}>
+          <Text style={styles.ratingScreenTitle}>
+            How was your experience from {businessName}
+          </Text>
 
-        <View style={styles.starsContainer}>
-          {[1, 2, 3, 4, 5].map((star) => (
-            <TouchableOpacity
-              key={star}
-              onPress={() => handleStarPress(star)}
-              style={styles.starButton}
-              activeOpacity={0.7}
-            >
-              <StarIcon
-                width={widthScale(40)}
-                height={heightScale(40)}
-                color={star <= rating ? theme.orangeBrown : theme.lightGreen2}
-              />
-            </TouchableOpacity>
-          ))}
+          <View style={styles.starsContainer}>
+            {[1, 2, 3, 4, 5].map((star) => (
+              <TouchableOpacity
+                key={star}
+                onPress={() => handleStarPress(star)}
+                style={styles.starButton}
+                activeOpacity={0.7}
+              >
+                <StarIcon
+                  width={widthScale(40)}
+                  height={heightScale(40)}
+                  color={star <= rating ? theme.orangeBrown : theme.lightGreen2}
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          <Text style={styles.rateServiceTitle}>Rate the service</Text>
+
+          <Text style={styles.ratingScreenDescription}>
+            Your opinion matters to us. If you have a moment, tell us how was your
+            experience?
+          </Text>
         </View>
-
-        <Text style={styles.rateServiceTitle}>Rate the service</Text>
-
-        <Text style={styles.ratingScreenDescription}>
-          Your opinion matters to us. If you have a moment, tell us how was your
-          experience?
-        </Text>
-
-        <View style={styles.sendFeedbackButtonContainer}>
-          <Button
-            title="Send feedback"
-            onPress={handleSendFeedback}
-            disabled={rating === 0}
-          />
-        </View>
-      </View>
       </ScrollView>
+      <View style={styles.sendFeedbackButtonContainer}>
+        <Button
+          title="Send feedback"
+          onPress={handleSendFeedback}
+          disabled={rating === 0}
+        />
+      </View>
+    </>
   );
 
   const renderReviewForm = () => (
@@ -355,6 +356,27 @@ export default function LeaveReview() {
       </View>
       <View style={styles.line} />
     </View>
+  );
+
+  const renderSuccess = () => (
+    <>
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
+        {/* Business Info */}
+        {renderBusineesInfo()}
+       
+      </ScrollView>
+      <View style={styles.sendFeedbackButtonContainer}>
+        <Button
+          title="Explore more"
+          onPress={()=>{}}
+          
+        />
+      </View>
+    </>
   );
 
   return (
