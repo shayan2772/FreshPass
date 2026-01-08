@@ -676,14 +676,7 @@ const createStyles = (theme: Theme) =>
 
 // Static data - categories will be fetched from API
 
-const serviceFilters = [
-  { id: "services", label: "Services", isPrimary: true },
-  { id: "all", label: "All", isPrimary: false },
-  { id: "beard-trim", label: "Beard Trim", isPrimary: false },
-  { id: "haircut", label: "Haircut", isPrimary: false },
-  { id: "blow-dry", label: "Blow dry", isPrimary: false },
-  { id: "pad", label: "Pad", isPrimary: false },
-];
+// Service filters will be populated dynamically from API
 
 const membershipFilters = [
   { id: "list", label: "List", isPrimary: true },
@@ -836,6 +829,19 @@ export default function DashboardContent() {
     useState<string>("all");
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState<string>("all");
+  const [serviceTemplates, setServiceTemplates] = useState<Array<{
+    id: number;
+    name: string;
+    category_id: number;
+    category: string;
+    base_price: number;
+    duration_hours: number;
+    duration_minutes: number;
+    active: boolean;
+    createdAt: string;
+  }>>([]);
+  const [serviceTemplatesLoading, setServiceTemplatesLoading] = useState(false);
+  const [serviceTemplatesError, setServiceTemplatesError] = useState(false);
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const [serviceSections, setServiceSections] = useState<ServiceSection[]>([]);
@@ -936,18 +942,64 @@ export default function DashboardContent() {
     }
   };
 
+  const fetchServiceTemplates = async (categoryId: number | string) => {
+    try {
+      setServiceTemplatesLoading(true);
+      setServiceTemplatesError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          category_id: number;
+          category: string;
+          base_price: number;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.serviceTemplates(categoryId as number));
+
+      if (response.success && response.data) {
+        setServiceTemplates(response.data);
+      } else {
+        setServiceTemplates([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch service templates:", error);
+      setServiceTemplatesError(true);
+      showBanner("API Failed", "API failed to fetch service templates", "error", 2500);
+      setServiceTemplates([]);
+    } finally {
+      setServiceTemplatesLoading(false);
+    }
+  };
+
   const fetchBusinessesWithData = async (
     categoryId: number | string,
-    tab: "individual" | "subscriptions"
+    tab: "individual" | "subscriptions",
+    serviceTemplateId?: number
   ) => {
     try {
       setSectionsLoading(true);
       setSectionsError(false);
 
-      // Build API URL with appropriate query parameter
-      const queryParam =
-        tab === "individual" ? "with_services=true" : "with_subscription_plans=true";
-      const url = `${businessEndpoints.businesses(categoryId as number)}&${queryParam}`;
+      // Build API URL with appropriate query parameters
+      const baseUrl = businessEndpoints.businesses(categoryId as number);
+      const queryParams = new URLSearchParams();
+      
+      if (tab === "individual") {
+        queryParams.append("with_services", "true");
+        if (serviceTemplateId) {
+          queryParams.append("service_template_id", serviceTemplateId.toString());
+        }
+      } else {
+        queryParams.append("with_subscription_plans", "true");
+      }
+      
+      const url = `${baseUrl}&${queryParams.toString()}`;
 
       const response = await ApiService.get<{
         success: boolean;
@@ -1249,13 +1301,31 @@ export default function DashboardContent() {
     }
   }, []);
 
-  // Fetch businesses when category changes
+  // Fetch service templates when category changes or when switching to individual tab
+  useEffect(() => {
+    if (isCusotmerandGuest && selectedCategory && activeTab === "individual") {
+      fetchServiceTemplates(selectedCategory);
+    }
+  }, [selectedCategory, activeTab]);
+
+  // Reset service filter to "all" when category changes
+  useEffect(() => {
+    if (isCusotmerandGuest && selectedCategory) {
+      setSelectedServiceFilter("all");
+    }
+  }, [selectedCategory]);
+
+  // Fetch businesses when category or tab changes
   useEffect(() => {
     if (isCusotmerandGuest && selectedCategory) {
       fetchBusinesses(selectedCategory);
-      fetchBusinessesWithData(selectedCategory, activeTab);
+      const serviceTemplateId = 
+        activeTab === "individual" && selectedServiceFilter !== "all" && selectedServiceFilter !== "services"
+          ? parseInt(selectedServiceFilter)
+          : undefined;
+      fetchBusinessesWithData(selectedCategory, activeTab, serviceTemplateId);
     }
-  }, [selectedCategory,activeTab]);
+  }, [selectedCategory, activeTab, selectedServiceFilter]);
 
   
   // Initialize scroll position to subscriptions (index 0)
@@ -1388,6 +1458,27 @@ export default function DashboardContent() {
     const category = categories.find((cat) => cat.id === selectedCategory);
     return category ? category.name : "Hair Salon";
   };
+
+  // Generate service filters dynamically from API data
+  const serviceFilters = useMemo(() => {
+    const filters: Array<{ id: string; label: string; isPrimary: boolean }> = [
+      { id: "services", label: "Services", isPrimary: true },
+      { id: "all", label: "All", isPrimary: false },
+    ];
+
+    // Add service templates from API
+    serviceTemplates.forEach((template) => {
+      if (template.active) {
+        filters.push({
+          id: template.id.toString(),
+          label: template.name,
+          isPrimary: false,
+        });
+      }
+    });
+
+    return filters;
+  }, [serviceTemplates]);
 
   const renderFilters = (
     filters: Array<{ id: string; label: string; isPrimary: boolean }>,
@@ -1866,6 +1957,7 @@ export default function DashboardContent() {
 
       {/* Service Filters (for Individual Services) */}
       {tab === "individual" &&
+        serviceFilters.length > 0 &&
         renderFilters(
           serviceFilters,
           selectedServiceFilter,
