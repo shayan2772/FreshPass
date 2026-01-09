@@ -360,6 +360,7 @@ function CheckoutSubscriptionContent() {
       // Step 1: Fetch payment sheet parameters from backend
       const {
         paymentIntent,
+        setupIntent,
         customerSessionClientSecret,
         ephemeralKey,
         customer,
@@ -388,12 +389,16 @@ function CheckoutSubscriptionContent() {
         );
       }
 
-      // Use paymentIntent for subscription payment
-      if (!paymentIntent || paymentIntent.trim() === "") {
-        throw new Error("Payment Intent must be provided");
+      // Use paymentIntent for subscription payment, or setupIntent as fallback
+      if (paymentIntent && paymentIntent.trim() !== "") {
+        paymentConfig.paymentIntentClientSecret = paymentIntent;
+      } else if (setupIntent && setupIntent.trim() !== "") {
+        paymentConfig.setupIntentClientSecret = setupIntent;
+      } else {
+        throw new Error(
+          "Either Payment Intent or Setup Intent must be provided"
+        );
       }
-
-      paymentConfig.paymentIntentClientSecret = paymentIntent;
 
       const { error: initError } = await initPaymentSheet(paymentConfig);
 
