@@ -1,4 +1,10 @@
-import React, { useMemo, useState, useRef, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+} from "react";
 import {
   StyleSheet,
   Text,
@@ -12,9 +18,10 @@ import {
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useAppSelector, useTheme } from "@/src/hooks/hooks";
+import dayjs from "dayjs";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import {
   heightScale,
   moderateHeightScale,
@@ -645,14 +652,14 @@ const createStyles = (theme: Theme) =>
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: moderateHeightScale(8),
-  
-      width:"100%"
+
+      width: "100%",
     },
     subscriptionPriceContainer: {
       flexDirection: "row",
       alignItems: "center",
       gap: moderateWidthScale(4),
-      maxWidth:"55%"
+      maxWidth: "55%",
     },
     subscriptionButtonContainer: {
       alignSelf: "flex-end",
@@ -805,6 +812,9 @@ export default function DashboardContent() {
   const { showBanner } = useNotificationContext();
   const userRole = useAppSelector((state: any) => state.user.userRole);
   const isGuest = useAppSelector((state: any) => state.user.isGuest);
+  const selectedDateISO = useAppSelector(
+    (state: any) => state.general.selectedDate
+  );
 
   const isCusotmerandGuest = isGuest || userRole === "customer";
 
@@ -829,23 +839,27 @@ export default function DashboardContent() {
     useState<string>("all");
   const [selectedMembershipFilter, setSelectedMembershipFilter] =
     useState<string>("all");
-  const [serviceTemplates, setServiceTemplates] = useState<Array<{
-    id: number;
-    name: string;
-    category_id: number;
-    category: string;
-    base_price: number;
-    duration_hours: number;
-    duration_minutes: number;
-    active: boolean;
-    createdAt: string;
-  }>>([]);
+  const [serviceTemplates, setServiceTemplates] = useState<
+    Array<{
+      id: number;
+      name: string;
+      category_id: number;
+      category: string;
+      base_price: number;
+      duration_hours: number;
+      duration_minutes: number;
+      active: boolean;
+      createdAt: string;
+    }>
+  >([]);
   const [serviceTemplatesLoading, setServiceTemplatesLoading] = useState(false);
   const [serviceTemplatesError, setServiceTemplatesError] = useState(false);
   const [inclusionsModalVisible, setInclusionsModalVisible] = useState(false);
   const [selectedInclusions, setSelectedInclusions] = useState<string[]>([]);
   const [serviceSections, setServiceSections] = useState<ServiceSection[]>([]);
-  const [subscriptionSections, setSubscriptionSections] = useState<ServiceSection[]>([]);
+  const [subscriptionSections, setSubscriptionSections] = useState<
+    ServiceSection[]
+  >([]);
   const [sectionsLoading, setSectionsLoading] = useState(false);
   const [sectionsError, setSectionsError] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
@@ -970,7 +984,12 @@ export default function DashboardContent() {
     } catch (error) {
       console.error("Failed to fetch service templates:", error);
       setServiceTemplatesError(true);
-      showBanner("API Failed", "API failed to fetch service templates", "error", 2500);
+      showBanner(
+        "API Failed",
+        "API failed to fetch service templates",
+        "error",
+        2500
+      );
       setServiceTemplates([]);
     } finally {
       setServiceTemplatesLoading(false);
@@ -989,16 +1008,19 @@ export default function DashboardContent() {
       // Build API URL with appropriate query parameters
       const baseUrl = businessEndpoints.businesses(categoryId as number);
       const queryParams = new URLSearchParams();
-      
+
       if (tab === "individual") {
         queryParams.append("with_services", "true");
         if (serviceTemplateId) {
-          queryParams.append("service_template_id", serviceTemplateId.toString());
+          queryParams.append(
+            "service_template_id",
+            serviceTemplateId.toString()
+          );
         }
       } else {
         queryParams.append("with_subscription_plans", "true");
       }
-      
+
       const url = `${baseUrl}&${queryParams.toString()}`;
 
       const response = await ApiService.get<{
@@ -1041,7 +1063,9 @@ export default function DashboardContent() {
         if (tab === "individual") {
           // Transform services data
           const mappedSections: ServiceSection[] = response.data
-            .filter((business) => business.services && business.services.length > 0)
+            .filter(
+              (business) => business.services && business.services.length > 0
+            )
             .map((business) => ({
               id: business.id,
               businessName: business.title,
@@ -1064,20 +1088,24 @@ export default function DashboardContent() {
                   id: service.id,
                   title: service.name,
                   price: parseFloat(service.price),
-                  originalPrice: parseFloat((parseFloat(service.price) * 1.1).toFixed(2)), // Approximate original price
-                  description: service.description || "No description available",
+                  originalPrice: parseFloat(
+                    (parseFloat(service.price) * 1.1).toFixed(2)
+                  ), // Approximate original price
+                  description:
+                    service.description || "No description available",
                   duration: durationText,
                 };
               }),
             }));
-          
+
           setServiceSections(mappedSections);
         } else {
           // Transform subscription plans data
           const mappedSections: ServiceSection[] = response.data
             .filter(
               (business) =>
-                business.subscription_plans && business.subscription_plans.length > 0
+                business.subscription_plans &&
+                business.subscription_plans.length > 0
             )
             .map((business) => ({
               id: business.id,
@@ -1093,16 +1121,21 @@ export default function DashboardContent() {
                   id: plan.id,
                   title: plan.name,
                   price: parseFloat(plan.price),
-                  originalPrice: parseFloat((parseFloat(plan.price) * 1.15).toFixed(2)), // Approximate original price
+                  originalPrice: parseFloat(
+                    (parseFloat(plan.price) * 1.15).toFixed(2)
+                  ), // Approximate original price
                   offer: `${plan.visits} visits included`,
                   offer2: plan.planType === "user" ? "User Plan" : undefined,
-                  inclusions: inclusions.length > 0 ? inclusions : ["No services included"],
+                  inclusions:
+                    inclusions.length > 0
+                      ? inclusions
+                      : ["No services included"],
                   image: null,
                 };
               }),
             }));
-            
-          setSubscriptionSections( mappedSections);
+
+          setSubscriptionSections(mappedSections);
         }
       } else {
         // Empty response
@@ -1117,7 +1150,9 @@ export default function DashboardContent() {
       setSectionsError(true);
       showBanner(
         "API Failed",
-        `API failed to fetch ${tab === "individual" ? "services" : "subscriptions"}`,
+        `API failed to fetch ${
+          tab === "individual" ? "services" : "subscriptions"
+        }`,
         "error",
         2500
       );
@@ -1203,6 +1238,26 @@ export default function DashboardContent() {
       setAppointmentsLoading(true);
       setAppointmentsError(false);
 
+      // Build params object
+      const params: {
+        status: string;
+        page: number;
+        per_page: number;
+        from_date?: string;
+        to_date?: string;
+      } = {
+        status: "scheduled",
+        page: 1,
+        per_page: 10,
+      };
+
+      // Add from_date parameter if selectedDate is not null
+      if (selectedDateISO) {
+        const selectedDate = dayjs(selectedDateISO);
+        params.from_date = selectedDate.format("YYYY-MM-DD");
+        params.to_date = selectedDate.format("YYYY-MM-DD");
+      }
+
       // Fetch appointments without appointment_type filter to get both subscription and service types
       // This is similar to how verified salons work - fetch all when category is selected
       const response = await ApiService.get<{
@@ -1217,13 +1272,7 @@ export default function DashboardContent() {
             last_page: number;
           };
         };
-      }>(
-        appointmentsEndpoints.list({
-          status: "scheduled",
-          page: 1,
-          per_page: 10,
-        })
-      );
+      }>(appointmentsEndpoints.list(params));
 
       const allAppointments: Appointment[] = [];
 
@@ -1294,11 +1343,15 @@ export default function DashboardContent() {
     }
   };
 
-  useEffect(() => {
-    if (isCusotmerandGuest) {
-      fetchCategories();
+  useFocusEffect(
+    useCallback(() => {
       fetchAppointments();
-    }
+    }, [selectedDateISO])
+  );
+
+  // Refetch appointments when selectedDate changes
+  useEffect(() => {
+    fetchCategories();
   }, []);
 
   // Fetch service templates when category changes or when switching to individual tab
@@ -1319,15 +1372,16 @@ export default function DashboardContent() {
   useEffect(() => {
     if (isCusotmerandGuest && selectedCategory) {
       fetchBusinesses(selectedCategory);
-      const serviceTemplateId = 
-        activeTab === "individual" && selectedServiceFilter !== "all" && selectedServiceFilter !== "services"
+      const serviceTemplateId =
+        activeTab === "individual" &&
+        selectedServiceFilter !== "all" &&
+        selectedServiceFilter !== "services"
           ? parseInt(selectedServiceFilter)
           : undefined;
       fetchBusinessesWithData(selectedCategory, activeTab, serviceTemplateId);
     }
   }, [selectedCategory, activeTab, selectedServiceFilter]);
 
-  
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
     // Set initial position without animation
@@ -1337,7 +1391,6 @@ export default function DashboardContent() {
     });
   }, []);
 
-  
   // Animate sticky tabs and category section when showCategoryTabs changes
   useEffect(() => {
     if (showCategoryTabs) {
@@ -1686,11 +1739,27 @@ export default function DashboardContent() {
       <View style={styles.resultsHeader}>
         <View style={styles.resultsTextContainer}>
           <Text style={styles.resultsText}>
-            Showing:{" "}
-            <Text style={styles.resultsTextBold}>
-              {appointments.length > 0 ? appointments.length : businessesCount} results
-            </Text>{" "}
-            for {getCategoryName()}
+            {appointments.length > 0 ? (
+              <>
+                Showing:{" "}
+                <Text style={styles.resultsTextBold}>
+                  {appointments.length} result
+                  {appointments.length !== 1 ? "s" : ""}
+                </Text>{" "}
+                for upcoming appointment{appointments.length !== 1 ? "s" : ""}
+                {selectedDateISO && (
+                  <> on {dayjs(selectedDateISO).format("MMM D, YYYY")}</>
+                )}
+              </>
+            ) : (
+              <>
+                Showing:{" "}
+                <Text style={styles.resultsTextBold}>
+                  {businessesCount} results
+                </Text>{" "}
+                for {getCategoryName()}
+              </>
+            )}
           </Text>
         </View>
 
@@ -1758,7 +1827,7 @@ export default function DashboardContent() {
               loading={businessesLoading || appointmentsLoading}
             />
           </View>
-        ) : appointments.length > 100 ? (
+        ) : appointments.length > 0 ? (
           appointments.map((appointment, index) => (
             <View
               key={appointment.id}
@@ -2012,8 +2081,8 @@ export default function DashboardContent() {
             loading={sectionsLoading}
           />
         </View>
-      ) : (tab === "individual" ? serviceSections : subscriptionSections).length >
-        0 ? (
+      ) : (tab === "individual" ? serviceSections : subscriptionSections)
+          .length > 0 ? (
         (tab === "individual" ? serviceSections : subscriptionSections).map(
           (section, sectionIndex) => {
             const itemsCount =
@@ -2037,7 +2106,9 @@ export default function DashboardContent() {
                     },
                   ]}
                 >
-                  <Text style={styles.sectionSubTitle}>{section.businessName}</Text>
+                  <Text style={styles.sectionSubTitle}>
+                    {section.businessName}
+                  </Text>
                   {showViewMore && (
                     <TouchableOpacity
                       activeOpacity={0.7}
@@ -2060,197 +2131,67 @@ export default function DashboardContent() {
                   )}
                 </View>
 
-            {/* Services or Subscriptions */}
-            {tab === "individual" && section.services ? (
-              <ScrollView
-                horizontal
-                nestedScrollEnabled
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.servicesScroll}
-              >
-                {section.services.map((service, index) => (
-                  <View
-                    key={service.id}
-                    style={[
-                      styles.serviceCard,
-                      styles.shadow,
-                      index < (section?.services?.length ?? 0) - 1 && {
-                        marginRight: moderateWidthScale(15),
-                      },
-                    ]}
+                {/* Services or Subscriptions */}
+                {tab === "individual" && section.services ? (
+                  <ScrollView
+                    horizontal
+                    nestedScrollEnabled
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.servicesScroll}
                   >
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        paddingHorizontal: moderateWidthScale(12),
-                      }}
-                    >
+                    {section.services.map((service, index) => (
                       <View
-                        style={{
-                          gap: moderateHeightScale(8),
-                          width: "70%",
-                        }}
+                        key={service.id}
+                        style={[
+                          styles.serviceCard,
+                          styles.shadow,
+                          index < (section?.services?.length ?? 0) - 1 && {
+                            marginRight: moderateWidthScale(15),
+                          },
+                        ]}
                       >
-                        <Text style={styles.serviceTitle}>{service.title}</Text>
-                        <Text
-                          numberOfLines={2}
-                          style={styles.serviceDescription}
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            justifyContent: "space-between",
+                            paddingHorizontal: moderateWidthScale(12),
+                          }}
                         >
-                          {service.description}
-                        </Text>
-                      </View>
-                      <View style={styles.servicePrice}>
-                        <Text style={styles.priceCurrent}>
-                          ${service.price}
-                        </Text>
-                        <Text style={styles.priceOriginal}>
-                          ${service.originalPrice}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View style={styles.line} />
-                    <View style={styles.serviceBottomRow}>
-                      <Text numberOfLines={1} style={styles.serviceDuration}>
-                        {service.duration}
-                      </Text>
-                      <View style={styles.serviceButtonContainer}>
-                        <Button
-                          title="Book Now"
-                          onPress={() => {}}
-                          containerStyle={styles.button}
-                          textStyle={styles.buttonText}
-                        />
-                      </View>
-                    </View>
-                  </View>
-                ))}
-              </ScrollView>
-            ) : (
-              section.subscriptions && (
-                <ScrollView
-                  horizontal
-                  nestedScrollEnabled
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.servicesScroll}
-                >
-                  {section.subscriptions.map((subscription, index) => (
-                    <View
-                      key={subscription.id}
-                      style={[
-                        styles.subscriptionCard,
-                        styles.shadow,
-                        index < (section?.subscriptions?.length ?? 0) - 1 && {
-                          marginRight: moderateWidthScale(15),
-                        },
-                      ]}
-                    >
-                      <Image
-                        source={{
-                          uri:
-                            subscription.image ||
-                            "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-                        }}
-                        style={styles.subscriptionImage}
-                        resizeMode="cover"
-                      />
-                      <View
-                        style={{
-                          paddingHorizontal: moderateWidthScale(8),
-                          flex: 1,
-                          justifyContent: "space-between",
-                        }}
-                      >
-                        <View style={styles.offerBadgesContainer}>
-                          {subscription.offer && (
-                            <View
-                              style={[
-                                styles.offerBadge,
-                                styles.offerBadgeOrange,
-                              ]}
+                          <View
+                            style={{
+                              gap: moderateHeightScale(8),
+                              width: "70%",
+                            }}
+                          >
+                            <Text style={styles.serviceTitle}>
+                              {service.title}
+                            </Text>
+                            <Text
+                              numberOfLines={2}
+                              style={styles.serviceDescription}
                             >
-                              <Text style={styles.offerText}>
-                                {subscription.offer}
-                              </Text>
-                            </View>
-                          )}
-                          {subscription.offer2 && (
-                            <View
-                              style={[
-                                styles.offerBadge,
-                                styles.offerBadgeGreen,
-                              ]}
-                            >
-                              <Text
-                                style={[
-                                  styles.offerText,
-                                  { color: theme.darkGreen },
-                                ]}
-                              >
-                                {subscription.offer2}
-                              </Text>
-                            </View>
-                          )}
+                              {service.description}
+                            </Text>
+                          </View>
+                          <View style={styles.servicePrice}>
+                            <Text style={styles.priceCurrent}>
+                              ${service.price}
+                            </Text>
+                            <Text style={styles.priceOriginal}>
+                              ${service.originalPrice}
+                            </Text>
+                          </View>
                         </View>
-                        <View>
+
+                        <View style={styles.line} />
+                        <View style={styles.serviceBottomRow}>
                           <Text
                             numberOfLines={1}
-                            style={styles.subscriptionTitle}
+                            style={styles.serviceDuration}
                           >
-                            {subscription.title}
+                            {service.duration}
                           </Text>
-                          {subscription.inclusions.length > 2 ? (
-                            <>
-                              {subscription.inclusions
-                                .slice(0, 2)
-                                .map((inclusion, index) => (
-                                  <Text
-                                    numberOfLines={1}
-                                    key={index}
-                                    style={styles.inclusionItem}
-                                  >
-                                    {inclusion}
-                                  </Text>
-                                ))}
-                              <TouchableOpacity
-                                onPress={() => {
-                                  setSelectedInclusions(
-                                    subscription.inclusions
-                                  );
-                                  setInclusionsModalVisible(true);
-                                }}
-                              >
-                                <Text style={styles.moreText}>
-                                  and +{subscription.inclusions.length - 2} more
-                                </Text>
-                              </TouchableOpacity>
-                            </>
-                          ) : (
-                            subscription.inclusions.map((inclusion, index) => (
-                              <Text
-                                numberOfLines={1}
-                                key={index}
-                                style={styles.inclusionItem}
-                              >
-                                {inclusion}
-                              </Text>
-                            ))
-                          )}
-                        </View>
-                        <View style={styles.line} />
-                        <View style={styles.subscriptionPrice}>
-                          <View style={styles.subscriptionPriceContainer}>
-                            <Text style={styles.priceCurrent}>
-                              ${subscription.price}
-                            </Text>
-                            {subscription.originalPrice && (
-                              <Text style={styles.priceOriginal}>
-                                ${subscription.originalPrice}
-                              </Text>
-                            )}
-                          </View>
-                          <View style={styles.subscriptionButtonContainer}>
+                          <View style={styles.serviceButtonContainer}>
                             <Button
                               title="Book Now"
                               onPress={() => {}}
@@ -2260,11 +2201,150 @@ export default function DashboardContent() {
                           </View>
                         </View>
                       </View>
-                    </View>
-                  ))}
-                </ScrollView>
-              )
-            )}
+                    ))}
+                  </ScrollView>
+                ) : (
+                  section.subscriptions && (
+                    <ScrollView
+                      horizontal
+                      nestedScrollEnabled
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.servicesScroll}
+                    >
+                      {section.subscriptions.map((subscription, index) => (
+                        <View
+                          key={subscription.id}
+                          style={[
+                            styles.subscriptionCard,
+                            styles.shadow,
+                            index <
+                              (section?.subscriptions?.length ?? 0) - 1 && {
+                              marginRight: moderateWidthScale(15),
+                            },
+                          ]}
+                        >
+                          <Image
+                            source={{
+                              uri:
+                                subscription.image ||
+                                "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                            }}
+                            style={styles.subscriptionImage}
+                            resizeMode="cover"
+                          />
+                          <View
+                            style={{
+                              paddingHorizontal: moderateWidthScale(8),
+                              flex: 1,
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <View style={styles.offerBadgesContainer}>
+                              {subscription.offer && (
+                                <View
+                                  style={[
+                                    styles.offerBadge,
+                                    styles.offerBadgeOrange,
+                                  ]}
+                                >
+                                  <Text style={styles.offerText}>
+                                    {subscription.offer}
+                                  </Text>
+                                </View>
+                              )}
+                              {subscription.offer2 && (
+                                <View
+                                  style={[
+                                    styles.offerBadge,
+                                    styles.offerBadgeGreen,
+                                  ]}
+                                >
+                                  <Text
+                                    style={[
+                                      styles.offerText,
+                                      { color: theme.darkGreen },
+                                    ]}
+                                  >
+                                    {subscription.offer2}
+                                  </Text>
+                                </View>
+                              )}
+                            </View>
+                            <View>
+                              <Text
+                                numberOfLines={1}
+                                style={styles.subscriptionTitle}
+                              >
+                                {subscription.title}
+                              </Text>
+                              {subscription.inclusions.length > 2 ? (
+                                <>
+                                  {subscription.inclusions
+                                    .slice(0, 2)
+                                    .map((inclusion, index) => (
+                                      <Text
+                                        numberOfLines={1}
+                                        key={index}
+                                        style={styles.inclusionItem}
+                                      >
+                                        {inclusion}
+                                      </Text>
+                                    ))}
+                                  <TouchableOpacity
+                                    onPress={() => {
+                                      setSelectedInclusions(
+                                        subscription.inclusions
+                                      );
+                                      setInclusionsModalVisible(true);
+                                    }}
+                                  >
+                                    <Text style={styles.moreText}>
+                                      and +{subscription.inclusions.length - 2}{" "}
+                                      more
+                                    </Text>
+                                  </TouchableOpacity>
+                                </>
+                              ) : (
+                                subscription.inclusions.map(
+                                  (inclusion, index) => (
+                                    <Text
+                                      numberOfLines={1}
+                                      key={index}
+                                      style={styles.inclusionItem}
+                                    >
+                                      {inclusion}
+                                    </Text>
+                                  )
+                                )
+                              )}
+                            </View>
+                            <View style={styles.line} />
+                            <View style={styles.subscriptionPrice}>
+                              <View style={styles.subscriptionPriceContainer}>
+                                <Text style={styles.priceCurrent}>
+                                  ${subscription.price}
+                                </Text>
+                                {subscription.originalPrice && (
+                                  <Text style={styles.priceOriginal}>
+                                    ${subscription.originalPrice}
+                                  </Text>
+                                )}
+                              </View>
+                              <View style={styles.subscriptionButtonContainer}>
+                                <Button
+                                  title="Book Now"
+                                  onPress={() => {}}
+                                  containerStyle={styles.button}
+                                  textStyle={styles.buttonText}
+                                />
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      ))}
+                    </ScrollView>
+                  )
+                )}
               </View>
             );
           }
