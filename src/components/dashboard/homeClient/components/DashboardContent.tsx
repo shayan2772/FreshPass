@@ -949,7 +949,7 @@ export default function DashboardContent() {
             ? process.env.EXPO_PUBLIC_API_BASE_URL + item.image_url
             : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
         }));
-        console.log("mappedSalons", mappedSalons);
+        
         setVerifiedSalons(mappedSalons);
         setBusinessesCount(response.data.length);
       }
