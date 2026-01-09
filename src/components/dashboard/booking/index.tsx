@@ -31,7 +31,7 @@ import dayjs from "dayjs";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
-type BookingStatus = "ongoing" | "active" | "complete" | "cancelled" | "expired" | "without_scheduled";
+type BookingStatus = "ongoing" | "active" | "complete" | "cancelled" | "expired" | "without_scheduled" | "pending";
 
 interface BookingItem {
   id: string;
@@ -262,6 +262,9 @@ const createStyles = (theme: Theme) =>
     statusWithoutScheduled: {
       backgroundColor: "#F3E5F5",
     },
+    statusPending: {
+      backgroundColor: theme.orangeBrown01,
+    },
     statusText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
@@ -283,6 +286,9 @@ const createStyles = (theme: Theme) =>
     },
     statusTextWithoutScheduled: {
       color: "#7B1FA2",
+    },
+    statusTextPending: {
+      color: theme.appointmentStatusText,
     },
     emptyContainer: {
       flex: 1,
@@ -317,7 +323,6 @@ export default function BookingScreen() {
   const [selectedTab, setSelectedTab] = useState<TabType>("all");
   const [listType, setListType] = useState<ListType>("individual");
   const [bookings, setBookings] = useState<BookingItem[]>([]);
-  console.log("bookings : ", bookings);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -337,6 +342,8 @@ export default function BookingScreen() {
         return styles.statusExpired;
       case "without_scheduled":
         return styles.statusWithoutScheduled;
+      case "pending":
+        return styles.statusPending;
       default:
         return styles.statusActive;
     }
@@ -356,13 +363,15 @@ export default function BookingScreen() {
         return styles.statusTextExpired;
       case "without_scheduled":
         return styles.statusTextWithoutScheduled;
+      case "pending":
+        return styles.statusTextPending;
       default:
         return styles.statusTextActive;
     }
   };
 
   const getStatusLabel = (status: BookingStatus) => {
-    console.log("statsu : ", status);
+  
     switch (status) {
       case "ongoing":
         return "On-going apt.";
@@ -376,17 +385,20 @@ export default function BookingScreen() {
         return "Expired";
       case "without_scheduled":
         return "Without Scheduled";
+      case "pending":
+        return "Pending";
       default:
         return "Active";
     }
   };
 
   const mapApiStatusToBookingStatus = (apiStatus: string): BookingStatus => {
+    console.log("apiStatus : ", apiStatus);
     switch (apiStatus.toLowerCase()) {
       case "scheduled":
         return "ongoing";
       case "pending":
-        return "active";
+        return "pending";
       case "completed":
         return "complete";
       case "cancelled":
@@ -395,9 +407,11 @@ export default function BookingScreen() {
         return "expired";
       case "without_scheduled":
         return "without_scheduled";
+      case "pending":
+        return "pending";
       default:
         // Return the status as-is if it matches one of our BookingStatus types
-        if (["ongoing", "active", "complete", "cancelled", "expired", "without_scheduled"].includes(apiStatus.toLowerCase())) {
+        if (["ongoing", "active", "complete", "cancelled", "expired", "without_scheduled", "pending"].includes(apiStatus.toLowerCase())) {
           return apiStatus.toLowerCase() as BookingStatus;
         }
         return "active";
