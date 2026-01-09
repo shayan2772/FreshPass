@@ -1258,6 +1258,7 @@ export default function DashboardContent() {
         per_page: number;
         from_date?: string;
         to_date?: string;
+        appointment_type?: string;
       } = {
         status: "scheduled",
         page: 1,
@@ -1271,8 +1272,12 @@ export default function DashboardContent() {
         params.to_date = selectedDate.format("YYYY-MM-DD");
       }
 
-      // Fetch appointments without appointment_type filter to get both subscription and service types
-      // This is similar to how verified salons work - fetch all when category is selected
+      // Add appointment_type parameter based on activeTab
+      if (activeTab === "individual") {
+        params.appointment_type = "service";
+      } else if (activeTab === "subscriptions") {
+        params.appointment_type = "subscription";
+      }
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -1359,7 +1364,7 @@ export default function DashboardContent() {
   useFocusEffect(
     useCallback(() => {
       fetchAppointments();
-    }, [selectedDateISO])
+    }, [selectedDateISO, activeTab])
   );
 
   // Refetch appointments when selectedDate changes
