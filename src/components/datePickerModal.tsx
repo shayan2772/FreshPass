@@ -165,6 +165,9 @@ const createStyles = (theme: Theme) =>
     dayNumberSelectedText: {
       color: theme.darkGreen,
     },
+    dayNumberTodayText: {
+      color: theme.selectCard,
+    },
     timezoneText: {
       fontSize: fontSize.size10,
       fontFamily: fonts.fontRegular,
@@ -352,7 +355,9 @@ export default function DatePickerModal({
                   {/* Days Row */}
                   <View style={styles.daysRow}>
                     {week.map((day) => {
-                      const isSelected = day.isSame(localSelectedDate, "day");
+                      const isToday = day.isSame(today, "day");
+                      const isSelected = selectedDate !== null && day.isSame(selectedDate, "day");
+                      const isTodayWithoutSelection = selectedDate === null && isToday;
                       return (
                         <TouchableOpacity
                           key={day.format("YYYY-MM-DD")}
@@ -369,6 +374,7 @@ export default function DatePickerModal({
                               style={[
                                 styles.dayNumber,
                                 isSelected && styles.dayNumberSelectedText,
+                                isTodayWithoutSelection && styles.dayNumberTodayText,
                               ]}
                             >
                               {day.format("D")}
