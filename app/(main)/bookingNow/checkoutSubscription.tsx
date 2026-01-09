@@ -400,6 +400,8 @@ function CheckoutSubscriptionContent() {
         );
       }
 
+      console.log("paymentConfig", paymentConfig);
+
       const { error: initError } = await initPaymentSheet(paymentConfig);
 
       if (initError) {
