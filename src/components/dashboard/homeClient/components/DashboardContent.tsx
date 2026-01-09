@@ -815,6 +815,7 @@ export default function DashboardContent() {
   const selectedDateISO = useAppSelector(
     (state: any) => state.general.selectedDate
   );
+  const searchText = useAppSelector((state: any) => state.general.searchText);
 
   const isCusotmerandGuest = isGuest || userRole === "customer";
 
@@ -912,10 +913,17 @@ export default function DashboardContent() {
     }
   };
 
-  const fetchBusinesses = async (categoryId: number | string) => {
+  const fetchBusinesses = async (
+    categoryId: number | string,
+    search?: string
+  ) => {
     try {
       setBusinessesLoading(true);
       setBusinessesError(false);
+      let url = businessEndpoints.businesses(categoryId as number);
+      if (search && search.trim()) {
+        url += `&search=${encodeURIComponent(search.trim())}`;
+      }
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -927,7 +935,7 @@ export default function DashboardContent() {
           ratings_count: number;
           image_url: string | null;
         }>;
-      }>(businessEndpoints.businesses(categoryId as number));
+      }>(url);
 
       if (response.success && response.data) {
         // Map API response to VerifiedSalon format
@@ -999,7 +1007,8 @@ export default function DashboardContent() {
   const fetchBusinessesWithData = async (
     categoryId: number | string,
     tab: "individual" | "subscriptions",
-    serviceTemplateId?: number
+    serviceTemplateId?: number,
+    search?: string
   ) => {
     try {
       setSectionsLoading(true);
@@ -1019,6 +1028,10 @@ export default function DashboardContent() {
         }
       } else {
         queryParams.append("with_subscription_plans", "true");
+      }
+
+      if (search && search.trim()) {
+        queryParams.append("search", search.trim());
       }
 
       const url = `${baseUrl}&${queryParams.toString()}`;
@@ -1368,19 +1381,34 @@ export default function DashboardContent() {
     }
   }, [selectedCategory]);
 
-  // Fetch businesses when category or tab changes
+  // Fetch businesses when category or tab changes (with debounced search)
   useEffect(() => {
     if (isCusotmerandGuest && selectedCategory) {
-      fetchBusinesses(selectedCategory);
-      const serviceTemplateId =
-        activeTab === "individual" &&
-        selectedServiceFilter !== "all" &&
-        selectedServiceFilter !== "services"
-          ? parseInt(selectedServiceFilter)
-          : undefined;
-      fetchBusinessesWithData(selectedCategory, activeTab, serviceTemplateId);
+      // Trim search text
+      const trimmedSearch = searchText?.trim() || "";
+      
+      // Debounce search - wait 500ms after user stops typing
+      const debounceTimer = setTimeout(() => {
+        fetchBusinesses(selectedCategory, trimmedSearch || undefined);
+        const serviceTemplateId =
+          activeTab === "individual" &&
+          selectedServiceFilter !== "all" &&
+          selectedServiceFilter !== "services"
+            ? parseInt(selectedServiceFilter)
+            : undefined;
+        fetchBusinessesWithData(
+          selectedCategory,
+          activeTab,
+          serviceTemplateId,
+          trimmedSearch || undefined
+        );
+      }, 500);
+
+      return () => {
+        clearTimeout(debounceTimer);
+      };
     }
-  }, [selectedCategory, activeTab, selectedServiceFilter]);
+  }, [selectedCategory, activeTab, selectedServiceFilter, searchText]);
 
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
@@ -1820,7 +1848,11 @@ export default function DashboardContent() {
             <RetryButton
               onPress={() => {
                 if (selectedCategory) {
-                  fetchBusinesses(selectedCategory);
+                  const trimmedSearch = searchText?.trim() || "";
+                  fetchBusinesses(
+                    selectedCategory,
+                    trimmedSearch || undefined
+                  );
                   fetchAppointments();
                 }
               }}
@@ -2075,7 +2107,19 @@ export default function DashboardContent() {
           <RetryButton
             onPress={() => {
               if (selectedCategory) {
-                fetchBusinessesWithData(selectedCategory, tab);
+                const trimmedSearch = searchText?.trim() || "";
+                const serviceTemplateId =
+                  tab === "individual" &&
+                  selectedServiceFilter !== "all" &&
+                  selectedServiceFilter !== "services"
+                    ? parseInt(selectedServiceFilter)
+                    : undefined;
+                fetchBusinessesWithData(
+                  selectedCategory,
+                  tab,
+                  serviceTemplateId,
+                  trimmedSearch || undefined
+                );
               }
             }}
             loading={sectionsLoading}
