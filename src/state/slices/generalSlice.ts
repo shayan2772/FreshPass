@@ -12,6 +12,7 @@ export interface GeneralState {
   toggleLoading: boolean; // Toggle loading state (not persisted)
   role: UserRole; // Selected user role
   isVisitFirst: boolean; // Track if it's the first visit
+  selectedDate: string | null; // Selected date for viewing appointments (ISO string format)
 }
 
 const initialState: GeneralState = {
@@ -24,6 +25,7 @@ const initialState: GeneralState = {
   toggleLoading: false,
   role: null,
   isVisitFirst: true,
+  selectedDate: null,
 };
 
 const generalSlice = createSlice({
@@ -58,8 +60,15 @@ const generalSlice = createSlice({
     setIsVisitFirst(state, action: PayloadAction<boolean>) {
       state.isVisitFirst = action.payload;
     },
+    setSelectedDate(state, action: PayloadAction<string | null>) {
+      state.selectedDate = action.payload;
+    },
+    clearSelectedDate(state) {
+      state.selectedDate = null;
+    },
     resetGeneral(state) {
       state.language = "en";
+      state.selectedDate = null;
     },
   },
 });
@@ -74,6 +83,8 @@ export const {
   setToggleLoading,
   setRole,
   setIsVisitFirst,
+  setSelectedDate,
+  clearSelectedDate,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

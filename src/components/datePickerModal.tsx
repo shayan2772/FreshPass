@@ -9,11 +9,9 @@ import {
   Pressable,
   Animated,
 } from "react-native";
-import {
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useTheme, useAppSelector } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -24,6 +22,7 @@ import {
 import dayjs from "dayjs";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import isoWeek from "dayjs/plugin/isoWeek";
+import { clearSelectedDate } from "@/src/state/slices/generalSlice";
 
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
@@ -31,7 +30,7 @@ dayjs.extend(isoWeek);
 interface DatePickerModalProps {
   visible: boolean;
   onClose: () => void;
-  selectedDate: dayjs.Dayjs;
+  selectedDate: dayjs.Dayjs | null;
   onDateSelect: (date: dayjs.Dayjs) => void;
 }
 
@@ -54,8 +53,10 @@ const getTimezoneInfo = () => {
     const offsetHours = Math.abs(Math.floor(offset / 60));
     const offsetMinutes = Math.abs(offset % 60);
     const sign = offset <= 0 ? "+" : "-";
-    const gmtOffset = `GMT${sign}${offsetHours}${offsetMinutes > 0 ? `:${offsetMinutes.toString().padStart(2, "0")}` : ""}`;
-    
+    const gmtOffset = `GMT${sign}${offsetHours}${
+      offsetMinutes > 0 ? `:${offsetMinutes.toString().padStart(2, "0")}` : ""
+    }`;
+
     // Try to get location name from user state
     return { timezone, gmtOffset };
   } catch (error) {
@@ -79,7 +80,7 @@ const createStyles = (theme: Theme) =>
     },
     modalHeader: {
       paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(22),
+      paddingTop: moderateHeightScale(32),
       paddingBottom: moderateHeightScale(20),
       backgroundColor: theme.white,
       flexDirection: "row",
@@ -168,7 +169,23 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size10,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
-      marginBottom: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(12),
+    },
+    appointmentText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(16),
+      textAlign: "center",
+    },
+
+    clearButtonText: {
+      fontSize: fontSize.size11,
+      fontFamily: fonts.fontMedium,
+      color: theme.lightGreen,
+      textAlign: "right",
+      textDecorationLine: "underline",
+      textDecorationColor: theme.lightGreen,
     },
   });
 
@@ -181,11 +198,14 @@ export default function DatePickerModal({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const dispatch = useAppDispatch();
   const location = useAppSelector((state) => state.user.location);
-  
+
   const today = dayjs();
   const [week, setWeek] = useState(getWeekDays(selectedDate || today));
-  const [localSelectedDate, setLocalSelectedDate] = useState(selectedDate || today);
+  const [localSelectedDate, setLocalSelectedDate] = useState(
+    selectedDate || today
+  );
   const slideAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -226,6 +246,12 @@ export default function DatePickerModal({
     onClose();
   };
 
+  const handleClearDate = () => {
+    dispatch(clearSelectedDate());
+    setLocalSelectedDate(today);
+    onClose();
+  };
+
   const timezoneInfo = getTimezoneInfo();
   const locationName = location?.locationName || "Miami-Dade County, FL, USA";
   const timezoneText = `In your time zone, ${locationName} (${timezoneInfo.gmtOffset})`;
@@ -250,7 +276,11 @@ export default function DatePickerModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <StatusBar barStyle="dark-content" backgroundColor="transparent" translucent />
+      <StatusBar
+        barStyle="dark-content"
+        backgroundColor="transparent"
+        translucent
+      />
       <Animated.View style={[styles.modalOverlay, { opacity: overlayOpacity }]}>
         <Pressable style={{ flex: 1 }} onPress={onClose}>
           <Pressable
@@ -262,101 +292,133 @@ export default function DatePickerModal({
                 transform: [{ translateY }],
               }}
             >
-            <View style={styles.modalHeader}>
-              <View style={{ width: moderateWidthScale(32) }} />
-              <Text style={styles.modalHeaderTitle}>Select date</Text>
-              <TouchableOpacity
-                onPress={onClose}
-                style={styles.modalCloseButton}
-                activeOpacity={0.7}
-              >
-                <Feather
-                  name="x"
-                  size={moderateWidthScale(18)}
-                  color={theme.darkGreen}
-                />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.modalContent}>
-              {/* Week Navigation */}
-              <View style={styles.weekNavigation}>
+              <View style={styles.modalHeader}>
+                <View style={{ width: moderateWidthScale(32) }} />
+                <Text style={styles.modalHeaderTitle}>Select date</Text>
                 <TouchableOpacity
-                  onPress={prevWeek}
-                  style={styles.weekNavigationButton}
+                  onPress={onClose}
+                  style={styles.modalCloseButton}
                   activeOpacity={0.7}
                 >
                   <Feather
-                    name="chevron-left"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
-                </TouchableOpacity>
-                <Text style={styles.weekRangeText}>{formatWeekRange(week)}</Text>
-                <TouchableOpacity
-                  onPress={nextWeek}
-                  style={styles.weekNavigationButton}
-                  activeOpacity={0.7}
-                >
-                  <Feather
-                    name="chevron-right"
-                    size={moderateWidthScale(16)}
+                    name="x"
+                    size={moderateWidthScale(18)}
                     color={theme.darkGreen}
                   />
                 </TouchableOpacity>
               </View>
 
-              {/* Calendar Grid */}
-              <View style={styles.calendarGrid}>
-                {/* Days Header */}
-                <View style={styles.daysHeader}>
-                  {dayNames.map((dayName) => (
-                    <View key={dayName} style={styles.dayHeader}>
-                      <Text style={styles.dayHeaderText}>{dayName}</Text>
-                    </View>
-                  ))}
+              <View style={styles.modalContent}>
+                {/* Week Navigation */}
+                <View style={styles.weekNavigation}>
+                  <TouchableOpacity
+                    onPress={prevWeek}
+                    style={styles.weekNavigationButton}
+                    activeOpacity={0.7}
+                  >
+                    <Feather
+                      name="chevron-left"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                    />
+                  </TouchableOpacity>
+                  <Text style={styles.weekRangeText}>
+                    {formatWeekRange(week)}
+                  </Text>
+                  <TouchableOpacity
+                    onPress={nextWeek}
+                    style={styles.weekNavigationButton}
+                    activeOpacity={0.7}
+                  >
+                    <Feather
+                      name="chevron-right"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                    />
+                  </TouchableOpacity>
                 </View>
 
-                {/* Days Row */}
-                <View style={styles.daysRow}>
-                  {week.map((day) => {
-                    const isSelected = day.isSame(localSelectedDate, "day");
-                    return (
-                      <TouchableOpacity
-                        key={day.format("YYYY-MM-DD")}
-                        style={styles.dayContainer}
-                        onPress={() => handleDateSelect(day)}
-                      >
-                        <View
-                          style={[
-                            styles.dayNumberContainer,
-                            isSelected && styles.dayNumberSelected,
-                          ]}
+                {/* Calendar Grid */}
+                <View style={styles.calendarGrid}>
+                  {/* Days Header */}
+                  <View style={styles.daysHeader}>
+                    {dayNames.map((dayName) => (
+                      <View key={dayName} style={styles.dayHeader}>
+                        <Text style={styles.dayHeaderText}>{dayName}</Text>
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Days Row */}
+                  <View style={styles.daysRow}>
+                    {week.map((day) => {
+                      const isSelected = day.isSame(localSelectedDate, "day");
+                      return (
+                        <TouchableOpacity
+                          key={day.format("YYYY-MM-DD")}
+                          style={styles.dayContainer}
+                          onPress={() => handleDateSelect(day)}
                         >
-                          <Text
+                          <View
                             style={[
-                              styles.dayNumber,
-                              isSelected && styles.dayNumberSelectedText,
+                              styles.dayNumberContainer,
+                              isSelected && styles.dayNumberSelected,
                             ]}
                           >
-                            {day.format("D")}
-                          </Text>
-                        </View>
-                      </TouchableOpacity>
-                    );
-                  })}
+                            <Text
+                              style={[
+                                styles.dayNumber,
+                                isSelected && styles.dayNumberSelectedText,
+                              ]}
+                            >
+                              {day.format("D")}
+                            </Text>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+
+                {/* Timezone Information */}
+                <Text
+                  style={[
+                    styles.timezoneText,
+                    { marginBottom: moderateHeightScale(5) },
+                  ]}
+                >
+                  {timezoneText}
+                </Text>
+
+                {/* Appointment Selection Text */}
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    marginBottom: moderateHeightScale(12),
+                  }}
+                >
+                  <Text style={[styles.timezoneText,{marginBottom:0}]}>
+                    To view appointments on a specific date, select a date above
+                  </Text>
+
+                  {/* Clear Date Button */}
+                  {selectedDate && (
+                    <Text
+                      onPress={handleClearDate}
+                      style={styles.clearButtonText}
+                    >
+                      Clear date
+                    </Text>
+                  )}
                 </View>
               </View>
-
-              {/* Timezone Information */}
-              <Text style={styles.timezoneText}>{timezoneText}</Text>
-            </View>
-            {/* <View style={{ paddingBottom: insets.bottom }} /> */}
-          </Animated.View>
+              {/* <View style={{ paddingBottom: insets.bottom }} /> */}
+            </Animated.View>
+          </Pressable>
         </Pressable>
-      </Pressable>
       </Animated.View>
     </Modal>
   );
 }
-

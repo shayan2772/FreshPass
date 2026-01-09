@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   Pressable,
 } from "react-native";
-import { useTheme, useAppSelector } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import LocationModal from "@/src/components/locationModal";
 import DatePickerModal from "@/src/components/datePickerModal";
 import dayjs from "dayjs";
+import { setSelectedDate } from "@/src/state/slices/generalSlice";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -90,11 +91,13 @@ export default function DashboardHeaderClient() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
+  const dispatch = useAppDispatch();
   const location = useAppSelector((state) => state.user.location);
+  const selectedDateISO = useAppSelector((state) => state.general.selectedDate);
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [dateModalVisible, setDateModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(dayjs());
 
+  const selectedDate = selectedDateISO ? dayjs(selectedDateISO) : null;
   const locationName = location?.locationName || "Select Location";
   
   const formatDate = (date: dayjs.Dayjs) => {
@@ -150,7 +153,7 @@ export default function DashboardHeaderClient() {
               height={heightScale(14.67)}
               color={theme.darkGreenLight}
             />
-            <Text style={styles.whenText}>{formatDate(selectedDate)}</Text>
+            <Text style={styles.whenText}>{selectedDate ? formatDate(selectedDate) : "---"}</Text>
             <ChevronDownIcon
               width={widthScale(8)}
               height={heightScale(4)}
@@ -168,7 +171,7 @@ export default function DashboardHeaderClient() {
         onClose={() => setDateModalVisible(false)}
         selectedDate={selectedDate}
         onDateSelect={(date) => {
-          setSelectedDate(date);
+          dispatch(setSelectedDate(date.toISOString()));
         }}
       />
     </>
