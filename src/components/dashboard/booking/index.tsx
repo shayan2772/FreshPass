@@ -512,6 +512,10 @@ export default function BookingScreen() {
         per_page: 10,
       };
 
+      if(selectedTab === "all") {
+        params.status = "without_pending"
+      }
+
       if (selectedTab === "complete") {
         params.status = "completed";
       } else if (selectedTab === "cancelled") {

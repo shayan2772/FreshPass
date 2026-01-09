@@ -1185,6 +1185,7 @@ function CheckoutContent() {
             // Step 1: Fetch payment sheet parameters from backend
             const {
               paymentIntent,
+              setupIntent,
               customerSessionClientSecret,
               ephemeralKey,
               customer,
@@ -1204,7 +1205,8 @@ function CheckoutContent() {
 
             // Use CustomerSession (newer approach) if available, otherwise fall back to EphemeralKey
             if (customerSessionClientSecret) {
-              paymentConfig.customerSessionClientSecret = customerSessionClientSecret;
+              paymentConfig.customerSessionClientSecret =
+                customerSessionClientSecret;
             } else if (ephemeralKey) {
               paymentConfig.customerEphemeralKeySecret = ephemeralKey;
             } else {
@@ -1213,17 +1215,22 @@ function CheckoutContent() {
               );
             }
 
-            // Use paymentIntent for appointment payment
+            // Use paymentIntent for subscription payment, or setupIntent as fallback
             if (paymentIntent && paymentIntent.trim() !== "") {
               paymentConfig.paymentIntentClientSecret = paymentIntent;
+            } else if (setupIntent && setupIntent.trim() !== "") {
+              paymentConfig.setupIntentClientSecret = setupIntent;
             } else {
-              throw new Error("Payment Intent must be provided");
+              throw new Error(
+                "Either Payment Intent or Setup Intent must be provided"
+              );
             }
-
             const { error: initError } = await initPaymentSheet(paymentConfig);
 
             if (initError) {
-              throw new Error(initError.message || "Failed to initialize payment");
+              throw new Error(
+                initError.message || "Failed to initialize payment"
+              );
             }
 
             // Step 3: Present payment sheet to user
@@ -1249,7 +1256,12 @@ function CheckoutContent() {
             // Wait 2 seconds before showing success and navigating
             setTimeout(() => {
               setProcessingPayment(false);
-              showBanner("Success", "Payment successful! Your booking is confirmed.", "success", 3000);
+              showBanner(
+                "Success",
+                "Payment successful! Your booking is confirmed.",
+                "success",
+                3000
+              );
 
               // Create bookingId: appointmentDate (YYYYMMDD format) + appointmentId
               let dateFormatted = "";
@@ -1258,10 +1270,10 @@ function CheckoutContent() {
                 const dateParts = appointmentDate.split("/");
                 if (dateParts.length === 3) {
                   const [month, day, year] = dateParts;
-                  dateFormatted = `${year}${month.padStart(2, "0")}${day.padStart(
+                  dateFormatted = `${year}${month.padStart(
                     2,
                     "0"
-                  )}`;
+                  )}${day.padStart(2, "0")}`;
                 }
               }
               const bookingId =

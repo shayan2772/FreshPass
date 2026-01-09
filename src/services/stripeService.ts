@@ -63,6 +63,7 @@ interface AppointmentPaymentSheetApiResponse {
     customerSessionClientSecret?: string;
     ephemeralKey?: string;
     paymentIntent: string;
+    setupIntent:string
   };
 }
 
@@ -84,6 +85,7 @@ export const fetchAppointmentPaymentSheetParams = async (
         customerSessionClientSecret: response.data.customerSessionClientSecret,
         ephemeralKey: response.data.ephemeralKey,
         paymentIntent: response.data.paymentIntent || "",
+        setupIntent: response.data.setupIntent,
       };
     }
 
