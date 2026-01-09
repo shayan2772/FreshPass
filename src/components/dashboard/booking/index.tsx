@@ -404,16 +404,7 @@ export default function BookingScreen() {
     }
   };
 
-  const formatDuration = (hours: number, minutes: number): string => {
-    const totalMinutes = hours * 60 + minutes;
-    if (totalMinutes < 60) {
-      return `${totalMinutes} min`;
-    }
-    if (minutes === 0) {
-      return `${hours} ${hours === 1 ? "hr" : "hrs"}`;
-    }
-    return `${hours} ${hours === 1 ? "hr" : "hrs"} ${minutes} min`;
-  };
+ 
 
   const formatDateTime = (date: string, time: string): string => {
     return `${date} - ${time}`;
