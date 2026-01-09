@@ -226,6 +226,28 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
+    paymentDateSection: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: moderateHeightScale(14),
+      marginBottom: moderateHeightScale(14),
+      paddingTop: moderateHeightScale(14),
+      borderTopWidth: 1,
+      borderTopColor: theme.lightGreen05,
+    },
+    paymentDateLabel: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      marginLeft: moderateWidthScale(8),
+      letterSpacing: 0.5,
+    },
+    paymentDateValue: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginLeft: moderateWidthScale(10),
+    },
     nextRenewalSection: {
       flexDirection: "row",
       alignItems: "center",
@@ -693,6 +715,19 @@ export default function subscriptionCustomer() {
               </View>
             </View>
           </View>
+
+          {/* Payment Date */}
+          {item.paymentDate && (
+            <View style={styles.paymentDateSection}>
+              <Feather
+                name="credit-card"
+                size={moderateWidthScale(16)}
+                color={theme.darkGreen}
+              />
+              <Text style={styles.paymentDateLabel}>PAYMENT DATE</Text>
+              <Text style={styles.paymentDateValue}>{item.paymentDate}</Text>
+            </View>
+          )}
 
           {/* Next Renewal */}
           <View style={styles.nextRenewalSection}>
