@@ -13,6 +13,7 @@ export interface GeneralState {
   role: UserRole; // Selected user role
   isVisitFirst: boolean; // Track if it's the first visit
   selectedDate: string | null; // Selected date for viewing appointments (ISO string format)
+  searchText: string; // Search text for location/services search
 }
 
 const initialState: GeneralState = {
@@ -26,6 +27,7 @@ const initialState: GeneralState = {
   role: null,
   isVisitFirst: true,
   selectedDate: null,
+  searchText: "",
 };
 
 const generalSlice = createSlice({
@@ -66,9 +68,16 @@ const generalSlice = createSlice({
     clearSelectedDate(state) {
       state.selectedDate = null;
     },
+    setSearchText(state, action: PayloadAction<string>) {
+      state.searchText = action.payload;
+    },
+    clearSearchText(state) {
+      state.searchText = "";
+    },
     resetGeneral(state) {
       state.language = "en";
       state.selectedDate = null;
+      state.searchText = "";
     },
   },
 });
@@ -85,6 +94,8 @@ export const {
   setIsVisitFirst,
   setSelectedDate,
   clearSelectedDate,
+  setSearchText,
+  clearSearchText,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

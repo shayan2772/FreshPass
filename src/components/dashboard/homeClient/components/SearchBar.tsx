@@ -7,7 +7,8 @@ import {
   Animated,
   Pressable,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
+import { setSearchText, clearSearchText } from "@/src/state/slices/generalSlice";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -114,7 +115,9 @@ export default function SearchBar({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const [location, setLocation] = useState(initialLocation);
+  const dispatch = useAppDispatch();
+  const searchText = useAppSelector((state: any) => state.general.searchText);
+  const location = initialLocation || searchText;
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const hasValue = Boolean(location && location.length > 0);
@@ -123,12 +126,13 @@ export default function SearchBar({
   const shouldShowLabel = hasValue || isFocused;
 
   useEffect(() => {
+    const newHasValue = Boolean(location && location.length > 0);
     Animated.timing(labelAnimation, {
-      toValue: shouldShowLabel ? 1 : 0,
+      toValue: (newHasValue || isFocused) ? 1 : 0,
       duration: 140,
       useNativeDriver: false,
     }).start();
-  }, [labelAnimation, shouldShowLabel]);
+  }, [location, isFocused, labelAnimation]);
 
   const handleFocus = () => {
     setIsFocused(true);
@@ -139,12 +143,12 @@ export default function SearchBar({
   };
 
   const handleChangeText = (text: string) => {
-    setLocation(text);
+    dispatch(setSearchText(text));
     onLocationChange?.(text);
   };
 
   const handleClear = () => {
-    setLocation("");
+    dispatch(clearSearchText());
     onLocationChange?.("");
     setIsFocused(false);
     inputRef.current?.blur();
