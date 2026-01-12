@@ -256,8 +256,10 @@ export default function DatePickerModal({
   };
 
   const timezoneInfo = getTimezoneInfo();
-  const locationName = location?.locationName || "Miami-Dade County, FL, USA";
-  const timezoneText = `In your time zone, ${locationName} (${timezoneInfo.gmtOffset})`;
+  // const locationName = location?.locationName || "Miami-Dade County, FL, USA";
+  // const timezoneText = `In your time zone, ${locationName} (${timezoneInfo.gmtOffset})`;
+  const timezoneText = `In your time zone, ${timezoneInfo.timezone} (${timezoneInfo.gmtOffset})`;
+
 
   const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
