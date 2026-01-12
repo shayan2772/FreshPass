@@ -31,7 +31,14 @@ import dayjs from "dayjs";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
-type BookingStatus = "ongoing" | "active" | "complete" | "cancelled" | "expired" | "without_scheduled" | "pending";
+type BookingStatus =
+  | "ongoing"
+  | "active"
+  | "complete"
+  | "cancelled"
+  | "expired"
+  | "without_scheduled"
+  | "pending";
 
 interface BookingItem {
   id: string;
@@ -371,7 +378,6 @@ export default function BookingScreen() {
   };
 
   const getStatusLabel = (status: BookingStatus) => {
-  
     switch (status) {
       case "ongoing":
         return "On-going apt.";
@@ -411,14 +417,22 @@ export default function BookingScreen() {
         return "pending";
       default:
         // Return the status as-is if it matches one of our BookingStatus types
-        if (["ongoing", "active", "complete", "cancelled", "expired", "without_scheduled", "pending"].includes(apiStatus.toLowerCase())) {
+        if (
+          [
+            "ongoing",
+            "active",
+            "complete",
+            "cancelled",
+            "expired",
+            "without_scheduled",
+            "pending",
+          ].includes(apiStatus.toLowerCase())
+        ) {
           return apiStatus.toLowerCase() as BookingStatus;
         }
         return "active";
     }
   };
-
- 
 
   const formatDateTime = (date: string, time: string): string => {
     return `${date} - ${time}`;
@@ -456,8 +470,6 @@ export default function BookingScreen() {
         ? allServices.map((s: any) => s.name).join(" + ")
         : "Service";
 
-   
-
     const location = apiAppointment.businessAddress
       ? apiAppointment.businessAddress.length > 20
         ? `${apiAppointment.businessAddress.substring(0, 20)}...`
@@ -472,7 +484,25 @@ export default function BookingScreen() {
       apiAppointment.appointmentDate,
       apiAppointment.appointmentTime
     );
- 
+
+    const getPrice = () => {
+      if (apiAppointment.appointmentType === "subscription") {
+        return apiAppointment.paidAmount;
+      }
+      const totalPrice = apiAppointment?.totalPrice;
+      // Check if totalPrice is an empty object or invalid
+      if (
+        totalPrice === null ||
+        totalPrice === undefined ||
+        (typeof totalPrice === "object" && Object.keys(totalPrice).length === 0) ||
+        (typeof totalPrice !== "number" && typeof totalPrice !== "string")
+      ) {
+        return 0.00;
+      }
+      return totalPrice;
+    };
+
+    const price = getPrice();
 
     return {
       id: apiAppointment.id.toString(),
@@ -485,7 +515,7 @@ export default function BookingScreen() {
       location,
       dateTime: dateTime,
       duration: "",
-      price: formatPrice(apiAppointment.totalPrice),
+      price: formatPrice(price??0.00),
       status: mapApiStatusToBookingStatus(apiAppointment.status),
       appointmentType: apiAppointment.appointmentType,
     };
@@ -512,8 +542,8 @@ export default function BookingScreen() {
         per_page: 10,
       };
 
-      if(selectedTab === "all") {
-        params.status = "without_pending"
+      if (selectedTab === "all") {
+        params.status = "without_pending";
       }
 
       if (selectedTab === "complete") {
