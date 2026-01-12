@@ -7,15 +7,19 @@ import {
   TouchableOpacity,
   Image,
   StatusBar,
+  ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import {
   setSelectedServices,
   setSelectedStaff,
   clearBusinessData,
+  setBusinessData as setBusinessDataAction,
   type StaffMember,
 } from "@/src/state/slices/bsnsSlice";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -302,6 +306,7 @@ export default function BookingNow() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const params = useLocalSearchParams<{ business_id?: string; service_id?: string }>();
 
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
@@ -310,12 +315,14 @@ export default function BookingNow() {
     staffMembers,
     selectedServices: reduxSelectedServices,
     selectedStaff: reduxSelectedStaff,
+    businessId: reduxBusinessId,
   } = businessData || {
     selectedService: null,
     allServices: [],
     staffMembers: [],
     selectedServices: [],
     selectedStaff: "anyone",
+    businessId: "",
   };
 
   // Use Redux directly - no local state needed
@@ -329,12 +336,302 @@ export default function BookingNow() {
 
   const selectedStaff = reduxSelectedStaff || "anyone";
   const [addServiceModalVisible, setAddServiceModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
+  // Always fetch business data - API call happens in both cases
+  const fetchBusinessDetails = useCallback(async () => {
+    // Get business_id from params or from Redux (when coming from businessDetail)
+    const businessId = params.business_id || reduxBusinessId;
+    if (!businessId) {
+      return;
+    }
+
+    // Check if Redux already has data - if yes, don't show loader
+    const hasReduxData = reduxBusinessId === businessId && allServices.length > 0;
+
+    try {
+      // Only show loading indicator if Redux doesn't have data
+      if (!hasReduxData) {
+        setLoading(true);
+      }
+      setError(null);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          business: any;
+        };
+      }>(businessEndpoints.businessDetails(businessId));
+
+      if (response.success && response.data?.business) {
+        const businessData = response.data.business;
+
+        // Parse business hours from API format to Redux format
+        const parseTimeToHoursMinutes = (
+          timeString: string | null | undefined
+        ): { hours: number; minutes: number } => {
+          if (!timeString || typeof timeString !== "string") {
+            return { hours: 0, minutes: 0 };
+          }
+          const [hours, minutes] = timeString.split(":").map(Number);
+          return { hours: hours || 0, minutes: minutes || 0 };
+        };
+
+        const getDayDisplayFormat = (day: string): string => {
+          if (!day) return day;
+          const dayLower = day.toLowerCase();
+          const dayMap: { [key: string]: string } = {
+            monday: "Monday",
+            tuesday: "Tuesday",
+            wednesday: "Wednesday",
+            thursday: "Thursday",
+            friday: "Friday",
+            saturday: "Saturday",
+            sunday: "Sunday",
+          };
+          return dayMap[dayLower] || day;
+        };
+
+        const parseBusinessHours = (
+          hoursArray: any[] | null | undefined
+        ) => {
+          if (
+            !hoursArray ||
+            !Array.isArray(hoursArray) ||
+            hoursArray.length === 0
+          ) {
+            return null;
+          }
+
+          const businessHours: { [key: string]: any } = {};
+
+          // Initialize all days with default closed state
+          const DAYS = [
+            "Monday",
+            "Tuesday",
+            "Wednesday",
+            "Thursday",
+            "Friday",
+            "Saturday",
+            "Sunday",
+          ];
+          DAYS.forEach((day) => {
+            businessHours[day] = {
+              isOpen: false,
+              fromHours: 0,
+              fromMinutes: 0,
+              tillHours: 0,
+              tillMinutes: 0,
+              breaks: [],
+            };
+          });
+
+          // Parse API hours
+          hoursArray.forEach((dayData: any) => {
+            const dayName = getDayDisplayFormat(dayData.day);
+            if (!DAYS.includes(dayName)) return;
+
+            let fromHours = 0;
+            let fromMinutes = 0;
+            let tillHours = 0;
+            let tillMinutes = 0;
+
+            if (dayData.opening_time) {
+              const parsed = parseTimeToHoursMinutes(dayData.opening_time);
+              fromHours = parsed.hours;
+              fromMinutes = parsed.minutes;
+            }
+
+            if (dayData.closing_time) {
+              const parsed = parseTimeToHoursMinutes(dayData.closing_time);
+              tillHours = parsed.hours;
+              tillMinutes = parsed.minutes;
+            }
+
+            const breaks = (dayData.break_hours || []).map((breakTime: any) => {
+              const {
+                hours: breakFromHours,
+                minutes: breakFromMinutes,
+              } = parseTimeToHoursMinutes(breakTime.start || "00:00");
+              const {
+                hours: breakTillHours,
+                minutes: breakTillMinutes,
+              } = parseTimeToHoursMinutes(breakTime.end || "00:00");
+              return {
+                fromHours: breakFromHours,
+                fromMinutes: breakFromMinutes,
+                tillHours: breakTillHours,
+                tillMinutes: breakTillMinutes,
+              };
+            });
+
+            businessHours[dayName] = {
+              isOpen: !dayData.closed,
+              fromHours,
+              fromMinutes,
+              tillHours,
+              tillMinutes,
+              breaks,
+            };
+          });
+
+          return businessHours;
+        };
+
+        // Get individual services
+        const individualServices = businessData.services || [];
+
+        // Map all services - convert API format to Redux format
+        const allServicesData = individualServices.map((s: any) => {
+          // Convert price from string to number
+          const price = parseFloat(s.price) || 0;
+          // Calculate originalPrice (10% more) or use same as price if not available
+          const originalPrice = s.originalPrice
+            ? parseFloat(s.originalPrice)
+            : parseFloat((price * 1.1).toFixed(2));
+
+          // Format duration from hours and minutes
+          const durationHours = s.duration_hours || 0;
+          const durationMinutes = s.duration_minutes || 0;
+          let durationText = "";
+          if (durationHours > 0 && durationMinutes > 0) {
+            durationText = `${durationHours} hr ${durationMinutes} min`;
+          } else if (durationHours > 0) {
+            durationText = `${durationHours} hr`;
+          } else if (durationMinutes > 0) {
+            durationText = `${durationMinutes} min`;
+          } else {
+            durationText = "N/A";
+          }
+
+          return {
+            id: s.id,
+            name: s.name,
+            description: s.description || "",
+            price: price,
+            originalPrice: originalPrice,
+            duration: durationText,
+            label: s.label || null,
+          };
+        });
+
+        // Map staff members with working_hours
+        const staffMembersData = (businessData?.staff || []).map(
+          (staff: any) => {
+            // Construct image URL from API response
+            let image =
+              "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+            if (staff.avatar) {
+              image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
+            }
+
+            // Parse working_hours if available (even if empty array)
+            const staffWorkingHours = parseBusinessHours(staff.working_hours);
+
+            return {
+              id: staff.id || staff.user_id || 0,
+              name: staff.name || "Staff Member",
+              experience: staff?.description ?? null,
+              image: image,
+              working_hours: staffWorkingHours,
+            };
+          }
+        );
+
+        const businessHoursData = parseBusinessHours(businessData?.hours);
+
+        // Find the service to select - use service_id from params if provided
+        // If coming from businessDetail, use the service that was already selected in Redux
+        // If coming from DashboardContent, use service_id from params
+        const serviceIdToSelect = params.service_id
+          ? parseInt(params.service_id)
+          : null;
+        
+        let serviceToSelect = null;
+        if (serviceIdToSelect && allServicesData.length > 0) {
+          // Find service by ID from params (DashboardContent case)
+          serviceToSelect = allServicesData.find((s: Service) => s.id === serviceIdToSelect) || allServicesData[0];
+        } else if (hasReduxData && reduxSelectedServices.length > 0) {
+          // If Redux has data, keep the already selected service (businessDetail case)
+          const selectedServiceId = reduxSelectedServices[0].id;
+          serviceToSelect = allServicesData.find((s: Service) => s.id === selectedServiceId) || allServicesData[0];
+        } else if (allServicesData.length > 0) {
+          // Fallback to first service
+          serviceToSelect = allServicesData[0];
+        }
+
+        const businessPayload = {
+          selectedService: serviceToSelect,
+          allServices: allServicesData,
+          staffMembers: staffMembersData,
+          businessId: businessId,
+          businessHours: businessHoursData,
+        };
+
+        dispatch(setBusinessDataAction(businessPayload));
+
+        // Set selected service in selectedServices - preserve existing selection if from businessDetail
+        if (serviceToSelect) {
+          if (hasReduxData && reduxSelectedServices.length > 0) {
+            // Keep existing selection from Redux (businessDetail case)
+            const existingService = allServicesData.find(
+              (s: Service) => s.id === reduxSelectedServices[0].id
+            );
+            if (existingService) {
+              dispatch(setSelectedServices([existingService]));
+            } else {
+              dispatch(setSelectedServices([serviceToSelect]));
+            }
+          } else {
+            // New selection (DashboardContent case or first time)
+            dispatch(setSelectedServices([serviceToSelect]));
+          }
+        }
+      } else {
+        setError("Failed to load business details");
+        showBanner(
+          "Error",
+          "Failed to load business details. Please try again.",
+          "error",
+          4000
+        );
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load business details");
+      showBanner(
+        "Error",
+        err.message || "Failed to load business details. Please try again.",
+        "error",
+        4000
+      );
+    } finally {
+      // Only set loading to false if we were showing loader
+      if (!hasReduxData) {
+        setLoading(false);
+      }
+    }
+  }, [
+    params.business_id,
+    params.service_id,
+    reduxBusinessId,
+    allServices.length,
+    reduxSelectedServices,
+    dispatch,
+    showBanner,
+  ]);
+
+  // Fetch data on mount - check both params and Redux for business_id
   useEffect(() => {
+    // Call API if we have business_id from params OR from Redux (businessDetail case)
+    if (params.business_id || reduxBusinessId) {
+      fetchBusinessDetails();
+    }
+    
     return () => {
       dispatch(clearBusinessData());
     };
-  }, [dispatch]);
+  }, [   ]);
 
   const staffList = [
     {
@@ -382,6 +679,50 @@ export default function BookingNow() {
     () => selectedServices.map((s) => s.id),
     [selectedServices]
   );
+
+  // Show loading indicator while fetching data
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                router.back();
+              }}
+            >
+              <BackArrowIcon
+                width={widthScale(25)}
+                height={heightScale(25)}
+                color={theme.darkGreen}
+              />
+            </TouchableOpacity>
+            <View style={styles.logoContainer}>
+              <LeafLogo
+                width={widthScale(22)}
+                height={heightScale(22)}
+                color1={theme.darkGreen}
+                color2={theme.darkGreen}
+              />
+              <Text style={styles.logoText}>FRESHPASS</Text>
+            </View>
+          </View>
+        </View>
+        <View style={styles.line} />
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <ActivityIndicator size="large" color={theme.darkGreen} />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>

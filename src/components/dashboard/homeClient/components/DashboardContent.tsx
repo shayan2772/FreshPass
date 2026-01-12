@@ -2239,19 +2239,18 @@ export default function DashboardContent() {
                           </Text>
                           <TouchableOpacity
                             activeOpacity={0.7}
-                            onPress={() => {
-                            
-                            }}
+                            onPress={() => {}}
                             style={styles.serviceButtonContainer}
                           >
                             <Button
                               title="Book Now"
                               onPress={() => {
-                                console.log("service: ", service);
-                                console.log("business name: ", section.businessName);
-                                console.log("business data: ", {
-                                  businessId: section.id,
-                                  businessName: section.businessName,
+                                router.push({
+                                  pathname: "/(main)/bookingNow",
+                                  params: {
+                                    business_id: section.id.toString(),
+                                    service_id: service.id.toString(),
+                                  },
                                 });
                               }}
                               containerStyle={styles.button}
