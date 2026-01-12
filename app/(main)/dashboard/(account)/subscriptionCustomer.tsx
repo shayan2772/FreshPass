@@ -82,12 +82,20 @@ const createStyles = (theme: Theme) =>
     },
     subscriptionCard: {
       marginHorizontal: moderateWidthScale(20),
-      marginBottom: moderateHeightScale(16),
-      borderRadius: moderateWidthScale(12),
-      backgroundColor: theme.orangeBrown015,
-      padding: moderateWidthScale(18),
+      marginBottom: moderateHeightScale(12),
+      borderRadius: moderateWidthScale(16),
+      backgroundColor: theme.background,
+      padding: moderateWidthScale(16),
       borderWidth: 1,
       borderColor: theme.borderLight,
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
     },
     shadow: {
       shadowColor: theme.shadow,
@@ -102,42 +110,44 @@ const createStyles = (theme: Theme) =>
     cardHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
-      alignItems: "center",
-      marginBottom: moderateHeightScale(12),
+      alignItems: "flex-start",
+      marginBottom: moderateHeightScale(10),
     },
     planTitleRow: {
       flexDirection: "row",
       alignItems: "center",
       flex: 1,
-      marginRight: moderateWidthScale(10),
-    },
-    starIcon: {
       marginRight: moderateWidthScale(8),
     },
+    starIcon: {
+      marginRight: moderateWidthScale(6),
+    },
     planTitle: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size20,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       textTransform: "capitalize",
       flex: 1,
     },
     statusBadge: {
-      paddingHorizontal: moderateWidthScale(10),
-      paddingVertical: moderateHeightScale(6),
-      borderRadius: moderateWidthScale(12),
-      backgroundColor: "#FFD700",
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(4),
+      borderRadius: moderateWidthScale(20),
+      backgroundColor: theme.orangeBrown015,
+      borderWidth: 1,
+      borderColor: theme.orangeBrown,
     },
     statusText: {
       fontSize: fontSize.size11,
       fontFamily: fonts.fontBold,
-      color: theme.darkGreen,
+      color: theme.orangeBrown,
       letterSpacing: 0.5,
     },
     topSection: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      marginBottom: moderateHeightScale(10),
+      marginBottom: moderateHeightScale(8),
     },
     userInfoRow: {
       flexDirection: "row",
@@ -148,160 +158,200 @@ const createStyles = (theme: Theme) =>
       marginRight: moderateWidthScale(6),
     },
     userText: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontRegular,
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      opacity: 0.8,
+      opacity: 0.75,
     },
     priceBadge: {
       backgroundColor: theme.buttonBack,
-      paddingHorizontal: moderateWidthScale(16),
-      paddingVertical: moderateHeightScale(10),
-      borderRadius: moderateWidthScale(10),
+      paddingHorizontal: moderateWidthScale(14),
+      paddingVertical: moderateHeightScale(8),
+      borderRadius: moderateWidthScale(12),
       alignItems: "center",
+      minWidth: moderateWidthScale(90),
     },
     priceText: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size20,
       fontFamily: fonts.fontBold,
       color: theme.white,
     },
     planPriceLabel: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontRegular,
       color: theme.white,
-      marginTop: moderateHeightScale(2),
+      marginTop: moderateHeightScale(1),
       opacity: 0.9,
     },
     descriptionText: {
-      fontSize: fontSize.size13,
+      fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(14),
-      opacity: 0.7,
+      marginBottom: moderateHeightScale(10),
+      opacity: 0.65,
+      lineHeight: fontSize.size18,
     },
     usageSection: {
-      marginTop: moderateHeightScale(14),
-      marginBottom: moderateHeightScale(14),
-      paddingTop: moderateHeightScale(14),
+      marginTop: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(8),
+      paddingTop: moderateHeightScale(10),
       borderTopWidth: 1,
-      borderTopColor: theme.lightGreen05,
+      borderTopColor: theme.borderLight,
     },
     usageHeader: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(8),
     },
     usageTitle: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginLeft: moderateWidthScale(8),
+      marginLeft: moderateWidthScale(6),
       flex: 1,
     },
     checkIcon: {
-      marginLeft: moderateWidthScale(6),
+      marginLeft: moderateWidthScale(4),
     },
     usageStats: {
       flexDirection: "row",
       justifyContent: "space-between",
-      marginTop: moderateHeightScale(8),
+      gap: moderateWidthScale(6),
     },
     usageItem: {
       alignItems: "center",
       flex: 1,
-      paddingVertical: moderateHeightScale(10),
-      backgroundColor: theme.lightGreen05,
-      borderRadius: moderateWidthScale(8),
-      marginHorizontal: moderateWidthScale(3),
+      paddingVertical: moderateHeightScale(8),
+      backgroundColor: theme.lightGreen015,
+      borderRadius: moderateWidthScale(10),
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
     usageLabel: {
-      fontSize: fontSize.size11,
+      fontSize: fontSize.size10,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      marginBottom: moderateHeightScale(4),
-      opacity: 0.7,
+      marginBottom: moderateHeightScale(3),
+      opacity: 0.65,
     },
     usageValue: {
-      fontSize: fontSize.size18,
+      fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
     },
     paymentDateSection: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: moderateHeightScale(14),
-      marginBottom: moderateHeightScale(14),
-      paddingTop: moderateHeightScale(14),
+      marginTop: moderateHeightScale(8),
+      marginBottom: moderateHeightScale(6),
+      paddingTop: moderateHeightScale(8),
       borderTopWidth: 1,
-      borderTopColor: theme.lightGreen05,
+      borderTopColor: theme.borderLight,
     },
     paymentDateLabel: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      marginLeft: moderateWidthScale(8),
-      letterSpacing: 0.5,
+      marginLeft: moderateWidthScale(6),
+      letterSpacing: 0.3,
+      opacity: 0.7,
     },
     paymentDateValue: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginLeft: moderateWidthScale(10),
+      marginLeft: moderateWidthScale(8),
     },
     nextRenewalSection: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: moderateHeightScale(14),
-      marginBottom: moderateHeightScale(14),
-      paddingTop: moderateHeightScale(14),
+      marginTop: moderateHeightScale(6),
+      marginBottom: moderateHeightScale(8),
+      paddingTop: moderateHeightScale(8),
       borderTopWidth: 1,
-      borderTopColor: theme.lightGreen05,
+      borderTopColor: theme.borderLight,
     },
     nextRenewalLabel: {
-      fontSize: fontSize.size12,
+      fontSize: fontSize.size11,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-      marginLeft: moderateWidthScale(8),
-      letterSpacing: 0.5,
+      marginLeft: moderateWidthScale(6),
+      letterSpacing: 0.3,
+      opacity: 0.7,
     },
     nextRenewalDate: {
-      fontSize: fontSize.size14,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginLeft: moderateWidthScale(10),
+      marginLeft: moderateWidthScale(8),
+    },
+    paymentRenewalRow: {
+      flexDirection: "row",
+      marginTop: moderateHeightScale(6),
+      marginBottom: moderateHeightScale(6),
+      paddingTop: moderateHeightScale(8),
+      borderTopWidth: 1,
+      borderTopColor: theme.borderLight,
+    },
+    paymentDateContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      marginRight: moderateWidthScale(8),
+    },
+    renewalContainer: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      marginLeft: moderateWidthScale(8),
+    },
+    dateInfoContainer: {
+      marginLeft: moderateWidthScale(4),
+    },
+    dateLabel: {
+      fontSize: fontSize.size10,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      opacity: 0.7,
+    },
+    dateValue: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
     },
     bookAppointmentButton: {
       backgroundColor: theme.buttonBack,
-      paddingVertical: moderateHeightScale(12),
+      paddingVertical: moderateHeightScale(11),
       paddingHorizontal: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(10),
       alignSelf: "center",
-      marginTop: moderateHeightScale(4),
+      marginTop: moderateHeightScale(6),
       width: "100%",
       alignItems: "center",
-      marginBottom: moderateHeightScale(10),
+      marginBottom: moderateHeightScale(6),
     },
     bookAppointmentButtonText: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size14,
       fontFamily: fonts.fontBold,
       color: theme.white,
-      letterSpacing: 0.5,
+      letterSpacing: 0.3,
     },
     cancelButton: {
-      backgroundColor: theme.red,
-      paddingVertical: moderateHeightScale(12),
+      backgroundColor: "transparent",
+      paddingVertical: moderateHeightScale(10),
       paddingHorizontal: moderateWidthScale(20),
-      borderRadius: moderateWidthScale(8),
+      borderRadius: moderateWidthScale(10),
       alignSelf: "center",
-      marginTop: moderateHeightScale(4),
       width: "100%",
       alignItems: "center",
+      borderWidth: 1,
+      borderColor: theme.red,
     },
     cancelButtonText: {
-      fontSize: fontSize.size15,
+      fontSize: fontSize.size13,
       fontFamily: fonts.fontBold,
-      color: theme.white,
-      letterSpacing: 0.5,
+      color: theme.red,
+      letterSpacing: 0.3,
     },
     emptyContainer: {
       flex: 1,
@@ -674,7 +724,7 @@ export default function subscriptionCustomer() {
             <View style={styles.planTitleRow}>
               <Feather
                 name="star"
-                size={moderateWidthScale(18)}
+                size={moderateWidthScale(16)}
                 color={theme.orangeBrown}
                 style={styles.starIcon}
               />
@@ -690,23 +740,25 @@ export default function subscriptionCustomer() {
             <View style={styles.userInfoRow}>
               <Feather
                 name="user"
-                size={moderateWidthScale(16)}
+                size={moderateWidthScale(14)}
                 color={theme.darkGreen}
                 style={styles.userIcon}
               />
-              <Text style={styles.userText}>{item.business}</Text>
+              <Text style={styles.userText} numberOfLines={1}>
+                {item.business}
+              </Text>
             </View>
             <View style={styles.priceBadge}>
               <Text style={styles.priceText}>
-                ${item.subscriptionPlanPrice}/mo
+                ${item.subscriptionPlanPrice}
               </Text>
-              <Text style={styles.planPriceLabel}>Plan Price</Text>
+              <Text style={styles.planPriceLabel}>/month</Text>
             </View>
           </View>
 
           {/* Description */}
           {item.subscriptionPlanDescription && (
-            <Text style={styles.descriptionText}>
+            <Text style={styles.descriptionText} numberOfLines={2}>
               {item.subscriptionPlanDescription}
             </Text>
           )}
@@ -716,18 +768,12 @@ export default function subscriptionCustomer() {
             <View style={styles.usageHeader}>
               <Feather
                 name="zap"
-                size={moderateWidthScale(16)}
+                size={moderateWidthScale(14)}
                 color={theme.orangeBrown}
               />
               <Text style={styles.usageTitle}>
                 {item.visits.total} Visits Per Month
               </Text>
-              <Feather
-                name="check"
-                size={moderateWidthScale(16)}
-                color={theme.buttonBack}
-                style={styles.checkIcon}
-              />
             </View>
             <View style={styles.usageStats}>
               <View style={styles.usageItem}>
@@ -739,35 +785,49 @@ export default function subscriptionCustomer() {
                 <Text style={styles.usageValue}>{item.visits.upcoming}</Text>
               </View>
               <View style={styles.usageItem}>
-                <Text style={styles.usageLabel}>Left</Text>
+                <Text style={styles.usageLabel}>Remaining</Text>
                 <Text style={styles.usageValue}>{item.visits.remaining}</Text>
               </View>
             </View>
           </View>
 
-          {/* Payment Date */}
-          {item.paymentDate && (
-            <View style={styles.paymentDateSection}>
-              <Feather
-                name="credit-card"
-                size={moderateWidthScale(16)}
-                color={theme.darkGreen}
-              />
-              <Text style={styles.paymentDateLabel}>PAYMENT DATE</Text>
-              <Text style={styles.paymentDateValue}>{item.paymentDate}</Text>
+          {/* Payment Date and Next Renewal - Side by Side */}
+          {(item.paymentDate ||
+            item.status?.trim()?.toLowerCase() === "active") && (
+            <View style={styles.paymentRenewalRow}>
+              {item.paymentDate && (
+                <View style={styles.paymentDateContainer}>
+                  <Feather
+                    name="credit-card"
+                    size={moderateWidthScale(12)}
+                    color={theme.darkGreen}
+                  />
+                  <View style={styles.dateInfoContainer}>
+                    <Text style={styles.dateLabel}>Payment</Text>
+                    <Text style={styles.dateValue}>{item.paymentDate}</Text>
+                  </View>
+                </View>
+              )}
+              {item.status?.trim()?.toLowerCase() === "active" && (
+                <View
+                  style={[
+                    styles.renewalContainer,
+                    !item.paymentDate && { marginLeft: 0 },
+                  ]}
+                >
+                  <Feather
+                    name="calendar"
+                    size={moderateWidthScale(12)}
+                    color={theme.darkGreen}
+                  />
+                  <View style={styles.dateInfoContainer}>
+                    <Text style={styles.dateLabel}>Renewal</Text>
+                    <Text style={styles.dateValue}>{item.nextPaymentDate}</Text>
+                  </View>
+                </View>
+              )}
             </View>
           )}
-
-          {/* Next Renewal */}
-          <View style={styles.nextRenewalSection}>
-            <Feather
-              name="calendar"
-              size={moderateWidthScale(16)}
-              color={theme.darkGreen}
-            />
-            <Text style={styles.nextRenewalLabel}>NEXT RENEWAL</Text>
-            <Text style={styles.nextRenewalDate}>{item.nextPaymentDate}</Text>
-          </View>
 
           {/* Book Appointment Button */}
           {item.status?.trim()?.toLowerCase() === "active" &&
