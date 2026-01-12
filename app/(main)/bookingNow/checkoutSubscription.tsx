@@ -120,7 +120,7 @@ const createStyles = (theme: Theme) =>
       width: widthScale(120),
       height: widthScale(120),
       borderRadius: widthScale(60),
-      backgroundColor: theme.lightBeige,
+      backgroundColor: theme.lightGreen015,
       opacity: 0.3,
     },
     planHeader: {
@@ -171,6 +171,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size17,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
+      maxWidth:"50%"
     },
     pricingPeriod: {
       fontSize: fontSize.size12,
@@ -204,7 +205,7 @@ const createStyles = (theme: Theme) =>
     },
     featuresContainer: {
       gap: moderateHeightScale(12),
-      marginBottom: moderateHeightScale(20),
+      // marginBottom: moderateHeightScale(20),
     },
     featureBlock: {
       backgroundColor: theme.lightBeige,
