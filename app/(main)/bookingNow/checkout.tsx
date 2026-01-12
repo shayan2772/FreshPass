@@ -354,6 +354,10 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.darkGreenLight,
       borderColor: theme.darkGreen,
     },
+    timeSlotButtonDisabled: {
+      opacity: 0.4,
+      backgroundColor: theme.background,
+    },
     timeSlotText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontBold,
@@ -361,6 +365,9 @@ const createStyles = (theme: Theme) =>
     },
     timeSlotTextSelected: {
       color: theme.white,
+    },
+    timeSlotTextDisabled: {
+      color: theme.lightGreen,
     },
     noSlotsContainer: {
       paddingVertical: moderateHeightScale(20),
@@ -795,8 +802,37 @@ function CheckoutContent() {
     }
   };
 
+  // Check if a time slot is disabled (past time for today's date)
+  const isSlotDisabled = (slot: string): boolean => {
+    const today = dayjs().startOf("day");
+    const selectedDay = selectedDate.startOf("day");
+
+    // Only disable if selected date is today
+    if (!selectedDay.isSame(today, "day")) {
+      return false;
+    }
+
+    // Get current time
+    const now = dayjs();
+    const [hours, minutes] = slot.split(":").map(Number);
+    
+    // Create slot time for today
+    const slotTime = dayjs()
+      .hour(hours)
+      .minute(minutes)
+      .second(0)
+      .millisecond(0);
+
+    // Disable if slot time has passed
+    return slotTime.isBefore(now);
+  };
+
   // Handle slot selection
   const handleSlotSelect = (slot: string) => {
+    // Don't allow selection of disabled slots
+    if (isSlotDisabled(slot)) {
+      return;
+    }
     setSelectedTimeSlot(slot);
     const category = getSlotCategory(slot);
     setSelectedCategory(category);
@@ -1606,28 +1642,34 @@ function CheckoutContent() {
                   contentContainerStyle={styles.timeSlotsContentContainer}
                 >
                   {availableTimeSlots.length > 0 ? (
-                    getAllSlots().map((slot) => (
-                      <TouchableOpacity
-                        activeOpacity={0.7}
-                        key={slot}
-                        style={[
-                          styles.timeSlotButton,
-                          selectedTimeSlot === slot &&
-                            styles.timeSlotButtonSelected,
-                        ]}
-                        onPress={() => handleSlotSelect(slot)}
-                      >
-                        <Text
+                    getAllSlots().map((slot) => {
+                      const isDisabled = isSlotDisabled(slot);
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={isDisabled ? 1 : 0.7}
+                          key={slot}
                           style={[
-                            styles.timeSlotText,
+                            styles.timeSlotButton,
                             selectedTimeSlot === slot &&
-                              styles.timeSlotTextSelected,
+                              styles.timeSlotButtonSelected,
+                            isDisabled && styles.timeSlotButtonDisabled,
                           ]}
+                          onPress={() => handleSlotSelect(slot)}
+                          disabled={isDisabled}
                         >
-                          {convertTo12Hour(slot)}
-                        </Text>
-                      </TouchableOpacity>
-                    ))
+                          <Text
+                            style={[
+                              styles.timeSlotText,
+                              selectedTimeSlot === slot &&
+                                styles.timeSlotTextSelected,
+                              isDisabled && styles.timeSlotTextDisabled,
+                            ]}
+                          >
+                            {convertTo12Hour(slot)}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })
                   ) : (
                     <View style={styles.noSlotsContainer}>
                       <Text style={styles.noSlotsText}>
