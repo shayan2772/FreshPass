@@ -2246,7 +2246,14 @@ export default function DashboardContent() {
                           >
                             <Button
                               title="Book Now"
-                              onPress={() => {  console.log("service: ", service);}}
+                              onPress={() => {
+                                console.log("service: ", service);
+                                console.log("business name: ", section.businessName);
+                                console.log("business data: ", {
+                                  businessId: section.id,
+                                  businessName: section.businessName,
+                                });
+                              }}
                               containerStyle={styles.button}
                               textStyle={styles.buttonText}
                             />
