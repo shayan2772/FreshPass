@@ -2020,7 +2020,7 @@ export default function BusinessDetailScreen() {
                             subscriptionVisits: subscription.visits,
                             subscriptionInclusions: JSON.stringify(subscription.inclusions),
                             businessId: businessData?.id?.toString() || params.business_id || "",
-                            businessName: businessData?.name || "",
+                            businessName: businessData?.title || "",
                             businessLogo: businessData?.logo_url || "",
                             screenName: "businessDetail",
                           },

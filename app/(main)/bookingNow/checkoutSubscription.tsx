@@ -67,17 +67,19 @@ const createStyles = (theme: Theme) =>
     businessInfo: {
       flexDirection: "row",
       alignItems: "center",
-      marginBottom: moderateHeightScale(20),
+      // marginBottom: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(16),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.borderLight,
+      // borderBottomWidth: 1,
+      // borderBottomColor: theme.borderLight,
     },
     businessLogo: {
       width: widthScale(50),
       height: widthScale(50),
       borderRadius: moderateWidthScale(8),
-      backgroundColor: theme.emptyProfileImage,
+      backgroundColor: theme.lightGreen2,
       marginRight: moderateWidthScale(12),
+      borderWidth:1,
+      borderColor:theme.borderLight,
     },
     businessName: {
       flex: 1,
@@ -86,7 +88,7 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     plansContainer: {
-      gap: moderateHeightScale(20),
+      gap: moderateHeightScale(16),
       paddingBottom: moderateHeightScale(30),
     },
     planCard: {
@@ -157,23 +159,23 @@ const createStyles = (theme: Theme) =>
       marginLeft: moderateWidthScale(4),
     },
     pricingBadge: {
-      backgroundColor: theme.buttonBack,
+      backgroundColor: theme.lightBeige,
       borderRadius: moderateWidthScale(8),
       paddingHorizontal: moderateWidthScale(16),
       paddingVertical: moderateHeightScale(12),
-      alignItems: "center",
-      minWidth: widthScale(100),
+      flexDirection:"row",
+      alignItems:"center",
+      justifyContent:"space-between"
     },
     pricingAmount: {
-      fontSize: fontSize.size20,
-      fontFamily: fonts.fontExtraBold,
-      color: theme.white,
-      marginBottom: moderateHeightScale(2),
+      fontSize: fontSize.size17,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
     },
     pricingPeriod: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
-      color: theme.white,
+      color: theme.lightGreen,
     },
     monthlyTag: {
       flexDirection: "row",
@@ -242,11 +244,10 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     bottomContainer: {
-      backgroundColor: theme.white,
+      // backgroundColor: theme.white,
       paddingHorizontal: moderateWidthScale(20),
-      paddingVertical: moderateHeightScale(16),
-      borderTopWidth: 1,
-      borderTopColor: theme.borderLight,
+      paddingBottom: moderateHeightScale(16),
+       
     },
     subscribeButton: {
       marginTop: moderateHeightScale(8),
@@ -465,15 +466,17 @@ function CheckoutSubscriptionContent() {
   // Get business logo URL
   const getBusinessLogoUrl = useMemo(() => {
     // If coming from businessDetail with logo in params
-    if (params.businessLogo) {
-      return params.businessLogo;
+    if (params.businessLogo && params.businessLogo !== "") {
+      const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+      return `${baseUrl}${params.businessLogo}`;
     }
     // If coming from API
     if (businessData?.logo_url) {
       const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
       return `${baseUrl}${businessData.logo_url}`;
     }
-    return null;
+    // Default image if no logo available
+    return "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
   }, [businessData?.logo_url, params.businessLogo]);
 
   const handleSubscribe = async () => {
@@ -648,15 +651,11 @@ function CheckoutSubscriptionContent() {
           {/* Business Info */}
           {businessData && (
             <View style={styles.businessInfo}>
-              {getBusinessLogoUrl ? (
-                <Image
-                  source={{ uri: getBusinessLogoUrl }}
-                  style={styles.businessLogo}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={styles.businessLogo} />
-              )}
+              <Image
+                source={{ uri: getBusinessLogoUrl }}
+                style={styles.businessLogo}
+                resizeMode="cover"
+              />
               <Text style={styles.businessName}>
                 {businessData.title || businessData.name || "Business"}
               </Text>
