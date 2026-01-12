@@ -949,7 +949,7 @@ export default function DashboardContent() {
             ? process.env.EXPO_PUBLIC_API_BASE_URL + item.image_url
             : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
         }));
-        
+
         setVerifiedSalons(mappedSalons);
         setBusinessesCount(response.data.length);
       }
@@ -1391,7 +1391,7 @@ export default function DashboardContent() {
     if (isCusotmerandGuest && selectedCategory) {
       // Trim search text
       const trimmedSearch = searchText?.trim() || "";
-      
+
       // Debounce search - wait 500ms after user stops typing
       const debounceTimer = setTimeout(() => {
         fetchBusinesses(selectedCategory, trimmedSearch || undefined);
@@ -1854,10 +1854,7 @@ export default function DashboardContent() {
               onPress={() => {
                 if (selectedCategory) {
                   const trimmedSearch = searchText?.trim() || "";
-                  fetchBusinesses(
-                    selectedCategory,
-                    trimmedSearch || undefined
-                  );
+                  fetchBusinesses(selectedCategory, trimmedSearch || undefined);
                   fetchAppointments();
                 }
               }}
@@ -2240,14 +2237,20 @@ export default function DashboardContent() {
                           >
                             {service.duration}
                           </Text>
-                          <View style={styles.serviceButtonContainer}>
+                          <TouchableOpacity
+                            activeOpacity={0.7}
+                            onPress={() => {
+                            
+                            }}
+                            style={styles.serviceButtonContainer}
+                          >
                             <Button
                               title="Book Now"
-                              onPress={() => {}}
+                              onPress={() => {  console.log("service: ", service);}}
                               containerStyle={styles.button}
                               textStyle={styles.buttonText}
                             />
-                          </View>
+                          </TouchableOpacity>
                         </View>
                       </View>
                     ))}

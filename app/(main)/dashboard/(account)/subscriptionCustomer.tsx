@@ -270,6 +270,23 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
       marginLeft: moderateWidthScale(10),
     },
+    bookAppointmentButton: {
+      backgroundColor: theme.buttonBack,
+      paddingVertical: moderateHeightScale(12),
+      paddingHorizontal: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(8),
+      alignSelf: "center",
+      marginTop: moderateHeightScale(4),
+      width: "100%",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(10),
+    },
+    bookAppointmentButtonText: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      letterSpacing: 0.5,
+    },
     cancelButton: {
       backgroundColor: theme.red,
       paddingVertical: moderateHeightScale(12),
@@ -582,6 +599,18 @@ export default function subscriptionCustomer() {
     }
   }, [loadingMore, currentPage, totalPages, fetchSubscriptions]);
 
+  const handleBookAppointment = useCallback(
+    (subscription: SubscriptionData) => {
+      // router.push({
+      //   pathname: "/(main)/bookingNow",
+      //   params: {
+      //     businessId: subscription.businessId.toString(),
+      //   },
+      // });
+    },
+    [router]
+  );
+
   const handleCancelSubscription = useCallback(
     (subscription: SubscriptionData) => {
       setSelectedSubscription(subscription);
@@ -740,6 +769,20 @@ export default function subscriptionCustomer() {
             <Text style={styles.nextRenewalDate}>{item.nextPaymentDate}</Text>
           </View>
 
+          {/* Book Appointment Button */}
+          {item.status?.trim()?.toLowerCase() === "active" &&
+            item.visits.remaining > 0 && (
+              <TouchableOpacity
+                style={styles.bookAppointmentButton}
+                onPress={() => handleBookAppointment(item)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.bookAppointmentButtonText}>
+                  Book Appointment
+                </Text>
+              </TouchableOpacity>
+            )}
+
           {/* Cancel Button */}
           {item.status?.trim()?.toLowerCase() === "active" && (
             <TouchableOpacity
@@ -753,7 +796,7 @@ export default function subscriptionCustomer() {
         </View>
       );
     },
-    [styles, theme, handleCancelSubscription]
+    [styles, theme, handleCancelSubscription, handleBookAppointment]
   );
 
   const renderFooter = useCallback(() => {
