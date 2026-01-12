@@ -2391,7 +2391,23 @@ export default function DashboardContent() {
                               <View style={styles.subscriptionButtonContainer}>
                                 <Button
                                   title="Book Now"
-                                  onPress={() => {}}
+                                  onPress={() => {
+                                  console.log("subscription: ", subscription);  
+                                  // router.push({
+                                  //   pathname: "/(main)/bookingNow/checkoutSubscription",
+                                  //   params: {
+                                  //     subscriptionId: subscription.id.toString(),
+                                  //     subscriptionName: subscription.title,
+                                  //     subscriptionPrice: subscription.price.toString(),
+                                  //     subscriptionOriginalPrice: subscription.originalPrice.toString(),
+                                  //     subscriptionVisits: subscription.visits,
+                                  //     subscriptionInclusions: JSON.stringify(subscription.inclusions),
+                                  //     businessId: section.id.toString(),
+                                  //     businessName: section.businessName,
+                                  //     businessLogo: section.logo,
+                                  //   },
+                                  // });
+                                  }}
                                   containerStyle={styles.button}
                                   textStyle={styles.buttonText}
                                 />
