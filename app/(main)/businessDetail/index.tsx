@@ -2022,6 +2022,7 @@ export default function BusinessDetailScreen() {
                             businessId: businessData?.id?.toString() || params.business_id || "",
                             businessName: businessData?.name || "",
                             businessLogo: businessData?.logo_url || "",
+                            screenName: "businessDetail",
                           },
                         });
                       }}

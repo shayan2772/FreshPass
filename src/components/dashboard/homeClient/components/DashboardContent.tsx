@@ -2393,20 +2393,14 @@ export default function DashboardContent() {
                                   title="Book Now"
                                   onPress={() => {
                                   console.log("subscription: ", subscription);  
-                                  // router.push({
-                                  //   pathname: "/(main)/bookingNow/checkoutSubscription",
-                                  //   params: {
-                                  //     subscriptionId: subscription.id.toString(),
-                                  //     subscriptionName: subscription.title,
-                                  //     subscriptionPrice: subscription.price.toString(),
-                                  //     subscriptionOriginalPrice: subscription.originalPrice.toString(),
-                                  //     subscriptionVisits: subscription.visits,
-                                  //     subscriptionInclusions: JSON.stringify(subscription.inclusions),
-                                  //     businessId: section.id.toString(),
-                                  //     businessName: section.businessName,
-                                  //     businessLogo: section.logo,
-                                  //   },
-                                  // });
+                                  router.push({
+                                    pathname: "/(main)/bookingNow/checkoutSubscription",
+                                    params: {
+                                      subscriptionId: subscription.id.toString(),
+                                      businessId: section.id.toString(),
+                                      screenName: "DashboardContent",
+                                    },
+                                  });
                                   }}
                                   containerStyle={styles.button}
                                   textStyle={styles.buttonText}

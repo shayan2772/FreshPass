@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -27,6 +27,8 @@ import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
 import { fetchPaymentSheetParams } from "@/src/services/stripeService";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { fetchUserStatus } from "@/src/state/thunks/businessThunks";
+import { ApiService } from "@/src/services/api";
+import { businessEndpoints } from "@/src/services/endpoints";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -305,6 +307,32 @@ const createStyles = (theme: Theme) =>
       marginTop: moderateHeightScale(16),
       textAlign: "center",
     },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    loadingText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+      marginTop: moderateHeightScale(16),
+      textAlign: "center",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    errorText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(20),
+    },
   });
 
 function CheckoutSubscriptionContent() {
@@ -318,31 +346,138 @@ function CheckoutSubscriptionContent() {
   const user = useAppSelector((state: any) => state.user);
   const params = useLocalSearchParams<{
     subscriptionId?: string;
+    businessId?: string;
     subscriptionName?: string;
     subscriptionPrice?: string;
     subscriptionOriginalPrice?: string;
     subscriptionVisits?: string;
     subscriptionInclusions?: string;
-    businessId?: string;
     businessName?: string;
     businessLogo?: string;
+    screenName?: string;
   }>();
 
   const [processingPayment, setProcessingPayment] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [isSubscribing, setIsSubscribing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [businessData, setBusinessData] = useState<any>(null);
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
 
-  const subscriptionInclusions = useMemo(() => {
-    if (!params.subscriptionInclusions) return [];
-    try {
-      return JSON.parse(params.subscriptionInclusions);
-    } catch {
-      return [];
+  // Fetch business details and find matching subscription (only when coming from DashboardContent)
+  const fetchBusinessDetails = async () => {
+    if (!params.businessId || !params.subscriptionId) {
+      setError("Business ID or Subscription ID is missing");
+      setLoading(false);
+      return;
     }
-  }, [params.subscriptionInclusions]);
+
+    try {
+      setLoading(true);
+      setError(null);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          business: any;
+        };
+      }>(businessEndpoints.businessDetails(params.businessId));
+
+      if (response.success && response.data?.business) {
+        setBusinessData(response.data.business);
+
+        // Find matching subscription from subscription_plans
+        const subscriptionId = parseInt(params.subscriptionId, 10);
+        const subscriptionPlan = response.data.business.subscription_plans?.find(
+          (plan: any) => plan.id === subscriptionId
+        );
+
+        if (subscriptionPlan) {
+          // Map subscription data similar to businessDetail
+          const mappedSubscription = {
+            id: subscriptionPlan.id,
+            title: subscriptionPlan.name,
+            visits: `${subscriptionPlan.visits} visit${subscriptionPlan.visits !== 1 ? "s" : ""} per month`,
+            price: parseFloat(subscriptionPlan.price),
+            originalPrice: subscriptionPlan.original_price 
+              ? parseFloat(subscriptionPlan.original_price)
+              : parseFloat(subscriptionPlan.price) * 1.25, // Fallback calculation if not provided
+            inclusions:
+              subscriptionPlan.services?.map(
+                (service: any, index: number) => `${index + 1}. ${service.name}`
+              ) || [],
+          };
+          setSubscriptionData(mappedSubscription);
+        } else {
+          setError("Subscription plan not found");
+        }
+      } else {
+        setError("Failed to load business details");
+      }
+    } catch (err: any) {
+      setError(err.message || "Failed to load business details");
+    } finally {
+      setLoading(false);
+    }
+  } 
+
+  // Initialize data from params or fetch from API based on screenName
+  useEffect(() => {
+    if (params.screenName === "businessDetail") {
+      // Coming from businessDetail - use params directly (no API call)
+      setLoading(false);
+      setError(null);
+      setBusinessData({
+        id: params.businessId,
+        title: params.businessName,
+        name: params.businessName,
+        logo_url: params.businessLogo,
+      });
+      setSubscriptionData({
+        id: parseInt(params.subscriptionId || "0", 10),
+        title: params.subscriptionName,
+        price: parseFloat(params.subscriptionPrice || "0"),
+        originalPrice: parseFloat(params.subscriptionOriginalPrice || params.subscriptionPrice || "0"),
+        visits: params.subscriptionVisits,
+        inclusions: params.subscriptionInclusions
+          ? (() => {
+              try {
+                return JSON.parse(params.subscriptionInclusions);
+              } catch {
+                return [];
+              }
+            })()
+          : [],
+      });
+    } else if (params.screenName === "DashboardContent" && params.businessId && params.subscriptionId) {
+      // Coming from DashboardContent - fetch from API
+      fetchBusinessDetails();
+    } else if (params.businessId && params.subscriptionId) {
+      // Fallback: if screenName not provided but we have IDs, fetch from API
+      fetchBusinessDetails();
+    } else {
+      setError("Missing required parameters");
+      setLoading(false);
+    }
+  }, [ ]);
+
+  // Get business logo URL
+  const getBusinessLogoUrl = useMemo(() => {
+    // If coming from businessDetail with logo in params
+    if (params.businessLogo) {
+      return params.businessLogo;
+    }
+    // If coming from API
+    if (businessData?.logo_url) {
+      const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
+      return `${baseUrl}${businessData.logo_url}`;
+    }
+    return null;
+  }, [businessData?.logo_url, params.businessLogo]);
 
   const handleSubscribe = async () => {
-    if (!params.subscriptionId) {
+    if (!subscriptionData?.id) {
       showBanner(
         "Error",
         "Subscription ID is missing. Please try again.",
@@ -355,7 +490,7 @@ function CheckoutSubscriptionContent() {
     setIsSubscribing(true);
 
     try {
-      const planId = parseInt(params.subscriptionId, 10);
+      const planId = subscriptionData.id;
 
       // Step 1: Fetch payment sheet parameters from backend
       const {
@@ -474,7 +609,21 @@ function CheckoutSubscriptionContent() {
       {/* Header */}
       <StackHeader title="Subscription Plans" />
 
-      {paymentSuccess ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={theme.primary} />
+          <Text style={styles.loadingText}>Loading subscription details...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <Button
+            title="Retry"
+            onPress={fetchBusinessDetails}
+            containerStyle={styles.subscribeButton}
+          />
+        </View>
+      ) : paymentSuccess ? (
         <View style={styles.successContainer}>
           <View style={styles.successIcon}>
             <Feather
@@ -486,29 +635,31 @@ function CheckoutSubscriptionContent() {
           <Text style={styles.successTitle}>Congratulations!</Text>
           <Text style={styles.successMessage}>
             You have successfully subscribed to{" "}
-            {params.subscriptionName || "this plan"}.{"\n\n"}
+            {subscriptionData?.title || "this plan"}.{"\n\n"}
             Your subscription is now active and ready to use.
           </Text>
         </View>
-      ) : (
+      ) : subscriptionData ? (
         <ScrollView
           style={styles.content}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.plansContainer}
         >
           {/* Business Info */}
-          {params.businessName && (
+          {businessData && (
             <View style={styles.businessInfo}>
-              {params.businessLogo ? (
+              {getBusinessLogoUrl ? (
                 <Image
-                  source={{ uri: params.businessLogo }}
+                  source={{ uri: getBusinessLogoUrl }}
                   style={styles.businessLogo}
                   resizeMode="cover"
                 />
               ) : (
                 <View style={styles.businessLogo} />
               )}
-              <Text style={styles.businessName}>{params.businessName}</Text>
+              <Text style={styles.businessName}>
+                {businessData.title || businessData.name || "Business"}
+              </Text>
             </View>
           )}
 
@@ -530,7 +681,7 @@ function CheckoutSubscriptionContent() {
               </View>
               <View style={styles.planTitleContainer}>
                 <Text style={styles.planTitle}>
-                  {params.subscriptionName || "Subscription Plan"}
+                  {subscriptionData.title || "Subscription Plan"}
                 </Text>
                 <View style={styles.planSubtitle}>
                   <Text style={styles.planSubtitle}>Premium Plan</Text>
@@ -558,9 +709,9 @@ function CheckoutSubscriptionContent() {
             </View>
 
             {/* Description */}
-            {params.subscriptionName && (
+            {subscriptionData.title && (
               <Text style={styles.planDescription}>
-                {params.subscriptionName} - Premium subscription plan with
+                {subscriptionData.title} - Premium subscription plan with
                 exclusive benefits
               </Text>
             )}
@@ -568,7 +719,7 @@ function CheckoutSubscriptionContent() {
             {/* Features */}
             <View style={styles.featuresContainer}>
               {/* Visits Feature */}
-              {params.subscriptionVisits && (
+              {subscriptionData.visits && (
                 <View style={styles.featureBlock}>
                   <Feather
                     name="calendar"
@@ -577,7 +728,7 @@ function CheckoutSubscriptionContent() {
                     style={styles.featureIcon}
                   />
                   <Text style={styles.featureText}>
-                    {params.subscriptionVisits}
+                    {subscriptionData.visits}
                   </Text>
                   <Feather
                     name="check-circle"
@@ -589,7 +740,7 @@ function CheckoutSubscriptionContent() {
               )}
 
               {/* Included Services */}
-              {subscriptionInclusions.length > 0 && (
+              {subscriptionData.inclusions && subscriptionData.inclusions.length > 0 && (
                 <View style={styles.featureBlock}>
                   <Feather
                     name="zap"
@@ -599,7 +750,7 @@ function CheckoutSubscriptionContent() {
                   />
                   <View style={{ flex: 1 }}>
                     <Text style={styles.featureText}>Included Services</Text>
-                    {subscriptionInclusions
+                    {subscriptionData.inclusions
                       .slice(0, 1)
                       .map((inclusion: string, index: number) => (
                         <View key={index} style={styles.serviceTag}>
@@ -618,10 +769,10 @@ function CheckoutSubscriptionContent() {
                 </View>
               )}
 
-              {params.subscriptionPrice && (
+              {subscriptionData.price && (
                 <View style={styles.pricingBadge}>
                   <Text style={styles.pricingAmount}>
-                    ${parseFloat(params.subscriptionPrice).toFixed(2)} /mo
+                    ${subscriptionData.price.toFixed(2)} /mo
                   </Text>
                   <Text style={styles.pricingPeriod}>Monthly Subscription</Text>
                 </View>
@@ -629,18 +780,20 @@ function CheckoutSubscriptionContent() {
             </View>
           </View>
         </ScrollView>
-      )}
+      ) : null}
 
       {/* Bottom Button */}
-      <View style={styles.bottomContainer}>
-        <Button
-          title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
-          onPress={paymentSuccess ? handleViewSubscriptions : handleSubscribe}
-          loading={isSubscribing}
-          disabled={isSubscribing}
-          containerStyle={styles.subscribeButton}
-        />
-      </View>
+      {!loading && !error && subscriptionData && (
+        <View style={styles.bottomContainer}>
+          <Button
+            title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
+            onPress={paymentSuccess ? handleViewSubscriptions : handleSubscribe}
+            loading={isSubscribing}
+            disabled={isSubscribing}
+            containerStyle={styles.subscribeButton}
+          />
+        </View>
+      )}
 
       {/* Processing Payment Overlay */}
       {processingPayment && (
