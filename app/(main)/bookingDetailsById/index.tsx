@@ -73,6 +73,8 @@ interface BookingItem {
   businessLongitude?: string;
   businessLogoUrl?: string;
   businessAverageRating?: number;
+  paymentMethod?: string;
+  paidAmount?: string | null;
 }
 
 interface ApiBookingResponse {
@@ -574,6 +576,8 @@ export default function bookingDetailsById() {
       businessLongitude: apiData.businessLongitude || undefined,
       businessLogoUrl: apiData.businessLogoUrl || undefined,
       businessAverageRating: apiData.businessAverageRating || 0,
+      paymentMethod: apiData.paymentMethod,
+      paidAmount: apiData.paidAmount,
     };
   };
 
@@ -1014,11 +1018,26 @@ export default function bookingDetailsById() {
             />
           </View>
           <View style={styles.paymentTextContainer}>
-            <Text style={styles.paymentLabel}>I paid</Text>
-            <Text style={styles.paymentAmount}>
-              Total:{" "}
-              <Text style={styles.paymentAmountVal}>{booking.price}</Text>
-            </Text>
+            {booking.paymentMethod === "pay_now" &&
+            booking.paidAmount !== null &&
+            booking.paidAmount !== undefined ? (
+              <>
+                <Text style={styles.paymentLabel}>I paid</Text>
+                <Text style={styles.paymentAmount}>
+                  <Text style={styles.paymentAmountVal}>
+                    {formatPrice(booking.paidAmount)}
+                  </Text>
+                </Text>
+              </>
+            ) : (
+              <>
+                <Text style={styles.paymentLabel}>I will pay</Text>
+                <Text style={styles.paymentAmount}>
+                  Total:{" "}
+                  <Text style={styles.paymentAmountVal}>{booking.price}</Text>
+                </Text>
+              </>
+            )}
           </View>
         </View>
 
