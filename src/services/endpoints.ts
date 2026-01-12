@@ -132,6 +132,7 @@ export const appointmentsEndpoints = {
     return `/api/appointments${queryString ? `?${queryString}` : ''}`;
   },
   create: `/api/appointments`,
+  getById: (bookingId: string | number) => `/api/appointments/${bookingId}`,
 };
 
 /**

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -9,8 +9,9 @@ import {
   Linking,
   Platform,
   Alert,
+  ActivityIndicator,
 } from "react-native";
-import { useRouter, useLocalSearchParams } from "expo-router";
+import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
 import { useTheme } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { Theme } from "@/src/theme/colors";
@@ -26,6 +27,9 @@ import { SvgXml } from "react-native-svg";
 import { Ionicons, Entypo } from "@expo/vector-icons";
 import Button from "@/src/components/button";
 import CancelBookingBottomSheet from "@/src/components/CancelBookingBottomSheet";
+import RetryButton from "@/src/components/retryButton";
+import { ApiService } from "@/src/services/api";
+import { appointmentsEndpoints } from "@/src/services/endpoints";
 import {
   PersonIcon,
   MapPinIcon,
@@ -63,6 +67,58 @@ interface BookingItem {
   duration: string;
   price: string;
   status: BookingStatus;
+  businessName?: string;
+  businessAddress?: string;
+  businessLatitude?: string;
+  businessLongitude?: string;
+  businessLogoUrl?: string;
+  businessAverageRating?: number;
+}
+
+interface ApiBookingResponse {
+  id: number;
+  businessId: number;
+  businessTitle: string;
+  businessAddress: string;
+  businessLatitude: string;
+  businessLongitude: string;
+  businessLogoUrl: string | null;
+  businessAverageRating: number;
+  userId: number;
+  user: string;
+  userEmail: string;
+  appointmentType: "service" | "subscription";
+  paymentMethod: string;
+  subscriptionId: number | null;
+  subscription: any | null;
+  subscriptionPlanType: string | null;
+  subscriptionPlanDescription: string | null;
+  services: Array<{
+    id: number;
+    name: string;
+    description: string | null;
+    price: string;
+    duration: {
+      hours: number;
+      minutes: number;
+    };
+  }>;
+  totalPrice: number;
+  subscriptionServices: any;
+  subscriptionVisits: any;
+  staffId: number | null;
+  staffName: string | null;
+  staffEmail: string | null;
+  staffImage: string | null;
+  appointmentDate: string;
+  appointmentTime: string;
+  status: string;
+  paidAmount: string | null;
+  notes: string | null;
+  cancelReason: string | null;
+  cancelDate: string | null;
+  createdAt: string;
+  deleted_at: string | null;
 }
 
 const createStyles = (theme: Theme) =>
@@ -315,7 +371,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       marginVertical: moderateHeightScale(16),
-       paddingHorizontal: moderateWidthScale(20),
+      paddingHorizontal: moderateWidthScale(20),
     },
     paymentIcon: {
       marginRight: moderateWidthScale(12),
@@ -336,7 +392,6 @@ const createStyles = (theme: Theme) =>
     },
     paymentAmountVal: {
       fontFamily: fonts.fontMedium,
-      
     },
     policyLink: {
       flexDirection: "row",
@@ -361,6 +416,24 @@ const createStyles = (theme: Theme) =>
     removeButton: {
       backgroundColor: theme.darkGreen,
     },
+    loaderContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    errorContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    errorText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(16),
+    },
   });
 
 export default function bookingDetailsById() {
@@ -371,13 +444,235 @@ export default function bookingDetailsById() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [booking, setBooking] = useState<BookingItem | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Parse booking data from params
-  const booking: BookingItem | null = params.booking
-    ? JSON.parse(params.booking as string)
-    : null;
   const bookingId = params.bookingId as string;
 
+  const mapApiStatusToBookingStatus = (apiStatus: string): BookingStatus => {
+    switch (apiStatus.toLowerCase()) {
+      case "scheduled":
+        return "ongoing";
+      case "pending":
+        return "active";
+      case "completed":
+        return "complete";
+      case "cancelled":
+        return "cancelled";
+      default:
+        return "active";
+    }
+  };
+
+  const formatDuration = (
+    services: ApiBookingResponse["services"],
+    subscriptionServices: any
+  ): string => {
+    let allServices: any[] = [];
+
+    // Handle services array
+    if (Array.isArray(services) && services.length > 0) {
+      allServices = services;
+    }
+
+    // Handle subscriptionServices - can be array or object
+    if (subscriptionServices) {
+      if (
+        Array.isArray(subscriptionServices) &&
+        subscriptionServices.length > 0
+      ) {
+        allServices = subscriptionServices;
+      } else if (
+        typeof subscriptionServices === "object" &&
+        !Array.isArray(subscriptionServices)
+      ) {
+        // If it's an object, try to extract services from it
+        const values = Object.values(subscriptionServices);
+        if (values.length > 0 && Array.isArray(values[0])) {
+          allServices = values[0] as any[];
+        }
+      }
+    }
+
+    if (allServices.length === 0) {
+      return "---";
+    }
+
+    let totalHours = 0;
+    let totalMinutes = 0;
+
+    allServices.forEach((service: any) => {
+      if (service.duration) {
+        totalHours += service.duration.hours || 0;
+        totalMinutes += service.duration.minutes || 0;
+      }
+    });
+
+    // Convert minutes to hours if needed
+    totalHours += Math.floor(totalMinutes / 60);
+    totalMinutes = totalMinutes % 60;
+
+    if (totalHours > 0 && totalMinutes > 0) {
+      return `${totalHours}h ${totalMinutes}m`;
+    } else if (totalHours > 0) {
+      return `${totalHours}h`;
+    } else if (totalMinutes > 0) {
+      return `${totalMinutes}m`;
+    }
+    return "---";
+  };
+
+  const formatPrice = (price: number | string | null): string => {
+    if (price === null || price === undefined) {
+      return "---";
+    }
+    const numPrice = typeof price === "string" ? parseFloat(price) : price;
+    if (isNaN(numPrice)) {
+      return "---";
+    }
+    return `$${numPrice.toFixed(2)} USD`;
+  };
+
+  const mapApiResponseToBookingItem = (
+    apiData: ApiBookingResponse
+  ): BookingItem => {
+    const services = Array.isArray(apiData.services) ? apiData.services : [];
+    const subscriptionServices = Array.isArray(apiData.subscriptionServices)
+      ? apiData.subscriptionServices
+      : [];
+
+    const allServices =
+      apiData.appointmentType === "subscription"
+        ? subscriptionServices
+        : services;
+
+    const serviceName =
+      allServices.length > 0
+        ? allServices.map((s: any) => s.name).join(" + ")
+        : "---";
+
+    const duration = formatDuration(services, apiData.subscriptionServices);
+
+    const dateTime = apiData.appointmentDate
+      ? `${apiData.appointmentDate} - ${apiData.appointmentTime || ""}`
+      : "---";
+
+    return {
+      id: apiData.id.toString(),
+      serviceName: serviceName || "---",
+      membershipType: apiData.subscriptionPlanType || "---",
+      staffName: apiData.staffName || "Anyone",
+      location: apiData.businessAddress || "---",
+      dateTime: dateTime,
+      duration: duration,
+      price: formatPrice(apiData.totalPrice),
+      status: mapApiStatusToBookingStatus(apiData.status),
+      businessName: apiData.businessTitle || "---",
+      businessAddress: apiData.businessAddress || "---",
+      businessLatitude: apiData.businessLatitude || undefined,
+      businessLongitude: apiData.businessLongitude || undefined,
+      businessLogoUrl: apiData.businessLogoUrl || undefined,
+      businessAverageRating: apiData.businessAverageRating || 0,
+    };
+  };
+
+  const fetchBookingDetails = async () => {
+    if (!bookingId) {
+      setError("Booking ID is required");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: ApiBookingResponse;
+      }>(appointmentsEndpoints.getById(bookingId));
+
+      if (response.success && response.data) {
+        const mappedBooking = mapApiResponseToBookingItem(response.data);
+        setBooking(mappedBooking);
+      } else {
+        setError(response.message || "Failed to fetch booking details");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to fetch booking details");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchBookingDetails();
+    }, [])
+  );
+
+  // Loading state
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                router.back();
+              }}
+            >
+              <BackArrowIcon
+                width={widthScale(25)}
+                height={heightScale(25)}
+                color={theme.darkGreen}
+              />
+            </TouchableOpacity>
+            <Text style={styles.logoText}>Booking Detail</Text>
+          </View>
+        </View>
+        <View style={styles.line} />
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color={theme.darkGreen} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => {
+                router.back();
+              }}
+            >
+              <BackArrowIcon
+                width={widthScale(25)}
+                height={heightScale(25)}
+                color={theme.darkGreen}
+              />
+            </TouchableOpacity>
+            <Text style={styles.logoText}>Booking Detail</Text>
+          </View>
+        </View>
+        <View style={styles.line} />
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <RetryButton onPress={fetchBookingDetails} loading={loading} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // No booking data
   if (!booking) {
     return (
       <SafeAreaView style={styles.container}>
@@ -399,10 +694,8 @@ export default function bookingDetailsById() {
           </View>
         </View>
         <View style={styles.line} />
-        <View
-          style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-        >
-          <Text style={{ color: theme.lightGreen }}>No booking data found</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>No booking data found</Text>
         </View>
       </SafeAreaView>
     );
@@ -460,16 +753,24 @@ export default function bookingDetailsById() {
   const date = dateTimeParts[0] || booking.dateTime;
   const time = dateTimeParts[1] || "";
 
-  // Dummy location data (will be replaced with actual data later)
-  const businessName = booking.location || "Business Location";
-  const businessLatitude = 34.0522; // Dummy latitude (Los Angeles area)
-  const businessLongitude = -118.2437; // Dummy longitude
+  const businessName = booking.businessName || booking.location || "---";
+  const businessLatitude = booking.businessLatitude
+    ? parseFloat(booking.businessLatitude)
+    : undefined;
+  const businessLongitude = booking.businessLongitude
+    ? parseFloat(booking.businessLongitude)
+    : undefined;
 
   // Handle location navigation to Google Maps
   const handleLocationPress = async () => {
+    if (!businessLatitude || !businessLongitude) {
+      Alert.alert("Error", "Location coordinates not available");
+      return;
+    }
+
     const encodedName = encodeURIComponent(businessName);
     const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${businessLatitude},${businessLongitude}&query_place_id=${encodedName}`;
-    
+
     try {
       const canOpen = await Linking.canOpenURL(googleMapsUrl);
       if (canOpen) {
@@ -594,7 +895,7 @@ export default function bookingDetailsById() {
                 <View style={styles.detailTextContainer}>
                   <Text style={styles.detailLabel}>My barber</Text>
                   <Text style={styles.detailValue} numberOfLines={2}>
-                    {booking.staffName}
+                    {booking?.staffName ?? "Anyone"}
                   </Text>
                 </View>
               </View>
@@ -608,40 +909,49 @@ export default function bookingDetailsById() {
           <View style={styles.businessImageContainer}>
             <Image
               source={{
-                uri: "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                uri: booking.businessLogoUrl
+                  ? `${process.env.EXPO_PUBLIC_API_BASE_URL || ""}${
+                      booking.businessLogoUrl
+                    }`
+                  : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
               }}
               style={styles.businessImage}
             />
-            <View style={[styles.ratingBadge, styles.sahdow]}>
-              <Ionicons
-                name="star"
-                size={moderateWidthScale(10)}
-                color={theme.selectCard}
-                style={styles.ratingStar}
-              />
-              <Text style={styles.ratingText}>4.9</Text>
-            </View>
+            {booking.businessAverageRating !== undefined &&
+              booking.businessAverageRating > 0 && (
+                <View style={[styles.ratingBadge, styles.sahdow]}>
+                  <Ionicons
+                    name="star"
+                    size={moderateWidthScale(10)}
+                    color={theme.selectCard}
+                    style={styles.ratingStar}
+                  />
+                  <Text style={styles.ratingText}>
+                    {booking.businessAverageRating.toFixed(1)}
+                  </Text>
+                </View>
+              )}
           </View>
           <View style={styles.businessInfo}>
             <Text style={styles.businessName}>
-              {booking.location || "Business Name"}
+              {booking.businessName || booking.location || "---"}
             </Text>
             <Text style={styles.businessAddress}>
-              {booking.location
-                ? `${booking.location} Address, City, State`
-                : "Business Address"}
+              {booking.businessAddress || booking.location || "---"}
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.mapPinContainer}
-            onPress={handleLocationPress}
-          >
-            <MapPinIcon
-              width={moderateWidthScale(18)}
-              height={moderateWidthScale(18)}
-              color={theme.primary}
-            />
-          </TouchableOpacity>
+          {businessLatitude && businessLongitude && (
+            <TouchableOpacity
+              style={styles.mapPinContainer}
+              onPress={handleLocationPress}
+            >
+              <MapPinIcon
+                width={moderateWidthScale(18)}
+                height={moderateWidthScale(18)}
+                color={theme.primary}
+              />
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.line} />
@@ -694,7 +1004,6 @@ export default function bookingDetailsById() {
 
         <View style={styles.line} />
 
-
         {/* Payment Information */}
         <View style={styles.paymentSection}>
           <View style={styles.paymentIcon}>
@@ -705,10 +1014,11 @@ export default function bookingDetailsById() {
             />
           </View>
           <View style={styles.paymentTextContainer}>
-            <Text style={styles.paymentLabel}>
-               I paid 
+            <Text style={styles.paymentLabel}>I paid</Text>
+            <Text style={styles.paymentAmount}>
+              Total:{" "}
+              <Text style={styles.paymentAmountVal}>{booking.price}</Text>
             </Text>
-            <Text style={styles.paymentAmount}>Total: <Text style={styles.paymentAmountVal}>{booking.price} USD</Text></Text>
           </View>
         </View>
 
@@ -734,7 +1044,12 @@ export default function bookingDetailsById() {
           onPress={() => {
             if (isCancelled) {
               // Handle remove from history
-              showBanner("Removed", "Booking removed from history", "success", 2000);
+              showBanner(
+                "Removed",
+                "Booking removed from history",
+                "success",
+                2000
+              );
             } else {
               handleOpenCancelModal();
             }

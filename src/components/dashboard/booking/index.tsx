@@ -595,7 +595,6 @@ export default function BookingScreen() {
           pathname: "/(main)/bookingDetailsById",
           params: {
             bookingId: item.id,
-            booking: JSON.stringify(item),
           },
         });
       }}
