@@ -75,6 +75,12 @@ interface BookingItem {
   businessAverageRating?: number;
   paymentMethod?: string;
   paidAmount?: string | null;
+  subscriptionVisits?: {
+    used: number;
+    upcoming: number;
+    total: number;
+    remaining: number;
+  } | null;
 }
 
 interface ApiBookingResponse {
@@ -107,7 +113,12 @@ interface ApiBookingResponse {
   }>;
   totalPrice: number;
   subscriptionServices: any;
-  subscriptionVisits: any;
+  subscriptionVisits: {
+    used: number;
+    upcoming: number;
+    total: number;
+    remaining: number;
+  } | null;
   staffId: number | null;
   staffName: string | null;
   staffEmail: string | null;
@@ -178,8 +189,24 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(12),
       paddingVertical: moderateHeightScale(6),
       borderRadius: moderateWidthScale(6),
-      marginBottom: moderateHeightScale(12),
+    },
+    badgesContainer: {
+      flexDirection: "row",
+      gap: moderateWidthScale(8),
       marginHorizontal: moderateWidthScale(20),
+      marginBottom: moderateHeightScale(12),
+    },
+    membershipBadge: {
+      alignSelf: "flex-start",
+      paddingHorizontal: moderateWidthScale(12),
+      paddingVertical: moderateHeightScale(6),
+      borderRadius: moderateWidthScale(6),
+      backgroundColor: theme.darkGreenLight,
+    },
+    membershipBadgeText: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
     },
     statusOngoing: {
       backgroundColor: theme.orangeBrown015,
@@ -416,7 +443,7 @@ const createStyles = (theme: Theme) =>
       color: "#D32F2F",
     },
     removeButton: {
-      backgroundColor: theme.darkGreen,
+      backgroundColor: theme.darkGreenLight,
     },
     loaderContainer: {
       flex: 1,
@@ -536,6 +563,23 @@ export default function bookingDetailsById() {
     return `$${numPrice.toFixed(2)} USD`;
   };
 
+  const getPrice = (apiData: ApiBookingResponse): number | string | null => {
+    if (apiData.appointmentType === "subscription") {
+      return apiData.paidAmount;
+    }
+    const totalPrice = apiData?.totalPrice;
+    // Check if totalPrice is an empty object or invalid
+    if (
+      totalPrice === null ||
+      totalPrice === undefined ||
+      (typeof totalPrice === "object" && Object.keys(totalPrice).length === 0) ||
+      (typeof totalPrice !== "number" && typeof totalPrice !== "string")
+    ) {
+      return null;
+    }
+    return totalPrice;
+  };
+
   const mapApiResponseToBookingItem = (
     apiData: ApiBookingResponse
   ): BookingItem => {
@@ -560,6 +604,8 @@ export default function bookingDetailsById() {
       ? `${apiData.appointmentDate} - ${apiData.appointmentTime || ""}`
       : "---";
 
+    const price = getPrice(apiData);
+
     return {
       id: apiData.id.toString(),
       serviceName: serviceName || "---",
@@ -568,7 +614,7 @@ export default function bookingDetailsById() {
       location: apiData.businessAddress || "---",
       dateTime: dateTime,
       duration: duration,
-      price: formatPrice(apiData.totalPrice),
+      price: formatPrice(price),
       status: mapApiStatusToBookingStatus(apiData.status),
       businessName: apiData.businessTitle || "---",
       businessAddress: apiData.businessAddress || "---",
@@ -578,6 +624,7 @@ export default function bookingDetailsById() {
       businessAverageRating: apiData.businessAverageRating || 0,
       paymentMethod: apiData.paymentMethod,
       paidAmount: apiData.paidAmount,
+      subscriptionVisits: apiData.subscriptionVisits || null,
     };
   };
 
@@ -838,15 +885,30 @@ export default function bookingDetailsById() {
       >
         {/* Booking Section */}
         <View style={styles.bookingSection}>
-          {/* Status Badge */}
-          <View
-            style={[styles.statusBadge, getStatusBadgeStyle(booking.status)]}
-          >
-            <Text
-              style={[styles.statusText, getStatusTextStyle(booking.status)]}
+          {/* Status and Membership Badges */}
+          <View style={styles.badgesContainer}>
+            <View
+              style={[styles.statusBadge, getStatusBadgeStyle(booking.status)]}
             >
-              {getStatusLabel(booking.status)}
-            </Text>
+              <Text
+                style={[styles.statusText, getStatusTextStyle(booking.status)]}
+              >
+                {getStatusLabel(booking.status)}
+              </Text>
+            </View>
+            {booking.subscriptionVisits &&
+              booking.subscriptionVisits.remaining !== undefined &&
+              (
+                <View style={styles.membershipBadge}>
+                  <Text style={styles.membershipBadgeText}>
+                    {booking.subscriptionVisits.remaining} visit
+                    {booking.subscriptionVisits.remaining !== 1 ? "s" : ""} left
+                  </Text>
+                </View>
+              )}
+              
+
+   
           </View>
 
           {/* Service Name */}
@@ -972,7 +1034,7 @@ export default function bookingDetailsById() {
             </View>
             <Text style={styles.actionButtonText}>Contact</Text>
           </TouchableOpacity>
-          {isCancelled && (
+          {/* {isCancelled && (
             <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
               <View style={styles.actionButtonCircle}>
                 <BookAgainIcon
@@ -983,8 +1045,8 @@ export default function bookingDetailsById() {
               </View>
               <Text style={styles.actionButtonText}>Book again</Text>
             </TouchableOpacity>
-          )}
-          <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
+          )} */}
+          {/* <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
               <CalendarIcon
                 width={moderateWidthScale(22)}
@@ -993,7 +1055,7 @@ export default function bookingDetailsById() {
               />
             </View>
             <Text style={styles.actionButtonText}>Reschedule</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           <TouchableOpacity activeOpacity={0.7} style={styles.actionButton}>
             <View style={styles.actionButtonCircle}>
               <SupportIcon
