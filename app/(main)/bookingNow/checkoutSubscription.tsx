@@ -20,7 +20,7 @@ import {
   widthScale,
 } from "@/src/theme/dimensions";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Octicons } from "@expo/vector-icons";
 import Button from "@/src/components/button";
 import StackHeader from "@/src/components/StackHeader";
 import { StripeProvider, useStripe } from "@stripe/stripe-react-native";
@@ -29,6 +29,7 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { fetchUserStatus } from "@/src/state/thunks/businessThunks";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
+import SubscriptionPickerBottomSheet from "@/src/components/SubscriptionPickerBottomSheet";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -335,6 +336,39 @@ const createStyles = (theme: Theme) =>
       textAlign: "center",
       marginBottom: moderateHeightScale(20),
     },
+    changeSubscriptionCard: {
+      backgroundColor: theme.orangeBrown30,
+      // borderRadius: moderateWidthScale(8),
+      // marginHorizontal: moderateWidthScale(20),
+      // marginTop: moderateHeightScale(16),
+      // marginBottom: moderateHeightScale(16),
+      overflow: "hidden",
+    },
+    changeSubscriptionItem: {
+      paddingHorizontal: moderateWidthScale(16),
+      paddingVertical: moderateHeightScale(12),
+    },
+    changeSubscriptionButton: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    changeSubscriptionText: {
+      flex: 1,
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      marginRight: moderateWidthScale(12),
+    },
+    addServiceButton: {
+      width: widthScale(22),
+      height: heightScale(22),
+      borderRadius: 4,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 1.5,
+      borderColor: theme.selectCard,
+    },
   });
 
 function CheckoutSubscriptionContent() {
@@ -366,6 +400,8 @@ function CheckoutSubscriptionContent() {
   const [error, setError] = useState<string | null>(null);
   const [businessData, setBusinessData] = useState<any>(null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
+  const [subscriptionPickerVisible, setSubscriptionPickerVisible] = useState(false);
+  const [availableSubscriptions, setAvailableSubscriptions] = useState<any[]>([]);
 
   // Fetch business details and find matching subscription (only when coming from DashboardContent)
   const fetchBusinessDetails = async () => {
@@ -388,6 +424,11 @@ function CheckoutSubscriptionContent() {
 
       if (response.success && response.data?.business) {
         setBusinessData(response.data.business);
+
+        // Store all available subscriptions
+        if (response.data.business.subscription_plans) {
+          setAvailableSubscriptions(response.data.business.subscription_plans);
+        }
 
         // Find matching subscription from subscription_plans
         const subscriptionId = parseInt(params.subscriptionId, 10);
@@ -452,6 +493,10 @@ function CheckoutSubscriptionContent() {
             })()
           : [],
       });
+      // For businessDetail, we need to fetch subscriptions list separately
+      if (params.businessId) {
+        fetchBusinessSubscriptions(params.businessId);
+      }
     } else if (params.screenName === "DashboardContent" && params.businessId && params.subscriptionId) {
       // Coming from DashboardContent - fetch from API
       fetchBusinessDetails();
@@ -462,7 +507,26 @@ function CheckoutSubscriptionContent() {
       setError("Missing required parameters");
       setLoading(false);
     }
-  }, [ ]);
+  }, []);
+
+  // Fetch business subscriptions for the picker
+  const fetchBusinessSubscriptions = async (businessId: string) => {
+    try {
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: {
+          business: any;
+        };
+      }>(businessEndpoints.businessDetails(businessId));
+
+      if (response.success && response.data?.business?.subscription_plans) {
+        setAvailableSubscriptions(response.data.business.subscription_plans);
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch subscriptions:", err);
+    }
+  };
 
   // Get business logo URL
   const getBusinessLogoUrl = useMemo(() => {
@@ -607,11 +671,57 @@ function CheckoutSubscriptionContent() {
     }, 10);
   };
 
+  const handleChangeSubscription = () => {
+    setSubscriptionPickerVisible(true);
+  };
+
+  const handleSelectSubscription = (subscription: any) => {
+    // Map subscription data similar to businessDetail
+    const mappedSubscription = {
+      id: subscription.id,
+      title: subscription.name,
+      visits: `${subscription.visits} visit${subscription.visits !== 1 ? "s" : ""} per month`,
+      price: parseFloat(subscription.price),
+      originalPrice: subscription.original_price 
+        ? parseFloat(subscription.original_price)
+        : parseFloat(subscription.price) * 1.25,
+      inclusions:
+        subscription.services?.map(
+          (service: any, index: number) => `${index + 1}. ${service.name}`
+        ) || [],
+    };
+    setSubscriptionData(mappedSubscription);
+  };
+
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StatusBar barStyle="dark-content" />
       {/* Header */}
       <StackHeader title="Subscription Plans" />
+
+      {/* Change Subscription Button - Full Width at Top */}
+      {!loading && !error && !paymentSuccess && subscriptionData && (
+        <View style={styles.changeSubscriptionCard}>
+          <View style={styles.changeSubscriptionItem}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleChangeSubscription}
+              style={styles.changeSubscriptionButton}
+            >
+              <Text style={styles.changeSubscriptionText}>
+                Change subscription
+              </Text>
+              <View style={styles.addServiceButton}>
+                <Octicons
+                  name="plus"
+                  size={moderateWidthScale(16)}
+                  color={theme.selectCard}
+                />
+              </View>
+            </TouchableOpacity>
+          </View>
+        </View>
+      )}
 
       {loading ? (
         <View style={styles.loadingContainer}>
@@ -803,6 +913,17 @@ function CheckoutSubscriptionContent() {
             <Text style={styles.processingText}>Processing payment...</Text>
           </View>
         </View>
+      )}
+
+      {/* Subscription Picker Bottom Sheet */}
+      {availableSubscriptions.length > 0 && (
+        <SubscriptionPickerBottomSheet
+          visible={subscriptionPickerVisible}
+          onClose={() => setSubscriptionPickerVisible(false)}
+          subscriptions={availableSubscriptions}
+          selectedSubscriptionId={subscriptionData?.id || null}
+          onSelectSubscription={handleSelectSubscription}
+        />
       )}
     </SafeAreaView>
   );
