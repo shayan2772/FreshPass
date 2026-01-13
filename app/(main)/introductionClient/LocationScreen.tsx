@@ -79,11 +79,10 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
   const { showBanner } = useNotificationContext();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleContinue = async () => {
-     setErrorMessage(null);
+    setErrorMessage(null);
     try {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
@@ -149,11 +148,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
           </Text>
         )}
 
-        <Button
-          title={isLoading ? "Locating..." : "Continue"}
-          onPress={handleContinue}
-          disabled={isLoading}
-        />
+        <Button title={"Continue"} onPress={handleContinue} />
       </View>
     </SafeAreaView>
   );

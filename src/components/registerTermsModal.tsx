@@ -172,12 +172,9 @@ export default function RegisterTermsModal({
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const dispatch = useAppDispatch();
-  const userLocation = useAppSelector((state) => state.user.location);
   const { showBanner } = useNotificationContext();
   const [isAgreed, setIsAgreed] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Handle back button press
@@ -281,8 +278,6 @@ export default function RegisterTermsModal({
           </View>
 
           <View style={styles.buttonContainer}>
-            {isLoading && <Text style={styles.loadingText}>Locating...</Text>}
-
             {errorMessage && (
               <Text style={styles.errorText}>{errorMessage}</Text>
             )}
@@ -291,7 +286,6 @@ export default function RegisterTermsModal({
               style={styles.checkboxContainer}
               onPress={() => setIsAgreed(!isAgreed)}
               activeOpacity={0.7}
-              disabled={isLoading}
             >
               <View style={styles.checkbox}>
                 <View style={styles.checkboxInnerSquare}>
@@ -312,7 +306,6 @@ export default function RegisterTermsModal({
               onPress={handleContinue}
               backgroundColor={theme.orangeBrown}
               textColor={theme.darkGreen}
-              disabled={isLoading}
             />
           </View>
         </View>
