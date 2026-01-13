@@ -14,11 +14,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { handleLocationPermission } from "@/src/services/locationPermissionService";
-import { useAppDispatch } from "@/src/hooks/hooks";
-import { setLocation } from "@/src/state/slices/userSlice";
 import * as Location from "expo-location";
-import { tryGetPosition } from "@/src/constant/functions";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 interface LocationScreenProps {
@@ -77,7 +73,6 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const { showBanner } = useNotificationContext();
-  const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 

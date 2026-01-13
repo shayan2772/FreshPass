@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { StyleSheet, View, StatusBar } from "react-native";
-import { useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import DashboardHeaderClient from "../../DashboardHeaderClient";
 import SearchBar from "./components/SearchBar";
 import DashboardContent from "./components/DashboardContent";
 import * as Location from "expo-location";
 import LocationEnableModal from "@/src/components/locationEnableModal";
+import { setLocation } from "@/src/state/slices/userSlice";
+import { tryGetPosition } from "@/src/constant/functions";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -20,13 +22,18 @@ export default function HomeScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
+  const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.user);
   const userRole = user.userRole;
   const isGuest = user.isGuest;
   const [showLocationModal, setShowLocationModal] = useState(false);
 
   useEffect(() => {
-    if (userRole === "customer" || isGuest) {
+    if (
+      (userRole === "customer" || isGuest) &&
+      user?.location.lat === null &&
+      user?.location.long === null
+    ) {
       isLocationEnable();
     }
   }, []);
@@ -38,8 +45,84 @@ export default function HomeScreen() {
     }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseModal = async (shouldGetLocation?: boolean) => {
     setShowLocationModal(false);
+    if (shouldGetLocation) {
+      try {
+        // Request location permission
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== Location.PermissionStatus.GRANTED) {
+          console.log("Location permission denied");
+          return;
+        }
+
+        // Get current location
+        let currentPosition: Location.LocationObject | null = null;
+        try {
+          // Try to get cached position first (faster)
+          const cachedPosition = await Location.getLastKnownPositionAsync({
+            maxAge: 60000, // Use cached position if less than 1 minute old
+          });
+
+          if (cachedPosition) {
+            currentPosition = cachedPosition;
+          } else {
+            // If no cached position, try to get current position with retries
+            currentPosition = await tryGetPosition();
+          }
+        } catch (error) {
+          console.error("Error getting location position:", error);
+          return;
+        }
+
+        if (!currentPosition) {
+          console.error("Unable to get current position");
+          return;
+        }
+
+        const coordinates = {
+          latitude: currentPosition.coords.latitude,
+          longitude: currentPosition.coords.longitude,
+        };
+
+        // Get address via reverse geocoding
+        let locationName: string | null = null;
+        try {
+          const reverseResults = await Location.reverseGeocodeAsync(
+            coordinates,
+            {
+              useGoogleMaps: true,
+              timeout: 10000,
+            }
+          );
+          if (reverseResults && reverseResults.length > 0) {
+            const address = reverseResults[0];
+            const addressParts = [
+              address.street,
+              address.city,
+              address.region,
+            ].filter(Boolean);
+            locationName =
+              addressParts.length > 0 ? addressParts.join(", ") : null;
+          }
+        } catch (error) {
+          console.error("Reverse geocode failed:", error);
+          // Continue even if reverse geocode fails - we still have coordinates
+        }
+
+        // Store location in user slice
+        dispatch(
+          setLocation({
+            lat: coordinates.latitude,
+            long: coordinates.longitude,
+            locationName: locationName,
+          })
+        );
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    }
   };
 
   return (
