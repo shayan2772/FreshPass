@@ -976,17 +976,58 @@ function CheckoutContent() {
       return true;
     }
 
-    // Check if business is closed on this day
+    const dayName = getDayNameFromDate(date);
+
+    // If staff member is selected, check staff working hours
+    if (selectedStaffId !== "anyone" && selectedStaffMember?.working_hours) {
+      const staffDayHours = selectedStaffMember.working_hours[dayName];
+      if (staffDayHours && !staffDayHours.isOpen) {
+        return true; // Staff is closed on this day
+      }
+    }
+
+    // Check if business is closed on this day (for "anyone" or fallback)
     if (businessHours) {
-      const dayName = getDayNameFromDate(date);
       const dayHours = businessHours[dayName];
       if (dayHours && !dayHours.isOpen) {
-        return true;
+        return true; // Business is closed on this day
       }
     }
 
     return false;
   };
+
+  // Auto-select current date if available, otherwise select first available date
+  useEffect(() => {
+    if (!businessHours) {
+      return; // Wait for business hours to load
+    }
+
+    const today = dayjs().startOf("day");
+    const currentSelected = selectedDate.startOf("day");
+    
+    // If current date is already today and available, don't change
+    if (currentSelected.isSame(today, "day") && !isDateDisabled(today)) {
+      return;
+    }
+    
+    // Check if today is available (not disabled)
+    if (!isDateDisabled(today)) {
+      setSelectedDate(today);
+      setWeek(getWeekDays(today));
+      return;
+    }
+
+    // If today is not available, find first available date (next 30 days)
+    for (let i = 0; i < 30; i++) {
+      const checkDate = today.add(i, "day");
+      if (!isDateDisabled(checkDate)) {
+        setSelectedDate(checkDate);
+        setWeek(getWeekDays(checkDate));
+        return;
+      }
+    }
+  }, [businessHours, selectedStaffId, selectedStaffMember]);
 
   // Get day name from date (e.g., "Monday", "Tuesday")
   const getDayNameFromDate = (date: dayjs.Dayjs): string => {
@@ -1006,26 +1047,28 @@ function CheckoutContent() {
   // Get available time slots for selected date based on business hours or staff working hours
   const availableTimeSlots = useMemo(() => {
     if (!selectedDate) {
-      return allTimeSlots;
+      return [];
     }
 
     // Determine which hours to use: staff working_hours if staff is selected, otherwise business hours
-    let hoursToUse = businessHours;
+    let hoursToUse: BusinessHours | null = null;
 
     if (selectedStaffId !== "anyone") {
-      // Staff member is selected
+      // Staff member is selected - use staff working hours
       if (selectedStaffMember?.working_hours) {
-        // Use staff member's working hours if available
         hoursToUse = selectedStaffMember.working_hours;
       } else {
         // Staff member selected but has no working_hours (null or empty) - show no slots
         return [];
       }
+    } else {
+      // "Anyone" selected - use business hours
+      hoursToUse = businessHours || null;
     }
 
-    // If no hours available (for "anyone" case), return all slots
+    // If no hours available, return empty array (don't show all slots)
     if (!hoursToUse) {
-      return allTimeSlots;
+      return [];
     }
 
     const dayName = getDayNameFromDate(selectedDate);

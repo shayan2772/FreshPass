@@ -649,17 +649,19 @@ export default function subscriptionCustomer() {
     }
   }, [loadingMore, currentPage, totalPages, fetchSubscriptions]);
 
-  const handleBookAppointment = useCallback(
+  const handleBookAppointment = 
     (subscription: SubscriptionData) => {
+
+      console.log("subscription: ", subscription);
       // router.push({
       //   pathname: "/(main)/bookingNow",
-      //   params: {
+      //   params: {s
       //     businessId: subscription.businessId.toString(),
       //   },
       // });
-    },
-    [router]
-  );
+    };
+     
+ 
 
   const handleCancelSubscription = useCallback(
     (subscription: SubscriptionData) => {
