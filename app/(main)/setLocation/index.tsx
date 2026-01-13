@@ -13,6 +13,8 @@ import {
   View,
   ActivityIndicator,
   Image,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import MapView, { Circle, Region } from "react-native-maps";
 import {
@@ -662,6 +664,7 @@ export default function SetLocationScreen() {
 
   const handleSuggestionPress = useCallback(
     (prediction: PlacePrediction) => {
+      Keyboard.dismiss();
       handleFetchPlaceDetails(prediction.place_id, prediction.description);
     },
     [handleFetchPlaceDetails]
@@ -689,21 +692,23 @@ export default function SetLocationScreen() {
     >
       <StatusBar barStyle="dark-content" />
       <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            onPress={handleClose}
-            style={styles.closeButton}
-            activeOpacity={0.7}
-          >
-            <Feather
-              name="x"
-              size={moderateWidthScale(18)}
-              color={theme.darkGreen}
-            />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Select your location</Text>
-        </View>
-        <View style={styles.searchContainer}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.headerTop}>
+              <TouchableOpacity
+                onPress={handleClose}
+                style={styles.closeButton}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name="x"
+                  size={moderateWidthScale(18)}
+                  color={theme.darkGreen}
+                />
+              </TouchableOpacity>
+              <Text style={styles.headerTitle}>Select your location</Text>
+            </View>
+          </TouchableWithoutFeedback>
+          <View style={styles.searchContainer}>
           <FloatingInput
             label="Search"
             value={addressSearch}
@@ -765,113 +770,115 @@ export default function SetLocationScreen() {
           )}
         </View>
       </View>
-      <View style={styles.content}>
-        {tempLocation && (
-          <View style={styles.locationInfoContainer}>
-            {isFetchingAddress ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="small" color={theme.darkGreen} />
-                <Text style={styles.loadingText}>Fetching address...</Text>
-              </View>
-            ) : (
-              <>
-                <Text
-                  style={styles.locationInfoTitle}
-                  numberOfLines={2}
-                  ellipsizeMode="tail"
-                >
-                  {tempLocation.locationName || "Location"}
-                </Text>
-                <Text style={styles.locationInfoSubtitle}>
-                  {tempLocation.lat.toFixed(6)}, {tempLocation.long.toFixed(6)}
-                </Text>
-              </>
-            )}
-          </View>
-        )}
-
-        {mapRegion ? (
-          <View style={styles.mapContainer}>
-            <MapView
-              ref={mapRef}
-              style={styles.mapView}
-              initialRegion={mapRegion}
-              onRegionChangeComplete={handleRegionChangeComplete}
-            >
-              {tempLocation && (
-                <Circle
-                  center={{
-                    latitude: tempLocation.lat,
-                    longitude: tempLocation.long,
-                  }}
-                  radius={circleRadius}
-                  fillColor={theme.mapCircleFill}
-                  strokeColor={theme.darkGreen}
-                  strokeWidth={1}
-                />
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.content}>
+          {tempLocation && (
+            <View style={styles.locationInfoContainer}>
+              {isFetchingAddress ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="small" color={theme.darkGreen} />
+                  <Text style={styles.loadingText}>Fetching address...</Text>
+                </View>
+              ) : (
+                <>
+                  <Text
+                    style={styles.locationInfoTitle}
+                    numberOfLines={2}
+                    ellipsizeMode="tail"
+                  >
+                    {tempLocation.locationName || "Location"}
+                  </Text>
+                  <Text style={styles.locationInfoSubtitle}>
+                    {tempLocation.lat.toFixed(6)}, {tempLocation.long.toFixed(6)}
+                  </Text>
+                </>
               )}
-            </MapView>
-            <View style={styles.centerPinContainer}>
-              <Image
-                source={IMAGES.mapPins}
-                style={styles.centerPin}
-                resizeMode="contain"
-              />
             </View>
+          )}
 
-            <View style={styles.mapControls}>
-              <Pressable
-                style={styles.mapControlButton}
-                onPress={() => handleZoom("in")}
+          {mapRegion ? (
+            <View style={styles.mapContainer}>
+              <MapView
+                ref={mapRef}
+                style={styles.mapView}
+                initialRegion={mapRegion}
+                onRegionChangeComplete={handleRegionChangeComplete}
               >
-                <FontAwesome
-                  name="search-plus"
-                  size={moderateWidthScale(16)}
-                  color={theme.darkGreen}
+                {tempLocation && (
+                  <Circle
+                    center={{
+                      latitude: tempLocation.lat,
+                      longitude: tempLocation.long,
+                    }}
+                    radius={circleRadius}
+                    fillColor={theme.mapCircleFill}
+                    strokeColor={theme.darkGreen}
+                    strokeWidth={1}
+                  />
+                )}
+              </MapView>
+              <View style={styles.centerPinContainer}>
+                <Image
+                  source={IMAGES.mapPins}
+                  style={styles.centerPin}
+                  resizeMode="contain"
                 />
-              </Pressable>
-              <View style={styles.mapControlDivider} />
-              <Pressable
-                style={styles.mapControlButton}
-                onPress={() => handleZoom("out")}
+              </View>
+
+              <View style={styles.mapControls}>
+                <Pressable
+                  style={styles.mapControlButton}
+                  onPress={() => handleZoom("in")}
+                >
+                  <FontAwesome
+                    name="search-plus"
+                    size={moderateWidthScale(16)}
+                    color={theme.darkGreen}
+                  />
+                </Pressable>
+                <View style={styles.mapControlDivider} />
+                <Pressable
+                  style={styles.mapControlButton}
+                  onPress={() => handleZoom("out")}
+                >
+                  <FontAwesome
+                    name="search-minus"
+                    size={moderateWidthScale(16)}
+                    color={theme.darkGreen}
+                  />
+                </Pressable>
+              </View>
+              <TouchableOpacity
+                onPress={handleUseCurrentLocation}
+                disabled={isResolvingLocation}
+                activeOpacity={0.6}
+                style={styles.currentLocControls}
               >
-                <FontAwesome
-                  name="search-minus"
-                  size={moderateWidthScale(16)}
-                  color={theme.darkGreen}
+                <Feather
+                  name="navigation"
+                  size={moderateWidthScale(18)}
+                  color={theme.selectCard}
                 />
-              </Pressable>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={handleUseCurrentLocation}
-              disabled={isResolvingLocation}
-              activeOpacity={0.6}
-              style={styles.currentLocControls}
-            >
-              <Feather
-                name="navigation"
-                size={moderateWidthScale(18)}
-                color={theme.selectCard}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color={theme.darkGreen} />
-            <Text style={styles.loadingText}>Loading map...</Text>
-          </View>
-        )}
-      </View>
+          ) : (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color={theme.darkGreen} />
+              <Text style={styles.loadingText}>Loading map...</Text>
+            </View>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
 
-      <View style={styles.confirmButtonContainer}>
-        <Button
-          title={locationLoading ? "Get Current Location..." : "Confirm Location"}
-          onPress={handleConfirm}
-          disabled={
-            !tempLocation || isFetchingAddress || isFetchingPlaceDetails || locationLoading
-          }
-        />
-      </View>
+        <View style={styles.confirmButtonContainer}>
+          <Button
+            title={locationLoading ? "Get Current Location..." : "Confirm Location"}
+            onPress={handleConfirm}
+            disabled={
+              !tempLocation || isFetchingAddress || isFetchingPlaceDetails || locationLoading
+            }
+          />
+        </View>
 
       <LocationEnableModal
         visible={showLocationModal}
