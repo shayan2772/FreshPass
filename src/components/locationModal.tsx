@@ -450,12 +450,6 @@ export default function LocationModal({
     const permissionResult = await handleLocationPermission();
 
     if (!permissionResult.granted) {
-      if (permissionResult.errorMessage) {
-        setLocationMessage(permissionResult.errorMessage);
-        if (permissionResult.shouldOpenSettings) {
-          await openLocationSettings();
-        }
-      }
       return;
     }
 
@@ -725,10 +719,7 @@ export default function LocationModal({
               <View style={styles.suggestionsContainer}>
                 {isLoadingSuggestions && (
                   <View style={{ paddingVertical: moderateHeightScale(12) }}>
-                    <ActivityIndicator
-                      size="small"
-                      color={theme.darkGreen}
-                    />
+                    <ActivityIndicator size="small" color={theme.darkGreen} />
                   </View>
                 )}
                 {!isLoadingSuggestions &&
@@ -887,7 +878,9 @@ export default function LocationModal({
           <Button
             title="Confirm Location"
             onPress={handleConfirm}
-            disabled={!tempLocation || isFetchingAddress || isFetchingPlaceDetails}
+            disabled={
+              !tempLocation || isFetchingAddress || isFetchingPlaceDetails
+            }
           />
         </View>
 

@@ -14,6 +14,10 @@ import {
   setActionLoader,
   setActionLoaderTitle,
 } from "@/src/state/slices/generalSlice";
+import {
+  handleLocationPermission,
+  openLocationSettings,
+} from "@/src/services/locationPermissionService";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -62,15 +66,20 @@ export default function HomeScreen() {
 
   const getCurrentLocation = async () => {
     try {
-      // Request location permission
-      const { status } = await Location.requestForegroundPermissionsAsync();
+      // Check location permission
+      const permissionResult = await handleLocationPermission();
 
-      if (status !== Location.PermissionStatus.GRANTED) {
-        showBanner(
-          "Location permission denied",
-          "Please allow location permission to continue",
-          "error"
-        );
+      if (!permissionResult.granted) {
+        // if (permissionResult.errorMessage) {
+        //   showBanner(
+        //     "Location Error",
+        //     permissionResult.errorMessage,
+        //     "error"
+        //   );
+        //   if (permissionResult.shouldOpenSettings) {
+        //     await openLocationSettings();
+        //   }
+        // }
         return;
       }
 
@@ -99,7 +108,14 @@ export default function HomeScreen() {
       }
 
       if (!currentPosition) {
+        dispatch(setActionLoaderTitle(""));
+        dispatch(setActionLoader(false));
         console.error("Unable to get current position");
+        showBanner(
+          "Location Error",
+          "Unable to get your current position. Please try again.",
+          "error"
+        );
         return;
       }
 
@@ -126,10 +142,8 @@ export default function HomeScreen() {
             addressParts.length > 0 ? addressParts.join(", ") : null;
         }
       } catch (error) {
-        dispatch(setActionLoaderTitle(""));
-        dispatch(setActionLoader(false));
         console.error("Reverse geocode failed:", error);
-        return;
+        // Continue even if reverse geocode fails - we still have coordinates
       }
 
       // Store location in user slice
@@ -140,10 +154,18 @@ export default function HomeScreen() {
           locationName: locationName,
         })
       );
+
+      dispatch(setActionLoaderTitle(""));
+      dispatch(setActionLoader(false));
     } catch (error) {
       dispatch(setActionLoaderTitle(""));
       dispatch(setActionLoader(false));
       console.error("Error getting location:", error);
+      showBanner(
+        "Location Error",
+        "Unable to get your location. Please try again.",
+        "error"
+      );
     }
   };
 
