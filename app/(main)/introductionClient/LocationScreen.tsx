@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { StyleSheet, Text, View,   Platform, Image } from "react-native";
+import { StyleSheet, Text, View, Platform, Image } from "react-native";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -10,12 +10,16 @@ import {
 import { LeafLogo } from "@/assets/icons";
 import { IMAGES } from "@/src/constant/images";
 import Button from "@/src/components/button";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { handleLocationPermission } from "@/src/services/locationPermissionService";
 import { useAppDispatch } from "@/src/hooks/hooks";
 import { setLocation } from "@/src/state/slices/userSlice";
 import * as Location from "expo-location";
 import { tryGetPosition } from "@/src/constant/functions";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 interface LocationScreenProps {
   onNext: () => void;
@@ -72,105 +76,31 @@ const createStyles = (theme: Theme) =>
 export default function LocationScreen({ onNext }: LocationScreenProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
+  const { showBanner } = useNotificationContext();
   const dispatch = useAppDispatch();
   const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleContinue = async () => {
-    setErrorMessage(null);
-    setIsLoading(true);
-
+     setErrorMessage(null);
     try {
-      // Check if location services are enabled
       const servicesEnabled = await Location.hasServicesEnabledAsync();
-
       if (!servicesEnabled) {
-        setErrorMessage("Please enable location services on your phone first");
-        setIsLoading(false);
+        const errorMsg = "Please turn on your phone location";
+        setErrorMessage(errorMsg);
+        showBanner("Location Error", errorMsg, "error");
         return;
       }
-
-      // Request location permission
-      const permissionResult = await handleLocationPermission();
-
-      if (!permissionResult.granted) {
-        if (permissionResult.errorMessage) {
-          setErrorMessage(permissionResult.errorMessage);
-        }
-        setIsLoading(false);
-        return;
-      }
-
-      // Get current location coordinates directly
-      let currentPosition: Location.LocationObject | null = null;
-      
-      try {
-        // Try to get cached position first (faster)
-        const cachedPosition = await Location.getLastKnownPositionAsync({
-          maxAge: 60000, // Use cached position if less than 1 minute old
-        });
-        
-        if (cachedPosition) {
-          currentPosition = cachedPosition;
-        } else {
-          // If no cached position, try to get current position with retries
-          currentPosition = await tryGetPosition();
-        }
-      } catch (error) {
-        console.error("Error getting location position:", error);
-        throw new Error("Unable to get your current location. Please make sure location services are enabled and try again.");
-      }
-
-      if (!currentPosition) {
-        throw new Error("Unable to get your current location. Please make sure location services are enabled and try again.");
-      }
-
-      const coordinates = {
-        latitude: currentPosition.coords.latitude,
-        longitude: currentPosition.coords.longitude,
-      };
-
-      // Try to get address via reverse geocoding (optional)
-      let locationName: string | null = null;
-      try {
-        const reverseResults = await Location.reverseGeocodeAsync(coordinates, {
-          useGoogleMaps: true,
-          timeout: 10000,
-        });
-        if (reverseResults && reverseResults.length > 0) {
-          const address = reverseResults[0];
-          const addressParts = [
-            address.street,
-            address.city,
-            address.region,
-          ].filter(Boolean);
-          locationName =
-            addressParts.length > 0 ? addressParts.join(", ") : null;
-        }
-      } catch (error) {
-        console.warn("Reverse geocode failed, continuing without address");
-      }
-
-      // Store location in user slice
-      dispatch(
-        setLocation({
-          lat: coordinates.latitude,
-          long: coordinates.longitude,
-          locationName,
-        })
-      );
-
-      // Navigate to next screen
       onNext();
     } catch (error) {
       console.error("Error getting location:", error);
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : "Unable to get your location. Please make sure location services are enabled and try again.";
-      setErrorMessage(errorMessage);
-    } finally {
-      setIsLoading(false);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Unable to get your location. Please make sure location services are enabled and try again.";
+      setErrorMessage(errorMsg);
+      showBanner("Location Error", errorMsg, "error");
     }
   };
 
@@ -201,10 +131,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
 
         <View style={styles.illustrationContainer}>
           <View style={styles.imageContainer}>
-            <Image
-              source={IMAGES.location}
-              style={styles.locationImage}
-            />
+            <Image source={IMAGES.location} style={styles.locationImage} />
           </View>
         </View>
 

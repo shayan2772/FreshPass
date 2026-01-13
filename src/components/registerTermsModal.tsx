@@ -93,8 +93,8 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.orangeBrown,
       alignItems: "center",
       justifyContent: "center",
-      borderWidth:4,
-      borderColor:theme.darkGreen
+      borderWidth: 4,
+      borderColor: theme.darkGreen,
     },
     title: {
       fontSize: fontSize.size24,
@@ -214,117 +214,20 @@ export default function RegisterTermsModal({
           locationName: null,
         })
       );
-       onContinue();
+      onContinue();
       return;
     }
 
-     
-
-    // Location doesn't exist, get current location
     setErrorMessage(null);
-    setIsLoading(true);
-
     try {
-      // Check if location services are enabled
       const servicesEnabled = await Location.hasServicesEnabledAsync();
-
       if (!servicesEnabled) {
         const errorMsg = "Please turn on your phone location";
         setErrorMessage(errorMsg);
         showBanner("Location Error", errorMsg, "error");
-        setIsLoading(false);
         return;
       }
-
-      // Request location permission
-      const permissionResult = await handleLocationPermission();
-
-      if (!permissionResult.granted) {
-        const errorMsg = permissionResult.errorMessage || "Please turn on your phone location";
-        setErrorMessage(errorMsg);
-        showBanner("Location Error", errorMsg, "error");
-        setIsLoading(false);
-        return;
-      }
-
       onContinue();
-
-      // Get current location coordinates directly
-      // let currentPosition: Location.LocationObject | null = null;
-      // try {
-      //   // Try to get cached position first (faster)
-      //   const cachedPosition = await Location.getLastKnownPositionAsync({
-      //     maxAge: 60000, // Use cached position if less than 1 minute old
-      //   });
-
-      //   if (cachedPosition) {
-      //     currentPosition = cachedPosition;
-      //   } else {
-      //     // If no cached position, try to get current position with retries
-      //     currentPosition = await tryGetPosition();
-      //   }
-      // } catch (error) {
-      //   console.error("Error getting location position:", error);
-      //   throw new Error(
-      //     "Unable to get your current location. Please make sure location services are enabled and try again."
-      //   );
-      // }
-
-      // if (!currentPosition) {
-      //   throw new Error(
-      //     "Unable to get your current location. Please make sure location services are enabled and try again."
-      //   );
-      // }
-
-      // const coordinates = {
-      //   latitude: currentPosition.coords.latitude,
-      //   longitude: currentPosition.coords.longitude,
-      // };
-
-      // // Get address via reverse geocoding (required)
-      // let locationName: string | null = null;
-      // try {
-      //   const reverseResults = await Location.reverseGeocodeAsync(
-      //     coordinates,
-      //     {
-      //       useGoogleMaps: true,
-      //       timeout: 10000,
-      //     }
-      //   );
-      //   if (reverseResults && reverseResults.length > 0) {
-      //     const address = reverseResults[0];
-      //     const addressParts = [
-      //       address.street,
-      //       address.city,
-      //       address.region,
-      //     ].filter(Boolean);
-      //     locationName =
-      //       addressParts.length > 0 ? addressParts.join(", ") : null;
-      //   }
-      // } catch (error) {
-      //   console.error("Reverse geocode failed:", error);
-      //   throw new Error(
-      //     "Unable to get your location address. Please try again."
-      //   );
-      // }
-
-      // // Validate that we have all required location data
-      // if (!locationName || !coordinates.latitude || !coordinates.longitude) {
-      //   throw new Error(
-      //     "Unable to get complete location information. Please try again."
-      //   );
-      // }
-
-      // // Store location in user slice
-      // dispatch(
-      //   setLocation({
-      //     lat: coordinates.latitude,
-      //     long: coordinates.longitude,
-      //     locationName,
-      //   })
-      // );
-
-      // onContinue();
     } catch (error) {
       console.error("Error getting location:", error);
       const errorMsg =
@@ -333,8 +236,6 @@ export default function RegisterTermsModal({
           : "Unable to get your location. Please make sure location services are enabled and try again.";
       setErrorMessage(errorMsg);
       showBanner("Location Error", errorMsg, "error");
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -380,9 +281,7 @@ export default function RegisterTermsModal({
           </View>
 
           <View style={styles.buttonContainer}>
-            {isLoading && (
-              <Text style={styles.loadingText}>Locating...</Text>
-            )}
+            {isLoading && <Text style={styles.loadingText}>Locating...</Text>}
 
             {errorMessage && (
               <Text style={styles.errorText}>{errorMessage}</Text>
