@@ -1172,7 +1172,6 @@ export default function bookingDetailsById() {
       </ScrollView>
 
       {/* Bottom Button */}
-      
 
       {/* <View style={styles.bottomButton}>
         <Button
@@ -1197,28 +1196,18 @@ export default function bookingDetailsById() {
         />
       </View> */}
 
-<View style={styles.bottomButton}>
-        <Button
-          title={ "Cancel this booking"}
-          onPress={() => {
-            if (isCancelled) {
-              // Handle remove from history
-              showBanner(
-                "Removed",
-                "Booking removed from history",
-                "success",
-                2000
-              );
-            } else {
+      {!isCancelled && (
+        <View style={styles.bottomButton}>
+          <Button
+            title={"Cancel this booking"}
+            onPress={() => {
               handleOpenCancelModal();
-            }
-          }}
-          containerStyle={
-            isCancelled ? styles.removeButton : styles.cancelButton
-          }
-          textColor={isCancelled ? undefined : "#D32F2F"}
-        />
-      </View>
+            }}
+            containerStyle={styles.cancelButton}
+            textColor={"#D32F2F"}
+          />
+        </View>
+      )}
 
       {/* Cancel Booking Bottom Sheet */}
       <CancelBookingBottomSheet
