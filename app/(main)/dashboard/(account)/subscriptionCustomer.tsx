@@ -26,6 +26,7 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { Feather } from "@expo/vector-icons";
 import RetryButton from "@/src/components/retryButton";
 import { Dropdown } from "react-native-element-dropdown";
+import subscription from "./subscription";
 
 interface SubscriptionData {
   id: number;
@@ -649,19 +650,16 @@ export default function subscriptionCustomer() {
     }
   }, [loadingMore, currentPage, totalPages, fetchSubscriptions]);
 
-  const handleBookAppointment = 
-    (subscription: SubscriptionData) => {
-
-      console.log("subscription: ", subscription);
-      // router.push({
-      //   pathname: "/(main)/bookingNow",
-      //   params: {s
-      //     businessId: subscription.businessId.toString(),
-      //   },
-      // });
-    };
-     
- 
+  const handleBookAppointment = (subscription: SubscriptionData) => {
+    router.push({
+      pathname: "/(main)/bookingNow/checkoutBooking",
+      params: {
+        businessId: subscription.businessId.toString(),
+        subscriptionId: subscription.id.toString(),
+        item:JSON.stringify(subscription)
+      },
+    });
+  };
 
   const handleCancelSubscription = useCallback(
     (subscription: SubscriptionData) => {
@@ -715,7 +713,13 @@ export default function subscriptionCustomer() {
     } finally {
       setIsCancelling(false);
     }
-  }, [selectedSubscription, confirmChecked, isCancelling, showBanner, fetchSubscriptions]);
+  }, [
+    selectedSubscription,
+    confirmChecked,
+    isCancelling,
+    showBanner,
+    fetchSubscriptions,
+  ]);
 
   const renderItem = useCallback(
     ({ item }: { item: SubscriptionData }) => {
@@ -1100,7 +1104,8 @@ export default function subscriptionCustomer() {
             <TouchableOpacity
               style={[
                 styles.confirmButton,
-                (!confirmChecked || isCancelling) && styles.confirmButtonDisabled,
+                (!confirmChecked || isCancelling) &&
+                  styles.confirmButtonDisabled,
               ]}
               onPress={handleConfirmCancellation}
               disabled={!confirmChecked || isCancelling}
@@ -1109,7 +1114,9 @@ export default function subscriptionCustomer() {
               {isCancelling ? (
                 <ActivityIndicator size="small" color={theme.white} />
               ) : (
-                <Text style={styles.confirmButtonText}>Confirm Cancellation</Text>
+                <Text style={styles.confirmButtonText}>
+                  Confirm Cancellation
+                </Text>
               )}
             </TouchableOpacity>
           </Pressable>
