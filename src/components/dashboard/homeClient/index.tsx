@@ -10,6 +10,10 @@ import LocationEnableModal from "@/src/components/locationEnableModal";
 import { setLocation } from "@/src/state/slices/userSlice";
 import { tryGetPosition } from "@/src/constant/functions";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import {
+  setActionLoader,
+  setActionLoaderTitle,
+} from "@/src/state/slices/generalSlice";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -44,90 +48,102 @@ export default function HomeScreen() {
     const servicesEnabled = await Location.hasServicesEnabledAsync();
     if (!servicesEnabled) {
       setShowLocationModal(true);
+    } else {
+      getCurrentLocation();
     }
   };
 
   const handleCloseModal = async (shouldGetLocation?: boolean) => {
     setShowLocationModal(false);
     if (shouldGetLocation) {
-      try {
-        // Request location permission
-        const { status } = await Location.requestForegroundPermissionsAsync();
+      getCurrentLocation();
+    }
+  };
 
-        if (status !== Location.PermissionStatus.GRANTED) {
-          showBanner(
-            "Location permission denied",
-            "Please allow location permission to continue",
-            "error"
-          );
-          return;
-        }
+  const getCurrentLocation = async () => {
+    try {
+      // Request location permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
-        // Get current location
-        let currentPosition: Location.LocationObject | null = null;
-        try {
-          // Try to get cached position first (faster)
-          const cachedPosition = await Location.getLastKnownPositionAsync({
-            maxAge: 60000, // Use cached position if less than 1 minute old
-          });
-
-          if (cachedPosition) {
-            currentPosition = cachedPosition;
-          } else {
-            // If no cached position, try to get current position with retries
-            currentPosition = await tryGetPosition();
-          }
-        } catch (error) {
-          console.error("Error getting location position:", error);
-          return;
-        }
-
-        if (!currentPosition) {
-          console.error("Unable to get current position");
-          return;
-        }
-
-        const coordinates = {
-          latitude: currentPosition.coords.latitude,
-          longitude: currentPosition.coords.longitude,
-        };
-
-        // Get address via reverse geocoding
-        let locationName: string | null = null;
-        try {
-          const reverseResults = await Location.reverseGeocodeAsync(
-            coordinates,
-            {
-              useGoogleMaps: true,
-              timeout: 10000,
-            }
-          );
-          if (reverseResults && reverseResults.length > 0) {
-            const address = reverseResults[0];
-            const addressParts = [
-              address.street,
-              address.city,
-              address.region,
-            ].filter(Boolean);
-            locationName =
-              addressParts.length > 0 ? addressParts.join(", ") : null;
-          }
-        } catch (error) {
-          console.error("Reverse geocode failed:", error);
-          // Continue even if reverse geocode fails - we still have coordinates
-        }
-
-        // Store location in user slice
-        dispatch(
-          setLocation({
-            lat: coordinates.latitude,
-            long: coordinates.longitude,
-            locationName: locationName,
-          })
+      if (status !== Location.PermissionStatus.GRANTED) {
+        showBanner(
+          "Location permission denied",
+          "Please allow location permission to continue",
+          "error"
         );
-      } catch (error) {
-        console.error("Error getting location:", error);
+        return;
       }
+
+      dispatch(setActionLoaderTitle("Getting Current Location..."));
+      dispatch(setActionLoader(true));
+
+      // Get current location
+      let currentPosition: Location.LocationObject | null = null;
+      try {
+        // Try to get cached position first (faster)
+        const cachedPosition = await Location.getLastKnownPositionAsync({
+          maxAge: 60000, // Use cached position if less than 1 minute old
+        });
+
+        if (cachedPosition) {
+          currentPosition = cachedPosition;
+        } else {
+          // If no cached position, try to get current position with retries
+          currentPosition = await tryGetPosition();
+        }
+      } catch (error) {
+        dispatch(setActionLoaderTitle(""));
+        dispatch(setActionLoader(false));
+        console.error("Error getting location position:", error);
+        return;
+      }
+
+      if (!currentPosition) {
+        console.error("Unable to get current position");
+        return;
+      }
+
+      const coordinates = {
+        latitude: currentPosition.coords.latitude,
+        longitude: currentPosition.coords.longitude,
+      };
+
+      // Get address via reverse geocoding
+      let locationName: string | null = null;
+      try {
+        const reverseResults = await Location.reverseGeocodeAsync(coordinates, {
+          useGoogleMaps: true,
+          timeout: 10000,
+        });
+        if (reverseResults && reverseResults.length > 0) {
+          const address = reverseResults[0];
+          const addressParts = [
+            address.street,
+            address.city,
+            address.region,
+          ].filter(Boolean);
+          locationName =
+            addressParts.length > 0 ? addressParts.join(", ") : null;
+        }
+      } catch (error) {
+        dispatch(setActionLoaderTitle(""));
+        dispatch(setActionLoader(false));
+        console.error("Reverse geocode failed:", error);
+        return;
+      }
+
+      // Store location in user slice
+      dispatch(
+        setLocation({
+          lat: coordinates.latitude,
+          long: coordinates.longitude,
+          locationName: locationName,
+        })
+      );
+    } catch (error) {
+      dispatch(setActionLoaderTitle(""));
+      dispatch(setActionLoader(false));
+      console.error("Error getting location:", error);
     }
   };
 
