@@ -913,6 +913,48 @@ export default function DashboardContent() {
     }
   };
 
+ 
+
+  const fetchServiceTemplates = async (categoryId: number | string) => {
+    try {
+      setServiceTemplatesLoading(true);
+      setServiceTemplatesError(false);
+      const response = await ApiService.get<{
+        success: boolean;
+        message: string;
+        data: Array<{
+          id: number;
+          name: string;
+          category_id: number;
+          category: string;
+          base_price: number;
+          duration_hours: number;
+          duration_minutes: number;
+          active: boolean;
+          createdAt: string;
+        }>;
+      }>(businessEndpoints.serviceTemplates(categoryId as number));
+
+      if (response.success && response.data) {
+        setServiceTemplates(response.data);
+      } else {
+        setServiceTemplates([]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch service templates:", error);
+      setServiceTemplatesError(true);
+      showBanner(
+        "API Failed",
+        "API failed to fetch service templates",
+        "error",
+        2500
+      );
+      setServiceTemplates([]);
+    } finally {
+      setServiceTemplatesLoading(false);
+    }
+  };
+
   const fetchBusinesses = async (
     categoryId: number | string,
     search?: string
@@ -961,46 +1003,6 @@ export default function DashboardContent() {
       setBusinessesCount(0);
     } finally {
       setBusinessesLoading(false);
-    }
-  };
-
-  const fetchServiceTemplates = async (categoryId: number | string) => {
-    try {
-      setServiceTemplatesLoading(true);
-      setServiceTemplatesError(false);
-      const response = await ApiService.get<{
-        success: boolean;
-        message: string;
-        data: Array<{
-          id: number;
-          name: string;
-          category_id: number;
-          category: string;
-          base_price: number;
-          duration_hours: number;
-          duration_minutes: number;
-          active: boolean;
-          createdAt: string;
-        }>;
-      }>(businessEndpoints.serviceTemplates(categoryId as number));
-
-      if (response.success && response.data) {
-        setServiceTemplates(response.data);
-      } else {
-        setServiceTemplates([]);
-      }
-    } catch (error) {
-      console.error("Failed to fetch service templates:", error);
-      setServiceTemplatesError(true);
-      showBanner(
-        "API Failed",
-        "API failed to fetch service templates",
-        "error",
-        2500
-      );
-      setServiceTemplates([]);
-    } finally {
-      setServiceTemplatesLoading(false);
     }
   };
 
@@ -1266,11 +1268,11 @@ export default function DashboardContent() {
       };
 
       // Add from_date parameter if selectedDate is not null
-      if (selectedDateISO) {
-        const selectedDate = dayjs(selectedDateISO);
-        params.from_date = selectedDate.format("YYYY-MM-DD");
-        params.to_date = selectedDate.format("YYYY-MM-DD");
-      }
+      // if (selectedDateISO) {
+      //   const selectedDate = dayjs(selectedDateISO);
+      //   params.from_date = selectedDate.format("YYYY-MM-DD");
+      //   params.to_date = selectedDate.format("YYYY-MM-DD");
+      // }
 
       // Add appointment_type parameter based on activeTab
       if (activeTab === "individual") {
@@ -1366,7 +1368,7 @@ export default function DashboardContent() {
       if (userRole === "customer") {
         fetchAppointments();
       }
-    }, [selectedDateISO, activeTab, userRole])
+    }, [activeTab, userRole])
   );
 
   // Refetch appointments when selectedDate changes
@@ -1415,7 +1417,13 @@ export default function DashboardContent() {
         clearTimeout(debounceTimer);
       };
     }
-  }, [selectedCategory, activeTab, selectedServiceFilter, searchText]);
+  }, [
+    selectedCategory,
+    activeTab,
+    selectedServiceFilter,
+    searchText,
+    selectedDateISO,
+  ]);
 
   // Initialize scroll position to subscriptions (index 0)
   useEffect(() => {
@@ -1782,9 +1790,6 @@ export default function DashboardContent() {
                   {appointments.length !== 1 ? "s" : ""}
                 </Text>{" "}
                 for upcoming appointment{appointments.length !== 1 ? "s" : ""}
-                {selectedDateISO && (
-                  <> on {dayjs(selectedDateISO).format("MMM D, YYYY")}</>
-                )}
               </>
             ) : (
               <>
@@ -1793,6 +1798,9 @@ export default function DashboardContent() {
                   {businessesCount} results
                 </Text>{" "}
                 for {getCategoryName()}
+                {selectedDateISO && (
+                  <> on {dayjs(selectedDateISO).format("MMM D, YYYY")}</>
+                )}
               </>
             )}
           </Text>
