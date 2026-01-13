@@ -855,11 +855,46 @@ export default function bookingDetailsById() {
     setCancelModalVisible(false);
   };
 
-  const handleCancelBooking = (reason: string) => {
-    // Handle cancellation with reason
-    showBanner("Booking Cancelled", `Reason: ${reason}`, "success", 3000);
-    // Here you would typically make an API call to cancel the booking
-    // For now, just show a banner notification
+  const handleCancelBooking = async (reason: string) => {
+    if (!bookingId) {
+      showBanner("Error", "Booking ID is required", "error", 2500);
+      return;
+    }
+
+    try {
+      const response = await ApiService.patch<{
+        success: boolean;
+        message: string;
+        data?: any;
+      }>(appointmentsEndpoints.cancel(bookingId), {
+        cancel_reason: reason,
+      });
+
+      if (response.success) {
+        showBanner(
+          "Success",
+          "Booking cancelled successfully",
+          "success",
+          2500
+        );
+        // Fetch booking details again to update the UI
+        await fetchBookingDetails();
+      } else {
+        showBanner(
+          "Error",
+          response.message || "Failed to cancel booking",
+          "error",
+          2500
+        );
+      }
+    } catch (error: any) {
+      showBanner(
+        "Error",
+        error?.message || "Failed to cancel booking",
+        "error",
+        2500
+      );
+    }
   };
 
   return (
