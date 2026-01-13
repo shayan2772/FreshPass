@@ -5,7 +5,6 @@ import React, {
   useRef,
 } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SvgXml } from "react-native-svg";
 import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
@@ -17,20 +16,6 @@ import {
 } from "@/src/theme/dimensions";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 
-// Checkbox Icon SVG
-const checkboxIconSvg = `
-<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-<path d="M9 16.17L4.83 12L3.41 13.41L9 19L21 7L19.59 5.59L9 16.17Z" fill="{{COLOR}}"/>
-</svg>
-`;
-
-const CheckboxIcon = ({ width = 24, height = 24, color = "#283618" }) => {
-  const svgXml = checkboxIconSvg
-    .replace(/{{WIDTH}}/g, width.toString())
-    .replace(/{{HEIGHT}}/g, height.toString())
-    .replace(/{{COLOR}}/g, color);
-  return <SvgXml xml={svgXml} />;
-};
 
 interface SubscriptionPlan {
   id: number;
@@ -66,19 +51,24 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
       alignItems: "center",
     },
-    checkboxContainer: {
-      width: widthScale(20),
-      height: heightScale(18),
-      borderRadius: moderateWidthScale(4),
-      borderWidth: 1.5,
+    radioButton: {
+      width: moderateWidthScale(20),
+      height: moderateWidthScale(20),
+      borderRadius: moderateWidthScale(10),
+      borderWidth: 2,
       borderColor: theme.lightGreen2,
       alignItems: "center",
       justifyContent: "center",
       marginRight: moderateWidthScale(12),
     },
-    checkboxChecked: {
-      backgroundColor: theme.orangeBrown,
+    radioButtonSelected: {
       borderColor: theme.orangeBrown,
+    },
+    radioButtonInner: {
+      width: moderateWidthScale(10),
+      height: moderateWidthScale(10),
+      borderRadius: moderateWidthScale(5),
+      backgroundColor: theme.orangeBrown,
     },
     subscriptionCardLeft: {
       flex: 1,
@@ -193,17 +183,11 @@ export default function SubscriptionPickerBottomSheet({
             <View style={styles.subscriptionCardContent}>
               <View
                 style={[
-                  styles.checkboxContainer,
-                  isSelected && styles.checkboxChecked,
+                  styles.radioButton,
+                  isSelected && styles.radioButtonSelected,
                 ]}
               >
-                {isSelected && (
-                  <CheckboxIcon
-                    width={widthScale(16)}
-                    height={heightScale(16)}
-                    color={theme.white}
-                  />
-                )}
+                {isSelected && <View style={styles.radioButtonInner} />}
               </View>
               <View style={styles.subscriptionCardLeft}>
                 <Text style={styles.subscriptionName}>
