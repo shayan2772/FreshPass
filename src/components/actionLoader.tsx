@@ -1,8 +1,12 @@
 import React, { useMemo } from "react";
-import { ActivityIndicator, Modal, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Modal, StyleSheet, View, Text } from "react-native";
 import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
-import { moderateWidthScale } from "@/src/theme/dimensions";
+import { fontSize, fonts } from "@/src/theme/fonts";
+import {
+  moderateWidthScale,
+  moderateHeightScale,
+} from "@/src/theme/dimensions";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -18,6 +22,14 @@ const createStyles = (theme: Theme) =>
       padding: moderateWidthScale(24),
       alignItems: "center",
       justifyContent: "center",
+      minWidth: moderateWidthScale(120),
+    },
+    titleText: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontMedium,
+      color: theme.text,
+      marginTop: moderateHeightScale(16),
+      textAlign: "center",
     },
   });
 
@@ -26,6 +38,9 @@ export default function ActionLoader() {
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
   const actionLoader = useAppSelector((state) => state.general.actionLoader);
+  const actionLoaderTitle = useAppSelector(
+    (state) => state.general.actionLoaderTitle
+  );
 
   return (
     <Modal
@@ -37,6 +52,9 @@ export default function ActionLoader() {
       <View style={styles.modalOverlay}>
         <View style={styles.loaderContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
+          {actionLoaderTitle && actionLoaderTitle.trim() !== "" && (
+            <Text style={styles.titleText}>{actionLoaderTitle}</Text>
+          )}
         </View>
       </View>
     </Modal>
