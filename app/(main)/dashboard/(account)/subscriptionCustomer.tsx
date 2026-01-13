@@ -47,6 +47,8 @@ interface SubscriptionData {
     remaining: number;
   };
   status: string;
+  stripeStatus: string;
+  endsAt: string | null;
   paymentDate: string | null;
   nextPaymentDate: string;
   remainingDays: number;
@@ -554,6 +556,42 @@ const createStyles = (theme: Theme) =>
     confirmButtonDisabled: {
       opacity: 0.5,
     },
+    cancelledStatusContainer: {
+      backgroundColor: theme.lightGreen015,
+      borderRadius: moderateWidthScale(12),
+      padding: moderateWidthScale(16),
+      marginTop: moderateHeightScale(6),
+      marginBottom: moderateHeightScale(6),
+      borderWidth: 1,
+      borderColor: theme.orangeBrown,
+      flexDirection: "row",
+      alignItems: "center",
+    },
+    cancelledIconContainer: {
+      width: moderateWidthScale(40),
+      height: moderateWidthScale(40),
+      borderRadius: moderateWidthScale(20),
+      backgroundColor: theme.orangeBrown015,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(12),
+    },
+    cancelledContentContainer: {
+      flex: 1,
+    },
+    cancelledStatusText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontBold,
+      color: theme.orangeBrown,
+      marginBottom: moderateHeightScale(4),
+    },
+    cancelledStatusSubtext: {
+      fontSize: fontSize.size12,
+      fontFamily: fonts.fontRegular,
+      color: theme.darkGreen,
+      opacity: 0.8,
+      lineHeight: fontSize.size18,
+    },
   });
 
 export default function subscriptionCustomer() {
@@ -721,8 +759,26 @@ export default function subscriptionCustomer() {
     fetchSubscriptions,
   ]);
 
+  const formatEndsAtDate = useCallback((endsAt: string | null): string => {
+    if (!endsAt) return "";
+    try {
+      const date = new Date(endsAt);
+      const month = date.toLocaleString("en-US", { month: "short" });
+      const day = date.getDate();
+      const year = date.getFullYear();
+      return `${month} ${day}, ${year}`;
+    } catch (error) {
+      return endsAt;
+    }
+  }, []);
+
   const renderItem = useCallback(
     ({ item }: { item: SubscriptionData }) => {
+      const isCancelledButActive =
+        item.status?.trim()?.toLowerCase() === "active" &&
+        item.stripeStatus?.trim()?.toLowerCase() === "cancelled" &&
+        item.endsAt;
+
       return (
         <View style={styles.subscriptionCard}>
           {/* Header: Plan Name and Status */}
@@ -849,20 +905,49 @@ export default function subscriptionCustomer() {
               </TouchableOpacity>
             )}
 
-          {/* Cancel Button */}
-          {item.status?.trim()?.toLowerCase() === "active" && (
-            <TouchableOpacity
-              style={styles.cancelButton}
-              onPress={() => handleCancelSubscription(item)}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.cancelButtonText}>Cancel Subscription</Text>
-            </TouchableOpacity>
+          {/* Cancelled Status or Cancel Button */}
+          {isCancelledButActive ? (
+            <View style={styles.cancelledStatusContainer}>
+              <View style={styles.cancelledIconContainer}>
+                <Feather
+                  name="info"
+                  size={moderateWidthScale(20)}
+                  color={theme.orangeBrown}
+                />
+              </View>
+              <View style={styles.cancelledContentContainer}>
+                <Text style={styles.cancelledStatusText}>
+                  Subscription Cancelled
+                </Text>
+                <Text style={styles.cancelledStatusSubtext}>
+                  You can still use this subscription until{" "}
+                  <Text style={{ fontFamily: fonts.fontBold }}>
+                    {formatEndsAtDate(item.endsAt)}
+                  </Text>
+                </Text>
+              </View>
+            </View>
+          ) : (
+            item.status?.trim()?.toLowerCase() === "active" && (
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => handleCancelSubscription(item)}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.cancelButtonText}>Cancel Subscription</Text>
+              </TouchableOpacity>
+            )
           )}
         </View>
       );
     },
-    [styles, theme, handleCancelSubscription, handleBookAppointment]
+    [
+      styles,
+      theme,
+      handleCancelSubscription,
+      handleBookAppointment,
+      formatEndsAtDate,
+    ]
   );
 
   const renderFooter = useCallback(() => {
