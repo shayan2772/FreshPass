@@ -1738,9 +1738,9 @@ export default function DashboardContent() {
               >
                 <Image
                   source={{
-                    uri:
-                      category?.image ||
-                      "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                    uri: category?.image
+                      ? process.env.EXPO_PUBLIC_API_BASE_URL + category?.image
+                      : process.env.EXPO_PUBLIC_DEFAULT_CATEGORY_IMAGE,
                   }}
                   style={[
                     styles.categoryImage,
