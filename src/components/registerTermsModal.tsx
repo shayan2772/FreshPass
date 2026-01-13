@@ -9,7 +9,7 @@ import {
   StatusBar,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch,   } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -21,10 +21,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import Button from "@/src/components/button";
 import { CrownIcon } from "@/assets/icons";
 import { setLocation } from "@/src/state/slices/userSlice";
-import { handleLocationPermission } from "@/src/services/locationPermissionService";
 import * as Location from "expo-location";
-import { tryGetPosition } from "@/src/constant/functions";
-import { MAIN_ROUTES } from "@/src/constant/routes";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 interface AcceptTermsModalProps {

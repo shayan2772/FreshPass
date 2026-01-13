@@ -96,7 +96,6 @@ export default function DashboardHeaderClient() {
   const selectedDateISO = useAppSelector((state) => state.general.selectedDate);
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [dateModalVisible, setDateModalVisible] = useState(false);
-
   const selectedDate = selectedDateISO ? dayjs(selectedDateISO) : null;
   const locationName = location?.locationName || "Select Location";
   
