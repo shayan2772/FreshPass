@@ -423,6 +423,8 @@ export default function BookingDetail() {
     estimatedTotal?: string;
     businessId?: string;
     note?: string;
+    subscriptionId?: string;
+    fromCheckoutBooking?: string;
   }>();
 
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
@@ -522,7 +524,7 @@ export default function BookingDetail() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStle="dark-content" />
+      <StatusBar barStyle="dark-content" />
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerLeft}>
@@ -630,29 +632,31 @@ export default function BookingDetail() {
             ))}
         </View>
 
-        {/* Summary */}
-        <View style={styles.summaryCard}>
-          <Text style={styles.summaryTitle}>
-            Summary <Text style={styles.summaryTitle2}>(you'll pay)</Text>
-          </Text>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Subtotal:</Text>
-            <Text style={styles.summaryValue}>
-              ${totalPrice.toFixed(2)} USD
+        {/* Summary - Hide for subscription bookings from checkoutBooking */}
+        {!params.fromCheckoutBooking && !params.subscriptionId && (
+          <View style={styles.summaryCard}>
+            <Text style={styles.summaryTitle}>
+              Summary <Text style={styles.summaryTitle2}>(you'll pay)</Text>
             </Text>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Subtotal:</Text>
+              <Text style={styles.summaryValue}>
+                ${totalPrice.toFixed(2)} USD
+              </Text>
+            </View>
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Total Tax:</Text>
+              <Text style={styles.summaryValue}>${tax.toFixed(2)} USD</Text>
+            </View>
+            <View style={styles.divider} />
+            <View style={[styles.summaryRow, styles.summaryRowLast]}>
+              <Text style={styles.summaryTotalLabel}>Booking Total:</Text>
+              <Text style={styles.summaryTotalValue}>
+                ${bookingTotal.toFixed(2)} USD
+              </Text>
+            </View>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Total Tax:</Text>
-            <Text style={styles.summaryValue}>${tax.toFixed(2)} USD</Text>
-          </View>
-          <View style={styles.divider} />
-          <View style={[styles.summaryRow, styles.summaryRowLast]}>
-            <Text style={styles.summaryTotalLabel}>Booking Total:</Text>
-            <Text style={styles.summaryTotalValue}>
-              ${bookingTotal.toFixed(2)} USD
-            </Text>
-          </View>
-        </View>
+        )}
 
         {/* Salon Address */}
         <View style={styles.salonCard}>
@@ -670,17 +674,16 @@ export default function BookingDetail() {
         )}
 
         {/* Staff Member */}
-        {selectedStaffMember && (
           <View style={styles.staffCard}>
             <Text style={styles.staffLabel}>Staff member:</Text>
-            <Text style={styles.staffName}>{selectedStaffMember.name}</Text>
-            {selectedStaffMember.experience && (
+            <Text style={styles.staffName}>{selectedStaffMember?.name || "Anyone"}</Text>
+            {selectedStaffMember?.experience && (
               <Text style={styles.staffExperience}>
                 {selectedStaffMember.experience} Years Of Experience
               </Text>
             )}
           </View>
-        )}
+       
 
         {/* Action Buttons */}
         <View style={styles.actionContainer}>

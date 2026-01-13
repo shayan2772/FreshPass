@@ -1482,9 +1482,10 @@ function CheckoutContent() {
               : "",
             selectedDate: selectedDate.format("YYYY-MM-DD"),
             selectedTimeSlot: selectedTimeSlot || "",
-            paymentMethod: "pay_later",
             businessId: params.businessId || "",
             subscriptionId: subscriptionId?.toString() || "",
+            note: note || "",
+            fromCheckoutBooking: "true",
           },
         });
       } else {
@@ -1860,10 +1861,7 @@ function CheckoutContent() {
               </ScrollView>
             </View>
 
-
-
-
-
+ 
             {/* Leave a Note Section */}
             <View style={styles.noteInputContainer}>
               <View style={styles.noteInputIcon}>
