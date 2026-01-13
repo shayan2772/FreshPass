@@ -13,6 +13,7 @@ import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import {
   setActionLoader,
   setActionLoaderTitle,
+  setLocationLoading,
 } from "@/src/state/slices/generalSlice";
 import {
   handleLocationPermission,
@@ -70,23 +71,11 @@ export default function HomeScreen() {
       const permissionResult = await handleLocationPermission();
 
       if (!permissionResult.granted) {
-        // if (permissionResult.errorMessage) {
-        //   showBanner(
-        //     "Location Error",
-        //     permissionResult.errorMessage,
-        //     "error"
-        //   );
-        //   if (permissionResult.shouldOpenSettings) {
-        //     await openLocationSettings();
-        //   }
-        // }
         return;
       }
 
-      dispatch(setActionLoaderTitle("Getting Current Location..."));
-      dispatch(setActionLoader(true));
-
       // Get current location
+      dispatch(setLocationLoading(true));
       let currentPosition: Location.LocationObject | null = null;
       try {
         // Try to get cached position first (faster)
@@ -101,15 +90,12 @@ export default function HomeScreen() {
           currentPosition = await tryGetPosition();
         }
       } catch (error) {
-        dispatch(setActionLoaderTitle(""));
-        dispatch(setActionLoader(false));
+        dispatch(setLocationLoading(false));
         console.error("Error getting location position:", error);
-        return;
       }
 
       if (!currentPosition) {
-        dispatch(setActionLoaderTitle(""));
-        dispatch(setActionLoader(false));
+        dispatch(setLocationLoading(false));
         console.error("Unable to get current position");
         showBanner(
           "Location Error",
@@ -142,8 +128,19 @@ export default function HomeScreen() {
             addressParts.length > 0 ? addressParts.join(", ") : null;
         }
       } catch (error) {
+        dispatch(setLocationLoading(false));
         console.error("Reverse geocode failed:", error);
-        // Continue even if reverse geocode fails - we still have coordinates
+      }
+
+      if (!locationName) {
+        dispatch(setLocationLoading(false));
+        console.error("Unable to get current position");
+        showBanner(
+          "Location Error",
+          "Unable to get your current position. Please try again.",
+          "error"
+        );
+        return;
       }
 
       // Store location in user slice
@@ -155,15 +152,13 @@ export default function HomeScreen() {
         })
       );
 
-      dispatch(setActionLoaderTitle(""));
-      dispatch(setActionLoader(false));
+      dispatch(setLocationLoading(false));
     } catch (error) {
-      dispatch(setActionLoaderTitle(""));
-      dispatch(setActionLoader(false));
+      dispatch(setLocationLoading(false));
       console.error("Error getting location:", error);
       showBanner(
         "Location Error",
-        "Unable to get your location. Please try again.",
+        "Unable to get your current location. Please try again.",
         "error"
       );
     }

@@ -82,7 +82,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
         const errorMsg = "Please turn on your phone location";
-        setErrorMessage(errorMsg);
+        // setErrorMessage(errorMsg);
         showBanner("Location Error", errorMsg, "error");
         return;
       }
@@ -93,7 +93,7 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
         error instanceof Error
           ? error.message
           : "Unable to get your location. Please make sure location services are enabled and try again.";
-      setErrorMessage(errorMsg);
+      // setErrorMessage(errorMsg);
       showBanner("Location Error", errorMsg, "error");
     }
   };

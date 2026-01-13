@@ -5,6 +5,7 @@ import {
   View,
   TouchableOpacity,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
 import { useTheme, useAppSelector, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -54,10 +55,18 @@ const createStyles = (theme: Theme) =>
       gap: moderateHeightScale(4),
       maxWidth: "70%",
     },
+    locationLabelContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: moderateWidthScale(6),
+    },
     locationLabel: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+    },
+    loadingIndicator: {
+      marginLeft: moderateWidthScale(4),
     },
     locationValue: {
       flexDirection: "row",
@@ -94,6 +103,7 @@ export default function DashboardHeaderClient() {
   const dispatch = useAppDispatch();
   const location = useAppSelector((state) => state.user.location);
   const selectedDateISO = useAppSelector((state) => state.general.selectedDate);
+  const locationLoading = useAppSelector((state) => state.general.locationLoading);
   const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const selectedDate = selectedDateISO ? dayjs(selectedDateISO) : null;
@@ -125,7 +135,16 @@ export default function DashboardHeaderClient() {
             onPress={() => setLocationModalVisible(true)}
           >
             <View style={styles.locationContent}>
-              <Text style={styles.locationLabel}>Location</Text>
+              <View style={styles.locationLabelContainer}>
+                <Text style={styles.locationLabel}>Location</Text>
+                {locationLoading && (
+                  <ActivityIndicator
+                    size={16}
+                    color={theme.darkGreenLight}
+                    style={styles.loadingIndicator}
+                  />
+                )}
+              </View>
               <View style={styles.locationValue}>
                 <LocationPinIcon
                   width={widthScale(18)}

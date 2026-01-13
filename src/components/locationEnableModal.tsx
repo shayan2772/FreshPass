@@ -11,6 +11,7 @@ import {
 import * as Location from "expo-location";
 import Button from "@/src/components/button";
 import { MapPinIcon } from "@/assets/icons";
+import NotificationBanner from "@/src/components/notificationBanner";
 
 interface LocationEnableModalProps {
   visible: boolean;
@@ -99,13 +100,6 @@ const createStyles = (theme: Theme) =>
     buttonContainer: {
       gap: moderateHeightScale(12),
     },
-    errorText: {
-      fontSize: fontSize.size13,
-      fontFamily: fonts.fontRegular,
-      color: theme.red,
-      textAlign: "center",
-      paddingHorizontal: moderateWidthScale(12),
-    },
     skipButton: {
       alignItems: "center",
       justifyContent: "center",
@@ -131,15 +125,35 @@ export default function LocationEnableModal({
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [modalBanner, setModalBanner] = useState<{
+    visible: boolean;
+    title: string;
+    message: string;
+    type: "success" | "error" | "warning" | "info";
+  }>({
+    visible: false,
+    title: "",
+    message: "",
+    type: "error",
+  });
 
   const handleContinue = async () => {
-    setErrorMessage(null);
+    setModalBanner({
+      visible: false,
+      title: "",
+      message: "",
+      type: "error",
+    });
     try {
       const servicesEnabled = await Location.hasServicesEnabledAsync();
       if (!servicesEnabled) {
         const errorMsg = "Please turn on your phone location";
-        setErrorMessage(errorMsg);
+        setModalBanner({
+          visible: true,
+          title: "Location Error",
+          message: errorMsg,
+          type: "error",
+        });
         return;
       }
 
@@ -153,7 +167,12 @@ export default function LocationEnableModal({
         error instanceof Error
           ? error.message
           : "Unable to get your location. Please make sure location services are enabled and try again.";
-      setErrorMessage(errorMsg);
+      setModalBanner({
+        visible: true,
+        title: "Location Error",
+        message: errorMsg,
+        type: "error",
+      });
     }
   };
 
@@ -210,10 +229,6 @@ export default function LocationEnableModal({
           </View>
 
           <View style={styles.buttonContainer}>
-            {errorMessage && (
-              <Text style={styles.errorText}>{errorMessage}</Text>
-            )}
-
             <Button
               title={"Enable Location"}
               onPress={handleContinue}
@@ -228,6 +243,17 @@ export default function LocationEnableModal({
               <Text style={styles.skipButtonText}>Skip for now</Text>
             </TouchableOpacity>
           </View>
+
+          <NotificationBanner
+            visible={modalBanner.visible}
+            title={modalBanner.title}
+            message={modalBanner.message}
+            type={modalBanner.type}
+            duration={3000}
+            onDismiss={() =>
+              setModalBanner((prev) => ({ ...prev, visible: false }))
+            }
+          />
         </View>
       </View>
     </Modal>

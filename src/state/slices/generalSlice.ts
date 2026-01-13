@@ -10,6 +10,7 @@ export interface GeneralState {
   savedPassword: string | null; // Saved password if user checked "save password"
   actionLoader: boolean; // Global action loader state
   actionLoaderTitle: string; // Title to display with action loader
+  locationLoading: boolean; // Location loading state
   toggleLoading: boolean; // Toggle loading state (not persisted)
   role: UserRole; // Selected user role
   isVisitFirst: boolean; // Track if it's the first visit
@@ -25,6 +26,7 @@ const initialState: GeneralState = {
   savedPassword: null,
   actionLoader: false,
   actionLoaderTitle: "",
+  locationLoading: false,
   toggleLoading: false,
   role: null,
   isVisitFirst: true,
@@ -58,6 +60,9 @@ const generalSlice = createSlice({
     setActionLoaderTitle(state, action: PayloadAction<string>) {
       state.actionLoaderTitle = action.payload;
     },
+    setLocationLoading(state, action: PayloadAction<boolean>) {
+      state.locationLoading = action.payload;
+    },
     setToggleLoading(state, action: PayloadAction<boolean>) {
       state.toggleLoading = action.payload;
     },
@@ -85,6 +90,7 @@ const generalSlice = createSlice({
       state.searchText = "";
       state.actionLoaderTitle = "";
       state.actionLoader = false;
+      state.locationLoading = false;
     },
   },
 });
@@ -97,6 +103,7 @@ export const {
   setSavedPassword,
   setActionLoader,
   setActionLoaderTitle,
+  setLocationLoading,
   setToggleLoading,
   setRole,
   setIsVisitFirst,
