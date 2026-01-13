@@ -61,6 +61,8 @@ interface BookingItem {
   id: string;
   serviceName: string;
   membershipType?: string;
+  planName?: string;
+  type?: "subscription" | "service";
   staffName: string;
   location?: string;
   dateTime: string;
@@ -572,7 +574,8 @@ export default function bookingDetailsById() {
     if (
       totalPrice === null ||
       totalPrice === undefined ||
-      (typeof totalPrice === "object" && Object.keys(totalPrice).length === 0) ||
+      (typeof totalPrice === "object" &&
+        Object.keys(totalPrice).length === 0) ||
       (typeof totalPrice !== "number" && typeof totalPrice !== "string")
     ) {
       return null;
@@ -605,6 +608,7 @@ export default function bookingDetailsById() {
       : "---";
 
     const price = getPrice(apiData);
+    const planName = apiData.subscription || "---";
 
     return {
       id: apiData.id.toString(),
@@ -625,6 +629,8 @@ export default function bookingDetailsById() {
       paymentMethod: apiData.paymentMethod,
       paidAmount: apiData.paidAmount,
       subscriptionVisits: apiData.subscriptionVisits || null,
+      planName,
+      type: apiData.appointmentType,
     };
   };
 
@@ -897,8 +903,7 @@ export default function bookingDetailsById() {
               </Text>
             </View>
             {booking.subscriptionVisits &&
-              booking.subscriptionVisits.remaining !== undefined &&
-              (
+              booking.subscriptionVisits.remaining !== undefined && (
                 <View style={styles.membershipBadge}>
                   <Text style={styles.membershipBadgeText}>
                     {booking.subscriptionVisits.remaining} visit
@@ -906,9 +911,6 @@ export default function bookingDetailsById() {
                   </Text>
                 </View>
               )}
-              
-
-   
           </View>
 
           {/* Service Name */}
@@ -1071,37 +1073,47 @@ export default function bookingDetailsById() {
         <View style={styles.line} />
 
         {/* Payment Information */}
-        <View style={styles.paymentSection}>
-          <View style={styles.paymentIcon}>
-            <WalletIcon
-              width={moderateWidthScale(22)}
-              height={moderateWidthScale(22)}
-              color={theme.orangeBrown}
-            />
-          </View>
-          <View style={styles.paymentTextContainer}>
-            {booking.paymentMethod === "pay_now" &&
-            booking.paidAmount !== null &&
-            booking.paidAmount !== undefined ? (
-              <>
-                <Text style={styles.paymentLabel}>I paid</Text>
-                <Text style={styles.paymentAmount}>
-                  <Text style={styles.paymentAmountVal}>
-                    {formatPrice(booking.paidAmount)}
+        {booking.type === "service" ? (
+          <View style={styles.paymentSection}>
+            <View style={styles.paymentIcon}>
+              <WalletIcon
+                width={moderateWidthScale(22)}
+                height={moderateWidthScale(22)}
+                color={theme.orangeBrown}
+              />
+            </View>
+            <View style={styles.paymentTextContainer}>
+              {booking.paymentMethod === "pay_now" &&
+              booking.paidAmount !== null &&
+              booking.paidAmount !== undefined ? (
+                <>
+                  <Text style={styles.paymentLabel}>I paid</Text>
+                  <Text style={styles.paymentAmount}>
+                    <Text style={styles.paymentAmountVal}>
+                      {formatPrice(booking.paidAmount)}
+                    </Text>
                   </Text>
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text style={styles.paymentLabel}>I will pay</Text>
-                <Text style={styles.paymentAmount}>
-                  Total:{" "}
-                  <Text style={styles.paymentAmountVal}>{booking.price}</Text>
-                </Text>
-              </>
-            )}
+                </>
+              ) : (
+                <>
+                  <Text style={styles.paymentLabel}>I will pay</Text>
+                  <Text style={styles.paymentAmount}>
+                    Total:{" "}
+                    <Text style={styles.paymentAmountVal}>{booking.price}</Text>
+                  </Text>
+                </>
+              )}
+            </View>
           </View>
-        </View>
+        ) : (
+          <View style={styles.paymentSection}>
+            <View style={styles.paymentTextContainer}>
+              <Text style={styles.paymentAmount}>
+                <Text style={styles.paymentAmountVal}>{booking.planName}</Text>
+              </Text>
+            </View>
+          </View>
+        )}
 
         <View style={styles.line} />
 

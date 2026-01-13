@@ -1363,7 +1363,9 @@ export default function DashboardContent() {
 
   useFocusEffect(
     useCallback(() => {
+      if(userRole==="customer"){
       fetchAppointments();
+      }
     }, [selectedDateISO, activeTab])
   );
 
@@ -1374,6 +1376,7 @@ export default function DashboardContent() {
 
   // Fetch service templates when category changes or when switching to individual tab
   useEffect(() => {
+    
     if (isCusotmerandGuest && selectedCategory && activeTab === "individual") {
       fetchServiceTemplates(selectedCategory);
     }
@@ -1855,7 +1858,9 @@ export default function DashboardContent() {
                 if (selectedCategory) {
                   const trimmedSearch = searchText?.trim() || "";
                   fetchBusinesses(selectedCategory, trimmedSearch || undefined);
+                  if(userRole==="customer"){
                   fetchAppointments();
+                  }
                 }
               }}
               loading={businessesLoading || appointmentsLoading}

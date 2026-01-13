@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import {
   StyleSheet,
   View,
@@ -8,7 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -22,7 +22,7 @@ import {
   PersonIcon,
   LocationPinIcon,
 } from "@/assets/icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Entypo, Ionicons } from "@expo/vector-icons";
 import { ApiService } from "@/src/services/api";
 import { appointmentsEndpoints } from "@/src/services/endpoints";
@@ -44,6 +44,7 @@ interface BookingItem {
   id: string;
   serviceName: string;
   membershipType?: string;
+  planName?: string;
   staffName: string;
   location?: string;
   dateTime: string;
@@ -60,6 +61,7 @@ interface ApiAppointment {
   appointmentType: "subscription" | "service";
   status: string;
   staffName: string | null;
+  subscription: string | null;
   subscriptionPlanType: string | null;
   subscriptionPlanDescription: string | null;
   businessTitle: string;
@@ -324,6 +326,7 @@ const createStyles = (theme: Theme) =>
 export default function BookingScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
+  const userRole = useAppSelector((state) => state.user.userRole);
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const { showBanner } = useNotificationContext();
@@ -479,6 +482,7 @@ export default function BookingScreen() {
     const staffName = apiAppointment.staffName || "Anyone";
 
     const membershipType = apiAppointment.subscriptionPlanType || "----";
+    const planName = apiAppointment.subscription || "----";
 
     const dateTime = formatDateTime(
       apiAppointment.appointmentDate,
@@ -494,10 +498,11 @@ export default function BookingScreen() {
       if (
         totalPrice === null ||
         totalPrice === undefined ||
-        (typeof totalPrice === "object" && Object.keys(totalPrice).length === 0) ||
+        (typeof totalPrice === "object" &&
+          Object.keys(totalPrice).length === 0) ||
         (typeof totalPrice !== "number" && typeof totalPrice !== "string")
       ) {
-        return 0.00;
+        return 0.0;
       }
       return totalPrice;
     };
@@ -515,9 +520,10 @@ export default function BookingScreen() {
       location,
       dateTime: dateTime,
       duration: "",
-      price: formatPrice(price??0.00),
+      price: formatPrice(price ?? 0.0),
       status: mapApiStatusToBookingStatus(apiAppointment.status),
       appointmentType: apiAppointment.appointmentType,
+      planName,
     };
   };
 
@@ -604,11 +610,15 @@ export default function BookingScreen() {
     }
   };
 
-  useEffect(() => {
-    setCurrentPage(1);
-    setBookings([]);
-    fetchAppointments(1, false);
-  }, [selectedTab, listType]);
+  useFocusEffect(
+    useCallback(() => {
+      if (userRole === "customer") {
+        setCurrentPage(1);
+        setBookings([]);
+        fetchAppointments(1, false);
+      }
+    }, [selectedTab, listType])
+  );
 
   const handleLoadMore = () => {
     if (!loadingMore && currentPage < totalPages) {
@@ -682,7 +692,12 @@ export default function BookingScreen() {
       </View>
 
       <View style={styles.cardRightSection}>
-        <Text style={styles.price}>{item.price}</Text>
+        <Text
+          numberOfLines={item.appointmentType === "subscription" ? 1 : 3}
+          style={styles.price}
+        >
+          {item.appointmentType === "subscription" ? item.planName : item.price}
+        </Text>
         <View style={styles.statusSection}>
           <View style={[styles.statusBadge, getStatusBadgeStyle(item.status)]}>
             <Text style={[styles.statusText, getStatusTextStyle(item.status)]}>
