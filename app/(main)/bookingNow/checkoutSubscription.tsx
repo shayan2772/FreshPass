@@ -62,8 +62,6 @@ const createStyles = (theme: Theme) =>
     },
     content: {
       flex: 1,
-      paddingHorizontal: moderateWidthScale(20),
-      paddingTop: moderateHeightScale(20),
     },
     businessInfo: {
       flexDirection: "row",
@@ -79,8 +77,8 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(8),
       backgroundColor: theme.lightGreen2,
       marginRight: moderateWidthScale(12),
-      borderWidth:1,
-      borderColor:theme.borderLight,
+      borderWidth: 1,
+      borderColor: theme.borderLight,
     },
     businessName: {
       flex: 1,
@@ -147,7 +145,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
-      textTransform:"capitalize"
+      textTransform: "capitalize",
     },
     planSubtitle: {
       fontSize: fontSize.size14,
@@ -164,15 +162,15 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(8),
       paddingHorizontal: moderateWidthScale(16),
       paddingVertical: moderateHeightScale(12),
-      flexDirection:"row",
-      alignItems:"center",
-      justifyContent:"space-between"
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     pricingAmount: {
       fontSize: fontSize.size17,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      maxWidth:"50%"
+      maxWidth: "50%",
     },
     pricingPeriod: {
       fontSize: fontSize.size12,
@@ -215,6 +213,12 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
     },
+    featureBlockService: {
+      backgroundColor: theme.lightBeige,
+      borderRadius: moderateWidthScale(8),
+      padding: moderateWidthScale(12),
+      gap: moderateHeightScale(15),
+    },
     featureIcon: {
       marginRight: moderateWidthScale(10),
     },
@@ -235,11 +239,9 @@ const createStyles = (theme: Theme) =>
       flexDirection: "row",
       alignItems: "center",
       alignSelf: "flex-start",
-      marginTop: moderateHeightScale(8),
+      gap: moderateWidthScale(5),
     },
-    serviceTagIcon: {
-      marginRight: moderateWidthScale(6),
-    },
+    serviceTagIcon: {},
     serviceTagText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
@@ -247,9 +249,8 @@ const createStyles = (theme: Theme) =>
     },
     bottomContainer: {
       // backgroundColor: theme.white,
-      paddingHorizontal: moderateWidthScale(20),
+      // paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(16),
-       
     },
     subscribeButton: {
       marginTop: moderateHeightScale(8),
@@ -400,8 +401,11 @@ function CheckoutSubscriptionContent() {
   const [error, setError] = useState<string | null>(null);
   const [businessData, setBusinessData] = useState<any>(null);
   const [subscriptionData, setSubscriptionData] = useState<any>(null);
-  const [subscriptionPickerVisible, setSubscriptionPickerVisible] = useState(false);
-  const [availableSubscriptions, setAvailableSubscriptions] = useState<any[]>([]);
+  const [subscriptionPickerVisible, setSubscriptionPickerVisible] =
+    useState(false);
+  const [availableSubscriptions, setAvailableSubscriptions] = useState<any[]>(
+    []
+  );
 
   // Fetch business details and find matching subscription (only when coming from DashboardContent)
   const fetchBusinessDetails = async () => {
@@ -432,18 +436,21 @@ function CheckoutSubscriptionContent() {
 
         // Find matching subscription from subscription_plans
         const subscriptionId = parseInt(params.subscriptionId, 10);
-        const subscriptionPlan = response.data.business.subscription_plans?.find(
-          (plan: any) => plan.id === subscriptionId
-        );
+        const subscriptionPlan =
+          response.data.business.subscription_plans?.find(
+            (plan: any) => plan.id === subscriptionId
+          );
 
         if (subscriptionPlan) {
           // Map subscription data similar to businessDetail
           const mappedSubscription = {
             id: subscriptionPlan.id,
             title: subscriptionPlan.name,
-            visits: `${subscriptionPlan.visits} visit${subscriptionPlan.visits !== 1 ? "s" : ""} per month`,
+            visits: `${subscriptionPlan.visits} visit${
+              subscriptionPlan.visits !== 1 ? "s" : ""
+            } per month`,
             price: parseFloat(subscriptionPlan.price),
-            originalPrice: subscriptionPlan.original_price 
+            originalPrice: subscriptionPlan.original_price
               ? parseFloat(subscriptionPlan.original_price)
               : parseFloat(subscriptionPlan.price) * 1.25, // Fallback calculation if not provided
             inclusions:
@@ -463,7 +470,7 @@ function CheckoutSubscriptionContent() {
     } finally {
       setLoading(false);
     }
-  } 
+  };
 
   // Initialize data from params or fetch from API based on screenName
   useEffect(() => {
@@ -481,7 +488,9 @@ function CheckoutSubscriptionContent() {
         id: parseInt(params.subscriptionId || "0", 10),
         title: params.subscriptionName,
         price: parseFloat(params.subscriptionPrice || "0"),
-        originalPrice: parseFloat(params.subscriptionOriginalPrice || params.subscriptionPrice || "0"),
+        originalPrice: parseFloat(
+          params.subscriptionOriginalPrice || params.subscriptionPrice || "0"
+        ),
         visits: params.subscriptionVisits,
         inclusions: params.subscriptionInclusions
           ? (() => {
@@ -497,7 +506,11 @@ function CheckoutSubscriptionContent() {
       if (params.businessId) {
         fetchBusinessSubscriptions(params.businessId);
       }
-    } else if (params.screenName === "DashboardContent" && params.businessId && params.subscriptionId) {
+    } else if (
+      params.screenName === "DashboardContent" &&
+      params.businessId &&
+      params.subscriptionId
+    ) {
       // Coming from DashboardContent - fetch from API
       fetchBusinessDetails();
     } else if (params.businessId && params.subscriptionId) {
@@ -680,9 +693,11 @@ function CheckoutSubscriptionContent() {
     const mappedSubscription = {
       id: subscription.id,
       title: subscription.name,
-      visits: `${subscription.visits} visit${subscription.visits !== 1 ? "s" : ""} per month`,
+      visits: `${subscription.visits} visit${
+        subscription.visits !== 1 ? "s" : ""
+      } per month`,
       price: parseFloat(subscription.price),
-      originalPrice: subscription.original_price 
+      originalPrice: subscription.original_price
         ? parseFloat(subscription.original_price)
         : parseFloat(subscription.price) * 1.25,
       inclusions:
@@ -699,34 +714,12 @@ function CheckoutSubscriptionContent() {
       {/* Header */}
       <StackHeader title="Subscription Plans" />
 
-      {/* Change Subscription Button - Full Width at Top */}
-      {!loading && !error && !paymentSuccess && subscriptionData && (
-        <View style={styles.changeSubscriptionCard}>
-          <View style={styles.changeSubscriptionItem}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={handleChangeSubscription}
-              style={styles.changeSubscriptionButton}
-            >
-              <Text style={styles.changeSubscriptionText}>
-                Change subscription
-              </Text>
-              <View style={styles.addServiceButton}>
-                <Octicons
-                  name="plus"
-                  size={moderateWidthScale(16)}
-                  color={theme.selectCard}
-                />
-              </View>
-            </TouchableOpacity>
-          </View>
-        </View>
-      )}
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <Text style={styles.loadingText}>Loading subscription details...</Text>
+          <Text style={styles.loadingText}>
+            Loading subscription details...
+          </Text>
         </View>
       ) : error ? (
         <View style={styles.errorContainer}>
@@ -759,151 +752,203 @@ function CheckoutSubscriptionContent() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.plansContainer}
         >
-          {/* Business Info */}
-          {businessData && (
-            <View style={styles.businessInfo}>
-              <Image
-                source={{ uri: getBusinessLogoUrl }}
-                style={styles.businessLogo}
-                resizeMode="cover"
-              />
-              <Text style={styles.businessName}>
-                {businessData.title || businessData.name || "Business"}
-              </Text>
-            </View>
-          )}
-
-          {/* Subscription Plan Card */}
-          <View
-            style={[styles.planCard, styles.planCardWithBadge, styles.shadow]}
-          >
-            {/* Decorative Circle */}
-            <View style={styles.decorativeCircle} />
-
-            {/* Plan Header with Pricing Badge */}
-            <View style={styles.planHeader}>
-              <View style={styles.planIcon}>
-                <Feather
-                  name="star"
-                  size={moderateWidthScale(20)}
-                  color={theme.darkGreen}
-                />
-              </View>
-              <View style={styles.planTitleContainer}>
-                <Text style={styles.planTitle}>
-                  {subscriptionData.title || "Subscription Plan"}
+          {/* Change Subscription Button - Full Width at Top */}
+          <View style={styles.changeSubscriptionCard}>
+            <View style={styles.changeSubscriptionItem}>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleChangeSubscription}
+                style={styles.changeSubscriptionButton}
+              >
+                <Text style={styles.changeSubscriptionText}>
+                  Change subscription
                 </Text>
-                <View style={styles.planSubtitle}>
-                  <Text style={styles.planSubtitle}>Premium Plan</Text>
-                  <Feather
-                    name="star"
-                    size={moderateWidthScale(12)}
-                    color={theme.orangeBrown}
-                    style={styles.starIcon}
+                <View style={styles.addServiceButton}>
+                  <Octicons
+                    name="plus"
+                    size={moderateWidthScale(16)}
+                    color={theme.selectCard}
                   />
                 </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View
+            style={{
+              flex: 1,
+              paddingHorizontal: moderateWidthScale(20),
+              paddingTop: moderateHeightScale(20),
+            }}
+          >
+            {/* Business Info */}
+            {businessData && (
+              <View style={styles.businessInfo}>
+                <Image
+                  source={{ uri: getBusinessLogoUrl }}
+                  style={styles.businessLogo}
+                  resizeMode="cover"
+                />
+                <Text style={styles.businessName}>
+                  {businessData.title || businessData.name || "Business"}
+                </Text>
               </View>
-            </View>
-
-            {/* Monthly Tag */}
-            <View style={styles.monthlyTag}>
-              <Feather
-                name="calendar"
-                size={moderateWidthScale(14)}
-                color={theme.darkGreen}
-                style={styles.monthlyTagIcon}
-              />
-              <Text style={styles.monthlyTagText}>
-                Monthly Subscription Available
-              </Text>
-            </View>
-
-            {/* Description */}
-            {subscriptionData.title && (
-              <Text style={styles.planDescription}>
-                {subscriptionData.title} - Premium subscription plan with
-                exclusive benefits
-              </Text>
             )}
 
-            {/* Features */}
-            <View style={styles.featuresContainer}>
-              {/* Visits Feature */}
-              {subscriptionData.visits && (
-                <View style={styles.featureBlock}>
+            {/* Subscription Plan Card */}
+            <View
+              style={[styles.planCard, styles.planCardWithBadge, styles.shadow]}
+            >
+              {/* Decorative Circle */}
+              <View style={styles.decorativeCircle} />
+
+              {/* Plan Header with Pricing Badge */}
+              <View style={styles.planHeader}>
+                <View style={styles.planIcon}>
                   <Feather
-                    name="calendar"
-                    size={moderateWidthScale(16)}
+                    name="star"
+                    size={moderateWidthScale(20)}
                     color={theme.darkGreen}
-                    style={styles.featureIcon}
-                  />
-                  <Text style={styles.featureText}>
-                    {subscriptionData.visits}
-                  </Text>
-                  <Feather
-                    name="check-circle"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                    style={styles.featureCheck}
                   />
                 </View>
-              )}
-
-              {/* Included Services */}
-              {subscriptionData.inclusions && subscriptionData.inclusions.length > 0 && (
-                <View style={styles.featureBlock}>
-                  <Feather
-                    name="zap"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                    style={styles.featureIcon}
-                  />
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.featureText}>Included Services</Text>
-                    {subscriptionData.inclusions
-                      .slice(0, 1)
-                      .map((inclusion: string, index: number) => (
-                        <View key={index} style={styles.serviceTag}>
-                          <Feather
-                            name="check-circle"
-                            size={moderateWidthScale(12)}
-                            color={theme.darkGreen}
-                            style={styles.serviceTagIcon}
-                          />
-                          <Text style={styles.serviceTagText}>
-                            {inclusion.replace(/^\d+\.\s*/, "")}
-                          </Text>
-                        </View>
-                      ))}
+                <View style={styles.planTitleContainer}>
+                  <Text style={styles.planTitle}>
+                    {subscriptionData.title || "Subscription Plan"}
+                  </Text>
+                  <View style={styles.planSubtitle}>
+                    <Text style={styles.planSubtitle}>Premium Plan</Text>
+                    <Feather
+                      name="star"
+                      size={moderateWidthScale(12)}
+                      color={theme.orangeBrown}
+                      style={styles.starIcon}
+                    />
                   </View>
                 </View>
+              </View>
+
+              {/* Monthly Tag */}
+              <View style={styles.monthlyTag}>
+                <Feather
+                  name="calendar"
+                  size={moderateWidthScale(14)}
+                  color={theme.darkGreen}
+                  style={styles.monthlyTagIcon}
+                />
+                <Text style={styles.monthlyTagText}>
+                  Monthly Subscription Available
+                </Text>
+              </View>
+
+              {/* Description */}
+              {subscriptionData.title && (
+                <Text style={styles.planDescription}>
+                  {subscriptionData.title} - Premium subscription plan with
+                  exclusive benefits
+                </Text>
               )}
 
-              {subscriptionData.price && (
-                <View style={styles.pricingBadge}>
-                  <Text style={styles.pricingAmount}>
-                    ${subscriptionData.price.toFixed(2)} /mo
-                  </Text>
-                  <Text style={styles.pricingPeriod}>Monthly Subscription</Text>
-                </View>
-              )}
+              {/* Features */}
+              <View style={styles.featuresContainer}>
+                {/* Visits Feature */}
+                {subscriptionData.visits && (
+                  <View style={styles.featureBlock}>
+                    <Feather
+                      name="calendar"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                      style={styles.featureIcon}
+                    />
+                    <Text style={styles.featureText}>
+                      {subscriptionData.visits}
+                    </Text>
+                    <Feather
+                      name="check-circle"
+                      size={moderateWidthScale(16)}
+                      color={theme.darkGreen}
+                      style={styles.featureCheck}
+                    />
+                  </View>
+                )}
+
+                {/* Included Services */}
+                {subscriptionData.inclusions &&
+                  subscriptionData.inclusions.length > 0 && (
+                    <View style={styles.featureBlockService}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: moderateWidthScale(10),
+                        }}
+                      >
+                        <Feather
+                          name="zap"
+                          size={moderateWidthScale(16)}
+                          color={theme.darkGreen}
+                          style={styles.featureIcon}
+                        />
+                        <Text style={styles.featureText}>
+                          Included Services
+                        </Text>
+                      </View>
+
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          flexWrap: "wrap",
+                          gap: moderateWidthScale(10),
+                        }}
+                      >
+                        {subscriptionData.inclusions.map(
+                          (inclusion: string, index: number) => (
+                            <View key={index} style={styles.serviceTag}>
+                              <Feather
+                                name="check-circle"
+                                size={moderateWidthScale(12)}
+                                color={theme.darkGreen}
+                                style={styles.serviceTagIcon}
+                              />
+                              <Text style={styles.serviceTagText}>
+                                {inclusion.replace(/^\d+\.\s*/, "")}
+                              </Text>
+                            </View>
+                          )
+                        )}
+                      </View>
+                    </View>
+                  )}
+
+                {subscriptionData.price && (
+                  <View style={styles.pricingBadge}>
+                    <Text style={styles.pricingAmount}>
+                      ${subscriptionData.price.toFixed(2)} /mo
+                    </Text>
+                    <Text style={styles.pricingPeriod}>
+                      Monthly Subscription
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
+
+            {/* Bottom Button */}
+            {!loading && !error && subscriptionData && (
+              <View style={styles.bottomContainer}>
+                <Button
+                  title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
+                  onPress={
+                    paymentSuccess ? handleViewSubscriptions : handleSubscribe
+                  }
+                  loading={isSubscribing}
+                  disabled={isSubscribing}
+                  containerStyle={styles.subscribeButton}
+                />
+              </View>
+            )}
           </View>
         </ScrollView>
       ) : null}
-
-      {/* Bottom Button */}
-      {!loading && !error && subscriptionData && (
-        <View style={styles.bottomContainer}>
-          <Button
-            title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
-            onPress={paymentSuccess ? handleViewSubscriptions : handleSubscribe}
-            loading={isSubscribing}
-            disabled={isSubscribing}
-            containerStyle={styles.subscribeButton}
-          />
-        </View>
-      )}
 
       {/* Processing Payment Overlay */}
       {processingPayment && (

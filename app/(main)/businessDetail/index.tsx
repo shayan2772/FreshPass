@@ -2010,6 +2010,7 @@ export default function BusinessDetailScreen() {
                     <TouchableOpacity
                       style={styles.bookNowButton}
                       onPress={() => {
+                        
                         router.push({
                           pathname: "/(main)/bookingNow/checkoutSubscription",
                           params: {
@@ -2020,7 +2021,7 @@ export default function BusinessDetailScreen() {
                             subscriptionVisits: subscription.visits,
                             subscriptionInclusions: JSON.stringify(subscription.inclusions),
                             businessId: businessData?.id?.toString() || params.business_id || "",
-                            businessName: businessData?.title || "",
+                            businessName: businessData?.name || "",
                             businessLogo: businessData?.logo_url || "",
                             screenName: "businessDetail",
                           },
@@ -2311,7 +2312,6 @@ export default function BusinessDetailScreen() {
                           businessId: params.business_id || "",
                           businessHours: businessHoursData,
                         };
-                        console.log(staffMembersData)
                         dispatch(setBusinessDataAction(businessPayload));
                         // Navigate to bookingNow without params
                         router.push({

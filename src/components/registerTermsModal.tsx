@@ -25,6 +25,7 @@ import { handleLocationPermission } from "@/src/services/locationPermissionServi
 import * as Location from "expo-location";
 import { tryGetPosition } from "@/src/constant/functions";
 import { MAIN_ROUTES } from "@/src/constant/routes";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 interface AcceptTermsModalProps {
   visible: boolean;
@@ -174,6 +175,7 @@ export default function RegisterTermsModal({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const userLocation = useAppSelector((state) => state.user.location);
+  const { showBanner } = useNotificationContext();
   const [isAgreed, setIsAgreed] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -216,16 +218,7 @@ export default function RegisterTermsModal({
       return;
     }
 
-    // If checkbox is checked, check if location exists with all required fields
-    if (
-      userLocation?.lat &&
-      userLocation?.long &&
-      userLocation?.locationName
-    ) {
-      // Location already exists with all required data, navigate to home
-      onContinue();
-      return;
-    }
+     
 
     // Location doesn't exist, get current location
     setErrorMessage(null);
@@ -236,7 +229,9 @@ export default function RegisterTermsModal({
       const servicesEnabled = await Location.hasServicesEnabledAsync();
 
       if (!servicesEnabled) {
-        setErrorMessage("Please turn on your phone location");
+        const errorMsg = "Please turn on your phone location";
+        setErrorMessage(errorMsg);
+        showBanner("Location Error", errorMsg, "error");
         setIsLoading(false);
         return;
       }
@@ -245,92 +240,91 @@ export default function RegisterTermsModal({
       const permissionResult = await handleLocationPermission();
 
       if (!permissionResult.granted) {
-        if (permissionResult.errorMessage) {
-          setErrorMessage(permissionResult.errorMessage);
-        } else {
-          setErrorMessage("Please turn on your phone location");
-        }
+        const errorMsg = permissionResult.errorMessage || "Please turn on your phone location";
+        setErrorMessage(errorMsg);
+        showBanner("Location Error", errorMsg, "error");
         setIsLoading(false);
         return;
       }
 
-      // Get current location coordinates directly
-      let currentPosition: Location.LocationObject | null = null;
-
-      try {
-        // Try to get cached position first (faster)
-        const cachedPosition = await Location.getLastKnownPositionAsync({
-          maxAge: 60000, // Use cached position if less than 1 minute old
-        });
-
-        if (cachedPosition) {
-          currentPosition = cachedPosition;
-        } else {
-          // If no cached position, try to get current position with retries
-          currentPosition = await tryGetPosition();
-        }
-      } catch (error) {
-        console.error("Error getting location position:", error);
-        throw new Error(
-          "Unable to get your current location. Please make sure location services are enabled and try again."
-        );
-      }
-
-      if (!currentPosition) {
-        throw new Error(
-          "Unable to get your current location. Please make sure location services are enabled and try again."
-        );
-      }
-
-      const coordinates = {
-        latitude: currentPosition.coords.latitude,
-        longitude: currentPosition.coords.longitude,
-      };
-
-      // Get address via reverse geocoding (required)
-      let locationName: string | null = null;
-      try {
-        const reverseResults = await Location.reverseGeocodeAsync(
-          coordinates,
-          {
-            useGoogleMaps: true,
-            timeout: 10000,
-          }
-        );
-        if (reverseResults && reverseResults.length > 0) {
-          const address = reverseResults[0];
-          const addressParts = [
-            address.street,
-            address.city,
-            address.region,
-          ].filter(Boolean);
-          locationName =
-            addressParts.length > 0 ? addressParts.join(", ") : null;
-        }
-      } catch (error) {
-        console.error("Reverse geocode failed:", error);
-        throw new Error(
-          "Unable to get your location address. Please try again."
-        );
-      }
-
-      // Validate that we have all required location data
-      if (!locationName || !coordinates.latitude || !coordinates.longitude) {
-        throw new Error(
-          "Unable to get complete location information. Please try again."
-        );
-      }
-
-      // Store location in user slice
-      dispatch(
-        setLocation({
-          lat: coordinates.latitude,
-          long: coordinates.longitude,
-          locationName,
-        })
-      );
-
       onContinue();
+
+      // Get current location coordinates directly
+      // let currentPosition: Location.LocationObject | null = null;
+      // try {
+      //   // Try to get cached position first (faster)
+      //   const cachedPosition = await Location.getLastKnownPositionAsync({
+      //     maxAge: 60000, // Use cached position if less than 1 minute old
+      //   });
+
+      //   if (cachedPosition) {
+      //     currentPosition = cachedPosition;
+      //   } else {
+      //     // If no cached position, try to get current position with retries
+      //     currentPosition = await tryGetPosition();
+      //   }
+      // } catch (error) {
+      //   console.error("Error getting location position:", error);
+      //   throw new Error(
+      //     "Unable to get your current location. Please make sure location services are enabled and try again."
+      //   );
+      // }
+
+      // if (!currentPosition) {
+      //   throw new Error(
+      //     "Unable to get your current location. Please make sure location services are enabled and try again."
+      //   );
+      // }
+
+      // const coordinates = {
+      //   latitude: currentPosition.coords.latitude,
+      //   longitude: currentPosition.coords.longitude,
+      // };
+
+      // // Get address via reverse geocoding (required)
+      // let locationName: string | null = null;
+      // try {
+      //   const reverseResults = await Location.reverseGeocodeAsync(
+      //     coordinates,
+      //     {
+      //       useGoogleMaps: true,
+      //       timeout: 10000,
+      //     }
+      //   );
+      //   if (reverseResults && reverseResults.length > 0) {
+      //     const address = reverseResults[0];
+      //     const addressParts = [
+      //       address.street,
+      //       address.city,
+      //       address.region,
+      //     ].filter(Boolean);
+      //     locationName =
+      //       addressParts.length > 0 ? addressParts.join(", ") : null;
+      //   }
+      // } catch (error) {
+      //   console.error("Reverse geocode failed:", error);
+      //   throw new Error(
+      //     "Unable to get your location address. Please try again."
+      //   );
+      // }
+
+      // // Validate that we have all required location data
+      // if (!locationName || !coordinates.latitude || !coordinates.longitude) {
+      //   throw new Error(
+      //     "Unable to get complete location information. Please try again."
+      //   );
+      // }
+
+      // // Store location in user slice
+      // dispatch(
+      //   setLocation({
+      //     lat: coordinates.latitude,
+      //     long: coordinates.longitude,
+      //     locationName,
+      //   })
+      // );
+
+      // onContinue();
     } catch (error) {
       console.error("Error getting location:", error);
       const errorMsg =
@@ -338,6 +332,7 @@ export default function RegisterTermsModal({
           ? error.message
           : "Unable to get your location. Please make sure location services are enabled and try again.";
       setErrorMessage(errorMsg);
+      showBanner("Location Error", errorMsg, "error");
     } finally {
       setIsLoading(false);
     }
