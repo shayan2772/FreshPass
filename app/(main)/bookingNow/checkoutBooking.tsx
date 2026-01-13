@@ -1347,7 +1347,7 @@ function CheckoutContent() {
   };
 
   const subscriptionId = params.subscriptionId
-    ? parseInt(params.subscriptionId, 10)
+    ? parseInt(params.subscriptionId)
     : undefined;
 
   const handleBookNow = async () => {
@@ -1377,7 +1377,6 @@ function CheckoutContent() {
     const requestBody: {
       business_id: number;
       appointment_type: string;
-      payment_method: string;
       appointment_date: string;
       appointment_time: string;
       notes?: string;
@@ -1386,7 +1385,6 @@ function CheckoutContent() {
     } = {
       business_id: parseInt(params.businessId || "0", 10),
       appointment_type: "subscription",
-      payment_method: "pay_later", // Subscription appointments are always pay later
       appointment_date: selectedDate.format("YYYY-MM-DD"),
       appointment_time: selectedTimeSlot || "",
     };
@@ -1398,7 +1396,7 @@ function CheckoutContent() {
 
     // Add staff_id only if staff is selected (not "anyone")
     if (!isAnyoneSelected) {
-      requestBody.staff_id = parseInt(selectedStaffId, 10);
+      requestBody.staff_id = parseInt(selectedStaffId);
     }
 
     // Add subscription_id only if it exists
