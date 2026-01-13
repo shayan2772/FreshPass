@@ -12,8 +12,9 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { useTheme } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { Theme } from "@/src/theme/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
@@ -472,6 +473,7 @@ export default function bookingDetailsById() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const params = useLocalSearchParams();
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
@@ -861,6 +863,8 @@ export default function bookingDetailsById() {
       return;
     }
 
+    dispatch(setActionLoader(true));
+
     try {
       const response = await ApiService.patch<{
         success: boolean;
@@ -894,6 +898,8 @@ export default function bookingDetailsById() {
         "error",
         2500
       );
+    } finally {
+      dispatch(setActionLoader(false));
     }
   };
 
@@ -1166,9 +1172,34 @@ export default function bookingDetailsById() {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={styles.bottomButton}>
+      
+
+      {/* <View style={styles.bottomButton}>
         <Button
           title={isCancelled ? "Remove from history" : "Cancel this booking"}
+          onPress={() => {
+            if (isCancelled) {
+              // Handle remove from history
+              showBanner(
+                "Removed",
+                "Booking removed from history",
+                "success",
+                2000
+              );
+            } else {
+              handleOpenCancelModal();
+            }
+          }}
+          containerStyle={
+            isCancelled ? styles.removeButton : styles.cancelButton
+          }
+          textColor={isCancelled ? undefined : "#D32F2F"}
+        />
+      </View> */}
+
+<View style={styles.bottomButton}>
+        <Button
+          title={ "Cancel this booking"}
           onPress={() => {
             if (isCancelled) {
               // Handle remove from history
