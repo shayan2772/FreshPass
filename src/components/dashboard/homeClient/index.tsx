@@ -9,6 +9,7 @@ import * as Location from "expo-location";
 import LocationEnableModal from "@/src/components/locationEnableModal";
 import { setLocation } from "@/src/state/slices/userSlice";
 import { tryGetPosition } from "@/src/constant/functions";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const userRole = user.userRole;
   const isGuest = user.isGuest;
   const [showLocationModal, setShowLocationModal] = useState(false);
+  const { showBanner } = useNotificationContext();
 
   useEffect(() => {
     if (
@@ -53,7 +55,11 @@ export default function HomeScreen() {
         const { status } = await Location.requestForegroundPermissionsAsync();
 
         if (status !== Location.PermissionStatus.GRANTED) {
-          console.log("Location permission denied");
+          showBanner(
+            "Location permission denied",
+            "Please allow location permission to continue",
+            "error"
+          );
           return;
         }
 
