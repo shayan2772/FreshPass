@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useTheme } from "@/src/hooks/hooks";
+import { useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -39,30 +39,34 @@ interface Appointment {
   user: string;
   userEmail: string;
   subscription: string | null;
-  subscriptionServices: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }> | {};
+  subscriptionServices:
+    | Array<{
+        id: number;
+        name: string;
+        description: string;
+        price: string;
+        duration: {
+          hours: number;
+          minutes: number;
+        };
+      }>
+    | {};
   subscriptionVisits: {
     used: number;
     total: number;
   } | null;
-  services: Array<{
-    id: number;
-    name: string;
-    description: string;
-    price: string;
-    duration: {
-      hours: number;
-      minutes: number;
-    };
-  }> | {};
+  services:
+    | Array<{
+        id: number;
+        name: string;
+        description: string;
+        price: string;
+        duration: {
+          hours: number;
+          minutes: number;
+        };
+      }>
+    | {};
   totalPrice: number | {};
   paidAmount: string;
   staffName: string;
@@ -89,7 +93,7 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
   const hour24 = hour; // 0 to 23
   let formattedHour: number;
   let suffix: string;
-  
+
   if (hour24 === 0) {
     formattedHour = 12;
     suffix = "am";
@@ -103,7 +107,7 @@ const TIME_SLOTS = Array.from({ length: 24 }, (_, hour) => {
     formattedHour = hour24 - 12;
     suffix = "pm";
   }
-  
+
   return `${formattedHour} ${suffix}`;
 });
 
@@ -116,7 +120,7 @@ const convertTo24Hour = (time12h: string) => {
   const [time, period] = time12h.split(" ");
   const hour = parseInt(time);
   let hour24: number;
-  
+
   if (period === "am") {
     if (hour === 12) {
       hour24 = 0; // 12 am = midnight (00:00)
@@ -131,7 +135,7 @@ const convertTo24Hour = (time12h: string) => {
       hour24 = hour + 12;
     }
   }
-  
+
   return `${hour24.toString().padStart(2, "0")}:00`;
 };
 
@@ -295,11 +299,10 @@ const createStyles = (theme: Theme) =>
       justifyContent: "space-between",
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(8),
-      width:"100%"
+      width: "100%",
     },
     appointmentLeftSection: {
-      width:"70%",
-
+      width: "70%",
     },
     appointmentTitle: {
       fontSize: fontSize.size16,
@@ -310,7 +313,7 @@ const createStyles = (theme: Theme) =>
     appointmentRightSection: {
       alignItems: "flex-end",
       gap: moderateHeightScale(8),
-      width:"29%",
+      width: "29%",
     },
     clientNameContainer: {
       flexDirection: "row",
@@ -321,7 +324,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
-      width:"70%",
+      width: "70%",
     },
     appointmentStatus: {
       backgroundColor: theme.orangeBrown30,
@@ -357,6 +360,7 @@ export default function CalendarScreen() {
   const scrollViewRef = useRef<ScrollView>(null);
   const { showBanner } = useNotificationContext();
   const router = useRouter();
+  const userRole = useAppSelector((state: any) => state.user.userRole);
 
   const today = dayjs();
   const [selectedDate, setSelectedDate] = useState(today);
@@ -373,8 +377,10 @@ export default function CalendarScreen() {
 
   // Fetch appointments when week changes
   useEffect(() => {
-    if (week.length > 0) {
-      fetchAppointments();
+    if (userRole === "business" || userRole === "staff") {
+      if (week.length > 0) {
+        fetchAppointments();
+      }
     }
   }, [week]);
 
@@ -408,7 +414,9 @@ export default function CalendarScreen() {
       );
 
       if (response.success && response.data) {
-        const transformedAppointments = transformAppointments(response.data.data);
+        const transformedAppointments = transformAppointments(
+          response.data.data
+        );
         setAppointments(transformedAppointments);
       }
     } catch (error: any) {
@@ -423,7 +431,9 @@ export default function CalendarScreen() {
     }
   };
 
-  const transformAppointments = (apiAppointments: Appointment[]): CalendarAppointment[] => {
+  const transformAppointments = (
+    apiAppointments: Appointment[]
+  ): CalendarAppointment[] => {
     return apiAppointments.map((appointment) => {
       // Get service titles (subscription base or service base)
       const getServiceTitles = () => {
@@ -447,7 +457,8 @@ export default function CalendarScreen() {
       const calculateTotalDuration = (
         services: Array<{ duration: { hours: number; minutes: number } }> | {}
       ) => {
-        if (!services || !Array.isArray(services) || services.length === 0) return 0;
+        if (!services || !Array.isArray(services) || services.length === 0)
+          return 0;
         const totalMinutes = services.reduce((total, service) => {
           return total + service.duration.hours * 60 + service.duration.minutes;
         }, 0);
@@ -482,16 +493,22 @@ export default function CalendarScreen() {
       const year = dateParts[2];
       const [hour, minute] = appointment.appointmentTime.split(":");
 
-      const scheduledAt = dayjs(`${year}-${month}-${day} ${hour}:${minute}`, "YYYY-MM-DD HH:mm").toISOString();
+      const scheduledAt = dayjs(
+        `${year}-${month}-${day} ${hour}:${minute}`,
+        "YYYY-MM-DD HH:mm"
+      ).toISOString();
 
       // Format status - show "On-going apt." for scheduled
       const statusLabel =
-        appointment.status === "scheduled" ? "On-going apt." : appointment.status;
+        appointment.status === "scheduled"
+          ? "On-going apt."
+          : appointment.status;
 
       // Format client name (truncate if needed)
-      const clientName = appointment.user.length > 12 
-        ? `${appointment.user.substring(0, 10)}...` 
-        : appointment.user;
+      const clientName =
+        appointment.user.length > 12
+          ? `${appointment.user.substring(0, 10)}...`
+          : appointment.user;
 
       return {
         id: appointment.id.toString(),
@@ -546,10 +563,7 @@ export default function CalendarScreen() {
         {/* Calendar Header */}
         <View style={styles.calendarHeader}>
           <View style={styles.weekNavigation}>
-            <TouchableOpacity
-              style={styles.arrowButton}
-              onPress={prevWeek}
-            >
+            <TouchableOpacity style={styles.arrowButton} onPress={prevWeek}>
               <MaterialIcons
                 name="keyboard-arrow-left"
                 size={moderateWidthScale(24)}
@@ -559,10 +573,7 @@ export default function CalendarScreen() {
             <Text style={styles.weekText}>
               {week[0].format("MMM D")} - {week[6].format("MMM D, YYYY")}
             </Text>
-            <TouchableOpacity
-              style={styles.arrowButton}
-              onPress={nextWeek}
-            >
+            <TouchableOpacity style={styles.arrowButton} onPress={nextWeek}>
               <MaterialIcons
                 name="keyboard-arrow-right"
                 size={moderateWidthScale(24)}
@@ -585,9 +596,7 @@ export default function CalendarScreen() {
                   style={styles.dayContainer}
                   onPress={() => setSelectedDate(day)}
                 >
-                  <Text style={styles.dayName}>
-                    {day.format("ddd")}
-                  </Text>
+                  <Text style={styles.dayName}>{day.format("ddd")}</Text>
                   <View
                     style={[
                       styles.dayNumberContainer,
@@ -633,33 +642,39 @@ export default function CalendarScreen() {
           >
             {TIME_SLOTS.map((time) => {
               const timeSlot24h = convertTo24Hour(time);
-              const filteredAppointments = appointments.filter((appointment) => {
-                if (!appointment.scheduled_at) return false;
+              const filteredAppointments = appointments.filter(
+                (appointment) => {
+                  if (!appointment.scheduled_at) return false;
 
-                const scheduledDate = dayjs(appointment.scheduled_at).format("YYYY-MM-DD");
-                const scheduledTime = dayjs(appointment.scheduled_at).format("HH:mm");
+                  const scheduledDate = dayjs(appointment.scheduled_at).format(
+                    "YYYY-MM-DD"
+                  );
+                  const scheduledTime = dayjs(appointment.scheduled_at).format(
+                    "HH:mm"
+                  );
 
-                if (scheduledDate !== currentDate) return false;
+                  if (scheduledDate !== currentDate) return false;
 
-                const [scheduledHour, scheduledMinute] = scheduledTime
-                  .split(":")
-                  .map(Number);
-                const scheduledMinutes = scheduledHour * 60 + scheduledMinute;
+                  const [scheduledHour, scheduledMinute] = scheduledTime
+                    .split(":")
+                    .map(Number);
+                  const scheduledMinutes = scheduledHour * 60 + scheduledMinute;
 
-                const [slotHour] = timeSlot24h.split(":").map(Number);
-                const slotMinutes = slotHour * 60;
+                  const [slotHour] = timeSlot24h.split(":").map(Number);
+                  const slotMinutes = slotHour * 60;
 
-                return (
-                  scheduledMinutes >= slotMinutes &&
-                  scheduledMinutes < slotMinutes + 60
-                );
-              });
+                  return (
+                    scheduledMinutes >= slotMinutes &&
+                    scheduledMinutes < slotMinutes + 60
+                  );
+                }
+              );
 
               const hasMultipleAppointments = filteredAppointments.length > 1;
 
               return (
-                <View 
-                  key={time} 
+                <View
+                  key={time}
                   style={[
                     styles.timeSlotRow,
                     hasMultipleAppointments && styles.timeSlotRowWithMultiple,
@@ -673,8 +688,8 @@ export default function CalendarScreen() {
                       filteredAppointments.map((appointment, index) => {
                         const isLast = index === appointments.length - 1;
                         return (
-                          <View 
-                            key={appointment.id} 
+                          <View
+                            key={appointment.id}
                             style={[
                               styles.appointmentWrapper,
                               isLast && styles.appointmentWrapperLast,
@@ -685,20 +700,29 @@ export default function CalendarScreen() {
                               activeOpacity={0.7}
                               onPress={() => {
                                 router.push({
-                                  pathname: "/(main)/dashboard/(calendar)/appointmentDetail",
+                                  pathname:
+                                    "/(main)/dashboard/(calendar)/appointmentDetail",
                                   params: {
-                                    appointment: JSON.stringify(appointment.originalAppointment),
+                                    appointment: JSON.stringify(
+                                      appointment.originalAppointment
+                                    ),
                                   },
                                 });
                               }}
                             >
                               <View style={styles.appointmentHeader}>
                                 <View style={styles.appointmentLeftSection}>
-                                  <Text numberOfLines={1} style={styles.appointmentTitle}>
+                                  <Text
+                                    numberOfLines={1}
+                                    style={styles.appointmentTitle}
+                                  >
                                     {appointment.title}
                                   </Text>
                                   <Text style={styles.appointmentMeta}>
-                                    {formatAppointmentDate(appointment.scheduled_at)} • {appointment.duration}
+                                    {formatAppointmentDate(
+                                      appointment.scheduled_at
+                                    )}{" "}
+                                    • {appointment.duration}
                                   </Text>
                                 </View>
                                 <View style={styles.appointmentRightSection}>
@@ -708,7 +732,10 @@ export default function CalendarScreen() {
                                       height={moderateWidthScale(14)}
                                       color={theme.darkGreen}
                                     />
-                                    <Text numberOfLines={1} style={styles.clientNameText}>
+                                    <Text
+                                      numberOfLines={1}
+                                      style={styles.clientNameText}
+                                    >
                                       {appointment.client_name}
                                     </Text>
                                   </View>
@@ -738,4 +765,3 @@ export default function CalendarScreen() {
     </View>
   );
 }
-

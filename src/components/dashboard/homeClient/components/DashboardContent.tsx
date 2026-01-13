@@ -1363,10 +1363,10 @@ export default function DashboardContent() {
 
   useFocusEffect(
     useCallback(() => {
-      if(userRole==="customer"){
-      fetchAppointments();
+      if (userRole === "customer") {
+        fetchAppointments();
       }
-    }, [selectedDateISO, activeTab])
+    }, [selectedDateISO, activeTab, userRole])
   );
 
   // Refetch appointments when selectedDate changes
@@ -1376,7 +1376,6 @@ export default function DashboardContent() {
 
   // Fetch service templates when category changes or when switching to individual tab
   useEffect(() => {
-    
     if (isCusotmerandGuest && selectedCategory && activeTab === "individual") {
       fetchServiceTemplates(selectedCategory);
     }
@@ -1858,8 +1857,8 @@ export default function DashboardContent() {
                 if (selectedCategory) {
                   const trimmedSearch = searchText?.trim() || "";
                   fetchBusinesses(selectedCategory, trimmedSearch || undefined);
-                  if(userRole==="customer"){
-                  fetchAppointments();
+                  if (userRole === "customer") {
+                    fetchAppointments();
                   }
                 }
               }}
@@ -1931,31 +1930,10 @@ export default function DashboardContent() {
                     <TouchableOpacity
                       style={styles.viewDetailLink}
                       onPress={() => {
-                        // Find the original appointment data to get full details
-                        // For now, use the mapped appointment data
-                        const bookingItem = {
-                          id: appointment.id.toString(),
-                          serviceName: appointment.salonName,
-                          membershipType:
-                            appointment.membershipInfo?.split("•")[0]?.trim() ||
-                            "",
-                          staffName: appointment.stylistName,
-                          location: appointment.salonName,
-                          dateTime: appointment.dateTime,
-                          duration: "30 min", // Default duration
-                          price: "$0", // Default price
-                          status: appointment.badgeText
-                            ?.toLowerCase()
-                            .includes("upcoming")
-                            ? ("active" as const)
-                            : ("ongoing" as const),
-                        };
-
                         router.push({
                           pathname: "/(main)/bookingDetailsById",
                           params: {
-                            bookingId: appointment.id.toString(),
-                            booking: JSON.stringify(bookingItem),
+                            bookingId: appointment.id,
                           },
                         });
                       }}
@@ -2397,15 +2375,17 @@ export default function DashboardContent() {
                                 <Button
                                   title="Book Now"
                                   onPress={() => {
-                                  console.log("subscription: ", subscription);  
-                                  router.push({
-                                    pathname: "/(main)/bookingNow/checkoutSubscription",
-                                    params: {
-                                      subscriptionId: subscription.id.toString(),
-                                      businessId: section.id.toString(),
-                                      screenName: "DashboardContent",
-                                    },
-                                  });
+                                    console.log("subscription: ", subscription);
+                                    router.push({
+                                      pathname:
+                                        "/(main)/bookingNow/checkoutSubscription",
+                                      params: {
+                                        subscriptionId:
+                                          subscription.id.toString(),
+                                        businessId: section.id.toString(),
+                                        screenName: "DashboardContent",
+                                      },
+                                    });
                                   }}
                                   containerStyle={styles.button}
                                   textStyle={styles.buttonText}
