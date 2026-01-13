@@ -6,7 +6,6 @@ import React, {
   useEffect,
 } from "react";
 import {
-  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -38,9 +37,9 @@ import {
 import {
   resolveCurrentLocation,
   resolveAddressViaGoogle,
+  tryGetPosition,
 } from "@/src/constant/functions";
 import { setLocation } from "@/src/state/slices/userSlice";
-import NotificationBanner from "@/src/components/notificationBanner";
 import { IMAGES } from "@/src/constant/images";
 import Button from "@/src/components/button";
 import FloatingInput from "@/src/components/floatingInput";
@@ -49,11 +48,10 @@ import {
   fetchSuggestions as fetchSuggestionsApi,
   fetchPlaceDetails as fetchPlaceDetailsApi,
 } from "@/src/services/googlePlacesApi";
-
-interface LocationModalProps {
-  visible: boolean;
-  onClose: () => void;
-}
+import { useRouter } from "expo-router";
+import { StatusBar } from "react-native";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import LocationEnableModal from "@/src/components/locationEnableModal";
 
 const apiKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY ?? "";
 
@@ -62,37 +60,37 @@ const generateSessionToken = () =>
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    modalContainer: {
+    container: {
       flex: 1,
       backgroundColor: theme.background,
     },
-    modalHeader: {
+    header: {
       paddingHorizontal: moderateWidthScale(20),
       paddingVertical: moderateHeightScale(16),
       backgroundColor: theme.background,
       borderBottomWidth: 1,
       borderBottomColor: theme.lightGreen2,
     },
-    modalHeaderTop: {
+    headerTop: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       marginBottom: moderateHeightScale(12),
     },
-    modalHeaderTitle: {
+    headerTitle: {
       fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       flex: 1,
       textAlign: "center",
     },
-    modalHeaderSubtitle: {
+    headerSubtitle: {
       fontSize: fontSize.size14,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       textAlign: "center",
     },
-    modalCloseButton: {
+    closeButton: {
       width: moderateWidthScale(32),
       height: moderateWidthScale(32),
       alignItems: "center",
@@ -102,9 +100,8 @@ const createStyles = (theme: Theme) =>
       borderWidth: 1,
       borderColor: theme.lightGreen2,
     },
-    modalContent: {
+    content: {
       flex: 1,
-      // paddingBottom: moderateHeightScale(100),
     },
     mapContainer: {
       flex: 1,
@@ -198,16 +195,6 @@ const createStyles = (theme: Theme) =>
       borderTopColor: theme.lightGreen2,
       backgroundColor: theme.background,
     },
-    locationServicesMessageContainer: {
-      paddingBottom: moderateHeightScale(8),
-      paddingTop: moderateHeightScale(8),
-    },
-    locationServicesMessageText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.link,
-      textAlign: "center",
-    },
     loadingContainer: {
       paddingVertical: moderateHeightScale(12),
       alignItems: "center",
@@ -260,12 +247,6 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
     },
-    errorText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.link,
-      textAlign: "center",
-    },
     infoText: {
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
@@ -274,16 +255,15 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function LocationModal({
-  visible,
-  onClose,
-}: LocationModalProps) {
+export default function SetLocationScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const user = useAppSelector((state) => state.user);
+  const { showBanner } = useNotificationContext();
 
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
   const [tempLocation, setTempLocation] = useState<{
@@ -293,34 +273,20 @@ export default function LocationModal({
   } | null>(null);
   const [isResolvingLocation, setIsResolvingLocation] = useState(false);
   const [isFetchingAddress, setIsFetchingAddress] = useState(false);
-  const [locationMessage, setLocationMessage] = useState<string | null>(null);
-  const [locationServicesMessage, setLocationServicesMessage] = useState<
-    string | null
-  >(null);
   const [addressSearch, setAddressSearch] = useState("");
   const [predictions, setPredictions] = useState<PlacePrediction[]>([]);
   const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
-  const [suggestionError, setSuggestionError] = useState<string | null>(null);
   const [isFetchingPlaceDetails, setIsFetchingPlaceDetails] = useState(false);
   const mapRef = useRef<MapView>(null);
   const currentRegionRef = useRef<Region | null>(null);
   const sessionTokenRef = useRef<string>(generateSessionToken());
 
-  const [modalBanner, setModalBanner] = useState<{
-    visible: boolean;
-    title: string;
-    message: string;
-    type: "success" | "error" | "warning" | "info";
-  }>({
-    visible: false,
-    title: "",
-    message: "",
-    type: "info",
-  });
+  const [showLocationModal, setShowLocationModal] = useState(false);
+  const [locationLoading, setLocationLoading] = useState(false);
 
   // Initialize map with user's current location from Redux
   useEffect(() => {
-    if (visible && user.location?.lat && user.location?.long) {
+    if (user.location?.lat && user.location?.long) {
       const lat = user.location.lat;
       const lng = user.location.long;
       const initialRegion: Region = {
@@ -336,7 +302,7 @@ export default function LocationModal({
         long: lng,
         locationName: user.location.locationName,
       });
-    } else if (visible) {
+    } else {
       // Default to a US location if no location set
       const defaultRegion: Region = {
         latitude: 25.7617,
@@ -347,14 +313,11 @@ export default function LocationModal({
       setMapRegion(defaultRegion);
       currentRegionRef.current = defaultRegion;
     }
-    // Reset search when modal opens/closes
-    if (visible) {
-      setAddressSearch("");
-      setPredictions([]);
-      setSuggestionError(null);
-      sessionTokenRef.current = generateSessionToken();
-    }
-  }, [visible, user.location]);
+    // Reset search when screen mounts
+    setAddressSearch("");
+    setPredictions([]);
+    sessionTokenRef.current = generateSessionToken();
+  }, [user.location]);
 
   const fetchAddressFromCoordinates = useCallback(
     async (latitude: number, longitude: number) => {
@@ -433,55 +396,103 @@ export default function LocationModal({
   }, []);
 
   const handleUseCurrentLocation = async () => {
-    setLocationMessage(null);
-    setLocationServicesMessage(null);
-
-    // Step 1: Check if location services are enabled
     const servicesEnabled = await Location.hasServicesEnabledAsync();
-
     if (!servicesEnabled) {
-      setLocationServicesMessage(
-        "Please enable location services on your phone first"
-      );
-      return;
+      setShowLocationModal(true);
+    } else {
+      getCurrentLocation();
     }
+  };
 
-    // Step 2: Check permission
-    const permissionResult = await handleLocationPermission();
-
-    if (!permissionResult.granted) {
-      return;
+  const handleCloseModal = async (shouldGetLocation?: boolean) => {
+    setShowLocationModal(false);
+    if (shouldGetLocation) {
+      getCurrentLocation();
     }
+  };
 
-    // Step 3: Get location
-    setIsResolvingLocation(true);
+  const getCurrentLocation = async () => {
+    try {
+      // Check location permission
+      const permissionResult = await handleLocationPermission();
 
-    const result = await resolveCurrentLocation({
-      apiKey,
-    });
+      if (!permissionResult.granted) {
+        return;
+      }
 
-    setIsResolvingLocation(false);
+      // Get current location
+      setLocationLoading(true);
+      let currentPosition: Location.LocationObject | null = null;
+      try {
+        // Try to get cached position first (faster)
+        const cachedPosition = await Location.getLastKnownPositionAsync({
+          maxAge: 60000, // Use cached position if less than 1 minute old
+        });
 
-    if (result.status === "error") {
-      setLocationMessage(result.message);
-      return;
-    }
+        if (cachedPosition) {
+          currentPosition = cachedPosition;
+        } else {
+          // If no cached position, try to get current position with retries
+          currentPosition = await tryGetPosition();
+        }
+      } catch (error) {
+        setLocationLoading(false);
+        console.error("Error getting location position:", error);
+      }
 
-    const { details } = result;
+      if (!currentPosition) {
+        setLocationLoading(false);
+        console.error("Unable to get current position");
+        showBanner(
+          "Location Error",
+          "Unable to get your current position. Please try again.",
+          "error"
+        );
+        return;
+      }
 
-    if (details.coordinates) {
-      const lat = details.coordinates.latitude;
-      const lng = details.coordinates.longitude;
-      const locationName =
-        details.formattedAddress ||
-        `${details.street || ""}, ${details.area || ""}, ${
-          details.state || ""
-        }`.trim() ||
-        `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      const coordinates = {
+        latitude: currentPosition.coords.latitude,
+        longitude: currentPosition.coords.longitude,
+      };
 
+      // Get address via reverse geocoding
+      let locationName: string | null = null;
+      try {
+        const reverseResults = await Location.reverseGeocodeAsync(coordinates, {
+          useGoogleMaps: true,
+          timeout: 10000,
+        });
+        if (reverseResults && reverseResults.length > 0) {
+          const address = reverseResults[0];
+          const addressParts = [
+            address.street,
+            address.city,
+            address.region,
+          ].filter(Boolean);
+          locationName =
+            addressParts.length > 0 ? addressParts.join(", ") : null;
+        }
+      } catch (error) {
+        setLocationLoading(false);
+        console.error("Reverse geocode failed:", error);
+      }
+
+      if (!locationName) {
+        setLocationLoading(false);
+        console.error("Unable to get current position");
+        showBanner(
+          "Location Error",
+          "Unable to get your current position. Please try again.",
+          "error"
+        );
+        return;
+      }
+
+      setLocationLoading(false);
       const newRegion: Region = {
-        latitude: lat,
-        longitude: lng,
+        latitude: coordinates.latitude,
+        longitude: coordinates.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       };
@@ -490,8 +501,8 @@ export default function LocationModal({
       currentRegionRef.current = newRegion;
       setMapRegion(newRegion);
       setTempLocation({
-        lat,
-        long: lng,
+        lat: coordinates.latitude,
+        long: coordinates.longitude,
         locationName,
       });
 
@@ -501,6 +512,14 @@ export default function LocationModal({
           (mapRef.current as any).animateToRegion(newRegion, 300);
         }
       });
+    } catch (error) {
+      setLocationLoading(false);
+      console.error("Error getting location:", error);
+      showBanner(
+        "Location Error",
+        "Unable to get your current location. Please try again.",
+        "error"
+      );
     }
   };
 
@@ -514,18 +533,10 @@ export default function LocationModal({
         })
       );
 
-      setModalBanner({
-        visible: true,
-        title: "Success",
-        message: "Location updated successfully",
-        type: "success",
-      });
-
-      setTimeout(() => {
-        onClose();
-      }, 500);
+      showBanner("Success", "Location updated successfully", "success");
+      router.back();
     }
-  }, [tempLocation, dispatch, onClose]);
+  }, [tempLocation, dispatch, router, showBanner]);
 
   const ensureSessionToken = useCallback(() => {
     if (!sessionTokenRef.current) {
@@ -537,19 +548,21 @@ export default function LocationModal({
     async (query: string) => {
       if (!query.trim()) {
         setPredictions([]);
-        setSuggestionError(null);
         return;
       }
 
       if (!apiKey) {
         setPredictions([]);
-        setSuggestionError("Unable to load suggestions. Please try again.");
+        showBanner(
+          "Search Error",
+          "Unable to load suggestions. Please try again.",
+          "error"
+        );
         return;
       }
 
       try {
         setIsLoadingSuggestions(true);
-        setSuggestionError(null);
         ensureSessionToken();
 
         const response = await fetchSuggestionsApi(
@@ -559,33 +572,36 @@ export default function LocationModal({
 
         if (response.status === "OK" || response.status === "ZERO_RESULTS") {
           setPredictions(response.predictions);
-          if (response.status === "ZERO_RESULTS") {
-            setSuggestionError(null);
-          }
         } else {
-          setSuggestionError("Unable to load suggestions. Please try again.");
+          showBanner(
+            "Search Error",
+            "Unable to load suggestions. Please try again.",
+            "error"
+          );
           setPredictions([]);
         }
       } catch (error: any) {
         console.error("Error fetching suggestions:", error);
-        setSuggestionError("Unable to load suggestions. Please try again.");
+        showBanner(
+          "Search Error",
+          "Unable to load suggestions. Please try again.",
+          "error"
+        );
         setPredictions([]);
       } finally {
         setIsLoadingSuggestions(false);
       }
     },
-    [apiKey, ensureSessionToken]
+    [apiKey, ensureSessionToken, showBanner]
   );
 
   useEffect(() => {
-    if (!visible) return;
-
     const handler = setTimeout(() => {
       fetchSuggestions(addressSearch);
     }, 300);
 
     return () => clearTimeout(handler);
-  }, [addressSearch, fetchSuggestions, visible]);
+  }, [addressSearch, fetchSuggestions]);
 
   const handleFetchPlaceDetails = useCallback(
     async (placeId: string, description: string) => {
@@ -631,13 +647,17 @@ export default function LocationModal({
         }
       } catch (error) {
         console.error("Error fetching place details:", error);
-        setSuggestionError("Unable to fetch place details. Try again.");
+        showBanner(
+          "Location Error",
+          "Unable to fetch place details. Try again.",
+          "error"
+        );
       } finally {
         setIsFetchingPlaceDetails(false);
         sessionTokenRef.current = generateSessionToken();
       }
     },
-    [apiKey, ensureSessionToken]
+    [apiKey, ensureSessionToken, showBanner]
   );
 
   const handleSuggestionPress = useCallback(
@@ -649,23 +669,11 @@ export default function LocationModal({
 
   const handleSearchChange = useCallback((value: string) => {
     setAddressSearch(value);
-    setSuggestionError(null);
   }, []);
 
   const handleClose = useCallback(() => {
-    setLocationMessage(null);
-    setTempLocation(null);
-    setAddressSearch("");
-    setPredictions([]);
-    setSuggestionError(null);
-    setModalBanner({
-      visible: false,
-      title: "",
-      message: "",
-      type: "info",
-    });
-    onClose();
-  }, [onClose]);
+    router.back();
+  }, [router]);
 
   const circleRadius = useMemo(() => {
     if (!currentRegionRef.current) return 250;
@@ -675,226 +683,200 @@ export default function LocationModal({
   }, [currentRegionRef.current?.latitudeDelta]);
 
   return (
-    <Modal
-      visible={visible}
-      animationType="slide"
-      transparent={false}
-      onRequestClose={handleClose}
-      statusBarTranslucent
+    <SafeAreaView
+      style={[styles.container, { paddingTop: insets.top }]}
+      edges={["bottom"]}
     >
-      <SafeAreaView style={styles.modalContainer} edges={["top", "bottom"]}>
-        <View style={styles.modalHeader}>
-          <View style={styles.modalHeaderTop}>
-            <TouchableOpacity
-              onPress={handleClose}
-              style={styles.modalCloseButton}
-              activeOpacity={0.7}
-            >
+      <StatusBar barStyle="dark-content" />
+      <View style={styles.header}>
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            onPress={handleClose}
+            style={styles.closeButton}
+            activeOpacity={0.7}
+          >
+            <Feather
+              name="x"
+              size={moderateWidthScale(18)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Select your location</Text>
+        </View>
+        <View style={styles.searchContainer}>
+          <FloatingInput
+            label="Search"
+            value={addressSearch}
+            onChangeText={handleSearchChange}
+            placeholder="Search your address"
+            placeholderTextColor={theme.lightGreen2}
+            returnKeyType="search"
+            onClear={() => handleSearchChange("")}
+            renderLeftAccessory={() => (
               <Feather
-                name="x"
+                name="search"
                 size={moderateWidthScale(18)}
                 color={theme.darkGreen}
               />
-            </TouchableOpacity>
-            <Text style={styles.modalHeaderTitle}>Select your location</Text>
-          </View>
-          <View style={styles.searchContainer}>
-            <FloatingInput
-              label="Search"
-              value={addressSearch}
-              onChangeText={handleSearchChange}
-              placeholder="Search your address"
-              placeholderTextColor={theme.lightGreen2}
-              returnKeyType="search"
-              onClear={() => handleSearchChange("")}
-              renderLeftAccessory={() => (
-                <Feather
-                  name="search"
-                  size={moderateWidthScale(18)}
-                  color={theme.darkGreen}
-                />
+            )}
+          />
+          {addressSearch.trim().length > 0 && (
+            <View style={styles.suggestionsContainer}>
+              {isLoadingSuggestions && (
+                <View style={{ paddingVertical: moderateHeightScale(12) }}>
+                  <ActivityIndicator size="small" color={theme.darkGreen} />
+                </View>
               )}
-            />
-            {addressSearch.trim().length > 0 && (
-              <View style={styles.suggestionsContainer}>
-                {isLoadingSuggestions && (
-                  <View style={{ paddingVertical: moderateHeightScale(12) }}>
-                    <ActivityIndicator size="small" color={theme.darkGreen} />
-                  </View>
-                )}
-                {!isLoadingSuggestions &&
-                  !suggestionError &&
-                  predictions.map((prediction, index) => {
-                    const isLast = index === predictions.length - 1;
-                    return (
-                      <Pressable
-                        key={prediction.place_id ?? index.toString()}
-                        style={[
-                          styles.suggestionItem,
-                          isLast && { borderBottomWidth: 0 },
-                        ]}
-                        onPress={() => handleSuggestionPress(prediction)}
-                      >
-                        <Feather
-                          name="map-pin"
-                          size={moderateWidthScale(16)}
-                          color={theme.lightGreen}
-                        />
-                        <Text style={styles.suggestionText}>
-                          {prediction.structured_formatting?.main_text ??
-                            prediction.description}
-                          {prediction.structured_formatting?.secondary_text
-                            ? `, ${prediction.structured_formatting.secondary_text}`
-                            : ""}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                {!isLoadingSuggestions && suggestionError && (
-                  <View style={{ paddingVertical: moderateHeightScale(12) }}>
-                    <Text style={styles.errorText}>{suggestionError}</Text>
-                  </View>
-                )}
-                {!isLoadingSuggestions &&
-                  !suggestionError &&
-                  predictions.length === 0 && (
-                    <View style={{ paddingVertical: moderateHeightScale(12) }}>
-                      <Text style={styles.infoText}>
-                        No results yet. Try refining your search.
+              {!isLoadingSuggestions &&
+                predictions.map((prediction, index) => {
+                  const isLast = index === predictions.length - 1;
+                  return (
+                    <Pressable
+                      key={prediction.place_id ?? index.toString()}
+                      style={[
+                        styles.suggestionItem,
+                        isLast && { borderBottomWidth: 0 },
+                      ]}
+                      onPress={() => handleSuggestionPress(prediction)}
+                    >
+                      <Feather
+                        name="map-pin"
+                        size={moderateWidthScale(16)}
+                        color={theme.lightGreen}
+                      />
+                      <Text style={styles.suggestionText}>
+                        {prediction.structured_formatting?.main_text ??
+                          prediction.description}
+                        {prediction.structured_formatting?.secondary_text
+                          ? `, ${prediction.structured_formatting.secondary_text}`
+                          : ""}
                       </Text>
-                    </View>
-                  )}
+                    </Pressable>
+                  );
+                })}
+              {!isLoadingSuggestions && predictions.length === 0 && (
+                <View style={{ paddingVertical: moderateHeightScale(12) }}>
+                  <Text style={styles.infoText}>
+                    No results yet. Try refining your search.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      </View>
+      <View style={styles.content}>
+        {tempLocation && (
+          <View style={styles.locationInfoContainer}>
+            {isFetchingAddress ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={theme.darkGreen} />
+                <Text style={styles.loadingText}>Fetching address...</Text>
               </View>
+            ) : (
+              <>
+                <Text
+                  style={styles.locationInfoTitle}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
+                  {tempLocation.locationName || "Location"}
+                </Text>
+                <Text style={styles.locationInfoSubtitle}>
+                  {tempLocation.lat.toFixed(6)}, {tempLocation.long.toFixed(6)}
+                </Text>
+              </>
             )}
           </View>
-        </View>
-        <View style={styles.modalContent}>
-          {tempLocation && (
-            <View style={styles.locationInfoContainer}>
-              {isFetchingAddress ? (
-                <View style={styles.loadingContainer}>
-                  <ActivityIndicator size="small" color={theme.darkGreen} />
-                  <Text style={styles.loadingText}>Fetching address...</Text>
-                </View>
-              ) : (
-                <>
-                  <Text
-                    style={styles.locationInfoTitle}
-                    numberOfLines={2}
-                    ellipsizeMode="tail"
-                  >
-                    {tempLocation.locationName || "Location"}
-                  </Text>
-                  <Text style={styles.locationInfoSubtitle}>
-                    {tempLocation.lat.toFixed(6)},{" "}
-                    {tempLocation.long.toFixed(6)}
-                  </Text>
-                </>
+        )}
+
+        {mapRegion ? (
+          <View style={styles.mapContainer}>
+            <MapView
+              ref={mapRef}
+              style={styles.mapView}
+              initialRegion={mapRegion}
+              onRegionChangeComplete={handleRegionChangeComplete}
+            >
+              {tempLocation && (
+                <Circle
+                  center={{
+                    latitude: tempLocation.lat,
+                    longitude: tempLocation.long,
+                  }}
+                  radius={circleRadius}
+                  fillColor={theme.mapCircleFill}
+                  strokeColor={theme.darkGreen}
+                  strokeWidth={1}
+                />
               )}
+            </MapView>
+            <View style={styles.centerPinContainer}>
+              <Image
+                source={IMAGES.mapPins}
+                style={styles.centerPin}
+                resizeMode="contain"
+              />
             </View>
-          )}
 
-          {mapRegion ? (
-            <View style={styles.mapContainer}>
-              <MapView
-                ref={mapRef}
-                style={styles.mapView}
-                initialRegion={mapRegion}
-                onRegionChangeComplete={handleRegionChangeComplete}
+            <View style={styles.mapControls}>
+              <Pressable
+                style={styles.mapControlButton}
+                onPress={() => handleZoom("in")}
               >
-                {tempLocation && (
-                  <Circle
-                    center={{
-                      latitude: tempLocation.lat,
-                      longitude: tempLocation.long,
-                    }}
-                    radius={circleRadius}
-                    fillColor={theme.mapCircleFill}
-                    strokeColor={theme.darkGreen}
-                    strokeWidth={1}
-                  />
-                )}
-              </MapView>
-              <View style={styles.centerPinContainer}>
-                <Image
-                  source={IMAGES.mapPins}
-                  style={styles.centerPin}
-                  resizeMode="contain"
+                <FontAwesome
+                  name="search-plus"
+                  size={moderateWidthScale(16)}
+                  color={theme.darkGreen}
                 />
-              </View>
-
-              <View style={styles.mapControls}>
-                <Pressable
-                  style={styles.mapControlButton}
-                  onPress={() => handleZoom("in")}
-                >
-                  <FontAwesome
-                    name="search-plus"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-                <View style={styles.mapControlDivider} />
-                <Pressable
-                  style={styles.mapControlButton}
-                  onPress={() => handleZoom("out")}
-                >
-                  <FontAwesome
-                    name="search-minus"
-                    size={moderateWidthScale(16)}
-                    color={theme.darkGreen}
-                  />
-                </Pressable>
-              </View>
-              <TouchableOpacity
-                onPress={handleUseCurrentLocation}
-                disabled={isResolvingLocation}
-                activeOpacity={0.6}
-                style={styles.currentLocControls}
+              </Pressable>
+              <View style={styles.mapControlDivider} />
+              <Pressable
+                style={styles.mapControlButton}
+                onPress={() => handleZoom("out")}
               >
-                <Feather
-                  name="navigation"
-                  size={moderateWidthScale(18)}
-                  color={theme.selectCard}
+                <FontAwesome
+                  name="search-minus"
+                  size={moderateWidthScale(16)}
+                  color={theme.darkGreen}
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
-          ) : (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="small" color={theme.darkGreen} />
-              <Text style={styles.loadingText}>Loading map...</Text>
-            </View>
-          )}
-        </View>
+            <TouchableOpacity
+              onPress={handleUseCurrentLocation}
+              disabled={isResolvingLocation}
+              activeOpacity={0.6}
+              style={styles.currentLocControls}
+            >
+              <Feather
+                name="navigation"
+                size={moderateWidthScale(18)}
+                color={theme.selectCard}
+              />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="small" color={theme.darkGreen} />
+            <Text style={styles.loadingText}>Loading map...</Text>
+          </View>
+        )}
+      </View>
 
-        <View style={styles.confirmButtonContainer}>
-          {locationServicesMessage && (
-            <View style={styles.locationServicesMessageContainer}>
-              <Text style={styles.locationServicesMessageText}>
-                {locationServicesMessage}
-              </Text>
-            </View>
-          )}
-          <Button
-            title="Confirm Location"
-            onPress={handleConfirm}
-            disabled={
-              !tempLocation || isFetchingAddress || isFetchingPlaceDetails
-            }
-          />
-        </View>
-
-        <NotificationBanner
-          visible={modalBanner.visible}
-          title={modalBanner.title}
-          message={modalBanner.message}
-          type={modalBanner.type}
-          duration={3000}
-          onDismiss={() =>
-            setModalBanner((prev) => ({ ...prev, visible: false }))
+      <View style={styles.confirmButtonContainer}>
+        <Button
+          title={locationLoading ? "Get Current Location..." : "Confirm Location"}
+          onPress={handleConfirm}
+          disabled={
+            !tempLocation || isFetchingAddress || isFetchingPlaceDetails || locationLoading
           }
         />
-      </SafeAreaView>
-    </Modal>
+      </View>
+
+      <LocationEnableModal
+        visible={showLocationModal}
+        onClose={handleCloseModal}
+      />
+    </SafeAreaView>
   );
 }

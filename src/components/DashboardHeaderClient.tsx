@@ -18,10 +18,10 @@ import {
 } from "@/src/theme/dimensions";
 import { LeafLogo, CalendarIcon, LocationPinIcon, ChevronDownIcon } from "@/assets/icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import LocationModal from "@/src/components/locationModal";
 import DatePickerModal from "@/src/components/datePickerModal";
 import dayjs from "dayjs";
 import { setSelectedDate } from "@/src/state/slices/generalSlice";
+import { useRouter } from "expo-router";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -100,11 +100,11 @@ export default function DashboardHeaderClient() {
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const location = useAppSelector((state) => state.user.location);
   const selectedDateISO = useAppSelector((state) => state.general.selectedDate);
   const locationLoading = useAppSelector((state) => state.general.locationLoading);
-  const [locationModalVisible, setLocationModalVisible] = useState(false);
   const [dateModalVisible, setDateModalVisible] = useState(false);
   const selectedDate = selectedDateISO ? dayjs(selectedDateISO) : null;
   const locationName = location?.locationName || "Select Location";
@@ -132,7 +132,7 @@ export default function DashboardHeaderClient() {
           </View>
           <Pressable
             style={styles.locationLeft}
-            onPress={() => setLocationModalVisible(true)}
+            onPress={() => router.push("/(main)/setLocation" as any)}
           >
             <View style={styles.locationContent}>
               <View style={styles.locationLabelContainer}>
@@ -180,10 +180,6 @@ export default function DashboardHeaderClient() {
           </TouchableOpacity>
         </View>
       </View>
-      <LocationModal
-        visible={locationModalVisible}
-        onClose={() => setLocationModalVisible(false)}
-      />
       <DatePickerModal
         visible={dateModalVisible}
         onClose={() => setDateModalVisible(false)}

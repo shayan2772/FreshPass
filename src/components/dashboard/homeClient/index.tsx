@@ -11,13 +11,10 @@ import { setLocation } from "@/src/state/slices/userSlice";
 import { tryGetPosition } from "@/src/constant/functions";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import {
-  setActionLoader,
-  setActionLoaderTitle,
   setLocationLoading,
 } from "@/src/state/slices/generalSlice";
 import {
   handleLocationPermission,
-  openLocationSettings,
 } from "@/src/services/locationPermissionService";
 
 const createStyles = (theme: Theme) =>

@@ -243,18 +243,17 @@ export default function LocationEnableModal({
               <Text style={styles.skipButtonText}>Skip for now</Text>
             </TouchableOpacity>
           </View>
-
-          <NotificationBanner
-            visible={modalBanner.visible}
-            title={modalBanner.title}
-            message={modalBanner.message}
-            type={modalBanner.type}
-            duration={3000}
-            onDismiss={() =>
-              setModalBanner((prev) => ({ ...prev, visible: false }))
-            }
-          />
         </View>
+        <NotificationBanner
+          visible={modalBanner.visible}
+          title={modalBanner.title}
+          message={modalBanner.message}
+          type={modalBanner.type}
+          duration={3000}
+          onDismiss={() =>
+            setModalBanner((prev) => ({ ...prev, visible: false }))
+          }
+        />
       </View>
     </Modal>
   );
