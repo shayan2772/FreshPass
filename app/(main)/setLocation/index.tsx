@@ -876,6 +876,7 @@ export default function SetLocationScreen() {
       <LocationEnableModal
         visible={showLocationModal}
         onClose={handleCloseModal}
+        screenName="setLocation"
       />
     </SafeAreaView>
   );

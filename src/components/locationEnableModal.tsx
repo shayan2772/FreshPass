@@ -16,6 +16,7 @@ import NotificationBanner from "@/src/components/notificationBanner";
 interface LocationEnableModalProps {
   visible: boolean;
   onClose: (shouldGetLocation?: boolean) => void;
+  screenName?: string;
 }
 
 const createStyles = (theme: Theme) =>
@@ -121,6 +122,7 @@ const createStyles = (theme: Theme) =>
 export default function LocationEnableModal({
   visible,
   onClose,
+  screenName,
 }: LocationEnableModalProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -202,30 +204,56 @@ export default function LocationEnableModal({
               <View>
                 <Text style={styles.title}>Enable Location</Text>
                 <Text style={styles.subtitle}>
-                  Turn on location to discover businesses near you
+                  {screenName === "setLocation"
+                    ? "Get current location to show on map"
+                    : "Turn on location to discover businesses near you"}
                 </Text>
               </View>
             </View>
           </View>
 
           <View style={styles.descriptionContainer}>
-            <Text style={styles.descriptionText}>
-              Businesses are shown nearby based on your current location. You
-              can also change your location in the header by selecting the
-              location option.
-            </Text>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.bulletText}>
-                Find salons and services closest to you
-              </Text>
-            </View>
-            <View style={styles.bulletPoint}>
-              <View style={styles.bulletDot} />
-              <Text style={styles.bulletText}>
-                Without location, businesses will appear randomly
-              </Text>
-            </View>
+            {screenName === "setLocation" ? (
+              <>
+                <Text style={styles.descriptionText}>
+                  To select your location on the map, we need to access your
+                  current location. This will help you see your position and
+                  choose the right location.
+                </Text>
+                <View style={styles.bulletPoint}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>
+                    Get your current location to show on the map
+                  </Text>
+                </View>
+                <View style={styles.bulletPoint}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>
+                    Easily select and confirm your location
+                  </Text>
+                </View>
+              </>
+            ) : (
+              <>
+                <Text style={styles.descriptionText}>
+                  Businesses are shown nearby based on your current location. You
+                  can also change your location in the header by selecting the
+                  location option.
+                </Text>
+                <View style={styles.bulletPoint}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>
+                    Find salons and services closest to you
+                  </Text>
+                </View>
+                <View style={styles.bulletPoint}>
+                  <View style={styles.bulletDot} />
+                  <Text style={styles.bulletText}>
+                    Without location, businesses will appear randomly
+                  </Text>
+                </View>
+              </>
+            )}
           </View>
 
           <View style={styles.buttonContainer}>
