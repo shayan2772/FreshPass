@@ -15,8 +15,9 @@ export default function Role() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const router = useRouter();
+  const isFirstVisit = useAppSelector((state) => state.general.isVisitFirst);
   const dispatch = useAppDispatch();
-
+   
   // Get selected role from Redux (will be null initially, then "business", "client", or "staff")
   const selectedRole = useAppSelector((state) => state.general.role);
 
@@ -30,8 +31,12 @@ export default function Role() {
     if (selectedRole) {
       // Navigate to client onboarding flow (location screen first)
       if (selectedRole === "customer") {
-        // router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
-        router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+        if (isFirstVisit) {
+          router.push(`/${MAIN_ROUTES.INTRODUCTION_CLIENT}`);
+        } else {
+          router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);
+        }
+
         return;
       }
       router.push(`/${MAIN_ROUTES.SOCIAL_LOGIN}`);

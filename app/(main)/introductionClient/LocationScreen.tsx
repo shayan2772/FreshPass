@@ -67,6 +67,10 @@ const createStyles = (theme: Theme) =>
       height: moderateHeightScale(300),
       resizeMode: "contain",
     },
+    buttonContainer: {
+      marginBottom: moderateHeightScale(30),
+      marginHorizontal: moderateWidthScale(20),
+    },
   });
 
 export default function LocationScreen({ onNext }: LocationScreenProps) {
@@ -142,7 +146,9 @@ export default function LocationScreen({ onNext }: LocationScreenProps) {
             {errorMessage}
           </Text>
         )}
+      </View>
 
+      <View style={styles.buttonContainer}>
         <Button title={"Continue"} onPress={handleContinue} />
       </View>
     </SafeAreaView>
