@@ -752,6 +752,11 @@ export default function ManageSubscriptionsScreen() {
     (s) => !subscriptions.some((sub) => sub.id === s.id)
   );
 
+  const onClickAi=async()=>{
+ dispatch(setActionLoader(true));
+dispatch(setActionLoaderTitle("Generating subscription plans"));
+  }
+
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Manage subscription list" />
@@ -977,13 +982,7 @@ export default function ManageSubscriptionsScreen() {
           {/* Main Button with Zoom Animation */}
           <TouchableOpacity
             activeOpacity={0.8}
-            onPress={() => {
-              dispatch(setActionLoader(true));
-              dispatch(setActionLoaderTitle("Generating subscription plans"));
-
-
-              
-            }}
+            onPress={onClickAi}
           >
             <Animated.View
               style={[
