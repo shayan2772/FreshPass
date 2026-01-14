@@ -72,6 +72,7 @@ const getSuggestionIdForName = (name: string) => {
   return null;
 };
 
+
 // Popular starting points suggestions - will be populated with first 2 services
 const getPopularSuggestions = (
   services: Array<{ id: string; name: string }>
@@ -80,34 +81,10 @@ const getPopularSuggestions = (
 
   return [
     {
-      id: "vip-glam-package",
-      packageName: "VIP Glam Package",
+      id: "basic_plan",
+      packageName: "Basic Plan",
       servicesPerMonth: 2,
       price: 145.99,
-      currency: "USD",
-      serviceIds: firstTwoServiceIds,
-    },
-    {
-      id: "gold-package",
-      packageName: "Gold Package",
-      servicesPerMonth: 3,
-      price: 199.99,
-      currency: "USD",
-      serviceIds: firstTwoServiceIds,
-    },
-    {
-      id: "platinum-package",
-      packageName: "Platinum Package",
-      servicesPerMonth: 4,
-      price: 249.99,
-      currency: "USD",
-      serviceIds: firstTwoServiceIds,
-    },
-    {
-      id: "silver-package",
-      packageName: "Silver Package",
-      servicesPerMonth: 2,
-      price: 99.99,
       currency: "USD",
       serviceIds: firstTwoServiceIds,
     },

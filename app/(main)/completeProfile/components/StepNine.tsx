@@ -24,36 +24,12 @@ const getPopularSuggestions = (
   const firstTwoServiceIds = services.slice(0, 2).map((s) => s.id);
 
   return [
-  {
-    id: "vip-glam-package",
-    packageName: "VIP Glam Package",
-    servicesPerMonth: 2,
-    price: 145.99,
-    currency: "USD",
-      serviceIds: firstTwoServiceIds,
-  },
-  {
-    id: "gold-package",
-    packageName: "Gold Package",
-    servicesPerMonth: 3,
-    price: 199.99,
-    currency: "USD",
-      serviceIds: firstTwoServiceIds,
-  },
-  {
-    id: "platinum-package",
-    packageName: "Platinum Package",
-    servicesPerMonth: 4,
-    price: 249.99,
-    currency: "USD",
-      serviceIds: firstTwoServiceIds,
-  },
-  {
-    id: "silver-package",
-    packageName: "Silver Package",
-    servicesPerMonth: 2,
-    price: 99.99,
-    currency: "USD",
+    {
+      id: "basic_plan",
+      packageName: "Basic Plan",
+      servicesPerMonth: 2,
+      price: 145.99,
+      currency: "USD",
       serviceIds: firstTwoServiceIds,
     },
   ];
@@ -177,7 +153,7 @@ const createStyles = (theme: Theme) =>
       width: "100%",
       backgroundColor: theme.borderLight,
     },
-   
+
     subscriptionInfo: {
       flex: 1,
       gap: moderateHeightScale(3),
@@ -375,9 +351,7 @@ export default function StepNine() {
     return serviceIds
       .map((id) => {
         // Find service in businessServices by id (business service id)
-        const service = businessServices.find(
-          (s) => s.id.toString() === id
-        );
+        const service = businessServices.find((s) => s.id.toString() === id);
         return service?.name;
       })
       .filter(Boolean) as string[];
@@ -479,7 +453,7 @@ export default function StepNine() {
         >
           <Text style={styles.popularTitle}>Popular starting points:</Text>
           <TouchableOpacity
-          activeOpacity={0.7}
+            activeOpacity={0.7}
             onPress={handleOpenAddSubscription}
             style={{
               width: moderateWidthScale(20),
@@ -499,8 +473,8 @@ export default function StepNine() {
           </TouchableOpacity>
         </View>
 
-      {unselectedSuggestions.length > 0 && (
-        <>
+        {unselectedSuggestions.length > 0 && (
+          <>
             {unselectedSuggestions.map((suggestion) => {
               const isSelected = subscriptions.some(
                 (s) => s.id === suggestion.id
@@ -537,8 +511,8 @@ export default function StepNine() {
                 </View>
               );
             })}
-        </>
-      )}
+          </>
+        )}
       </View>
 
       <EditSubscriptionBottomSheet
