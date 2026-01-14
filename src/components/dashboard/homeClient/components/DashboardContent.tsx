@@ -812,6 +812,7 @@ export default function DashboardContent() {
   const { showBanner } = useNotificationContext();
   const userRole = useAppSelector((state: any) => state.user.userRole);
   const isGuest = useAppSelector((state: any) => state.user.isGuest);
+  const userLocation = useAppSelector((state: any) => state.user.location);
   const selectedDateISO = useAppSelector(
     (state: any) => state.general.selectedDate
   );
@@ -913,7 +914,6 @@ export default function DashboardContent() {
     }
   };
 
- 
 
   const fetchServiceTemplates = async (categoryId: number | string) => {
     try {
@@ -970,6 +970,11 @@ export default function DashboardContent() {
         const formattedDate = dayjs(selectedDateISO).format("YYYY-MM-DD");
         url += `&availability_date=${encodeURIComponent(formattedDate)}`;
       }
+      // if (userLocation?.lat && userLocation?.long) {
+      //   url += `&latitude=${userLocation.lat}`;
+      //   url += `&longitude=${userLocation.long}`;
+      //   url += `&radius_km=20`;
+      // }
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -1043,6 +1048,12 @@ export default function DashboardContent() {
       if (selectedDateISO) {
         const formattedDate = dayjs(selectedDateISO).format("YYYY-MM-DD");
         queryParams.append("availability_date", formattedDate);
+      }
+
+      if (userLocation?.lat && userLocation?.long) {
+        queryParams.append("latitude", userLocation.lat.toString());
+        queryParams.append("longitude", userLocation.long.toString());
+        queryParams.append("radius_km", "20");
       }
 
       const url = `${baseUrl}&${queryParams.toString()}`;
@@ -1432,6 +1443,7 @@ export default function DashboardContent() {
     selectedServiceFilter,
     searchText,
     selectedDateISO,
+    userLocation
   ]);
 
   // Initialize scroll position to subscriptions (index 0)
