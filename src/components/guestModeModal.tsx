@@ -26,59 +26,68 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     modalOverlay: {
       flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
+      backgroundColor: "rgba(0, 0, 0, 0.6)",
       justifyContent: "center",
       alignItems: "center",
     },
     modalContainer: {
       backgroundColor: theme.background,
-      borderRadius: moderateWidthScale(16),
-      width: widthScale(320),
+      borderRadius: moderateWidthScale(24),
+      width: widthScale(340),
       maxWidth: "90%",
-      padding: moderateWidthScale(24),
+      paddingHorizontal: moderateWidthScale(28),
+      paddingTop: moderateHeightScale(32),
+      paddingBottom: moderateHeightScale(28),
       alignItems: "center",
       shadowColor: theme.shadow,
       shadowOffset: {
         width: 0,
-        height: moderateHeightScale(4),
+        height: moderateHeightScale(8),
       },
-      shadowOpacity: 0.3,
-      shadowRadius: moderateWidthScale(8),
-      elevation: 8,
+      shadowOpacity: 0.4,
+      shadowRadius: moderateWidthScale(16),
+      elevation: 12,
     },
-    closeButton: {
-      position: "absolute",
-      top: moderateHeightScale(16),
-      right: moderateWidthScale(16),
-      padding: moderateWidthScale(8),
-      zIndex: 1,
-    },
+
     iconContainer: {
-      width: widthScale(64),
-      height: heightScale(64),
-      borderRadius: moderateWidthScale(32),
-      backgroundColor: theme.lightGreen07,
+      width: 70,
+      height: 70,
+      borderRadius: 70 / 2,
+      backgroundColor: theme.orangeBrown30,
       justifyContent: "center",
       alignItems: "center",
-      marginBottom: moderateHeightScale(16),
+      marginBottom: moderateHeightScale(20),
     },
     title: {
-      fontSize: fontSize.size22,
+      fontSize: fontSize.size24,
       fontFamily: fonts.fontBold,
       color: theme.text,
       textAlign: "center",
-      marginBottom: moderateHeightScale(12),
+      marginBottom: moderateHeightScale(16),
     },
     message: {
       fontSize: fontSize.size15,
       fontFamily: fonts.fontRegular,
       color: theme.text,
       textAlign: "center",
-      lineHeight: moderateHeightScale(22),
-      marginBottom: moderateHeightScale(24),
+      lineHeight: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(32),
+      paddingHorizontal: moderateWidthScale(8),
     },
     buttonContainer: {
       width: "100%",
+      marginBottom: moderateHeightScale(20),
+    },
+    skipContainer: {
+      marginTop: moderateHeightScale(8),
+    },
+    skipText: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.link,
+      textDecorationLine: "underline",
+      textDecorationColor: theme.link,
+      textAlign: "center",
     },
   });
 
@@ -101,6 +110,10 @@ export default function GuestModeModal() {
     router.push(`/(main)/${MAIN_ROUTES.LOGIN}` as any);
   };
 
+  const handleSkip = () => {
+    dispatch(setGuestModeModalVisible(false));
+  };
+
   return (
     <Modal
       transparent
@@ -114,22 +127,10 @@ export default function GuestModeModal() {
           style={styles.modalContainer}
           onPress={(e) => e.stopPropagation()}
         >
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={handleClose}
-            hitSlop={moderateWidthScale(8)}
-          >
-            <Feather
-              name="x"
-              size={moderateWidthScale(20)}
-              color={theme.text}
-            />
-          </TouchableOpacity>
-
           <View style={styles.iconContainer}>
             <Feather
               name="user"
-              size={moderateWidthScale(32)}
+              size={moderateWidthScale(36)}
               color={theme.darkGreen}
             />
           </View>
@@ -144,6 +145,14 @@ export default function GuestModeModal() {
           <View style={styles.buttonContainer}>
             <Button title="Sign In" onPress={handleSignIn} />
           </View>
+
+          <TouchableOpacity
+            style={styles.skipContainer}
+            onPress={handleSkip}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.skipText}>Skip now</Text>
+          </TouchableOpacity>
         </Pressable>
       </Pressable>
     </Modal>
