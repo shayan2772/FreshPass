@@ -131,6 +131,8 @@ interface BusinessProfileData {
   title: string;
   slogan: string;
   logo_url: string | null;
+  country_code?: string | null;
+  phone?: string | null;
 }
 
 export default function BusinessProfileScreen() {
@@ -175,6 +177,8 @@ export default function BusinessProfileScreen() {
           title: profileData.title,
           slogan: profileData.slogan || "",
           logo_url: profileData.logo_url || "",
+          country_code: profileData.country_code || "",
+          phone: profileData.phone || "",
         },
       });
     } else {
