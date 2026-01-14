@@ -9,7 +9,7 @@ import {
   FlatList,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
+import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -307,9 +307,11 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
             </View>
           )}
           <Image
-            source={
-              item.imageUrl ? { uri: item.imageUrl } : IMAGES.socialBackgroud
-            }
+            source={{
+              uri: item?.imageUrl
+                ? process.env.EXPO_PUBLIC_API_BASE_URL + item?.imageUrl
+                : process.env.EXPO_PUBLIC_DEFAULT_CATEGORY_IMAGE,
+            }}
             style={[
               styles.categoryImage,
               isSelected && styles.categoryCardSelected,
