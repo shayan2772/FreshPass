@@ -2146,8 +2146,7 @@ export default function DashboardContent() {
               tab === "individual"
                 ? section.services?.length || 0
                 : section.subscriptions?.length || 0;
-            const showViewMore =false
-            // itemsCount >= 2;
+            const showViewMore =itemsCount >= 10;
 
             return (
               <View key={section.id} style={styles.sectionContainer}>
@@ -2180,17 +2179,23 @@ export default function DashboardContent() {
                       activeOpacity={0.7}
                       onPress={() => {
                         router.push({
-                          pathname: "/(main)/dashboard/(home)/businessList",
-                          params: {
-                            data: JSON.stringify({
-                              businessName: section.businessName,
-                              type: section.type,
-                              services: section.services,
-                              subscriptions: section.subscriptions,
-                            }),
-                          },
-                        });
+                          pathname: "/(main)/businessDetail",
+                          params: { business_id: section.id.toString() },
+                        } as any);
                       }}
+                      // onPress={() => {
+                      //   router.push({
+                      //     pathname: "/(main)/dashboard/(home)/businessList",
+                      //     params: {
+                      //       data: JSON.stringify({
+                      //         businessName: section.businessName,
+                      //         type: section.type,
+                      //         services: section.services,
+                      //         subscriptions: section.subscriptions,
+                      //       }),
+                      //     },
+                      //   });
+                      // }}
                     >
                       <Text style={styles.sectionViewMore}>View more</Text>
                     </TouchableOpacity>
