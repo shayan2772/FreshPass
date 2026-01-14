@@ -313,8 +313,7 @@ export default function ManageSubscriptionsScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
   const user = useAppSelector((state) => state.user);
-  const businessId = user?.business_id ?? ""
-
+  const businessId = user?.business_id ?? "";
 
   const { subscriptions, businessServices } = useAppSelector(
     (state) => state.completeProfile
@@ -1081,24 +1080,7 @@ export default function ManageSubscriptionsScreen() {
         onClose={() => setModalVisible(false)}
         plans={generatedResult?.generated_plans || []}
         onSelectedPlans={(selectedPlans) => {
-          // Convert selected plans to subscription format
-          selectedPlans.forEach((plan) => {
-            const subscription = {
-              id: `generated-${plan.tier}-${Date.now()}-${Math.random()}`,
-              packageName: plan.name,
-              servicesPerMonth: plan.visits_included,
-              price: plan.monthly_price,
-              currency: plan.currency,
-              serviceIds: plan.services_included.map((s) => s.id.toString()),
-            };
-            dispatch(addSubscription(subscription));
-          });
-          showBanner(
-            "Success",
-            `${selectedPlans.length} plan${selectedPlans.length !== 1 ? "s" : ""} added successfully`,
-            "success",
-            3000
-          );
+          console.log("selectedPlans : ", selectedPlans);
         }}
       />
     </SafeAreaView>
