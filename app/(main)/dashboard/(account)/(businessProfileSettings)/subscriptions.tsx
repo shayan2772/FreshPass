@@ -261,6 +261,26 @@ const createStyles = (theme: Theme) =>
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(12),
     },
+    aiToolButton: {
+      position: "absolute",
+      bottom: moderateHeightScale(130),
+      right: moderateWidthScale(20),
+      width: moderateWidthScale(56),
+      height: moderateWidthScale(56),
+      borderRadius: moderateWidthScale(28),
+      backgroundColor: theme.darkGreenLight,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+      zIndex: 1000,
+    },
   });
 
 export default function ManageSubscriptionsScreen() {
@@ -785,9 +805,31 @@ export default function ManageSubscriptionsScreen() {
                   );
                 })}
             </View>
+
+
+            
+            
           </>
         )}
       </ScrollView>
+
+      {/* AI Tool Button - Absolutely Positioned */}
+      {!loading && (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.aiToolButton}
+          onPress={() => {
+            
+            
+          }}
+        >
+          <MaterialIcons
+            name="auto-awesome"
+            size={moderateWidthScale(28)}
+            color={theme.white}
+          />
+        </TouchableOpacity>
+      )}
 
       {!loading && (
         <View style={styles.continueButtonContainer}>
