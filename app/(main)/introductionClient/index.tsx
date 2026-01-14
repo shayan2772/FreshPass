@@ -7,6 +7,8 @@ import Notification from "./Notification";
 import CoreFeature from "./CoreFeature";
 import GenderSelect from "./GenderSelect";
 import CategorySelect from "./CategorySelect";
+import { useAppDispatch } from "@/src/hooks/hooks";
+import { setIsVisitFirst } from "@/src/state/slices/generalSlice";
 
 type ScreenType =
   | "location"
@@ -17,6 +19,7 @@ type ScreenType =
 
 export default function IntroductionClient() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [currentScreen, setCurrentScreen] = useState<ScreenType>("location");
 
   // Handle back button based on current screen
@@ -74,6 +77,7 @@ export default function IntroductionClient() {
   };
 
   const handleCategoryNext = () => {
+    dispatch(setIsVisitFirst(false));
     // Navigate to dashboard or complete profile
     router.replace("/(main)/dashboard/(home)" as any);
   };
@@ -89,7 +93,7 @@ export default function IntroductionClient() {
         />
       );
     case "coreFeature":
-      return <CoreFeature onNext={handleCoreFeatureNext}  />;
+      return <CoreFeature onNext={handleCoreFeatureNext} />;
     case "gender":
       return <GenderSelect onNext={handleGenderNext} />;
     case "category":

@@ -1077,11 +1077,8 @@ export default function BusinessDetailScreen() {
   const [showAllStaff, setShowAllStaff] = useState(false);
   const [fullReviewModalVisible, setFullReviewModalVisible] = useState(false);
   const [selectedReview, setSelectedReview] = useState<any | null>(null);
-
-  const [reviewTitle, setReviewTitle] = useState("Amazing haircut by Carlos!");
-  const [reviewDetails, setReviewDetails] = useState(
-    "Carlos is a true professional! He listened exactly to what I wanted and gave me the best fade I've had in years. The salon was clean and the atmosphere was great. I'll definitely be coming back and asking for him again. Highly recommend!"
-  );
+  const user = useAppSelector((state: any) => state.user);
+  const isGuest = user.isGuest;
 
   // Refs for scroll positions
   const scrollViewRef = useRef<ScrollView>(null);
@@ -2509,7 +2506,7 @@ export default function BusinessDetailScreen() {
           )}
 
           {/* Write a Review Button */}
-          {!hasUserReviewed && (
+          {!hasUserReviewed && !isGuest && (
             <View style={styles.writeReviewButtonContainer}>
               <Button
                 backgroundColor={theme.darkGreen}

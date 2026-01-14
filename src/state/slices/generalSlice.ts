@@ -16,6 +16,7 @@ export interface GeneralState {
   isVisitFirst: boolean; // Track if it's the first visit
   selectedDate: string | null; // Selected date for viewing appointments (ISO string format)
   searchText: string; // Search text for location/services search
+  guestModeModalVisible: boolean; // Guest mode modal visibility state
 }
 
 const initialState: GeneralState = {
@@ -32,6 +33,7 @@ const initialState: GeneralState = {
   isVisitFirst: true,
   selectedDate: null,
   searchText: "",
+  guestModeModalVisible: false,
 };
 
 const generalSlice = createSlice({
@@ -84,6 +86,9 @@ const generalSlice = createSlice({
     clearSearchText(state) {
       state.searchText = "";
     },
+    setGuestModeModalVisible(state, action: PayloadAction<boolean>) {
+      state.guestModeModalVisible = action.payload;
+    },
     resetGeneral(state) {
       state.language = "en";
       state.selectedDate = null;
@@ -91,6 +96,8 @@ const generalSlice = createSlice({
       state.actionLoaderTitle = "";
       state.actionLoader = false;
       state.locationLoading = false;
+      state.guestModeModalVisible = false;
+      state.toggleLoading=false
     },
   },
 });
@@ -111,6 +118,7 @@ export const {
   clearSelectedDate,
   setSearchText,
   clearSearchText,
+  setGuestModeModalVisible,
   resetGeneral,
 } = generalSlice.actions;
 export default generalSlice.reducer;

@@ -28,10 +28,16 @@ import {
   type StaffMember,
   type BusinessHours,
 } from "@/src/state/slices/bsnsSlice";
-import { setActionLoader } from "@/src/state/slices/generalSlice";
+import {
+  setActionLoader,
+  setGuestModeModalVisible,
+} from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { ApiService } from "@/src/services/api";
-import { appointmentsEndpoints, businessEndpoints } from "@/src/services/endpoints";
+import {
+  appointmentsEndpoints,
+  businessEndpoints,
+} from "@/src/services/endpoints";
 import { Theme } from "@/src/theme/colors";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import {
@@ -735,6 +741,8 @@ function CheckoutContent() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const user = useAppSelector((state: any) => state.user);
+  const isGuest = user.isGuest;
 
   const params = useLocalSearchParams<{
     businessId?: string;
@@ -755,7 +763,9 @@ function CheckoutContent() {
   }, [params.item]);
 
   // State for business data
-  const [businessHours, setBusinessHours] = useState<BusinessHours | null>(null);
+  const [businessHours, setBusinessHours] = useState<BusinessHours | null>(
+    null
+  );
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedStaffId, setSelectedStaffId] = useState<string>("anyone");
@@ -861,7 +871,7 @@ function CheckoutContent() {
     // Get current time
     const now = dayjs();
     const [hours, minutes] = slot.split(":").map(Number);
-    
+
     // Create slot time for today
     const slotTime = dayjs()
       .hour(hours)
@@ -989,14 +999,10 @@ function CheckoutContent() {
             }
 
             const breaks = (dayData.break_hours || []).map((breakTime: any) => {
-              const {
-                hours: breakFromHours,
-                minutes: breakFromMinutes,
-              } = parseTimeToHoursMinutes(breakTime.start || "00:00");
-              const {
-                hours: breakTillHours,
-                minutes: breakTillMinutes,
-              } = parseTimeToHoursMinutes(breakTime.end || "00:00");
+              const { hours: breakFromHours, minutes: breakFromMinutes } =
+                parseTimeToHoursMinutes(breakTime.start || "00:00");
+              const { hours: breakTillHours, minutes: breakTillMinutes } =
+                parseTimeToHoursMinutes(breakTime.end || "00:00");
               return {
                 fromHours: breakFromHours,
                 fromMinutes: breakFromMinutes,
@@ -1214,12 +1220,12 @@ function CheckoutContent() {
 
     const today = dayjs().startOf("day");
     const currentSelected = selectedDate.startOf("day");
-    
+
     // If current date is already today and available, don't change
     if (currentSelected.isSame(today, "day") && !isDateDisabled(today)) {
       return;
     }
-    
+
     // Check if today is available (not disabled)
     if (!isDateDisabled(today)) {
       setSelectedDate(today);
@@ -1351,6 +1357,7 @@ function CheckoutContent() {
     : undefined;
 
   const handleBookNow = async () => {
+    
     if (!selectedTimeSlot) {
       showBanner(
         "Time Slot Required",
@@ -1370,6 +1377,13 @@ function CheckoutContent() {
       );
       return;
     }
+
+
+    if (isGuest) {
+      dispatch(setGuestModeModalVisible(true));
+      return;
+    }
+
 
     // Prepare request body
     const isAnyoneSelected = selectedStaffId === "anyone";
@@ -1463,12 +1477,7 @@ function CheckoutContent() {
             ? `${dateFormatted}${appointmentId}`
             : `${Date.now()}${Math.floor(Math.random() * 10000)}`;
 
-        showBanner(
-          "Success",
-          "Your booking is confirmed.",
-          "success",
-          3000
-        );
+        showBanner("Success", "Your booking is confirmed.", "success", 3000);
 
         // Navigate to booking detail page
         router.push({
@@ -1580,9 +1589,9 @@ function CheckoutContent() {
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
           >
-          {/* Availability Section */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Availability</Text>
+            {/* Availability Section */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Availability</Text>
 
               {/* Week Navigation */}
               <View style={styles.weekNavigation}>
@@ -1802,7 +1811,9 @@ function CheckoutContent() {
               </View>
             </View>
 
-            <View style={[styles.line, { marginTop: moderateHeightScale(20) }]} />
+            <View
+              style={[styles.line, { marginTop: moderateHeightScale(20) }]}
+            />
 
             {/* Staff Selection */}
             <View>
@@ -1820,7 +1831,8 @@ function CheckoutContent() {
                       key={staff.id}
                       style={[
                         styles.staffCard,
-                        selectedStaffId === staff.id && styles.staffCardSelected,
+                        selectedStaffId === staff.id &&
+                          styles.staffCardSelected,
                         isAnyone && styles.staffCardAnyone,
                         !isAnyone && styles.shadow,
                       ]}
@@ -1844,7 +1856,10 @@ function CheckoutContent() {
                             {staff.name}
                           </Text>
                           {staff.experience ? (
-                            <Text style={styles.staffExperience} numberOfLines={1}>
+                            <Text
+                              style={styles.staffExperience}
+                              numberOfLines={1}
+                            >
                               {staff.experience}
                             </Text>
                           ) : null}
@@ -1861,7 +1876,6 @@ function CheckoutContent() {
               </ScrollView>
             </View>
 
- 
             {/* Leave a Note Section */}
             <View style={styles.noteInputContainer}>
               <View style={styles.noteInputIcon}>

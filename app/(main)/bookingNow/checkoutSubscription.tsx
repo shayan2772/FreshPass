@@ -30,6 +30,7 @@ import { fetchUserStatus } from "@/src/state/thunks/businessThunks";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import SubscriptionPickerBottomSheet from "@/src/components/SubscriptionPickerBottomSheet";
+import { setGuestModeModalVisible } from "@/src/state/slices/generalSlice";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -381,6 +382,7 @@ function CheckoutSubscriptionContent() {
   const { showBanner } = useNotificationContext();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const user = useAppSelector((state: any) => state.user);
+  const isGuest = user.isGuest;
   const params = useLocalSearchParams<{
     subscriptionId?: string;
     businessId?: string;
@@ -565,6 +567,11 @@ function CheckoutSubscriptionContent() {
         "error",
         4000
       );
+      return;
+    }
+
+    if (isGuest) {
+      dispatch(setGuestModeModalVisible(true));
       return;
     }
 

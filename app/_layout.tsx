@@ -16,6 +16,7 @@ import { NotificationProvider } from "@/src/contexts/NotificationContext";
 import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
 import ActionLoader from "@/src/components/actionLoader";
 import OnboardingHandler from "@/src/components/OnboardingHandler";
+import GuestModeModal from "@/src/components/guestModeModal";
 import "../global.css";
 import * as SystemUI from "expo-system-ui";
 import { LogBox } from "react-native";
@@ -79,6 +80,7 @@ export default function RootLayout() {
                 <ThemedStatusBar />
                 <Slot />
                 <ActionLoader />
+                <GuestModeModal />
                 <OnboardingHandler />
                 <SessionExpiredHandler />
               </NotificationProvider>

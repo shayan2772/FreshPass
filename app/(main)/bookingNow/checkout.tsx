@@ -29,7 +29,10 @@ import {
   type StaffMember,
   type BusinessHours,
 } from "@/src/state/slices/bsnsSlice";
-import { setActionLoader } from "@/src/state/slices/generalSlice";
+import {
+  setActionLoader,
+  setGuestModeModalVisible,
+} from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import ApiService from "@/src/services/api";
 import { appointmentsEndpoints } from "@/src/services/endpoints";
@@ -691,7 +694,7 @@ function CheckoutContent() {
   const dispatch = useAppDispatch();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const user = useAppSelector((state: any) => state.user);
-
+  const isGuest = user.isGuest;
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
   const {
@@ -815,7 +818,7 @@ function CheckoutContent() {
     // Get current time
     const now = dayjs();
     const [hours, minutes] = slot.split(":").map(Number);
-    
+
     // Create slot time for today
     const slotTime = dayjs()
       .hour(hours)
@@ -1005,12 +1008,12 @@ function CheckoutContent() {
 
     const today = dayjs().startOf("day");
     const currentSelected = selectedDate.startOf("day");
-    
+
     // If current date is already today and available, don't change
     if (currentSelected.isSame(today, "day") && !isDateDisabled(today)) {
       return;
     }
-    
+
     // Check if today is available (not disabled)
     if (!isDateDisabled(today)) {
       setSelectedDate(today);
@@ -1143,6 +1146,8 @@ function CheckoutContent() {
     : undefined;
 
   const handleBookNow = async () => {
+    
+
     if (!selectedTimeSlot) {
       showBanner(
         "Time Slot Required",
@@ -1159,6 +1164,12 @@ function CheckoutContent() {
         "warning",
         4000
       );
+      return;
+    }
+
+
+    if (isGuest) {
+      dispatch(setGuestModeModalVisible(true));
       return;
     }
 
