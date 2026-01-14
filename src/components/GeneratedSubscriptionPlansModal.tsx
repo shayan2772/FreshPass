@@ -134,6 +134,9 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: moderateWidthScale(20),
       paddingTop: moderateHeightScale(20),
       paddingBottom: moderateHeightScale(16),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
     },
     classicHeader: {
       backgroundColor: "#E3F2FD",
@@ -149,6 +152,20 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(4),
+      flex: 1,
+    },
+    headerCheckbox: {
+      width: moderateWidthScale(24),
+      height: moderateWidthScale(24),
+      borderRadius: moderateWidthScale(6),
+      borderWidth: 2,
+      borderColor: theme.borderLight,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerCheckboxSelected: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
     },
     planTier: {
       fontSize: fontSize.size14,
@@ -238,34 +255,6 @@ const createStyles = (theme: Theme) =>
     planCardSelected: {
       borderColor: theme.primary,
       borderWidth: 2,
-    },
-    checkboxContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: moderateHeightScale(16),
-      paddingTop: moderateHeightScale(16),
-      borderTopWidth: 1,
-      borderTopColor: theme.borderLight,
-    },
-    checkbox: {
-      width: moderateWidthScale(24),
-      height: moderateWidthScale(24),
-      borderRadius: moderateWidthScale(6),
-      borderWidth: 2,
-      borderColor: theme.borderLight,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: moderateWidthScale(12),
-    },
-    checkboxSelected: {
-      backgroundColor: theme.primary,
-      borderColor: theme.primary,
-    },
-    checkboxLabel: {
-      fontSize: fontSize.size14,
-      fontFamily: fonts.fontMedium,
-      color: theme.darkGreen,
-      flex: 1,
     },
     fixedButtonContainer: {
       paddingTop: moderateHeightScale(16),
@@ -366,8 +355,24 @@ export default function GeneratedSubscriptionPlansModal({
                     onPress={() => togglePlanSelection(index)}
                   >
                     <View style={[styles.planHeader, getHeaderStyle(plan.tier)]}>
-                      <Text style={styles.planName}>{plan.name}</Text>
-                      <Text style={styles.planTier}>{plan.tier} Tier</Text>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.planName}>{plan.name}</Text>
+                        <Text style={styles.planTier}>{plan.tier} Tier</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.headerCheckbox,
+                          isSelected && styles.headerCheckboxSelected,
+                        ]}
+                      >
+                        {isSelected && (
+                          <Feather
+                            name="check"
+                            size={moderateWidthScale(16)}
+                            color={theme.white}
+                          />
+                        )}
+                      </View>
                     </View>
 
                     <View style={styles.planContent}>
@@ -423,26 +428,6 @@ export default function GeneratedSubscriptionPlansModal({
                         </Text>
                         <Text style={styles.recommendedText}>
                           {plan.recommended_for}
-                        </Text>
-                      </View>
-
-                      <View style={styles.checkboxContainer}>
-                        <View
-                          style={[
-                            styles.checkbox,
-                            isSelected && styles.checkboxSelected,
-                          ]}
-                        >
-                          {isSelected && (
-                            <Feather
-                              name="check"
-                              size={moderateWidthScale(16)}
-                              color={theme.white}
-                            />
-                          )}
-                        </View>
-                        <Text style={styles.checkboxLabel}>
-                          Select this plan
                         </Text>
                       </View>
                     </View>
