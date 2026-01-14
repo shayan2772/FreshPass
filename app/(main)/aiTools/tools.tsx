@@ -60,8 +60,9 @@ export default function Tools() {
   const theme = colors as Theme;
   const toolType = params.toolType || "";
   const headerTitle = toolType || "Ai Tools";
-  // const businessId = user?.business_id ??
-  const businessId = "1";
+const businessId = user?.business_id ?? ""
+ 
+   
 
   // State for Post (single image)
   const [postImage, setPostImage] = useState<string | null>(null);
@@ -89,8 +90,7 @@ export default function Tools() {
   // API state
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedResult, setGeneratedResult] = useState<any>(null);
-  console.log("--->generatedResult", generatedResult);
-
+  
   const generateId = () => {
     return `file_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
   };

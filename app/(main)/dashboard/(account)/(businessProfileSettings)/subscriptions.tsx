@@ -32,7 +32,10 @@ import {
 } from "@/src/state/slices/completeProfileSlice";
 import EditSubscriptionBottomSheet from "@/src/components/EditSubscriptionBottomSheet";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import { setActionLoader, setActionLoaderTitle } from "@/src/state/slices/generalSlice";
+import {
+  setActionLoader,
+  setActionLoaderTitle,
+} from "@/src/state/slices/generalSlice";
 
 interface ModuleSubscriptionService {
   id: number;
@@ -73,7 +76,6 @@ const getSuggestionIdForName = (name: string) => {
 
   return null;
 };
-
 
 // Popular starting points suggestions - will be populated with first 2 services
 const getPopularSuggestions = (
@@ -308,11 +310,15 @@ export default function ManageSubscriptionsScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const { showBanner } = useNotificationContext();
+  const user = useAppSelector((state) => state.user);
+  const businessId = user?.business_id ?? ""
+
 
   const { subscriptions, businessServices } = useAppSelector(
     (state) => state.completeProfile
   );
 
+  const [generatedResult, setGeneratedResult] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [deletingSubscriptionId, setDeletingSubscriptionId] = useState<
     string | null
@@ -522,7 +528,8 @@ export default function ManageSubscriptionsScreen() {
       console.error("Failed to fetch subscription plans module data:", error);
       showBanner(
         "Error",
-        error?.message || "Failed to fetch subscription plans. Please try again.",
+        error?.message ||
+          "Failed to fetch subscription plans. Please try again.",
         "error",
         3000
       );
@@ -562,9 +569,7 @@ export default function ManageSubscriptionsScreen() {
   const getServiceNames = (serviceIds: string[]): string[] => {
     return serviceIds
       .map((id) => {
-        const service = businessServices.find(
-          (s) => s.id.toString() === id
-        );
+        const service = businessServices.find((s) => s.id.toString() === id);
         return service?.name;
       })
       .filter(Boolean) as string[];
@@ -752,10 +757,24 @@ export default function ManageSubscriptionsScreen() {
     (s) => !subscriptions.some((sub) => sub.id === s.id)
   );
 
-  const onClickAi=async()=>{
- dispatch(setActionLoader(true));
-dispatch(setActionLoaderTitle("Generating subscription plans"));
-  }
+  const onClickAi = async () => {
+    if (generatedResult) {
+    } else {
+
+      if (!businessId) {
+        showBanner(
+          "Error",
+          "Business ID not found. Please complete your business profile.",
+          "error",
+          3000
+        );
+        return;
+      }
+
+      dispatch(setActionLoader(true));
+      dispatch(setActionLoaderTitle("Generating subscription plans"));
+    }
+  };
 
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
@@ -871,7 +890,9 @@ dispatch(setActionLoaderTitle("Generating subscription plans"));
                   justifyContent: "space-between",
                 }}
               >
-                <Text style={styles.popularTitle}>Popular starting points:</Text>
+                <Text style={styles.popularTitle}>
+                  Popular starting points:
+                </Text>
                 <TouchableOpacity
                   activeOpacity={0.7}
                   onPress={handleOpenAddSubscription}
@@ -931,10 +952,6 @@ dispatch(setActionLoaderTitle("Generating subscription plans"));
                   );
                 })}
             </View>
-
-
-            
-            
           </>
         )}
       </ScrollView>
@@ -980,10 +997,7 @@ dispatch(setActionLoaderTitle("Generating subscription plans"));
           })}
 
           {/* Main Button with Zoom Animation */}
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={onClickAi}
-          >
+          <TouchableOpacity activeOpacity={0.8} onPress={onClickAi}>
             <Animated.View
               style={[
                 styles.aiToolButton,
@@ -1012,11 +1026,7 @@ dispatch(setActionLoaderTitle("Generating subscription plans"));
 
       {!loading && (
         <View style={styles.continueButtonContainer}>
-          <Button
-            title="Update"
-            onPress={handleUpdate}
-            disabled={isUpdating}
-          />
+          <Button title="Update" onPress={handleUpdate} disabled={isUpdating} />
         </View>
       )}
 
@@ -1035,5 +1045,3 @@ dispatch(setActionLoaderTitle("Generating subscription plans"));
     </SafeAreaView>
   );
 }
-
-
