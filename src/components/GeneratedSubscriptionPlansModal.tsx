@@ -54,7 +54,7 @@ const createStyles = (theme: Theme) =>
     container: {
       backgroundColor: theme.background,
       borderRadius: moderateWidthScale(16),
-      height: "85%",
+      height: "95%",
       padding: moderateWidthScale(20),
       width: "95%",
     },

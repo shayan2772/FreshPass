@@ -201,6 +201,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
+      textTransform: "capitalize",
     },
     popularSection: {},
     popularTitle: {
@@ -268,14 +269,14 @@ const createStyles = (theme: Theme) =>
       marginBottom: moderateHeightScale(12),
     },
     aiToolButtonContainer: {
-      position: "absolute",
-      bottom: moderateHeightScale(130),
-      right: moderateWidthScale(20),
-      width: moderateWidthScale(56),
-      height: moderateWidthScale(56),
+      width: moderateWidthScale(50),
+      height: moderateWidthScale(50),
       alignItems: "center",
       justifyContent: "center",
       zIndex: 1000,
+      position: "absolute",
+      bottom: moderateHeightScale(160),
+      right: moderateWidthScale(20),
     },
     aiToolButton: {
       width: moderateWidthScale(56),
@@ -822,6 +823,7 @@ export default function ManageSubscriptionsScreen() {
           <>
             <View style={styles.titleSec}>
               <Text style={styles.title}>Create subscription plans</Text>
+
               <Text style={styles.subtitle}>
                 Offer monthly memberships to attract loyal customers and secure
                 recurring revenue.
@@ -1080,7 +1082,63 @@ export default function ManageSubscriptionsScreen() {
         onClose={() => setModalVisible(false)}
         plans={generatedResult?.generated_plans || []}
         onSelectedPlans={(selectedPlans) => {
-          console.log("selectedPlans : ", selectedPlans);
+          // Convert selected plans from modal format to subscription format
+          let addedCount = 0;
+          selectedPlans.forEach((plan) => {
+            // Check if a subscription with the same name already exists
+            const existingSubscription = subscriptions.find(
+              (sub: { packageName: string }) =>
+                sub.packageName.toLowerCase() === plan.name.toLowerCase()
+            );
+
+            if (existingSubscription) {
+              // Skip if already exists
+              return;
+            }
+
+            // Generate a unique ID for the subscription
+            const subscriptionId = `ai-generated-${plan.tier.toLowerCase()}-${plan.name
+              .toLowerCase()
+              .replace(/\s+/g, "-")}-${Date.now()}`;
+
+            // Convert services_included array to serviceIds array
+            const serviceIds = plan.services_included.map((service) =>
+              service.id.toString()
+            );
+
+            // Create subscription object in the required format
+            const subscription = {
+              id: subscriptionId,
+              packageName: plan.name,
+              servicesPerMonth: plan.visits_included,
+              price: plan.monthly_price,
+              currency: plan.currency,
+              serviceIds: serviceIds,
+            };
+
+            // Add subscription to the list
+            dispatch(addSubscription(subscription));
+            addedCount++;
+          });
+
+          // Show success message
+          if (addedCount > 0) {
+            showBanner(
+              "Success",
+              `${addedCount} subscription plan${
+                addedCount > 1 ? "s" : ""
+              } added successfully`,
+              "success",
+              3000
+            );
+          } else if (selectedPlans.length > 0) {
+            showBanner(
+              "Info",
+              "Selected plans are already in your subscription list",
+              "info",
+              3000
+            );
+          }
         }}
       />
     </SafeAreaView>
