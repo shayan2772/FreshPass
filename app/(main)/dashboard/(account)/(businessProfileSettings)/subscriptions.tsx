@@ -31,6 +31,7 @@ import {
   setSubscriptions,
 } from "@/src/state/slices/completeProfileSlice";
 import EditSubscriptionBottomSheet from "@/src/components/EditSubscriptionBottomSheet";
+import GeneratedSubscriptionPlansModal from "@/src/components/GeneratedSubscriptionPlansModal";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import {
   setActionLoader,
@@ -319,6 +320,7 @@ export default function ManageSubscriptionsScreen() {
   );
 
   const [generatedResult, setGeneratedResult] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
   const [deletingSubscriptionId, setDeletingSubscriptionId] = useState<
     string | null
@@ -759,8 +761,9 @@ export default function ManageSubscriptionsScreen() {
 
   const onClickAi = async () => {
     if (generatedResult) {
+      // If result already exists, just open modal
+      setModalVisible(true);
     } else {
-
       if (!businessId) {
         showBanner(
           "Error",
@@ -773,6 +776,52 @@ export default function ManageSubscriptionsScreen() {
 
       dispatch(setActionLoader(true));
       dispatch(setActionLoaderTitle("Generating subscription plans"));
+
+      try {
+        const response = await ApiService.post<{
+          status: string;
+          business_id: number;
+          generated_plans: Array<{
+            tier: string;
+            name: string;
+            monthly_price: number;
+            currency: string;
+            visits_included: number;
+            services_included: Array<{
+              id: number;
+              name: string;
+              description: string;
+            }>;
+            recommended_for: string;
+          }>;
+        }>(businessEndpoints.generateSubscription, {
+          business_id: Number(businessId),
+        });
+
+        if (response.status === "success" && response.generated_plans) {
+          setGeneratedResult(response);
+          setModalVisible(true);
+        } else {
+          showBanner(
+            "Error",
+            "Failed to generate subscription plans. Please try again.",
+            "error",
+            3000
+          );
+        }
+      } catch (error: any) {
+        console.error("Failed to generate subscription plans:", error);
+        showBanner(
+          "Error",
+          error?.message ||
+            "Failed to generate subscription plans. Please try again.",
+          "error",
+          3000
+        );
+      } finally {
+        dispatch(setActionLoader(false));
+        dispatch(setActionLoaderTitle(""));
+      }
     }
   };
 
@@ -1041,6 +1090,30 @@ export default function ManageSubscriptionsScreen() {
         onClose={handleCloseAddSubscription}
         subscriptionId={null}
         onAddCustomSuggestion={handleAddCustomSuggestion}
+      />
+
+      <GeneratedSubscriptionPlansModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        plans={generatedResult?.generated_plans || []}
+        onCreatePlan={(plan) => {
+          // Convert generated plan to subscription format
+          const subscription = {
+            id: `generated-${plan.tier}-${Date.now()}`,
+            packageName: plan.name,
+            servicesPerMonth: plan.visits_included,
+            price: plan.monthly_price,
+            currency: plan.currency,
+            serviceIds: plan.services_included.map((s) => s.id.toString()),
+          };
+          dispatch(addSubscription(subscription));
+          showBanner(
+            "Success",
+            `${plan.name} added successfully`,
+            "success",
+            3000
+          );
+        }}
       />
     </SafeAreaView>
   );
