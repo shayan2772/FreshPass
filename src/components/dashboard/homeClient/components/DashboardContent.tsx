@@ -966,6 +966,10 @@ export default function DashboardContent() {
       if (search && search.trim()) {
         url += `&search=${encodeURIComponent(search.trim())}`;
       }
+      if (selectedDateISO) {
+        const formattedDate = dayjs(selectedDateISO).format("YYYY-MM-DD");
+        url += `&availability_date=${encodeURIComponent(formattedDate)}`;
+      }
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -1034,6 +1038,11 @@ export default function DashboardContent() {
 
       if (search && search.trim()) {
         queryParams.append("search", search.trim());
+      }
+
+      if (selectedDateISO) {
+        const formattedDate = dayjs(selectedDateISO).format("YYYY-MM-DD");
+        queryParams.append("availability_date", formattedDate);
       }
 
       const url = `${baseUrl}&${queryParams.toString()}`;

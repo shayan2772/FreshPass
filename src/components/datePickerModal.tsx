@@ -408,7 +408,7 @@ export default function DatePickerModal({
                   }}
                 >
                   <Text style={[styles.timezoneText,{marginBottom:0}]}>
-                    To view appointments on a specific date, select a date above
+                    To view businesses on a specific date, select a date above
                   </Text>
 
                   {/* Clear Date Button */}
