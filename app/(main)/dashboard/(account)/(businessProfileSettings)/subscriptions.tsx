@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -7,6 +7,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Animated,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
@@ -31,6 +32,7 @@ import {
 } from "@/src/state/slices/completeProfileSlice";
 import EditSubscriptionBottomSheet from "@/src/components/EditSubscriptionBottomSheet";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import { setActionLoader, setActionLoaderTitle } from "@/src/state/slices/generalSlice";
 
 interface ModuleSubscriptionService {
   id: number;
@@ -261,10 +263,17 @@ const createStyles = (theme: Theme) =>
       alignItems: "flex-start",
       marginBottom: moderateHeightScale(12),
     },
-    aiToolButton: {
+    aiToolButtonContainer: {
       position: "absolute",
       bottom: moderateHeightScale(130),
       right: moderateWidthScale(20),
+      width: moderateWidthScale(56),
+      height: moderateWidthScale(56),
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+    },
+    aiToolButton: {
       width: moderateWidthScale(56),
       height: moderateWidthScale(56),
       borderRadius: moderateWidthScale(28),
@@ -279,7 +288,16 @@ const createStyles = (theme: Theme) =>
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
       elevation: 5,
-      zIndex: 1000,
+    },
+    starContainer: {
+      position: "absolute",
+      width: moderateWidthScale(56),
+      height: moderateWidthScale(56),
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    star: {
+      position: "absolute",
     },
   });
 
@@ -319,6 +337,109 @@ export default function ManageSubscriptionsScreen() {
       serviceIds: string[];
     }>
   >([]);
+
+  // Animation values for AI tool button
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const starAnimations = useRef(
+    Array.from({ length: 6 }, () => ({
+      opacity: new Animated.Value(0),
+      scale: new Animated.Value(0),
+      rotate: new Animated.Value(0),
+    }))
+  ).current;
+
+  // Start animations when component mounts
+  useEffect(() => {
+    // Pulse/zoom animation for button
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // Rotate animation for icon
+    const rotateAnimation = Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    );
+
+    // Sparkling stars animation
+    const starAnimationsLoop = starAnimations.map((star, index) => {
+      const angle = (index * 60 * Math.PI) / 180; // 6 stars, 60 degrees apart
+      const radius = moderateWidthScale(35);
+
+      return Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 1,
+              duration: 500,
+              delay: index * 100,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 1,
+              duration: 500,
+              delay: index * 100,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 0.3,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 0.8,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.rotate, {
+              toValue: 1,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      );
+    });
+
+    pulseAnimation.start();
+    rotateAnimation.start();
+    starAnimationsLoop.forEach((anim) => anim.start());
+
+    return () => {
+      pulseAnimation.stop();
+      rotateAnimation.stop();
+      starAnimationsLoop.forEach((anim) => anim.stop());
+    };
+  }, []);
 
   const fetchBusinessServices = async () => {
     try {
@@ -813,22 +934,81 @@ export default function ManageSubscriptionsScreen() {
         )}
       </ScrollView>
 
-      {/* AI Tool Button - Absolutely Positioned */}
+      {/* AI Tool Button - Absolutely Positioned with Animations */}
       {!loading && (
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.aiToolButton}
-          onPress={() => {
-            
-            
-          }}
-        >
-          <MaterialIcons
-            name="auto-awesome"
-            size={moderateWidthScale(28)}
-            color={theme.white}
-          />
-        </TouchableOpacity>
+        <View style={styles.aiToolButtonContainer}>
+          {/* Sparkling Stars */}
+          {starAnimations.map((star, index) => {
+            const angle = (index * 60 * Math.PI) / 180; // 6 stars, 60 degrees apart
+            const radius = moderateWidthScale(35);
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+
+            const rotateInterpolate = star.rotate.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["0deg", "360deg"],
+            });
+
+            return (
+              <Animated.View
+                key={index}
+                style={[
+                  {
+                    position: "absolute",
+                    left: moderateWidthScale(28) + x - moderateWidthScale(6),
+                    top: moderateHeightScale(28) + y - moderateHeightScale(6),
+                    transform: [
+                      { scale: star.scale },
+                      { rotate: rotateInterpolate },
+                    ],
+                    opacity: star.opacity,
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="star"
+                  size={moderateWidthScale(12)}
+                  color={theme.white}
+                />
+              </Animated.View>
+            );
+          })}
+
+          {/* Main Button with Zoom Animation */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              dispatch(setActionLoader(true));
+              dispatch(setActionLoaderTitle("Generating subscription plans"));
+
+
+              
+            }}
+          >
+            <Animated.View
+              style={[
+                styles.aiToolButton,
+                {
+                  transform: [
+                    { scale: scaleAnim },
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0deg", "360deg"],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="auto-awesome"
+                size={moderateWidthScale(28)}
+                color={theme.white}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+        </View>
       )}
 
       {!loading && (
