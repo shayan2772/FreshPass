@@ -1,6 +1,6 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from "axios";
 import { checkInternetConnection } from "./api";
-import { hairTryonEndpoints, socialMediaEndpoints } from "./endpoints";
+import { hairTryonEndpoints, socialMediaEndpoints, businessEndpoints } from "./endpoints";
 
 // Get AI Tool base URL and token from environment
 const AI_TOOL_BASE_URL = process.env.EXPO_PUBLIC_AITOOL_API_BASE_URL || "";
@@ -481,6 +481,49 @@ export class AiToolsService {
         name: fileName,
       } as any);
     }
+
+    logAiToolRequest("POST", endpoint, formData);
+
+    try {
+      const response: AxiosResponse = await aiToolClient.post(
+        endpoint,
+        formData
+      );
+      logAiToolResponse("POST", endpoint, response.status, response.data);
+      return response.data;
+    } catch (error: any) {
+      logAiToolError("POST", endpoint, error);
+      const errorMessage = getErrorMessage(error);
+      const customError = new Error(errorMessage);
+      (customError as any).status = error.response?.status;
+      (customError as any).data = error.response?.data;
+      (customError as any).isNoInternet = error.isNoInternet;
+      throw customError;
+    }
+  }
+
+  /**
+   * Generate Subscription Plans
+   * @param businessId - Business ID
+   * @returns Promise with response data
+   */
+  static async generateSubscription(
+    businessId: number
+  ): Promise<any> {
+    // Check internet connection
+    const hasInternet = await checkInternetConnection();
+    if (!hasInternet) {
+      const error = new Error("No internet connection");
+      (error as any).isNoInternet = true;
+      logAiToolError("POST", businessEndpoints.generateSubscription, error);
+      throw error;
+    }
+
+    const endpoint = businessEndpoints.generateSubscription;
+    const formData = new FormData();
+
+    // Add business_id
+    formData.append("business_id", businessId.toString());
 
     logAiToolRequest("POST", endpoint, formData);
 

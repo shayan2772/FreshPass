@@ -23,6 +23,7 @@ import StackHeader from "@/src/components/StackHeader";
 import Button from "@/src/components/button";
 import { Skeleton } from "@/src/components/skeletons";
 import { ApiService } from "@/src/services/api";
+import { AiToolsService } from "@/src/services/aiToolsService";
 import { businessEndpoints } from "@/src/services/endpoints";
 import {
   addSubscription,
@@ -761,7 +762,6 @@ export default function ManageSubscriptionsScreen() {
 
   const onClickAi = async () => {
     if (generatedResult) {
-      // If result already exists, just open modal
       setModalVisible(true);
     } else {
       if (!businessId) {
@@ -778,25 +778,9 @@ export default function ManageSubscriptionsScreen() {
       dispatch(setActionLoaderTitle("Generating subscription plans"));
 
       try {
-        const response = await ApiService.post<{
-          status: string;
-          business_id: number;
-          generated_plans: Array<{
-            tier: string;
-            name: string;
-            monthly_price: number;
-            currency: string;
-            visits_included: number;
-            services_included: Array<{
-              id: number;
-              name: string;
-              description: string;
-            }>;
-            recommended_for: string;
-          }>;
-        }>(businessEndpoints.generateSubscription, {
-          business_id: Number(businessId),
-        });
+        const response = await AiToolsService.generateSubscription(
+          Number(businessId)
+        );
 
         if (response.status === "success" && response.generated_plans) {
           setGeneratedResult(response);

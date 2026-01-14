@@ -4,7 +4,6 @@ import {
   Text,
   View,
   Modal,
-  Pressable,
   ScrollView,
   TouchableOpacity,
 } from "react-native";
@@ -19,7 +18,7 @@ import {
   heightScale,
 } from "@/src/theme/dimensions";
 import Button from "@/src/components/button";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 interface Service {
   id: number;
@@ -49,34 +48,33 @@ const createStyles = (theme: Theme) =>
     overlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "flex-end",
+      alignItems:"center",
+      justifyContent:"center"
     },
     container: {
       backgroundColor: theme.background,
-      borderTopLeftRadius: moderateWidthScale(24),
-      borderTopRightRadius: moderateWidthScale(24),
-      maxHeight: heightScale(800),
-      paddingBottom: moderateHeightScale(20),
+      borderRadius: moderateWidthScale(16),
+      height:"85%",
+      padding :20,
+      width:"95%"
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
       paddingTop: moderateHeightScale(22),
-      paddingHorizontal: moderateWidthScale(20),
-      paddingBottom: moderateHeightScale(16),
     },
     headerTitle: {
-      fontSize: fontSize.size20,
+      fontSize: fontSize.size18,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
       flex: 1,
     },
     closeButton: {
-      width: widthScale(32),
-      height: heightScale(32),
-      borderRadius: moderateWidthScale(16),
-      backgroundColor: theme.lightGreen015,
+      width:32,
+      height: 32,
+      borderRadius: 32/2,
+      backgroundColor: theme.darkGreen15,
       alignItems: "center",
       justifyContent: "center",
     },
@@ -113,9 +111,10 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
-    plansContainer: {
-      paddingHorizontal: moderateWidthScale(20),
+    plansContainer: { 
       gap: moderateHeightScale(20),
+      paddingVertical:moderateHeightScale(25),
+      paddingHorizontal:moderateWidthScale(2)
     },
     planCard: {
       backgroundColor: theme.white,
@@ -281,14 +280,14 @@ export default function GeneratedSubscriptionPlansModal({
       onRequestClose={onClose}
       statusBarTranslucent
     >
-      <View style={[styles.overlay, { paddingTop: insets.top }]}>
+      <SafeAreaView style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={styles.headerTitle}>Generated Plans</Text>
+            <Text style={styles.headerTitle}>Ai Generated Plans</Text>
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Feather
                 name="x"
-                size={moderateWidthScale(20)}
+                size={16}
                 color={theme.darkGreen}
               />
             </TouchableOpacity>
@@ -296,25 +295,6 @@ export default function GeneratedSubscriptionPlansModal({
 
           {plans.length > 0 && (
             <>
-              <View style={styles.successBanner}>
-                <View style={styles.successIcon}>
-                  <Feather
-                    name="check"
-                    size={moderateWidthScale(16)}
-                    color={theme.white}
-                  />
-                </View>
-                <View style={styles.successTextContainer}>
-                  <Text style={styles.successTitle}>
-                    Subscription Plans Generated Successfully!
-                  </Text>
-                  <Text style={styles.successSubtitle}>
-                    {plans.length} plan{plans.length !== 1 ? "s" : ""} created
-                    based on your business data
-                  </Text>
-                </View>
-              </View>
-
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.plansContainer}
@@ -396,7 +376,7 @@ export default function GeneratedSubscriptionPlansModal({
             </>
           )}
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
