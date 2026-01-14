@@ -252,6 +252,7 @@ const createStyles = (theme: Theme) =>
       // backgroundColor: theme.white,
       // paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(16),
+      marginVertical : moderateHeightScale(16),
     },
     subscribeButton: {
       marginTop: moderateHeightScale(8),
@@ -940,19 +941,18 @@ function CheckoutSubscriptionContent() {
             </View>
 
             {/* Bottom Button */}
-            {!loading && !error && subscriptionData && (
-              <View style={styles.bottomContainer}>
-                <Button
-                  title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
-                  onPress={
-                    paymentSuccess ? handleViewSubscriptions : handleSubscribe
-                  }
-                  loading={isSubscribing}
-                  disabled={isSubscribing}
-                  containerStyle={styles.subscribeButton}
-                />
-              </View>
-            )}
+
+            <View style={styles.bottomContainer}>
+              <Button
+                title={paymentSuccess ? "View Subscriptions" : "Subscribe"}
+                onPress={
+                  paymentSuccess ? handleViewSubscriptions : handleSubscribe
+                }
+                loading={isSubscribing}
+                disabled={isSubscribing}
+                containerStyle={styles.subscribeButton}
+              />
+            </View>
           </View>
         </ScrollView>
       ) : null}
