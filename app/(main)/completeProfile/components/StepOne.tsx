@@ -231,7 +231,9 @@ export default function StepOne() {
         </View>
       ) : hasNoData ? (
         <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Business category data not found</Text>
+          <Text style={styles.emptyStateText}>
+            Business category data not found
+          </Text>
         </View>
       ) : (
         <>
@@ -279,11 +281,12 @@ export default function StepOne() {
                     style={styles.categoryCard}
                   >
                     <Image
-                      source={
-                        item.imageUrl
-                          ? { uri: item.imageUrl }
-                          : IMAGES.socialBackgroud
-                      }
+                      source={{
+                        uri: item?.imageUrl
+                          ? process.env.EXPO_PUBLIC_API_BASE_URL +
+                            item?.imageUrl
+                          : process.env.EXPO_PUBLIC_DEFAULT_CATEGORY_IMAGE,
+                      }}
                       style={[
                         styles.categoryImage,
                         isSelected && styles.categoryCardSelected,
@@ -310,7 +313,9 @@ export default function StepOne() {
               return (
                 <View key={category.id} style={styles.otherCategoryContainer}>
                   <Pressable
-                    onPress={() => handleSelectCategory(category.id, category.name)}
+                    onPress={() =>
+                      handleSelectCategory(category.id, category.name)
+                    }
                     style={[
                       styles.otherCategoryRow,
                       isSelected && {

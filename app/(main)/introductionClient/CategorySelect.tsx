@@ -7,6 +7,8 @@ import {
   View,
   TouchableOpacity,
   FlatList,
+  Keyboard,
+  TouchableWithoutFeedback,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useAppDispatch, useTheme } from "@/src/hooks/hooks";
@@ -374,71 +376,76 @@ export default function CategorySelect({ onNext }: CategorySelectProps) {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.titleSec}>
-        <Text style={styles.title}>What&apos;s on your self-care radar?</Text>
-        <Text style={styles.subtitle}>
-          Select up to 5 categories you&apos;re interested in, and we&apos;ll
-          show you personalized picks?
-        </Text>
-      </View>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <View style={styles.titleSec}>
+            <Text style={styles.title}>What&apos;s on your self-care radar?</Text>
+            <Text style={styles.subtitle}>
+              Select up to 5 categories you&apos;re interested in, and we&apos;ll
+              show you personalized picks?
+            </Text>
+          </View>
 
-      {categoriesLoading ? (
-        <Skeleton screenType="CategorySelect" styles={styles} />
-      ) : apiError ? (
-        <View style={styles.emptyStateContainer}>
-          <RetryButton onPress={fetchCategories} loading={categoriesLoading} />
-        </View>
-      ) : hasNoData ? (
-        <View style={styles.emptyStateContainer}>
-          <Text style={styles.emptyStateText}>Category data not found</Text>
-        </View>
-      ) : (
-        <>
-          <View style={styles.searchContainer}>
-            <FloatingInput
-              label="Search"
-              value={searchTerm}
-              onChangeText={handleSearchChange}
-              placeholder="Search"
-              placeholderTextColor={(colors as Theme).lightGreen2}
-              onClear={() => setSearchTerm("")}
-              containerStyle={{
-                borderRadius: moderateWidthScale(999),
-              }}
-              inputStyle={{
-                height: heightScale(18),
-              }}
-              renderLeftAccessory={() => (
-                <Feather
-                  name="search"
-                  size={moderateWidthScale(18)}
-                  color={(colors as Theme).darkGreen}
+          {categoriesLoading ? (
+            <Skeleton screenType="CategorySelect" styles={styles} />
+          ) : apiError ? (
+            <View style={styles.emptyStateContainer}>
+              <RetryButton onPress={fetchCategories} loading={categoriesLoading} />
+            </View>
+          ) : hasNoData ? (
+            <View style={styles.emptyStateContainer}>
+              <Text style={styles.emptyStateText}>Category data not found</Text>
+            </View>
+          ) : (
+            <>
+              <View style={styles.searchContainer}>
+                <FloatingInput
+                  label="Search"
+                  value={searchTerm}
+                  onChangeText={handleSearchChange}
+                  placeholder="Search"
+                  placeholderTextColor={(colors as Theme).lightGreen2}
+                  onClear={() => setSearchTerm("")}
+                  containerStyle={{
+                    borderRadius: moderateWidthScale(999),
+                  }}
+                  inputStyle={{
+                    height: heightScale(18),
+                  }}
+                  renderLeftAccessory={() => (
+                    <Feather
+                      name="search"
+                      size={moderateWidthScale(18)}
+                      color={(colors as Theme).darkGreen}
+                    />
+                  )}
                 />
-              )}
-            />
-          </View>
+              </View>
 
-          <View style={styles.categoriesContainer}>
-            <View style={[styles.lineSeparator, { top: 0 }]} />
-            <FlatList
-              data={filteredCategories}
-              renderItem={renderCategoryItem}
-              keyExtractor={(item) => item.id.toString()}
-              numColumns={3}
-              columnWrapperStyle={{
-                gap: "5%",
-                marginBottom: moderateHeightScale(12),
-              }}
-              contentContainerStyle={styles.categoriesGrid}
-              showsVerticalScrollIndicator={false}
-            />
-          </View>
+              <View style={styles.categoriesContainer}>
+                <View style={[styles.lineSeparator, { top: 0 }]} />
+                <FlatList
+                  data={filteredCategories}
+                  renderItem={renderCategoryItem}
+                  keyExtractor={(item) => item.id.toString()}
+                  numColumns={3}
+                  columnWrapperStyle={{
+                    gap: "5%",
+                    marginBottom: moderateHeightScale(12),
+                  }}
+                  contentContainerStyle={styles.categoriesGrid}
+                  showsVerticalScrollIndicator={false}
+                  keyboardShouldPersistTaps="handled"
+                />
+              </View>
 
-          <View style={styles.buttonContainer}>
-            <Button title="Continue" onPress={handleContinue} />
-          </View>
-        </>
-      )}
+              <View style={styles.buttonContainer}>
+                <Button title="Continue" onPress={handleContinue} />
+              </View>
+            </>
+          )}
+        </View>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
