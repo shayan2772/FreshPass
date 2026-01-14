@@ -914,7 +914,6 @@ export default function DashboardContent() {
     }
   };
 
-
   const fetchServiceTemplates = async (categoryId: number | string) => {
     try {
       setServiceTemplatesLoading(true);
@@ -1443,7 +1442,7 @@ export default function DashboardContent() {
     selectedServiceFilter,
     searchText,
     selectedDateISO,
-    userLocation
+    userLocation,
   ]);
 
   // Initialize scroll position to subscriptions (index 0)
@@ -2147,7 +2146,8 @@ export default function DashboardContent() {
               tab === "individual"
                 ? section.services?.length || 0
                 : section.subscriptions?.length || 0;
-            const showViewMore = itemsCount >= 2;
+            const showViewMore =false
+            // itemsCount >= 2;
 
             return (
               <View key={section.id} style={styles.sectionContainer}>
@@ -2164,7 +2164,15 @@ export default function DashboardContent() {
                     },
                   ]}
                 >
-                  <Text style={styles.sectionSubTitle}>
+                  <Text
+                    onPress={() => {
+                      router.push({
+                        pathname: "/(main)/businessDetail",
+                        params: { business_id: section.id.toString() },
+                      } as any);
+                    }}
+                    style={styles.sectionSubTitle}
+                  >
                     {section.businessName}
                   </Text>
                   {showViewMore && (
