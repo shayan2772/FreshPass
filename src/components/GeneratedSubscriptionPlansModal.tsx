@@ -71,8 +71,8 @@ const createStyles = (theme: Theme) =>
     },
     closeButton: {
       width: widthScale(32),
-      height: heightScale(32),
-      borderRadius: moderateWidthScale(16),
+      height: widthScale(32),
+      borderRadius: widthScale(16),
       backgroundColor: theme.darkGreen15,
       alignItems: "center",
       justifyContent: "center",
