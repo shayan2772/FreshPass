@@ -236,6 +236,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
       flex: 1,
+      textTransform:"capitalize"
     },
     recommendedSection: {
       marginBottom: moderateHeightScale(16),
