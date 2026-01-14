@@ -102,12 +102,12 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     title: {
-      fontSize: fontSize.size24,
+      fontSize: fontSize.size22,
       fontFamily: fonts.fontBold,
       color: theme.darkGreen,
-      marginTop: moderateHeightScale(16),
-      marginBottom: moderateHeightScale(20),
-      paddingHorizontal: moderateWidthScale(16),
+      marginHorizontal: moderateWidthScale(20),
+      marginBottom: moderateHeightScale(12),
+      marginTop: moderateHeightScale(20),
     },
     tabsContainer: {
       flexDirection: "row",

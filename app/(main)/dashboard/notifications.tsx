@@ -15,8 +15,14 @@ import { fontSize, fonts } from "@/src/theme/fonts";
 import {
   moderateHeightScale,
   moderateWidthScale,
+  widthScale,
+  heightScale,
 } from "@/src/theme/dimensions";
 import DashboardHeader from "@/src/components/DashboardHeader";
+import Button from "@/src/components/button";
+import { Feather } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { MAIN_ROUTES } from "@/src/constant/routes";
 import {
   NotificationBellOutlineIcon,
   ProposalDocumentIcon,
@@ -174,6 +180,53 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen5,
       textAlign: "center",
     },
+    screenTitle: {
+      fontSize: fontSize.size22,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginHorizontal: moderateWidthScale(20),
+      marginBottom: moderateHeightScale(12),
+    },
+    guestContainer: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: moderateWidthScale(20),
+    },
+    guestContent: {
+      alignItems: "center",
+      width: "100%",
+      maxWidth: widthScale(340),
+    },
+    guestIconContainer: {
+      width: widthScale(70),
+      height: heightScale(70),
+      borderRadius: widthScale(70 / 2),
+      backgroundColor: theme.orangeBrown30,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(20),
+    },
+    guestTitle: {
+      fontSize: fontSize.size24,
+      fontFamily: fonts.fontBold,
+      color: theme.text,
+      textAlign: "center",
+      marginBottom: moderateHeightScale(16),
+    },
+    guestMessage: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontRegular,
+      color: theme.text,
+      textAlign: "center",
+      lineHeight: moderateHeightScale(24),
+      marginBottom: moderateHeightScale(32),
+      paddingHorizontal: moderateWidthScale(8),
+    },
+    buttonContainer: {
+      width: "100%",
+      marginBottom: moderateHeightScale(20),
+    },
   });
 
 type ApiNotification = {
@@ -192,6 +245,7 @@ export default function NotificationsScreen() {
   const styles = useMemo(() => createStyles(theme), [colors]);
   const { showBanner } = useNotificationContext();
   const dispatch = useAppDispatch();
+  const router = useRouter();
   const user = useAppSelector((state) => state.user);
   const isGuest = user.isGuest;
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -540,6 +594,48 @@ export default function NotificationsScreen() {
       </View>
     );
   };
+
+  const handleSignIn = () => {
+    router.push(`/(main)/${MAIN_ROUTES.LOGIN}` as any);
+  };
+
+  if (isGuest) {
+    return (
+      <View style={styles.container}>
+        <DashboardHeader />
+        <Text
+          style={[
+            styles.screenTitle,
+            { paddingTop: moderateHeightScale(20) },
+          ]}
+        >
+          Notifications
+        </Text>
+        <View style={styles.guestContainer}>
+          <View style={styles.guestContent}>
+            <View style={styles.guestIconContainer}>
+              <Feather
+                name="user"
+                size={moderateWidthScale(36)}
+                color={theme.darkGreen}
+              />
+            </View>
+
+            <Text style={styles.guestTitle}>Guest Mode</Text>
+
+            <Text style={styles.guestMessage}>
+              You are currently browsing as a guest. To access all features and
+              make bookings, please sign in to your account.
+            </Text>
+
+            <View style={styles.buttonContainer}>
+              <Button title="Sign In" onPress={handleSignIn} />
+            </View>
+          </View>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
