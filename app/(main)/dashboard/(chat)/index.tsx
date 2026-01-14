@@ -21,6 +21,7 @@ import { useRouter } from "expo-router";
 import Button from "@/src/components/button";
 import { Feather } from "@expo/vector-icons";
 import { MAIN_ROUTES } from "@/src/constant/routes";
+import { ApiService } from "@/src/services/api";
 
 type ChatItem = {
   id: string;
@@ -273,8 +274,8 @@ const isGuest = user.isGuest;
     return `${first}${second}`.toUpperCase();
   };
 
-  const handleSignIn = () => {
-    router.push(`/(main)/${MAIN_ROUTES.LOGIN}` as any);
+  const handleSignIn = async() => {
+    await ApiService.logout();
   };
 
   if (isGuest) {

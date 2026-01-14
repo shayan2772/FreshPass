@@ -27,7 +27,6 @@ import { Entypo, Ionicons } from "@expo/vector-icons";
 import { ApiService } from "@/src/services/api";
 import { appointmentsEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
-import dayjs from "dayjs";
 
 type TabType = "all" | "complete" | "cancelled";
 type ListType = "subscriptions" | "individual";
@@ -326,7 +325,9 @@ const createStyles = (theme: Theme) =>
 export default function BookingScreen() {
   const { colors } = useTheme();
   const theme = colors as Theme;
-  const userRole = useAppSelector((state) => state.user.userRole);
+  const user = useAppSelector((state: any) => state.user);
+  const userRole =  user.userRole;
+  const isGuest = user.isGuest;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const router = useRouter();
   const { showBanner } = useNotificationContext();

@@ -595,8 +595,8 @@ export default function NotificationsScreen() {
     );
   };
 
-  const handleSignIn = () => {
-    router.push(`/(main)/${MAIN_ROUTES.LOGIN}` as any);
+  const handleSignIn = async() => {
+    await ApiService.logout();
   };
 
   if (isGuest) {

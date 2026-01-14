@@ -21,6 +21,7 @@ import { MAIN_ROUTES } from "@/src/constant/routes";
 import { setGuestModeModalVisible } from "@/src/state/slices/generalSlice";
 import Button from "@/src/components/button";
 import { Feather } from "@expo/vector-icons";
+import { ApiService } from "../services/api";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -105,9 +106,9 @@ export default function GuestModeModal() {
     dispatch(setGuestModeModalVisible(false));
   };
 
-  const handleSignIn = () => {
+  const handleSignIn = async() => {
     dispatch(setGuestModeModalVisible(false));
-    router.push(`/(main)/${MAIN_ROUTES.LOGIN}` as any);
+    await ApiService.logout();
   };
 
   const handleSkip = () => {

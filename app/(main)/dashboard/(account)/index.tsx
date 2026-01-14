@@ -82,7 +82,7 @@ export default function AccountScreen() {
   const router = useRouter();
   const { showBanner } = useNotificationContext();
   const [deleteLoading, setDeleteLoading] = useState(false);
-   
+
   const user = useAppSelector((state) => state.user);
   const userRole = user.userRole;
   const isGuest = user.isGuest;
@@ -100,9 +100,14 @@ export default function AccountScreen() {
   };
 
   const handleLogout = async () => {
+    if (isGuest) {
+      await ApiService.logout();
+      return;
+    }
+
     Alert.alert(
-     isGuest? "Sign in": "Logout",
-      `Are you sure you want to ${isGuest ?"sign in":"logout}"} ?`,
+      "Logout",
+      `Are you sure you want to logout ?`,
       [
         {
           text: "Cancel",
@@ -112,7 +117,6 @@ export default function AccountScreen() {
           text: "Yes",
           onPress: async () => {
             await ApiService.logout();
-      
           },
         },
       ],
@@ -191,9 +195,9 @@ export default function AccountScreen() {
         } as any);
       }
     } else if (key === "subscriptions") {
-      router.push(isCustomer?"./subscriptionCustomer" : "./subscription");
+      router.push(isCustomer ? "./subscriptionCustomer" : "./subscription");
     } else if (key === "aiTools") {
-        router.push("/(main)/aiTools/toolList");
+      router.push("/(main)/aiTools/toolList");
     } else if (key === "logout") {
       handleLogout();
     } else if (key === "delete") {
@@ -209,7 +213,7 @@ export default function AccountScreen() {
       | "business"
       | "availability"
       | "language"
-      |"country"
+      | "country"
       | "notifications"
       | "rules"
       | "reviews"
@@ -217,44 +221,51 @@ export default function AccountScreen() {
       | "aiTools"
       | "logout"
       | "delete";
-     
+
     title: string;
     subtitle?: string;
   };
 
   const rows: Row[] = [
-    ...(!isGuest ? [{ key: "personal" as const, title: "Personal information" }] : []),
-      ...((userRole === "business" || userRole === "staff") &&
+    ...(!isGuest
+      ? [{ key: "personal" as const, title: "Personal information" }]
+      : []),
+    ...((userRole === "business" || userRole === "staff") &&
     !isGuest &&
     !isCustomer
       ? userRole === "staff"
         ? [{ key: "availability" as const, title: "Set availability" }]
         : [{ key: "business" as const, title: "Business profile settings" }]
       : []),
-      ...(isCustomer
-        ? [
-            {
-              key: "country" as const,
-              title: "Country",
-              subtitle: countryName && countryName.trim().length > 0
+    ...(isCustomer
+      ? [
+          {
+            key: "country" as const,
+            title: "Country",
+            subtitle:
+              countryName && countryName.trim().length > 0
                 ? countryName
                 : "Set country",
-            },
-          ]
-        : []),
+          },
+        ]
+      : []),
     {
       key: "language",
       title: "Language",
       subtitle: `Current language (${getLanguageName(currentLanguage)})`,
     },
-    ...( userRole === "business" || isCustomer ? [{ key: "subscriptions" as const, title: "Subscription" }] : []),
+    ...(userRole === "business" || isCustomer
+      ? [{ key: "subscriptions" as const, title: "Subscription" }]
+      : []),
     {
       key: "notifications",
       title: "Notification settings",
       subtitle: "Turned ON",
     },
     ...(isCustomer ? [{ key: "reviews" as const, title: "Reviews" }] : []),
-    ...( userRole === "business" || userRole === "customer" ? [{ key: "aiTools" as const, title: "Ai Tools" }] : []),
+    ...(userRole === "business" || userRole === "customer"
+      ? [{ key: "aiTools" as const, title: "Ai Tools" }]
+      : []),
     {
       key: "rules" as const,
       title: "Rules and terms",
