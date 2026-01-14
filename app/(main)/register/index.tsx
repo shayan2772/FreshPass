@@ -195,7 +195,7 @@ export default function Register() {
             <View style={styles.content}>
               <View style={styles.titleSection}>
                 <Text style={styles.title}>
-                  Create your {isCustomer ? "customer" : "business"} profile
+                  Create your {userRole} profile
                 </Text>
                 <Text style={styles.description}>
                   Upload your photo and enter your details to get started with

@@ -394,7 +394,7 @@ export default function Login() {
           <View style={styles.mainContent}>
             <View style={styles.content}>
               <View style={styles.titleSection}>
-                <Text style={styles.title}>Login to your business account</Text>
+                <Text style={styles.title}>Login to your {selectedRole} account</Text>
               </View>
 
               <FloatingInput
