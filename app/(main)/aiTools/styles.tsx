@@ -19,7 +19,7 @@ export const createStyles = (theme: Theme) =>
     },
     scrollContent: {
       flexGrow: 1,
-      paddingBottom: moderateHeightScale(15),
+      paddingBottom: moderateHeightScale(20),
       paddingHorizontal: moderateWidthScale(20),
     },
     fieldContainer: {
@@ -57,6 +57,7 @@ export const createStyles = (theme: Theme) =>
       position: "relative",
       width: "100%",
       aspectRatio: 1,
+      // height: moderateHeightScale(200),
       borderRadius: moderateWidthScale(8),
       overflow: "hidden",
       backgroundColor: theme.grey15,

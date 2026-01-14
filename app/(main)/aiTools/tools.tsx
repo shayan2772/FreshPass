@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   TextInput,
+  Keyboard,
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
@@ -28,7 +29,7 @@ import {
   handleCameraPermission,
 } from "@/src/services/mediaPermissionService";
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
@@ -479,6 +480,7 @@ export default function Tools() {
   };
 
   const openImagePicker = useCallback(() => {
+    Keyboard.dismiss();
     setImagePickerVisible(true);
   }, []);
 
@@ -721,25 +723,7 @@ export default function Tools() {
             color={theme.text}
           />
         </TouchableOpacity>
-        {hairTryonSourceImage && (
-          <View style={styles.imagePreviewContainer}>
-            <Image
-              source={{ uri: hairTryonSourceImage }}
-              style={styles.imagePreview}
-            />
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={handleDeleteHairTryonImage}
-              activeOpacity={0.7}
-            >
-              <MaterialIcons
-                name="delete"
-                size={moderateWidthScale(20)}
-                color={theme.white}
-              />
-            </TouchableOpacity>
-          </View>
-        )}
+     
       </View>
 
       <View style={styles.fieldContainer}>
@@ -764,6 +748,27 @@ export default function Tools() {
           textAlignVertical="top"
         />
       </View>
+
+
+         {hairTryonSourceImage && (
+          <View style={styles.imagePreviewContainer}>
+            <Image
+              source={{ uri: hairTryonSourceImage }}
+              style={styles.imagePreview}
+            />
+            <TouchableOpacity
+              style={styles.deleteButton}
+              onPress={handleDeleteHairTryonImage}
+              activeOpacity={0.7}
+            >
+              <MaterialIcons
+                name="delete"
+                size={moderateWidthScale(20)}
+                color={theme.white}
+              />
+            </TouchableOpacity>
+          </View>
+        )}
     </>
   );
 
@@ -779,63 +784,64 @@ export default function Tools() {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
         >
           {toolType === "Generate Post" && renderPostContent()}
           {toolType === "Generate Collage" && renderCollageContent()}
           {toolType === "Generate Reel" && renderReelContent()}
           {toolType === "Hair Tryon" && renderHairTryonContent()}
         </ScrollView>
+      </KeyboardAvoidingView>
 
-        <View style={styles.buttonContainer}>
-          {/* Show previous result button if result exists */}
-          {generatedResult && (
-            <TouchableOpacity
-              style={{
-                backgroundColor: theme.orangeBrown30,
-                borderRadius: moderateWidthScale(8),
-                padding: moderateWidthScale(16),
-                marginBottom: moderateHeightScale(16),
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-              onPress={() => setResultModalVisible(true)}
-              activeOpacity={0.7}
+      <View style={styles.buttonContainer}>
+        {/* Show previous result button if result exists */}
+        {generatedResult && (
+          <TouchableOpacity
+            style={{
+              backgroundColor: theme.orangeBrown30,
+              borderRadius: moderateWidthScale(8),
+              padding: moderateWidthScale(16),
+              marginBottom: moderateHeightScale(16),
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+            onPress={() => setResultModalVisible(true)}
+            activeOpacity={0.7}
+          >
+            <View
+              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
             >
-              <View
-                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-              >
-                <MaterialIcons
-                  name="visibility"
-                  size={moderateWidthScale(20)}
-                  color={theme.darkGreen}
-                  style={{ marginRight: moderateWidthScale(12) }}
-                />
-                <Text
-                  style={{
-                    fontSize: fontSize.size14,
-                    fontFamily: fonts.fontMedium,
-                    color: theme.darkGreen,
-                    flex: 1,
-                  }}
-                >
-                  View Previous Result
-                </Text>
-              </View>
               <MaterialIcons
-                name="chevron-right"
+                name="visibility"
                 size={moderateWidthScale(20)}
                 color={theme.darkGreen}
+                style={{ marginRight: moderateWidthScale(12) }}
               />
-            </TouchableOpacity>
-          )}
-          <Button
-            title={`Generate ${toolType.replace("Generate ", "")}`}
-            onPress={handleGenerate}
-            disabled={isGenerating}
-          />
-        </View>
-      </KeyboardAvoidingView>
+              <Text
+                style={{
+                  fontSize: fontSize.size14,
+                  fontFamily: fonts.fontMedium,
+                  color: theme.darkGreen,
+                  flex: 1,
+                }}
+              >
+                View Previous Result
+              </Text>
+            </View>
+            <MaterialIcons
+              name="chevron-right"
+              size={moderateWidthScale(20)}
+              color={theme.darkGreen}
+            />
+          </TouchableOpacity>
+        )}
+        <Button
+          title={`Generate ${toolType.replace("Generate ", "")}`}
+          onPress={handleGenerate}
+          disabled={isGenerating}
+        />
+      </View>
 
       {/* Image Picker Modal for Post and Collage */}
       <ModalizeBottomSheet
