@@ -31,6 +31,7 @@ import {
 import ModalizeBottomSheet from "@/src/components/modalizeBottomSheet";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import GeneratePostResultModal from "@/src/components/GeneratePostResultModal";
+import FullImageModal from "@/src/components/fullImageModal";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { AiToolsService } from "@/src/services/aiToolsService";
@@ -83,6 +84,7 @@ export default function Tools() {
   const [mediaPickerVisible, setMediaPickerVisible] = useState(false);
   const [audioPickerVisible, setAudioPickerVisible] = useState(false);
   const [resultModalVisible, setResultModalVisible] = useState(false);
+  const [fullImageModalVisible, setFullImageModalVisible] = useState(false);
 
   // API state
   const [isGenerating, setIsGenerating] = useState(false);
@@ -752,10 +754,16 @@ export default function Tools() {
 
          {hairTryonSourceImage && (
           <View style={styles.imagePreviewContainer}>
-            <Image
-              source={{ uri: hairTryonSourceImage }}
-              style={styles.imagePreview}
-            />
+            <TouchableOpacity
+              onPress={() => setFullImageModalVisible(true)}
+              activeOpacity={0.9}
+              style={{ width: "100%", height: "100%" }}
+            >
+              <Image
+                source={{ uri: hairTryonSourceImage }}
+                style={styles.imagePreview}
+              />
+            </TouchableOpacity>
             <TouchableOpacity
               style={styles.deleteButton}
               onPress={handleDeleteHairTryonImage}
@@ -940,6 +948,13 @@ export default function Tools() {
         onClose={() => setResultModalVisible(false)}
         result={generatedResult}
         toolType={toolType}
+      />
+
+      {/* Full Image Modal for Hair Tryon Source Image */}
+      <FullImageModal
+        visible={fullImageModalVisible}
+        onClose={() => setFullImageModalVisible(false)}
+        imageUri={hairTryonSourceImage || null}
       />
     </SafeAreaView>
   );
