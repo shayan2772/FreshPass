@@ -1080,20 +1080,22 @@ export default function ManageSubscriptionsScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         plans={generatedResult?.generated_plans || []}
-        onCreatePlan={(plan) => {
-          // Convert generated plan to subscription format
-          const subscription = {
-            id: `generated-${plan.tier}-${Date.now()}`,
-            packageName: plan.name,
-            servicesPerMonth: plan.visits_included,
-            price: plan.monthly_price,
-            currency: plan.currency,
-            serviceIds: plan.services_included.map((s) => s.id.toString()),
-          };
-          dispatch(addSubscription(subscription));
+        onSelectedPlans={(selectedPlans) => {
+          // Convert selected plans to subscription format
+          selectedPlans.forEach((plan) => {
+            const subscription = {
+              id: `generated-${plan.tier}-${Date.now()}-${Math.random()}`,
+              packageName: plan.name,
+              servicesPerMonth: plan.visits_included,
+              price: plan.monthly_price,
+              currency: plan.currency,
+              serviceIds: plan.services_included.map((s) => s.id.toString()),
+            };
+            dispatch(addSubscription(subscription));
+          });
           showBanner(
             "Success",
-            `${plan.name} added successfully`,
+            `${selectedPlans.length} plan${selectedPlans.length !== 1 ? "s" : ""} added successfully`,
             "success",
             3000
           );

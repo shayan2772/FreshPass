@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -40,7 +40,7 @@ interface GeneratedSubscriptionPlansModalProps {
   visible: boolean;
   onClose: () => void;
   plans: GeneratedPlan[];
-  onCreatePlan?: (plan: GeneratedPlan) => void;
+  onSelectedPlans?: (plans: GeneratedPlan[]) => void;
 }
 
 const createStyles = (theme: Theme) =>
@@ -48,21 +48,20 @@ const createStyles = (theme: Theme) =>
     overlay: {
       flex: 1,
       backgroundColor: "rgba(0, 0, 0, 0.5)",
-      alignItems:"center",
-      justifyContent:"center"
+      alignItems: "center",
+      justifyContent: "center",
     },
     container: {
       backgroundColor: theme.background,
       borderRadius: moderateWidthScale(16),
-      height:"85%",
-      padding :20,
-      width:"95%"
+      height: "85%",
+      padding: moderateWidthScale(20),
+      width: "95%",
     },
     header: {
       flexDirection: "row",
       justifyContent: "space-between",
       alignItems: "center",
-      paddingTop: moderateHeightScale(22),
     },
     headerTitle: {
       fontSize: fontSize.size18,
@@ -71,9 +70,9 @@ const createStyles = (theme: Theme) =>
       flex: 1,
     },
     closeButton: {
-      width:32,
-      height: 32,
-      borderRadius: 32/2,
+      width: widthScale(32),
+      height: heightScale(32),
+      borderRadius: moderateWidthScale(16),
       backgroundColor: theme.darkGreen15,
       alignItems: "center",
       justifyContent: "center",
@@ -236,8 +235,43 @@ const createStyles = (theme: Theme) =>
       color: theme.lightGreen,
       lineHeight: moderateHeightScale(18),
     },
-    createButton: {
-      marginTop: moderateHeightScale(8),
+    planCardSelected: {
+      borderColor: theme.primary,
+      borderWidth: 2,
+    },
+    checkboxContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: moderateHeightScale(16),
+      paddingTop: moderateHeightScale(16),
+      borderTopWidth: 1,
+      borderTopColor: theme.borderLight,
+    },
+    checkbox: {
+      width: moderateWidthScale(24),
+      height: moderateWidthScale(24),
+      borderRadius: moderateWidthScale(6),
+      borderWidth: 2,
+      borderColor: theme.borderLight,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: moderateWidthScale(12),
+    },
+    checkboxSelected: {
+      backgroundColor: theme.primary,
+      borderColor: theme.primary,
+    },
+    checkboxLabel: {
+      fontSize: fontSize.size14,
+      fontFamily: fonts.fontMedium,
+      color: theme.darkGreen,
+      flex: 1,
+    },
+    fixedButtonContainer: {
+      paddingTop: moderateHeightScale(16),
+      borderTopWidth: 1,
+      borderTopColor: theme.borderLight,
+      backgroundColor: theme.background,
     },
   });
 
@@ -245,12 +279,20 @@ export default function GeneratedSubscriptionPlansModal({
   visible,
   onClose,
   plans,
-  onCreatePlan,
+  onSelectedPlans,
 }: GeneratedSubscriptionPlansModalProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
   const styles = useMemo(() => createStyles(theme), [colors]);
   const insets = useSafeAreaInsets();
+  const [selectedPlanIndices, setSelectedPlanIndices] = useState<number[]>([]);
+
+  // Reset selection when modal closes
+  React.useEffect(() => {
+    if (!visible) {
+      setSelectedPlanIndices([]);
+    }
+  }, [visible]);
 
   const getHeaderStyle = (tier: string) => {
     switch (tier.toLowerCase()) {
@@ -265,11 +307,22 @@ export default function GeneratedSubscriptionPlansModal({
     }
   };
 
-  const handleCreatePlan = (plan: GeneratedPlan) => {
-    if (onCreatePlan) {
-      onCreatePlan(plan);
+  const togglePlanSelection = (index: number) => {
+    setSelectedPlanIndices((prev) => {
+      if (prev.includes(index)) {
+        return prev.filter((i) => i !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
+  };
+
+  const handleContinue = () => {
+    if (selectedPlanIndices.length > 0 && onSelectedPlans) {
+      const selectedPlans = selectedPlanIndices.map((index) => plans[index]);
+      onSelectedPlans(selectedPlans);
+      onClose();
     }
-    onClose();
   };
 
   return (
@@ -287,7 +340,7 @@ export default function GeneratedSubscriptionPlansModal({
             <TouchableOpacity style={styles.closeButton} onPress={onClose}>
               <Feather
                 name="x"
-                size={16}
+                size={moderateWidthScale(16)}
                 color={theme.darkGreen}
               />
             </TouchableOpacity>
@@ -298,10 +351,20 @@ export default function GeneratedSubscriptionPlansModal({
               <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.plansContainer}
-                style={{ maxHeight: heightScale(600) }}
+                style={{ flex: 1 }}
               >
-                {plans.map((plan, index) => (
-                  <View key={index} style={styles.planCard}>
+                {plans.map((plan, index) => {
+                  const isSelected = selectedPlanIndices.includes(index);
+                  return (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.planCard,
+                      isSelected && styles.planCardSelected,
+                    ]}
+                    activeOpacity={0.7}
+                    onPress={() => togglePlanSelection(index)}
+                  >
                     <View style={[styles.planHeader, getHeaderStyle(plan.tier)]}>
                       <Text style={styles.planName}>{plan.name}</Text>
                       <Text style={styles.planTier}>{plan.tier} Tier</Text>
@@ -363,16 +426,38 @@ export default function GeneratedSubscriptionPlansModal({
                         </Text>
                       </View>
 
-                      <View style={styles.createButton}>
-                        <Button
-                          title="Create Plan"
-                          onPress={() => handleCreatePlan(plan)}
-                        />
+                      <View style={styles.checkboxContainer}>
+                        <View
+                          style={[
+                            styles.checkbox,
+                            isSelected && styles.checkboxSelected,
+                          ]}
+                        >
+                          {isSelected && (
+                            <Feather
+                              name="check"
+                              size={moderateWidthScale(16)}
+                              color={theme.white}
+                            />
+                          )}
+                        </View>
+                        <Text style={styles.checkboxLabel}>
+                          Select this plan
+                        </Text>
                       </View>
                     </View>
-                  </View>
-                ))}
+                  </TouchableOpacity>
+                );
+                })}
               </ScrollView>
+
+              <View style={styles.fixedButtonContainer}>
+                <Button
+                  title="Continue"
+                  onPress={handleContinue}
+                  disabled={selectedPlanIndices.length === 0}
+                />
+              </View>
             </>
           )}
         </View>
