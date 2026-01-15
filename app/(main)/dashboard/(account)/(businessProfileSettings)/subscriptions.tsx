@@ -1030,7 +1030,7 @@ export default function ManageSubscriptionsScreen() {
             );
           })}
 
-          {/* Main Button with Zoom Animation */}
+          {/* Ai Tool Button with Zoom Animation */}
           <TouchableOpacity activeOpacity={0.8} onPress={onClickAi}>
             <Animated.View
               style={[
