@@ -992,17 +992,12 @@ export default function DashboardContent() {
        
 
         const mappedSalons: VerifiedSalon[] = response.data.map((item) => {
-          // Priority: portfolio_photos[0]?.url > logo_url > default image
-          let imageUrl = "";
+          
+          let imageUrl = process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "";
           
           if (item.portfolio_photos && item.portfolio_photos.length > 0 && item.portfolio_photos[0]?.url) {
             imageUrl = item.portfolio_photos[0].url;
-          } else if (item.logo_url) {
-            imageUrl = process.env.EXPO_PUBLIC_API_BASE_URL + item.logo_url;
-          } else {
-            // Default business image
-            imageUrl = process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "";
-          }
+          }  
 
           return {
             id: item.id,
