@@ -1,5 +1,5 @@
-import React, { useMemo, useState, useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useMemo, useState, useEffect, useRef } from "react";
+import { StyleSheet, Text, TouchableOpacity, View, Animated } from "react-native";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useAppDispatch, useAppSelector, useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -16,6 +16,14 @@ import {
 import EditSubscriptionBottomSheet from "@/src/components/EditSubscriptionBottomSheet";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
+import { AiToolsService } from "@/src/services/aiToolsService";
+import GeneratedSubscriptionPlansModal from "@/src/components/GeneratedSubscriptionPlansModal";
+import { useNotificationContext } from "@/src/contexts/NotificationContext";
+import {
+  setActionLoader,
+  setActionLoaderTitle,
+} from "@/src/state/slices/generalSlice";
+import { Portal } from "@gorhom/portal";
 
 // Popular starting points suggestions - will be populated with first 2 services from Step 8
 const getPopularSuggestions = (
@@ -214,6 +222,32 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.lightGreen,
     },
+    aiToolButtonContainer: {
+      width: moderateWidthScale(50),
+      height: moderateWidthScale(50),
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 1000,
+      position: "absolute",
+      right: moderateWidthScale(20),
+      opacity:0.9 
+    },
+    aiToolButton: {
+      width: moderateWidthScale(56),
+      height: moderateWidthScale(56),
+      borderRadius: moderateWidthScale(28),
+      backgroundColor: theme.darkGreenLight,
+      alignItems: "center",
+      justifyContent: "center",
+      shadowColor: theme.shadow,
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 3.84,
+      elevation: 5,
+    },
   });
 
 export default function StepNine() {
@@ -221,14 +255,22 @@ export default function StepNine() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
+  const { showBanner } = useNotificationContext();
+  const user = useAppSelector((state) => state.user);
+  const businessId = user?.business_id ?? "";
   const { subscriptions, businessServices } = useAppSelector(
     (state) => state.completeProfile
   );
+  
+  // Button bottom offset for fixed positioning
+  const buttonBottomOffset = moderateHeightScale(40);
   const [editSubscriptionVisible, setEditSubscriptionVisible] = useState(false);
   const [addSubscriptionVisible, setAddSubscriptionVisible] = useState(false);
   const [editingSubscriptionId, setEditingSubscriptionId] = useState<
     string | null
   >(null);
+  const [generatedResult, setGeneratedResult] = useState<any>(null);
+  const [modalVisible, setModalVisible] = useState(false);
   // Store custom suggestions added via "+" button (not in Redux subscriptions)
   const [customSuggestions, setCustomSuggestions] = useState<
     Array<{
@@ -240,6 +282,109 @@ export default function StepNine() {
       serviceIds: string[];
     }>
   >([]);
+
+  // Animation values for AI tool button
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const starAnimations = useRef(
+    Array.from({ length: 6 }, () => ({
+      opacity: new Animated.Value(0),
+      scale: new Animated.Value(0),
+      rotate: new Animated.Value(0),
+    }))
+  ).current;
+
+  // Start animations when component mounts
+  useEffect(() => {
+    // Pulse/zoom animation for button
+    const pulseAnimation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(scaleAnim, {
+          toValue: 1.1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+
+    // Rotate animation for icon
+    const rotateAnimation = Animated.loop(
+      Animated.timing(rotateAnim, {
+        toValue: 1,
+        duration: 3000,
+        useNativeDriver: true,
+      })
+    );
+
+    // Sparkling stars animation
+    const starAnimationsLoop = starAnimations.map((star, index) => {
+      const angle = (index * 60 * Math.PI) / 180; // 6 stars, 60 degrees apart
+      const radius = moderateWidthScale(35);
+
+      return Animated.loop(
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 1,
+              duration: 500,
+              delay: index * 100,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 1,
+              duration: 500,
+              delay: index * 100,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 0.3,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 0.8,
+              duration: 1000,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.rotate, {
+              toValue: 1,
+              duration: 2000,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(star.opacity, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+            Animated.timing(star.scale, {
+              toValue: 1,
+              duration: 500,
+              useNativeDriver: true,
+            }),
+          ]),
+        ])
+      );
+    });
+
+    pulseAnimation.start();
+    rotateAnimation.start();
+    starAnimationsLoop.forEach((anim) => anim.start());
+
+    return () => {
+      pulseAnimation.stop();
+      rotateAnimation.stop();
+      starAnimationsLoop.forEach((anim) => anim.stop());
+    };
+  }, []);
 
   // Fetch business services on component mount
   useEffect(() => {
@@ -361,6 +506,55 @@ export default function StepNine() {
   const unselectedSuggestions = popularSuggestions.filter(
     (s) => !subscriptions.some((sub) => sub.id === s.id)
   );
+
+  const onClickAi = async () => {
+    if (generatedResult) {
+      setModalVisible(true);
+    } else {
+      if (!businessId) {
+        showBanner(
+          "Error",
+          "Business ID not found. Please complete your business profile.",
+          "error",
+          3000
+        );
+        return;
+      }
+
+      dispatch(setActionLoader(true));
+      dispatch(setActionLoaderTitle("Generating subscription plans"));
+
+      try {
+        const response = await AiToolsService.generateSubscription(
+          Number(businessId)
+        );
+
+        if (response.status === "success" && response.generated_plans) {
+          setGeneratedResult(response);
+          setModalVisible(true);
+        } else {
+          showBanner(
+            "Error",
+            "Failed to generate subscription plans. Please try again.",
+            "error",
+            3000
+          );
+        }
+      } catch (error: any) {
+        console.error("Failed to generate subscription plans:", error);
+        showBanner(
+          "Error",
+          error?.message ||
+            "Failed to generate subscription plans. Please try again.",
+          "error",
+          3000
+        );
+      } finally {
+        dispatch(setActionLoader(false));
+        dispatch(setActionLoaderTitle(""));
+      }
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -526,6 +720,147 @@ export default function StepNine() {
         onClose={handleCloseAddSubscription}
         subscriptionId={null}
         onAddCustomSuggestion={handleAddCustomSuggestion}
+      />
+
+      {/* AI Tool Button - Fixed Position using Portal */}
+      <Portal>
+        <View
+          style={[
+            styles.aiToolButtonContainer,
+            {
+              bottom: buttonBottomOffset+180,
+            },
+          ]}
+          pointerEvents="box-none"
+        >
+          {/* Sparkling Stars */}
+          {starAnimations.map((star, index) => {
+            const angle = (index * 60 * Math.PI) / 180; // 6 stars, 60 degrees apart
+            const radius = moderateWidthScale(35);
+            const x = Math.cos(angle) * radius;
+            const y = Math.sin(angle) * radius;
+
+            const rotateInterpolate = star.rotate.interpolate({
+              inputRange: [0, 1],
+              outputRange: ["0deg", "360deg"],
+            });
+
+            return (
+              <Animated.View
+                key={index}
+                style={[
+                  {
+                    position: "absolute",
+                    left: moderateWidthScale(28) + x - moderateWidthScale(6),
+                    top: moderateHeightScale(28) + y - moderateHeightScale(6),
+                    transform: [
+                      { scale: star.scale },
+                      { rotate: rotateInterpolate },
+                    ],
+                    opacity: star.opacity,
+                  },
+                ]}
+              >
+                <MaterialIcons
+                  name="star"
+                  size={moderateWidthScale(12)}
+                  color={theme.white}
+                />
+              </Animated.View>
+            );
+          })}
+
+          {/* Ai Tool Button with Zoom Animation */}
+          <TouchableOpacity activeOpacity={0.8} onPress={onClickAi}>
+            <Animated.View
+              style={[
+                styles.aiToolButton,
+                {
+                  transform: [
+                    { scale: scaleAnim },
+                    {
+                      rotate: rotateAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: ["0deg", "360deg"],
+                      }),
+                    },
+                  ],
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="auto-awesome"
+                size={moderateWidthScale(28)}
+                color={theme.white}
+              />
+            </Animated.View>
+          </TouchableOpacity>
+        </View>
+      </Portal>
+
+      <GeneratedSubscriptionPlansModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        plans={generatedResult?.generated_plans || []}
+        onSelectedPlans={(selectedPlans) => {
+          // Convert selected plans from modal format to subscription format
+          let addedCount = 0;
+          selectedPlans.forEach((plan) => {
+            // Check if a subscription with the same name already exists
+            const existingSubscription = subscriptions.find(
+              (sub: { packageName: string }) =>
+                sub.packageName.toLowerCase() === plan.name.toLowerCase()
+            );
+
+            if (existingSubscription) {
+              // Skip if already exists
+              return;
+            }
+
+            // Generate a unique ID for the subscription
+            const subscriptionId = `ai-generated-${plan.tier.toLowerCase()}-${plan.name
+              .toLowerCase()
+              .replace(/\s+/g, "-")}-${Date.now()}`;
+
+            // Convert services_included array to serviceIds array
+            const serviceIds = plan.services_included.map((service) =>
+              service.id.toString()
+            );
+
+            // Create subscription object in the required format
+            const subscription = {
+              id: subscriptionId,
+              packageName: plan.name,
+              servicesPerMonth: plan.visits_included,
+              price: plan.monthly_price,
+              currency: plan.currency,
+              serviceIds: serviceIds,
+            };
+
+            // Add subscription to the list
+            dispatch(addSubscription(subscription));
+            addedCount++;
+          });
+
+          // Show success message
+          if (addedCount > 0) {
+            showBanner(
+              "Success",
+              `${addedCount} subscription plan${
+                addedCount > 1 ? "s" : ""
+              } added successfully`,
+              "success",
+              3000
+            );
+          } else if (selectedPlans.length > 0) {
+            showBanner(
+              "Info",
+              "Selected plans are already in your subscription list",
+              "info",
+              3000
+            );
+          }
+        }}
       />
     </View>
   );

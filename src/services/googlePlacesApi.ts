@@ -44,8 +44,7 @@ export const fetchSuggestions = async (
   }
 
   const encodedQuery = encodeURIComponent(query);
-  // Restrict to US only
-  const fullUrl = `${searchUrl}${encodedQuery}&components=country:us&key=${apiKey}&sessiontoken=${sessionToken}`;
+  const fullUrl = `${searchUrl}${encodedQuery}&key=${apiKey}&sessiontoken=${sessionToken}`;
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => {

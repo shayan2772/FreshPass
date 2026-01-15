@@ -14,7 +14,6 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import {
   setAddressSearch,
   setAddressStage,
@@ -78,7 +77,6 @@ const createStyles = (theme: Theme) =>
 export default function StepFour() {
   const dispatch = useAppDispatch();
   const { colors } = useTheme();
-  const { showBanner } = useNotificationContext();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const {
     addressSearch,
@@ -100,7 +98,6 @@ export default function StepFour() {
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
   const [mapRegion, setMapRegion] = useState<Region | null>(null);
-  const [isUSLocation, setIsUSLocation] = useState<boolean | null>(null);
 
   const sessionTokenRef = useRef<string>(generateSessionToken());
   const isZoomingRef = useRef<boolean>(false);
@@ -138,7 +135,6 @@ export default function StepFour() {
     setMapRegion(null);
     setLocationMessage(null);
     setLocationNotice(null);
-    setIsUSLocation(null); // Reset US location check
   }, [addressSearch, dispatch, selectedAddress, streetAddress]);
 
   const handleFetchPlaceDetails = useCallback(
@@ -158,22 +154,6 @@ export default function StepFour() {
           placeId,
           sessionTokenRef.current
         );
-
-        // Check if location is in US
-        const isUS = details.countryCode?.toUpperCase() === "US";
-        setIsUSLocation(isUS);
-
-        if (!isUS) {
-          showBanner(
-            "Location Not Supported",
-            "Just US related country city acceptable",
-            "error",
-            3000
-          );
-          setIsFetchingDetails(false);
-          sessionTokenRef.current = generateSessionToken();
-          return;
-        }
 
         dispatch(setSelectedAddress(details.formattedAddress));
         dispatch(setStreetAddress(details.street));
@@ -211,7 +191,7 @@ export default function StepFour() {
         sessionTokenRef.current = generateSessionToken();
       }
     },
-    [apiKey, dispatch, ensureSessionToken, showBanner]
+    [apiKey, dispatch, ensureSessionToken]
   );
 
   const fetchSuggestions = useCallback(
@@ -328,7 +308,6 @@ export default function StepFour() {
     (value: string) => {
       dispatch(setAddressSearch(value));
       setLocationMessage(null);
-      setIsUSLocation(null); // Reset US location check when search changes
       if (!value.trim()) {
         dispatch(setSelectedAddress(null));
         dispatch(setUseCurrentLocation(false));
@@ -381,20 +360,6 @@ export default function StepFour() {
     }
 
     const { details } = result;
-    
-    // Check if location is in US
-    const isUS = details.countryCode?.toUpperCase() === "US";
-    setIsUSLocation(isUS);
-
-    if (!isUS) {
-      showBanner(
-        "Location Not Supported",
-        "Just US related country city acceptable",
-        "error",
-        3000
-      );
-      return;
-    }
 
     const selectedLabel =
       details.formattedAddress ??
@@ -421,7 +386,7 @@ export default function StepFour() {
     });
 
     setLocationNotice(details.notice ?? null);
-  }, [apiKey, area, dispatch, selectedAddress, streetAddress, zipCode, showBanner]);
+  }, [apiKey, area, dispatch, selectedAddress, streetAddress, zipCode]);
 
   const handleStreetAddressChange = useCallback(
     (value: string) => {
