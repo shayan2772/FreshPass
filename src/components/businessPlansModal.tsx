@@ -46,6 +46,7 @@ interface SubscriptionPlan {
 interface BusinessPlansModalProps {
   visible: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
 const createStyles = (theme: Theme) =>
@@ -205,6 +206,7 @@ const createStyles = (theme: Theme) =>
 function BusinessPlansModalContent({
   visible,
   onClose,
+  onSuccess,
 }: BusinessPlansModalProps) {
   const { colors } = useTheme();
   const theme = colors as Theme;
@@ -374,6 +376,11 @@ function BusinessPlansModalContent({
         onClose();
 
         dispatch(fetchUserStatus({ showError: true })).unwrap();
+        
+        // Call onSuccess callback if provided
+        if (onSuccess) {
+          onSuccess();
+        }
       }, 2500);
     } catch (err: any) {
       // Extract clean error message
@@ -541,6 +548,7 @@ function BusinessPlansModalContent({
 export default function BusinessPlansModal({
   visible,
   onClose,
+  onSuccess,
 }: BusinessPlansModalProps) {
   if (!visible) return null;
 
@@ -554,7 +562,7 @@ export default function BusinessPlansModal({
       <StripeProvider
         publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
       >
-        <BusinessPlansModalContent visible={visible} onClose={onClose} />
+        <BusinessPlansModalContent visible={visible} onClose={onClose} onSuccess={onSuccess} />
       </StripeProvider>
     </Modal>
   );

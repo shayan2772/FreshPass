@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useCallback } from "react";
 import { StyleSheet, ScrollView, View, Text, Alert } from "react-native";
 import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
@@ -14,10 +14,11 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import Button from "@/src/components/button";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { Skeleton } from "@/src/components/skeletons";
 import RetryButton from "@/src/components/retryButton";
 import { LinearGradient } from "expo-linear-gradient";
+import BusinessPlansModal from "@/src/components/businessPlansModal";
 
 interface SubscriptionData {
   id: number;
@@ -301,7 +302,7 @@ const createStyles = (theme: Theme) =>
     },
     buttonContainer: {
       marginHorizontal: moderateWidthScale(20),
-      marginVertical: moderateHeightScale(24),
+      marginVertical: moderateHeightScale(32),
     },
     emptyContainer: {
       flex: 1,
@@ -357,6 +358,8 @@ export default function SubscriptionScreen() {
   const [error, setError] = useState<string | null>(null);
   const [apiError, setApiError] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [businessPlansModalVisible, setBusinessPlansModalVisible] =
+    useState(false);
 
   const isTrial = subscription?.cardLastFour === null;
 
@@ -377,9 +380,13 @@ export default function SubscriptionScreen() {
       ) {
         const firstSubscription = response.data.data[0];
         setSubscription(firstSubscription);
+        setError(null);
+        setApiError(false);
       } else {
-        setError("No active subscription found");
-        setApiError(true);
+        // Empty response - not an error, just no subscription
+        setSubscription(null);
+        setError(null);
+        setApiError(false);
       }
     } catch (err: any) {
       setError(err.message || "Failed to load subscription");
@@ -395,9 +402,11 @@ export default function SubscriptionScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchSubscription();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchSubscription();
+    }, [])
+  );
 
   const handleCancelTrial = () => {
     if (!subscription) return;
@@ -420,7 +429,6 @@ export default function SubscriptionScreen() {
             //     success: boolean;
             //     message: string;
             //   }>(businessEndpoints.cancelTrial(subscription.id), {});
-
             //   if (response.success) {
             //     showBanner(
             //       "Success",
@@ -493,11 +501,19 @@ export default function SubscriptionScreen() {
             color={theme.lightGreen}
             style={styles.emptyIcon}
           />
-          <Text style={styles.emptyText}>No active subscription</Text>
-          <Text style={styles.emptySubtext}>
-            Subscribe to a plan to get started
-          </Text>
+          <Text style={styles.emptyText}>No active subscription found</Text>
         </View>
+        <View style={styles.buttonContainer}>
+          <Button
+            title="Buy Plan"
+            onPress={() => setBusinessPlansModalVisible(true)}
+          />
+        </View>
+        <BusinessPlansModal
+          visible={businessPlansModalVisible}
+          onClose={() => setBusinessPlansModalVisible(false)}
+          onSuccess={fetchSubscription}
+        />
       </SafeAreaView>
     );
   }

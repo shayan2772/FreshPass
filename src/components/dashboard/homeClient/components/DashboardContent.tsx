@@ -375,6 +375,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.white,
+      textTransform:"capitalize"
     },
     verifiedSalonAddress: {
       fontSize: fontSize.size11,
@@ -475,6 +476,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       maxWidth: "75%",
+      textTransform:"capitalize"
     },
     sectionViewMore: {
       fontSize: fontSize.size14,
@@ -557,16 +559,7 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.white,
       borderRadius: moderateWidthScale(12),
       width: widthScale(200),
-      height: heightScale(330),
-      overflow: "hidden",
-    },
-    subscriptionImage: {
-      width: "100%",
-      height: heightScale(140),
-      borderTopLeftRadius: moderateWidthScale(8),
-      borderTopRightRadius: moderateWidthScale(8),
-      marginBottom: moderateHeightScale(12),
-      backgroundColor: theme.lightGreen2,
+      height: heightScale(180),
       overflow: "hidden",
     },
     offerBadgesContainer: {
@@ -984,21 +977,42 @@ export default function DashboardContent() {
           average_rating: number;
           ratings_count: number;
           image_url: string | null;
+          logo_url: string | null;
+          portfolio_photos?: Array<{
+            id: number;
+            path: string;
+            url: string;
+          }>;
         }>;
       }>(url);
 
       if (response.success && response.data) {
         // Map API response to VerifiedSalon format
-        const mappedSalons: VerifiedSalon[] = response.data.map((item) => ({
-          id: item.id,
-          businessName: item.title,
-          address: item.address,
-          rating: item.average_rating || 0,
-          reviewCount: item.ratings_count || 0,
-          image: item.image_url
-            ? process.env.EXPO_PUBLIC_API_BASE_URL + item.image_url
-            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-        }));
+
+       
+
+        const mappedSalons: VerifiedSalon[] = response.data.map((item) => {
+          // Priority: portfolio_photos[0]?.url > logo_url > default image
+          let imageUrl = "";
+          
+          if (item.portfolio_photos && item.portfolio_photos.length > 0 && item.portfolio_photos[0]?.url) {
+            imageUrl = item.portfolio_photos[0].url;
+          } else if (item.logo_url) {
+            imageUrl = process.env.EXPO_PUBLIC_API_BASE_URL + item.logo_url;
+          } else {
+            // Default business image
+            imageUrl = process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "";
+          }
+
+          return {
+            id: item.id,
+            businessName: item.title,
+            address: item.address,
+            rating: item.average_rating || 0,
+            reviewCount: item.ratings_count || 0,
+            image: imageUrl,
+          };
+        });
 
         setVerifiedSalons(mappedSalons);
         setBusinessesCount(response.data.length);
@@ -1064,6 +1078,7 @@ export default function DashboardContent() {
           id: number;
           title: string;
           image_url: string | null;
+          logo_url: string | null;
           portfolio_photos?: Array<{
             id: number;
             path: string;
@@ -2306,18 +2321,10 @@ export default function DashboardContent() {
                             },
                           ]}
                         >
-                          <Image
-                            source={{
-                              uri:
-                                subscription.image ||
-                                "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
-                            }}
-                            style={styles.subscriptionImage}
-                            resizeMode="cover"
-                          />
                           <View
                             style={{
-                              paddingHorizontal: moderateWidthScale(8),
+                              paddingHorizontal: moderateWidthScale(16),
+                              paddingTop: moderateHeightScale(16),
                               flex: 1,
                               justifyContent: "space-between",
                             }}
