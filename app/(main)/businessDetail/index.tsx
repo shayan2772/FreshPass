@@ -214,11 +214,20 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.white,
     },
+    businessLogo: {
+      width:40,
+      height:40,
+      borderRadius: 40/2,
+      backgroundColor: theme.lightGreen2,
+      borderWidth:1,
+      borderColor:theme.borderLight,
+      overflow:"hidden",
+    },
     businessName: {
       fontSize: fontSize.size22,
       fontFamily: fonts.fontBold,
       color: theme.white,
-      marginBottom: moderateHeightScale(8),
+      textTransform: "capitalize",
     },
     addressRow: {
       flexDirection: "row",
@@ -1091,11 +1100,7 @@ export default function BusinessDetailScreen() {
 
   // Default portfolio images
   const DEFAULT_PORTFOLIO_IMAGES = [
-    "https://images.unsplash.com/photo-1621605815971-fbc98d665033?w=800&q=80",
-    "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=80",
-    "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
-    "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
-    "https://images.unsplash.com/photo-1562322140-8baeececf3df?w=800&q=80",
+    process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "",
   ];
 
   // API state
@@ -1111,7 +1116,7 @@ export default function BusinessDetailScreen() {
   const [reviewsAverageRating, setReviewsAverageRating] = useState(0);
 
   // Fetch business details
-  const fetchBusinessDetails = useCallback(async () => {
+  const fetchBusinessDetails = async () => {
     if (!params.business_id) {
       setError("Business ID is required");
       setLoading(false);
@@ -1139,7 +1144,7 @@ export default function BusinessDetailScreen() {
     } finally {
       setLoading(false);
     }
-  }, [params.business_id]);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -1204,7 +1209,7 @@ export default function BusinessDetailScreen() {
   const businessPhone = useMemo(() => {
     const ownerContact = businessData?.owner_contact;
     const ownerCountryCode = businessData?.owner_country_code;
-    
+
     if (ownerContact && ownerCountryCode) {
       // Combine country code and contact number
       return `${ownerCountryCode}${ownerContact}`;
@@ -1385,7 +1390,7 @@ export default function BusinessDetailScreen() {
       const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
       return `${baseUrl}${businessData.logo_url}`;
     }
-    return "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+    return "https://cdn.idevie.com/wp-content/uploads/2018/02/logo_design_1.jpg";
   };
 
   // Map portfolio photos from API or use defaults
@@ -1418,12 +1423,6 @@ export default function BusinessDetailScreen() {
 
   const handleOpenFullImage = () => {
     setSelectedImage(currentHeroImage);
-    setImageModalVisible(true);
-  };
-
-  const handleThumbnailPress = (image: string) => {
-    setCurrentHeroImage(image);
-    setSelectedImage(image);
     setImageModalVisible(true);
   };
 
@@ -1640,7 +1639,7 @@ export default function BusinessDetailScreen() {
     const reviewText = review.comment || "";
     const shouldShowSeeMore = reviewText.length > textWrapLength;
     const suggestionTitle = review.review_suggestion?.title || null;
- 
+
     return (
       <View
         style={[styles.reviewCard, isHorizontal && styles.reviewCardHorizontal]}
@@ -1658,13 +1657,9 @@ export default function BusinessDetailScreen() {
             <Text style={styles.reviewNameText}>
               {review.user?.name || "User"}
             </Text>
-            <Text style={styles.reviewDateText}>
-            {review.created_at}
-            </Text>
+            <Text style={styles.reviewDateText}>{review.created_at}</Text>
           </View>
         </View>
-
-        
 
         <View style={styles.reviewStarsRow}>
           {getStars(parseFloat(review.overall_rating || 0)).map(
@@ -1679,7 +1674,6 @@ export default function BusinessDetailScreen() {
             )
           )}
         </View>
-
 
         {suggestionTitle && (
           <Text style={styles.reviewSuggestionTitle}>{suggestionTitle}</Text>
@@ -2007,17 +2001,22 @@ export default function BusinessDetailScreen() {
                     <TouchableOpacity
                       style={styles.bookNowButton}
                       onPress={() => {
-                        
                         router.push({
                           pathname: "/(main)/bookingNow/checkoutSubscription",
                           params: {
                             subscriptionId: subscription.id.toString(),
                             subscriptionName: subscription.title,
                             subscriptionPrice: subscription.price.toString(),
-                            subscriptionOriginalPrice: subscription.originalPrice.toString(),
+                            subscriptionOriginalPrice:
+                              subscription.originalPrice.toString(),
                             subscriptionVisits: subscription.visits,
-                            subscriptionInclusions: JSON.stringify(subscription.inclusions),
-                            businessId: businessData?.id?.toString() || params.business_id || "",
+                            subscriptionInclusions: JSON.stringify(
+                              subscription.inclusions
+                            ),
+                            businessId:
+                              businessData?.id?.toString() ||
+                              params.business_id ||
+                              "",
                             businessName: businessData?.name || "",
                             businessLogo: businessData?.logo_url || "",
                             screenName: "businessDetail",
@@ -2276,17 +2275,21 @@ export default function BusinessDetailScreen() {
                         };
 
                         // Map staff members with working_hours
-                        const staffMembersData = (businessData?.staff || []).map((staff: any) => {
+                        const staffMembersData = (
+                          businessData?.staff || []
+                        ).map((staff: any) => {
                           // Construct image URL from API response
                           let image =
                             "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
                           if (staff.avatar) {
                             image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
                           }
-                          
+
                           // Parse working_hours if available (even if empty array)
-                          const staffWorkingHours = parseBusinessHours(staff.working_hours);
-                          
+                          const staffWorkingHours = parseBusinessHours(
+                            staff.working_hours
+                          );
+
                           return {
                             id: staff.id || staff.user_id || 0,
                             name: staff.name || "Staff Member",
@@ -2299,8 +2302,6 @@ export default function BusinessDetailScreen() {
                         const businessHoursData = parseBusinessHours(
                           businessData?.hours
                         );
-
-                      
 
                         const businessPayload = {
                           selectedService: serviceData,
@@ -2414,12 +2415,12 @@ export default function BusinessDetailScreen() {
         return 0;
       });
     })();
-    
+
     const hasMoreReviews = reviewsTotal > 0;
     const averageRatingToShow =
       reviewsAverageRating > 0 ? reviewsAverageRating : averageRating;
     const totalReviewsToShow = reviewsTotal > 0 ? reviewsTotal : totalReviews;
-    
+
     // Check if current user has already reviewed this business
     const hasUserReviewed = currentUserId
       ? reviewsData.some((review: any) => review.user_id === currentUserId)
@@ -2532,7 +2533,10 @@ export default function BusinessDetailScreen() {
           {/* Show All Reviews Button */}
           {hasMoreReviews && !reviewsError && (
             <TouchableOpacity
-              style={[styles.showAllReviewsButton,{marginTop: moderateHeightScale(12)}]}
+              style={[
+                styles.showAllReviewsButton,
+                { marginTop: moderateHeightScale(12) },
+              ]}
               onPress={() => {
                 router.push({
                   pathname: "/(main)/userReviews",
@@ -2709,7 +2713,6 @@ export default function BusinessDetailScreen() {
                 <TouchableOpacity
                   key={index}
                   onPress={() => handleThumbnailSelect(thumbnail)}
-                  // onLongPress={() => handleThumbnailPress(thumbnail)}
                 >
                   <Image
                     source={{ uri: thumbnail }}
@@ -2757,7 +2760,21 @@ export default function BusinessDetailScreen() {
                 {averageRating.toFixed(1)}/ {totalReviews} reviews
               </Text>
             </View>
-            <Text style={styles.businessName}>{businessName}</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: moderateWidthScale(8),
+                marginBottom: moderateHeightScale(8),
+              }}
+            >
+              <Image
+                source={{ uri: getBusinessLogoUrl() }}
+                style={styles.businessLogo}
+                resizeMode="cover"
+              />
+              <Text style={styles.businessName}>{businessName}</Text>
+            </View>
             <View style={styles.addressRow}>
               <LocationPinIconBusinessDetail
                 width={widthScale(12)}
