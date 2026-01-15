@@ -215,13 +215,13 @@ const createStyles = (theme: Theme) =>
       color: theme.white,
     },
     businessLogo: {
-      width:40,
-      height:40,
-      borderRadius: 40/2,
+      width: 40,
+      height: 40,
+      borderRadius: 40 / 2,
       backgroundColor: theme.lightGreen2,
-      borderWidth:1,
-      borderColor:theme.borderLight,
-      overflow:"hidden",
+      borderWidth: 1,
+      borderColor: theme.borderLight,
+      overflow: "hidden",
     },
     businessName: {
       fontSize: fontSize.size22,
@@ -696,6 +696,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(2),
+      textTransform:"capitalize"
     },
     staffExperience: {
       fontSize: fontSize.size11,
@@ -1055,6 +1056,45 @@ const createStyles = (theme: Theme) =>
     writeReviewContinueButton: {
       marginTop: moderateHeightScale(20),
     },
+    ownerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: moderateHeightScale(12),
+      gap: moderateWidthScale(12),
+    },
+    ownerAvatar: {
+      width: widthScale(50),
+      height: widthScale(50),
+      borderRadius: moderateWidthScale(25),
+      backgroundColor: theme.lightGreen2,
+      borderWidth: moderateWidthScale(1),
+      borderColor: theme.borderLight,
+      overflow: "hidden",
+    },
+    ownerAvatarImage: {
+      width: "100%",
+      height: "100%",
+    },
+    ownerInfo: {
+      flex: 1,
+    },
+    ownerName: {
+      fontSize: fontSize.size15,
+      fontFamily: fonts.fontBold,
+      color: theme.darkGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    ownerEmail: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+      marginBottom: moderateHeightScale(4),
+    },
+    ownerPhone: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.lightGreen,
+    },
   });
 export default function BusinessDetailScreen() {
   const { colors } = useTheme();
@@ -1205,19 +1245,19 @@ export default function BusinessDetailScreen() {
   const currentUserId = useAppSelector((state) => state.user.id);
 
   // Map API data to component data
-  // Combine owner_country_code and owner_contact if both are available
+  // Combine country_code and phone if both are available
   const businessPhone = useMemo(() => {
-    const ownerContact = businessData?.owner_contact;
-    const ownerCountryCode = businessData?.owner_country_code;
+    const phone = businessData?.phone;
+    const countryCode = businessData?.country_code;
 
-    if (ownerContact && ownerCountryCode) {
-      // Combine country code and contact number
-      return `${ownerCountryCode}${ownerContact}`;
-    } else if (ownerContact) {
-      return ownerContact;
+    if (phone && countryCode) {
+      // Combine country code and phone number
+      return `${countryCode}${phone}`;
+    } else if (phone) {
+      return phone;
     }
-    return "(619) 315-5437"; // Default fallback
-  }, [businessData?.owner_contact, businessData?.owner_country_code]);
+    return ""; // Return empty string if no phone
+  }, [businessData?.phone, businessData?.country_code]);
   const businessName = businessData?.title || "Ra Benjamin Styles LLC";
   const businessLatitude = businessData?.latitude
     ? parseFloat(businessData.latitude)
@@ -1559,8 +1599,7 @@ export default function BusinessDetailScreen() {
       businessData.staff
         // .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
         .map((staff: any) => {
-          let image =
-            "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+          let image = DEFAULT_AVATAR_URL;
           if (staff.avatar) {
             image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
           }
@@ -1574,8 +1613,7 @@ export default function BusinessDetailScreen() {
     );
   }, [businessData]);
 
-  const DEFAULT_AVATAR_URL =
-    "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+  const DEFAULT_AVATAR_URL = process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
   const averageRating = businessData?.average_rating || 0;
   const totalReviews = businessData?.ratings_count || reviewsTotal || 0;
   const textWrapLength = 115;
@@ -1634,6 +1672,27 @@ export default function BusinessDetailScreen() {
     }
     return DEFAULT_AVATAR_URL;
   };
+
+  // Get owner avatar URL
+  const getOwnerAvatarUrl = () => {
+    if (businessData?.owner?.avatar) {
+      return `${process.env.EXPO_PUBLIC_API_BASE_URL}${businessData.owner.avatar}`;
+    }
+    return DEFAULT_AVATAR_URL;
+  };
+  
+  // Format owner phone with country code
+  const ownerPhone = useMemo(() => {
+    const phone = businessData?.owner?.phone;
+    const countryCode = businessData?.owner?.country_code;
+
+    if (phone && countryCode) {
+      return `${countryCode}${phone}`;
+    } else if (phone) {
+      return phone;
+    }
+    return null;
+  }, [businessData?.owner?.phone, businessData?.owner?.country_code]);
 
   const renderReviewCard = (review: any, isHorizontal = false, index = 0) => {
     const reviewText = review.comment || "";
@@ -1784,35 +1843,78 @@ export default function BusinessDetailScreen() {
         </View>
 
         {/* Contact */}
-        <View style={styles.sectionDivider} />
-        <View style={styles.sectionContentFullWidth}>
-          <Text
-            style={[
-              styles.sectionTitle,
-              { marginTop: moderateHeightScale(24) },
-            ]}
-          >
-            Contact
-          </Text>
-          <View style={styles.contactRow}>
-            <View style={styles.phoneIconContainer}>
-              <PhoneIconContact
-                width={widthScale(18)}
-                height={heightScale(18)}
-                color={theme.darkGreen}
-              />
-            </View>
-            <View style={styles.contactPhoneRow}>
-              <Text style={styles.phoneText}>{businessPhone}</Text>
-              <TouchableOpacity
-                style={styles.callNowButton}
-                onPress={handleCallNow}
+        {businessPhone && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionContentFullWidth}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { marginTop: moderateHeightScale(24) },
+                ]}
               >
-                <Text style={styles.callNowButtonText}>Call now</Text>
-              </TouchableOpacity>
+                Contact
+              </Text>
+              <View style={styles.contactRow}>
+                <View style={styles.phoneIconContainer}>
+                  <PhoneIconContact
+                    width={widthScale(18)}
+                    height={heightScale(18)}
+                    color={theme.darkGreen}
+                  />
+                </View>
+                <View style={styles.contactPhoneRow}>
+                  <Text style={styles.phoneText}>{businessPhone}</Text>
+                  <TouchableOpacity
+                    style={styles.callNowButton}
+                    onPress={handleCallNow}
+                  >
+                    <Text style={styles.callNowButtonText}>Call now</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
-          </View>
-        </View>
+          </>
+        )}
+
+        {/* Owner */}
+        {businessData?.owner && (
+          <>
+            <View style={styles.sectionDivider} />
+            <View style={styles.sectionContentFullWidth}>
+              <Text
+                style={[
+                  styles.sectionTitle,
+                  { marginTop: moderateHeightScale(24) },
+                ]}
+              >
+                Owner
+              </Text>
+              <View style={styles.ownerRow}>
+                <View style={styles.ownerAvatar}>
+                  <Image
+                    source={{ uri: getOwnerAvatarUrl() }}
+                    style={styles.ownerAvatarImage}
+                    resizeMode="cover"
+                  />
+                </View>
+                <View style={styles.ownerInfo}>
+                  <Text style={styles.ownerName}>
+                    {businessData.owner.name || "Owner"}
+                  </Text>
+                  {businessData.owner.email && (
+                    <Text style={styles.ownerEmail}>
+                      {businessData.owner.email}
+                    </Text>
+                  )}
+                  {/* {ownerPhone && (
+                    <Text style={styles.ownerPhone}>{ownerPhone}</Text>
+                  )} */}
+                </View>
+              </View>
+            </View>
+          </>
+        )}
 
         {/* Business hours */}
         <View style={styles.sectionDivider} />
