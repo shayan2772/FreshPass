@@ -306,7 +306,10 @@ export default function BookingNow() {
   const { showBanner } = useNotificationContext();
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const params = useLocalSearchParams<{ business_id?: string; service_id?: string }>();
+  const params = useLocalSearchParams<{
+    business_id?: string;
+    service_id?: string;
+  }>();
 
   // Get data from Redux
   const businessData = useAppSelector((state) => state.bsns);
@@ -348,7 +351,8 @@ export default function BookingNow() {
     }
 
     // Check if Redux already has data - if yes, don't show loader
-    const hasReduxData = reduxBusinessId === businessId && allServices.length > 0;
+    const hasReduxData =
+      reduxBusinessId === businessId && allServices.length > 0;
 
     try {
       // Only show loading indicator if Redux doesn't have data
@@ -393,9 +397,7 @@ export default function BookingNow() {
           return dayMap[dayLower] || day;
         };
 
-        const parseBusinessHours = (
-          hoursArray: any[] | null | undefined
-        ) => {
+        const parseBusinessHours = (hoursArray: any[] | null | undefined) => {
           if (
             !hoursArray ||
             !Array.isArray(hoursArray) ||
@@ -450,14 +452,10 @@ export default function BookingNow() {
             }
 
             const breaks = (dayData.break_hours || []).map((breakTime: any) => {
-              const {
-                hours: breakFromHours,
-                minutes: breakFromMinutes,
-              } = parseTimeToHoursMinutes(breakTime.start || "00:00");
-              const {
-                hours: breakTillHours,
-                minutes: breakTillMinutes,
-              } = parseTimeToHoursMinutes(breakTime.end || "00:00");
+              const { hours: breakFromHours, minutes: breakFromMinutes } =
+                parseTimeToHoursMinutes(breakTime.start || "00:00");
+              const { hours: breakTillHours, minutes: breakTillMinutes } =
+                parseTimeToHoursMinutes(breakTime.end || "00:00");
               return {
                 fromHours: breakFromHours,
                 fromMinutes: breakFromMinutes,
@@ -517,11 +515,14 @@ export default function BookingNow() {
         });
 
         // Map staff members with working_hours
-        const staffMembersData = (businessData?.staff || []).map(
-          (staff: any) => {
+        const staffMembersData = (businessData?.staff || [])
+          .filter((staff: any) => staff.invitation_status === "accepted")
+          .map((staff: any) => {
             // Construct image URL from API response
-            let image =
-              "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+            const DEFAULT_AVATAR_URL =
+              process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
+
+            let image = DEFAULT_AVATAR_URL;
             if (staff.avatar) {
               image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
             }
@@ -536,8 +537,7 @@ export default function BookingNow() {
               image: image,
               working_hours: staffWorkingHours,
             };
-          }
-        );
+          });
 
         const businessHoursData = parseBusinessHours(businessData?.hours);
 
@@ -547,15 +547,19 @@ export default function BookingNow() {
         const serviceIdToSelect = params.service_id
           ? parseInt(params.service_id)
           : null;
-        
+
         let serviceToSelect = null;
         if (serviceIdToSelect && allServicesData.length > 0) {
           // Find service by ID from params (DashboardContent case)
-          serviceToSelect = allServicesData.find((s: Service) => s.id === serviceIdToSelect) || allServicesData[0];
+          serviceToSelect =
+            allServicesData.find((s: Service) => s.id === serviceIdToSelect) ||
+            allServicesData[0];
         } else if (hasReduxData && reduxSelectedServices.length > 0) {
           // If Redux has data, keep the already selected service (businessDetail case)
           const selectedServiceId = reduxSelectedServices[0].id;
-          serviceToSelect = allServicesData.find((s: Service) => s.id === selectedServiceId) || allServicesData[0];
+          serviceToSelect =
+            allServicesData.find((s: Service) => s.id === selectedServiceId) ||
+            allServicesData[0];
         } else if (allServicesData.length > 0) {
           // Fallback to first service
           serviceToSelect = allServicesData[0];
@@ -627,11 +631,11 @@ export default function BookingNow() {
     if (params.business_id || reduxBusinessId) {
       fetchBusinessDetails();
     }
-    
+
     return () => {
       dispatch(clearBusinessData());
     };
-  }, [   ]);
+  }, []);
 
   const staffList = [
     {

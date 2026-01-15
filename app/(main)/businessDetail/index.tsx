@@ -696,7 +696,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       marginBottom: moderateHeightScale(2),
-      textTransform:"capitalize"
+      textTransform: "capitalize",
     },
     staffExperience: {
       fontSize: fontSize.size11,
@@ -1591,29 +1591,27 @@ export default function BusinessDetailScreen() {
     "Manicure",
   ];
 
+  const DEFAULT_AVATAR_URL = process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
+
   // Map staff from API
   const staffMembers = useMemo(() => {
     if (!businessData?.staff) return [];
 
-    return (
-      businessData.staff
-        // .filter((staff: any) => staff.active && staff.invitation_status === "accepted")
-        .map((staff: any) => {
-          let image = DEFAULT_AVATAR_URL;
-          if (staff.avatar) {
-            image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
-          }
-          return {
-            id: staff.id || staff.user_id || 0,
-            name: staff.name || "Staff Member",
-            experience: staff?.description || null,
-            image: image,
-          };
-        })
-    );
+    return businessData.staff
+      .filter((staff: any) => staff.invitation_status === "accepted")
+      .map((staff: any) => {
+        let image = DEFAULT_AVATAR_URL;
+        if (staff.avatar) {
+          image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
+        }
+        return {
+          id: staff.id || staff.user_id || 0,
+          name: staff.name || "Staff Member",
+          experience: staff?.description || null,
+          image: image,
+        };
+      });
   }, [businessData]);
-
-  const DEFAULT_AVATAR_URL = process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
   const averageRating = businessData?.average_rating || 0;
   const totalReviews = businessData?.ratings_count || reviewsTotal || 0;
   const textWrapLength = 115;
@@ -1680,7 +1678,7 @@ export default function BusinessDetailScreen() {
     }
     return DEFAULT_AVATAR_URL;
   };
-  
+
   // Format owner phone with country code
   const ownerPhone = useMemo(() => {
     const phone = businessData?.owner?.phone;
@@ -2377,29 +2375,28 @@ export default function BusinessDetailScreen() {
                         };
 
                         // Map staff members with working_hours
-                        const staffMembersData = (
-                          businessData?.staff || []
-                        ).map((staff: any) => {
-                          // Construct image URL from API response
-                          let image =
-                            "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
-                          if (staff.avatar) {
-                            image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
-                          }
+                        const staffMembersData = (businessData?.staff || [])
+                          .filter((staff: any) => staff.invitation_status === "accepted")
+                          .map((staff: any) => {
+                            // Construct image URL from API response
+                            let image = DEFAULT_AVATAR_URL;
+                            if (staff.avatar) {
+                              image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
+                            }
 
-                          // Parse working_hours if available (even if empty array)
-                          const staffWorkingHours = parseBusinessHours(
-                            staff.working_hours
-                          );
+                            // Parse working_hours if available (even if empty array)
+                            const staffWorkingHours = parseBusinessHours(
+                              staff.working_hours
+                            );
 
-                          return {
-                            id: staff.id || staff.user_id || 0,
-                            name: staff.name || "Staff Member",
-                            experience: staff?.description ?? null,
-                            image: image,
-                            working_hours: staffWorkingHours,
-                          };
-                        });
+                            return {
+                              id: staff.id || staff.user_id || 0,
+                              name: staff.name || "Staff Member",
+                              experience: staff?.description ?? null,
+                              image: image,
+                              working_hours: staffWorkingHours,
+                            };
+                          });
 
                         const businessHoursData = parseBusinessHours(
                           businessData?.hours

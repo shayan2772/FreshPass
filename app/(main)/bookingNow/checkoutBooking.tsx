@@ -1025,10 +1025,14 @@ function CheckoutContent() {
         };
 
         // Map staff members with working_hours
-        const staffMembersData = (businessData?.staff || []).map(
-          (staff: any) => {
-            let image =
-              "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+        const staffMembersData = (businessData?.staff || [])
+          .filter((staff: any) => staff.invitation_status === "accepted")
+          .map((staff: any) => {
+            const DEFAULT_AVATAR_URL =
+              process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
+
+            let image = DEFAULT_AVATAR_URL;
+
             if (staff.avatar) {
               image = `${process.env.EXPO_PUBLIC_API_BASE_URL}${staff.avatar}`;
             }
@@ -1042,8 +1046,7 @@ function CheckoutContent() {
               image: image,
               working_hours: staffWorkingHours,
             };
-          }
-        );
+          });
 
         const businessHoursData = parseBusinessHours(businessData?.hours);
 
@@ -1144,12 +1147,13 @@ function CheckoutContent() {
         experience: null,
         image: null,
       },
-      ...staffMembers.map((staff) => ({
-        id: staff.id.toString(),
-        name: staff.name,
-        experience: staff.experience ?? null,
-        image: staff.image,
-      })),
+      ...staffMembers
+        .map((staff) => ({
+          id: staff.id.toString(),
+          name: staff.name,
+          experience: staff.experience ?? null,
+          image: staff.image,
+        })),
     ];
   }, [staffMembers]);
 
@@ -1357,7 +1361,6 @@ function CheckoutContent() {
     : undefined;
 
   const handleBookNow = async () => {
-    
     if (!selectedTimeSlot) {
       showBanner(
         "Time Slot Required",
@@ -1378,12 +1381,10 @@ function CheckoutContent() {
       return;
     }
 
-
     if (isGuest) {
       dispatch(setGuestModeModalVisible(true));
       return;
     }
-
 
     // Prepare request body
     const isAnyoneSelected = selectedStaffId === "anyone";
