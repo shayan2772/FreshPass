@@ -202,21 +202,19 @@ export default function AppointmentsSection({
       Array.isArray(appointment.subscriptionServices) &&
       appointment.subscriptionServices.length > 0
     ) {
-      return appointment.subscriptionServices.map((s) => s.name).join(", ");
+      return appointment.subscriptionServices.map((s) => s.name).join(" + ");
     } else if (
       appointment.appointmentType === "service" &&
       Array.isArray(appointment.services) &&
       appointment.services.length > 0
     ) {
-      return appointment.services.map((s) => s.name).join(", ");
+      return appointment.services.map((s) => s.name).join(" + ");
     }
     return "Service";
   };
 
   const firstAppointment = data && data.length > 0 ? data[0] : null;
-
  
-
   return (
     <View style={styles.appointmentsContainer}>
       <View style={styles.sectionHeader}>

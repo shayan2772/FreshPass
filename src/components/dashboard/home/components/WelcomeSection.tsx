@@ -38,10 +38,10 @@ export default function WelcomeSection() {
   return (
     <View style={styles.container}>
       <Text numberOfLines={1} style={styles.welcomeText}>Welcome, {userName}</Text>
-      <Text style={styles.descriptionText}>
+      {/* <Text style={styles.descriptionText}>
         Browse nearby barbers, nail salons, and spas. Book instantly or unlock
         savings with a membership.
-      </Text>
+      </Text> */}
     </View>
   );
 }

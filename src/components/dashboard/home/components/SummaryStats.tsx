@@ -168,7 +168,6 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
   const completedCount = data?.appointments?.completed ?? 0;
   const cancelledCount = data?.appointments?.cancelled ?? 0;
 
-  
   return (
     <>
       <View style={isStaff ? styles.statsRowStaff : styles.statsRow}>
@@ -190,14 +189,17 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
               />
             )}
           </View>
-          <Text style={styles.revenueLabel}>
-            {isStaff ? "Upcoming appointment" : "Monthly revenue"}
+          <Text numberOfLines={1} style={styles.revenueLabel}>
+            {isStaff ? "Upcoming appointment" : "Total revenue"}
           </Text>
         </View>
         <TouchableOpacity
+          disabled={isStaff}
           activeOpacity={0.8}
           style={[styles.revenueCard, styles.reviewCard]}
-          onPress={() => router.push("/(main)/userReviews")}
+          onPress={() => {
+            isStaff ? null : router.push("/(main)/userReviews");
+          }}
         >
           <View style={styles.titleSec}>
             <Text numberOfLines={1} style={styles.reviewRate}>
@@ -217,8 +219,8 @@ export default function SummaryStats({ data, callApi }: SummaryStatsProps) {
             )}
           </View>
           <View style={styles.titleSec}>
-            <Text style={styles.reviewLabel}>
-              {isStaff ? "Completed today" : "User reviews rate"}
+            <Text numberOfLines={1} style={styles.reviewLabel}>
+              {isStaff ? "Completed appointments" : "User reviews rate"}
             </Text>
             {isBusiness && (
               <Entypo
