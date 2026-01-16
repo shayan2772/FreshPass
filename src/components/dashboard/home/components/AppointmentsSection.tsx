@@ -180,15 +180,24 @@ export default function AppointmentsSection({
   };
 
   // Format price
-  const formatPrice = (amount: string) => {
-    return `$${parseFloat(amount).toFixed(2)} USD`;
+  const formatPrice = (data: any) => {
+    let res = "";
+
+    if (data?.appointmentType === "subscription") {
+      res = data?.subscription;
+    } else {
+      res = `$${parseFloat(data?.paidAmount ?? 0).toFixed(2)} USD`;
+    }
+
+    return res;
   };
 
   // Calculate total duration from services
   const calculateTotalDuration = (
     services: Array<{ duration: { hours: number; minutes: number } }> | {}
   ) => {
-    if (!services || !Array.isArray(services) || services.length === 0) return 0;
+    if (!services || !Array.isArray(services) || services.length === 0)
+      return 0;
     const totalMinutes = services.reduce((total, service) => {
       return total + service.duration.hours * 60 + service.duration.minutes;
     }, 0);
@@ -213,8 +222,29 @@ export default function AppointmentsSection({
     return "Service";
   };
 
+  const formatMembershipInfo = (appointment: any): string => {
+    if (appointment.appointmentType === "subscription") {
+      if (appointment.subscriptionVisits) {
+        const { remaining } = appointment.subscriptionVisits;
+        return `${remaining} visit${remaining !== 1 ? "s" : ""} left`;
+      }
+      return appointment.subscription || "Subscription";
+    } else {
+      // For service type, return service info
+      if (
+        Array.isArray(appointment.services) &&
+        appointment.services.length > 0
+      ) {
+        return `${appointment.services.length} service${
+          appointment.services.length !== 1 ? "s" : ""
+        }`;
+      }
+      return "Service";
+    }
+  };
+
   const firstAppointment = data && data.length > 0 ? data[0] : null;
- 
+
   return (
     <View style={styles.appointmentsContainer}>
       <View style={styles.sectionHeader}>
@@ -249,18 +279,18 @@ export default function AppointmentsSection({
           </View>
 
           {firstAppointment ? (
-            <TouchableOpacity 
+            <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => {
                 router.push({
-                  pathname: "/(main)/dashboard/(home)/appointmentDetail",
+                  pathname: "/(main)/bookingDetailsById",
                   params: {
-                    appointment: JSON.stringify(firstAppointment),
+                    bookingId: firstAppointment.id,
                   },
                 });
               }}
-            
-            style={[styles.currentAppointmentCard, styles.shadow]}>
+              style={[styles.currentAppointmentCard, styles.shadow]}
+            >
               <View
                 style={{
                   gap: moderateHeightScale(7),
@@ -277,9 +307,7 @@ export default function AppointmentsSection({
                       height={moderateWidthScale(15)}
                     />
                     <Text numberOfLines={1} style={styles.appointmentInfoText}>
-                      {firstAppointment.appointmentType === "subscription"
-                        ? firstAppointment.subscription
-                        : "Service Base"}
+                      {formatMembershipInfo(firstAppointment)}
                     </Text>
                   </View>
                   <View style={styles.appointmentInfoRow}>
@@ -325,7 +353,7 @@ export default function AppointmentsSection({
                 }}
               >
                 <Text style={styles.appointmentPrice}>
-                  {formatPrice(firstAppointment.paidAmount)}
+                  {formatPrice(firstAppointment)}
                 </Text>
                 <View style={styles.appointmentStatusRow}>
                   <View style={[styles.appointmentStatus]}>
@@ -343,7 +371,6 @@ export default function AppointmentsSection({
                 </View>
               </View>
             </TouchableOpacity>
-            
           ) : (
             <View style={styles.emptyStateContainer}>
               <Text style={styles.emptyStateText}>

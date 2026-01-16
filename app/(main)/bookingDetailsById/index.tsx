@@ -12,7 +12,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { useTheme, useAppDispatch } from "@/src/hooks/hooks";
+import { useTheme, useAppDispatch, useAppSelector } from "@/src/hooks/hooks";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { Theme } from "@/src/theme/colors";
@@ -69,6 +69,7 @@ interface BookingItem {
   dateTime: string;
   duration: string;
   price: string;
+  user: string;
   status: BookingStatus;
   businessName?: string;
   businessAddress?: string;
@@ -482,6 +483,13 @@ export default function bookingDetailsById() {
   const [error, setError] = useState<string | null>(null);
 
   const bookingId = params.bookingId as string;
+  const userRole = useAppSelector((state) => state.user.userRole);
+  let staffClientname=""
+  if(userRole==="customer"){
+    staffClientname=booking?.staffName ?? "Anyone"
+  }else{
+    staffClientname=booking?.user ?? "User"
+  }
 
   const mapApiStatusToBookingStatus = (apiStatus: string): BookingStatus => {
     switch (apiStatus.toLowerCase()) {
@@ -668,6 +676,7 @@ export default function bookingDetailsById() {
       location: apiData.businessAddress || "Business address",
       dateTime: dateTime,
       duration: duration,
+      user:apiData.user ?? "User",
       price: formatPrice(price),
       status: mapApiStatusToBookingStatus(apiData.status),
       businessName: apiData.businessTitle || "---",
@@ -1050,9 +1059,9 @@ export default function bookingDetailsById() {
                   />
                 </View>
                 <View style={styles.detailTextContainer}>
-                  <Text style={styles.detailLabel}>My barber</Text>
+                  <Text style={styles.detailLabel}>My {userRole==="customer"?"barber":"Customer"}</Text>
                   <Text style={styles.detailValue} numberOfLines={2}>
-                    {booking?.staffName ?? "Anyone"}
+                    {staffClientname}
                   </Text>
                 </View>
               </View>
@@ -1204,7 +1213,7 @@ export default function bookingDetailsById() {
         <View style={styles.line} />
 
         {/* Policy Link (only for ongoing bookings) */}
-        {!isCancelled && (
+        {!isCancelled && userRole==="customer" && (
           <TouchableOpacity style={styles.policyLink}>
             <Text style={styles.policyText}>Booking cancel policy</Text>
             <Entypo
@@ -1217,9 +1226,8 @@ export default function bookingDetailsById() {
       </ScrollView>
 
       {/* Bottom Button */}
-
        
-      {!isCancelled && (
+      {!isCancelled && userRole==="customer" && (
         <View style={styles.bottomButton}>
           <Button
             title={"Cancel this booking"}
