@@ -1430,7 +1430,7 @@ export default function BusinessDetailScreen() {
       const baseUrl = process.env.EXPO_PUBLIC_API_BASE_URL || "";
       return `${baseUrl}${businessData.logo_url}`;
     }
-    return "https://cdn.idevie.com/wp-content/uploads/2018/02/logo_design_1.jpg";
+    return process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_LOGO ?? "";
   };
 
   // Map portfolio photos from API or use defaults

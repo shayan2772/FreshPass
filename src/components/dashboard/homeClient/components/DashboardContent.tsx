@@ -185,19 +185,11 @@ const createStyles = (theme: Theme) =>
       borderRadius: moderateWidthScale(1),
     },
     resultsHeader: {
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "flex-start",
       paddingHorizontal: moderateWidthScale(20),
-      paddingVertical: moderateHeightScale(12),
+      paddingVertical: moderateHeightScale(10),
       marginVertical: moderateHeightScale(12),
       backgroundColor: theme.mapCircleFill,
       width: "100%",
-      gap: moderateWidthScale(12),
-    },
-    resultsTextContainer: {
-      flex: 1,
-      flexShrink: 1,
     },
     resultsText: {
       fontSize: fontSize.size12,
@@ -209,26 +201,6 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size12,
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
-    },
-    sortByContainer: {
-      flexDirection: "row",
-      alignItems: "center",
-      flexShrink: 0,
-    },
-    sortByText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-    },
-    sortByValue: {
-      flexDirection: "row",
-      alignItems: "center",
-    },
-    sortByValueText: {
-      fontSize: fontSize.size12,
-      fontFamily: fonts.fontRegular,
-      color: theme.lightGreen,
-      marginRight: moderateWidthScale(2),
     },
     appCard: {
       height: heightScale(165),
@@ -375,7 +347,7 @@ const createStyles = (theme: Theme) =>
       fontSize: fontSize.size16,
       fontFamily: fonts.fontBold,
       color: theme.white,
-      textTransform:"capitalize"
+      textTransform: "capitalize",
     },
     verifiedSalonAddress: {
       fontSize: fontSize.size11,
@@ -476,7 +448,7 @@ const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontMedium,
       color: theme.darkGreen,
       maxWidth: "75%",
-      textTransform:"capitalize"
+      textTransform: "capitalize",
     },
     sectionViewMore: {
       fontSize: fontSize.size14,
@@ -774,11 +746,11 @@ interface AppointmentCard {
   id: number;
   badgeText: string;
   dateTime: string;
-  image: string;
-  salonName: string;
+  businessLogoUrl: string;
+  services: string;
   membershipInfo: string;
-  stylistName: string;
-  stylistImage: string;
+  staffName: string;
+  staffImage: string;
   originalAppointment?: Appointment;
 }
 
@@ -989,15 +961,16 @@ export default function DashboardContent() {
       if (response.success && response.data) {
         // Map API response to VerifiedSalon format
 
-       
-
         const mappedSalons: VerifiedSalon[] = response.data.map((item) => {
-          
           let imageUrl = process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "";
-          
-          if (item.portfolio_photos && item.portfolio_photos.length > 0 && item.portfolio_photos[0]?.url) {
+
+          if (
+            item.portfolio_photos &&
+            item.portfolio_photos.length > 0 &&
+            item.portfolio_photos[0]?.url
+          ) {
             imageUrl = item.portfolio_photos[0].url;
-          }  
+          }
 
           return {
             id: item.id,
@@ -1293,7 +1266,7 @@ export default function DashboardContent() {
       } = {
         status: "scheduled",
         page: 1,
-        per_page: 10,
+        per_page: 6,
       };
 
       // Add from_date parameter if selectedDate is not null
@@ -1304,11 +1277,12 @@ export default function DashboardContent() {
       // }
 
       // Add appointment_type parameter based on activeTab
-      if (activeTab === "individual") {
-        params.appointment_type = "service";
-      } else if (activeTab === "subscriptions") {
-        params.appointment_type = "subscription";
-      }
+      // if (activeTab === "individual") {
+      //   params.appointment_type = "service";
+      // } else if (activeTab === "subscriptions") {
+      //   params.appointment_type = "subscription";
+      // }
+
       const response = await ApiService.get<{
         success: boolean;
         message: string;
@@ -1334,11 +1308,11 @@ export default function DashboardContent() {
         (appointment) => {
           const imageUrl = appointment.businessLogoUrl
             ? process.env.EXPO_PUBLIC_API_BASE_URL + appointment.businessLogoUrl
-            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+            : process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_LOGO ?? "";
 
           const staffImageUrl = appointment.staffImage
             ? process.env.EXPO_PUBLIC_API_BASE_URL + appointment.staffImage
-            : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg";
+            : process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "";
 
           const dateTime = formatAppointmentDateTime(
             appointment.appointmentDate,
@@ -1347,30 +1321,30 @@ export default function DashboardContent() {
 
           const membershipInfo = formatMembershipInfo(appointment);
 
-          const stylistName =
+          const staffName =
             appointment.staffId && appointment.staffName
               ? appointment.staffName
-              : "anyone";
+              : "Anyone";
+
+          const serviceData =
+            appointment.appointmentType === "subscription"
+              ? appointment.subscriptionServices
+              : appointment.services;
 
           const name =
-            appointment.appointmentType === "subscription"
-              ? appointment.subscription || appointment.businessTitle
-              : Array.isArray(appointment.services) &&
-                appointment.services.length > 0
-              ? appointment.services
-                  .map((service: any) => service.name)
-                  .join(" , ")
-              : appointment.businessTitle;
+            serviceData && serviceData.length > 0
+              ? serviceData.map((service: any) => service.name).join(" + ")
+              : "Services";
 
           return {
             id: appointment.id,
             badgeText: "Upcoming appointment",
             dateTime: dateTime,
-            image: imageUrl,
-            salonName: name,
+            businessLogoUrl: imageUrl,
+            services: name,
             membershipInfo: membershipInfo,
-            stylistName: stylistName,
-            stylistImage: staffImageUrl,
+            staffName: staffName,
+            staffImage: staffImageUrl,
             originalAppointment: appointment,
           };
         }
@@ -1397,7 +1371,7 @@ export default function DashboardContent() {
       if (userRole === "customer") {
         fetchAppointments();
       }
-    }, [activeTab, userRole])
+    }, [])
   );
 
   // Refetch appointments when selectedDate changes
@@ -1810,45 +1784,14 @@ export default function DashboardContent() {
 
       {/* Results Summary */}
       <View style={styles.resultsHeader}>
-        <View style={styles.resultsTextContainer}>
-          <Text style={styles.resultsText}>
-            {appointments.length > 0 ? (
-              <>
-                Showing:{" "}
-                <Text style={styles.resultsTextBold}>
-                  {appointments.length} result
-                  {appointments.length !== 1 ? "s" : ""}
-                </Text>{" "}
-                for upcoming appointment{appointments.length !== 1 ? "s" : ""}
-              </>
-            ) : (
-              <>
-                Showing:{" "}
-                <Text style={styles.resultsTextBold}>
-                  {businessesCount} results
-                </Text>{" "}
-                for {getCategoryName()}
-                {selectedDateISO && (
-                  <> on {dayjs(selectedDateISO).format("MMM D, YYYY")}</>
-                )}
-              </>
-            )}
-          </Text>
-        </View>
-
-        <View style={styles.sortByContainer}>
-          <Text style={styles.sortByText}>Sort by: </Text>
-          <TouchableOpacity style={styles.sortByValue}>
-            <Text style={styles.sortByValueText}>
-              {tab === "individual" ? "Nearest to you" : "Recommended"}
-            </Text>
-            <ChevronDownIcon
-              width={widthScale(8)}
-              height={heightScale(4)}
-              color={theme.lightGreen}
-            />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.resultsText}>
+          Showing:{" "}
+          <Text style={styles.resultsTextBold}>{businessesCount} results</Text>{" "}
+          for {getCategoryName()}
+          {selectedDateISO && (
+            <> on {dayjs(selectedDateISO).format("MMM D, YYYY")}</>
+          )}
+        </Text>
       </View>
 
       {/*Booking appointment card or Platform Verified Salon*/}
@@ -1929,20 +1872,20 @@ export default function DashboardContent() {
               <View style={styles.verifiedCardContent}>
                 <Image
                   source={{
-                    uri: appointment.stylistImage,
+                    uri: appointment.staffImage,
                   }}
                   style={styles.verifiedCardImage}
                   resizeMode="cover"
                 />
                 <View style={styles.verifiedCardTextContainer}>
                   <Text numberOfLines={1} style={styles.salonName}>
-                    {appointment.salonName}
+                    {appointment.services}
                   </Text>
                   <View style={styles.verifiedCardInfoRow}>
                     <MonitorIcon
                       width={widthScale(16)}
                       height={heightScale(16)}
-                      color={theme.white}
+                      color={theme.white80}
                     />
                     <Text style={styles.verifiedCardInfoText}>
                       {appointment.membershipInfo}
@@ -1955,13 +1898,13 @@ export default function DashboardContent() {
                       <PersonIcon
                         width={widthScale(16)}
                         height={heightScale(16)}
-                        color={theme.white}
+                        color={theme.white80}
                       />
                       <Text
                         numberOfLines={1}
                         style={styles.verifiedCardInfoText}
                       >
-                        {appointment.stylistName}
+                        {appointment.staffName}
                       </Text>
                     </View>
 
@@ -2156,7 +2099,7 @@ export default function DashboardContent() {
               tab === "individual"
                 ? section.services?.length || 0
                 : section.subscriptions?.length || 0;
-            const showViewMore =itemsCount >= 10;
+            const showViewMore = itemsCount >= 10;
 
             return (
               <View key={section.id} style={styles.sectionContainer}>

@@ -34,6 +34,9 @@ interface SubscriptionData {
   subscriber: string;
   visits: any;
   status: string;
+  stripeStatus: string;
+  trialEndsAt: string | null;
+  endsAt: string | null;
   paymentDate: string | null;
   nextPaymentDate: string;
   remainingDays: number;
@@ -341,6 +344,44 @@ const createStyles = (theme: Theme) =>
       textAlign: "center",
       marginBottom: moderateHeightScale(16),
     },
+    trialBanner: {
+      marginHorizontal: moderateWidthScale(20),
+      marginTop: moderateHeightScale(20),
+      marginBottom: moderateHeightScale(12),
+      borderRadius: moderateWidthScale(12),
+      overflow: "hidden",
+    },
+    trialBannerGradient: {
+      padding: moderateWidthScale(20),
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    trialBannerLeft: {
+      flex: 1,
+      marginRight: moderateWidthScale(12),
+    },
+    trialBannerTitle: {
+      fontSize: fontSize.size16,
+      fontFamily: fonts.fontBold,
+      color: theme.white,
+      marginBottom: moderateHeightScale(4),
+    },
+    trialBannerSubtitle: {
+      fontSize: fontSize.size13,
+      fontFamily: fonts.fontRegular,
+      color: theme.white,
+      opacity: 0.9,
+    },
+    trialBannerIcon: {
+      width: moderateWidthScale(48),
+      height: moderateWidthScale(48),
+      borderRadius: moderateWidthScale(24),
+      backgroundColor: theme.white,
+      opacity: 0.2,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
 
 export default function SubscriptionScreen() {
@@ -467,6 +508,23 @@ export default function SubscriptionScreen() {
     return text.charAt(0).toUpperCase() + text.slice(1);
   };
 
+  const formatTrialEndDate = (dateString: string | null) => {
+    if (!dateString) return "";
+    try {
+      const date = new Date(dateString);
+      const options: Intl.DateTimeFormatOptions = {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      };
+      return date.toLocaleDateString("en-US", options);
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const isTrialing = subscription?.stripeStatus === "trialing" && subscription?.trialEndsAt;
+
   if (loading && !subscription) {
     return (
       <SafeAreaView edges={["bottom"]} style={styles.container}>
@@ -526,6 +584,34 @@ export default function SubscriptionScreen() {
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
       >
+        {/* Trial Status Banner */}
+        {isTrialing && (
+          <View style={styles.trialBanner}>
+            <LinearGradient
+              colors={[theme.darkGreenLight, theme.darkGreen]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.trialBannerGradient}
+            >
+              <View style={styles.trialBannerLeft}>
+                <Text style={styles.trialBannerTitle}>
+                  🎉 Free Trial Active
+                </Text>
+                <Text style={styles.trialBannerSubtitle}>
+                  Your trial ends on {formatTrialEndDate(subscription.trialEndsAt)}
+                </Text>
+              </View>
+              <View style={styles.trialBannerIcon}>
+                <Feather
+                  name="gift"
+                  size={moderateWidthScale(24)}
+                  color={theme.white}
+                />
+              </View>
+            </LinearGradient>
+          </View>
+        )}
+
         {/* Header Card with Gradient */}
         <View style={styles.headerCard}>
           <LinearGradient
@@ -605,6 +691,24 @@ export default function SubscriptionScreen() {
             <View style={styles.infoRow}>
               <View style={styles.infoIconContainer}>
                 <Feather
+                  name="clock"
+                  size={moderateWidthScale(20)}
+                  color={theme.darkGreenLight}
+                />
+              </View>
+              <View style={styles.infoContent}>
+                <Text style={styles.infoLabel}>
+                  {isTrialing ? "Trial Started" : "Subscription Started"}
+                </Text>
+                <Text style={styles.infoValue}>
+                  {subscription.createdAt || "N/A"}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.divider} />
+            <View style={styles.infoRow}>
+              <View style={styles.infoIconContainer}>
+                <Feather
                   name="calendar"
                   size={moderateWidthScale(20)}
                   color={theme.darkGreenLight}
@@ -617,22 +721,7 @@ export default function SubscriptionScreen() {
                 </Text>
               </View>
             </View>
-            <View style={styles.divider} />
-            <View style={styles.infoRow}>
-              <View style={styles.infoIconContainer}>
-                <Feather
-                  name="clock"
-                  size={moderateWidthScale(20)}
-                  color={theme.darkGreenLight}
-                />
-              </View>
-              <View style={styles.infoContent}>
-                <Text style={styles.infoLabel}>Subscription Started</Text>
-                <Text style={styles.infoValue}>
-                  {subscription.createdAt || "N/A"}
-                </Text>
-              </View>
-            </View>
+            
           </View>
         </View>
 

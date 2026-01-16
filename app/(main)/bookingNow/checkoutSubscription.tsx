@@ -753,6 +753,18 @@ function CheckoutSubscriptionContent() {
             {subscriptionData?.title || "this plan"}.{"\n\n"}
             Your subscription is now active and ready to use.
           </Text>
+
+          <View style={[styles.bottomContainer,{width:"60%"}]}>
+              <Button
+                title={"View Subscriptions"  }
+                onPress={
+                   handleViewSubscriptions  
+                }
+                loading={isSubscribing}
+                disabled={isSubscribing}
+                containerStyle={styles.subscribeButton}
+              />
+            </View>
         </View>
       ) : subscriptionData ? (
         <ScrollView
