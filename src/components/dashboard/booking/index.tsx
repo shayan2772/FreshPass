@@ -438,8 +438,49 @@ export default function BookingScreen() {
     }
   };
 
-  const formatDateTime = (date: string, time: string): string => {
-    return `${date} - ${time}`;
+  
+
+  const formatAppointmentDateTime = (date: string, time: string): string => {
+    try {
+      // Parse date format "MM/DD/YYYY"
+      const dateParts = date.split("/");
+      const month = parseInt(dateParts[0]);
+      const day = parseInt(dateParts[1]);
+      const year = parseInt(dateParts[2]);
+
+      // Parse time format "HH:mm"
+      const [hours, minutes] = time.split(":").map(Number);
+      const dateObj = new Date(year, month - 1, day, hours, minutes);
+
+      // Format as "Day, Mon DD at H:MM AM/PM"
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const dayName = days[dateObj.getDay()];
+      const monthName = months[dateObj.getMonth()];
+      let hours12 = dateObj.getHours();
+      const ampm = hours12 >= 12 ? "PM" : "AM";
+      hours12 = hours12 % 12;
+      hours12 = hours12 ? hours12 : 12;
+      const minutesStr = dateObj.getMinutes().toString().padStart(2, "0");
+
+      return `${dayName}, ${monthName} ${day} at ${hours12}:${minutesStr} ${ampm}`;
+    } catch (error) {
+      return `${date} at ${time}`;
+    }
   };
 
   const formatPrice = (price: number | string): string => {
@@ -447,13 +488,55 @@ export default function BookingScreen() {
     return `$${numPrice.toFixed(2)} USD`;
   };
 
+  const getPrice = (apiAppointment:any) => {
+    if (apiAppointment.appointmentType === "subscription") {
+      return apiAppointment.paidAmount;
+    }
+    const totalPrice = apiAppointment?.totalPrice;
+    // Check if totalPrice is an empty object or invalid
+    if (
+      totalPrice === null ||
+      totalPrice === undefined ||
+      (typeof totalPrice === "object" &&
+        Object.keys(totalPrice).length === 0) ||
+      (typeof totalPrice !== "number" && typeof totalPrice !== "string")
+    ) {
+      return 0.0;
+    }
+    return totalPrice;
+  };
+
+  const formatMembershipInfo = (appointment: any): string => {
+    if (appointment.appointmentType === "subscription") {
+      if (appointment.subscriptionVisits) {
+        const { remaining } = appointment.subscriptionVisits;
+        return `${remaining} visit${
+          remaining !== 1 ? "s" : ""
+        } left`;
+      }
+      return appointment.subscription || "Subscription";
+    } else {
+      // For service type, return service info
+      if (
+        Array.isArray(appointment.services) &&
+        appointment.services.length > 0
+      ) {
+        return `${appointment.services.length} service${
+          appointment.services.length !== 1 ? "s" : ""
+        }`;
+      }
+      return "Service";
+    }
+  };
+
   const mapApiAppointmentToBookingItem = (
     apiAppointment: ApiAppointment
   ): BookingItem => {
+
+
     const services = Array.isArray(apiAppointment.services)
       ? apiAppointment.services
       : [];
-
     let subscriptionServices: Array<any> = [];
     if (apiAppointment.subscriptionServices) {
       if (Array.isArray(apiAppointment.subscriptionServices)) {
@@ -482,33 +565,19 @@ export default function BookingScreen() {
 
     const staffName = apiAppointment.staffName || "Anyone";
 
-    const membershipType = apiAppointment.subscriptionPlanType || "----";
+     
+    const membershipType = formatMembershipInfo(apiAppointment);
+
     const planName = apiAppointment.subscription || "----";
 
-    const dateTime = formatDateTime(
+    const dateTime = formatAppointmentDateTime(
       apiAppointment.appointmentDate,
       apiAppointment.appointmentTime
     );
 
-    const getPrice = () => {
-      if (apiAppointment.appointmentType === "subscription") {
-        return apiAppointment.paidAmount;
-      }
-      const totalPrice = apiAppointment?.totalPrice;
-      // Check if totalPrice is an empty object or invalid
-      if (
-        totalPrice === null ||
-        totalPrice === undefined ||
-        (typeof totalPrice === "object" &&
-          Object.keys(totalPrice).length === 0) ||
-        (typeof totalPrice !== "number" && typeof totalPrice !== "string")
-      ) {
-        return 0.0;
-      }
-      return totalPrice;
-    };
+    
 
-    const price = getPrice();
+    const price = getPrice(apiAppointment);
 
     return {
       id: apiAppointment.id.toString(),

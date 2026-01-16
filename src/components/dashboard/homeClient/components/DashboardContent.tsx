@@ -203,10 +203,11 @@ const createStyles = (theme: Theme) =>
       color: theme.darkGreen,
     },
     appCard: {
-      height: heightScale(165),
+      height: heightScale(150),
     },
     appointmentsScroll: {
       paddingHorizontal: moderateWidthScale(20),
+      gap: moderateWidthScale(12),
     },
     verifiedSalonCard: {
       backgroundColor: theme.darkGreen,
@@ -216,6 +217,7 @@ const createStyles = (theme: Theme) =>
       width: widthScale(310),
       alignItems: "center",
       justifyContent: "center",
+      gap: moderateWidthScale(12),
     },
     verifiedCardTopRow: {
       flexDirection: "row",
@@ -526,6 +528,7 @@ const createStyles = (theme: Theme) =>
     servicesScroll: {
       paddingHorizontal: moderateWidthScale(20),
       paddingBottom: moderateHeightScale(16),
+      gap: moderateWidthScale(12),
     },
     subscriptionCard: {
       backgroundColor: theme.white,
@@ -934,6 +937,8 @@ export default function DashboardContent() {
         const formattedDate = dayjs(selectedDateISO).format("YYYY-MM-DD");
         url += `&availability_date=${encodeURIComponent(formattedDate)}`;
       }
+      url = `${url}&sort=completed_appointments&direction=desc`;
+
       // if (userLocation?.lat && userLocation?.long) {
       //   url += `&latitude=${userLocation.lat}`;
       //   url += `&longitude=${userLocation.long}`;
@@ -960,7 +965,6 @@ export default function DashboardContent() {
 
       if (response.success && response.data) {
         // Map API response to VerifiedSalon format
-
         const mappedSalons: VerifiedSalon[] = response.data.map((item) => {
           let imageUrl = process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_IMAGE ?? "";
 
@@ -1034,10 +1038,11 @@ export default function DashboardContent() {
       if (userLocation?.lat && userLocation?.long) {
         queryParams.append("latitude", userLocation.lat.toString());
         queryParams.append("longitude", userLocation.long.toString());
-        queryParams.append("radius_km", "20");
+        queryParams.append("radius_km", "100");
       }
 
-      const url = `${baseUrl}&${queryParams.toString()}`;
+      // const url = `${baseUrl}&${queryParams.toString()}&sort=completed_appointments`;
+      const url = `${baseUrl}&${queryParams.toString()}&sort=completed_appointments&direction=desc`;
 
       const response = await ApiService.get<{
         success: boolean;
@@ -1366,18 +1371,18 @@ export default function DashboardContent() {
     }
   };
 
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       if (userRole === "customer") {
         fetchAppointments();
+       
       }
     }, [])
   );
-
-  // Refetch appointments when selectedDate changes
-  useEffect(() => {
-    fetchCategories();
-  }, []);
 
   // Fetch service templates when category changes or when switching to individual tab
   useEffect(() => {
@@ -1794,15 +1799,15 @@ export default function DashboardContent() {
         </Text>
       </View>
 
-      {/*Booking appointment card or Platform Verified Salon*/}
+      {/* Platform Verified Salon */}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.appCard}
+        style={[styles.appCard]}
         contentContainerStyle={styles.appointmentsScroll}
         nestedScrollEnabled={true}
       >
-        {appointmentsLoading || businessesLoading ? (
+        {businessesLoading ? (
           <View
             style={{
               paddingVertical: moderateHeightScale(20),
@@ -1813,7 +1818,7 @@ export default function DashboardContent() {
           >
             <ActivityIndicator size="large" color={theme.primary} />
           </View>
-        ) : appointmentsError || businessesError ? (
+        ) : businessesError ? (
           <View
             style={{
               paddingVertical: moderateHeightScale(20),
@@ -1831,117 +1836,21 @@ export default function DashboardContent() {
                 textAlign: "center",
               }}
             >
-              Failed to load data
+              Failed to load businesses
             </Text>
             <RetryButton
               onPress={() => {
                 if (selectedCategory) {
                   const trimmedSearch = searchText?.trim() || "";
                   fetchBusinesses(selectedCategory, trimmedSearch || undefined);
-                  if (userRole === "customer") {
-                    fetchAppointments();
-                  }
                 }
               }}
-              loading={businessesLoading || appointmentsLoading}
+              loading={businessesLoading}
             />
           </View>
-        ) : appointments.length > 0 ? (
-          appointments.map((appointment, index) => (
-            <View
-              key={appointment.id}
-              style={[
-                styles.verifiedSalonCard,
-                index < appointments.length - 1 && {
-                  marginRight: moderateWidthScale(15),
-                },
-              ]}
-            >
-              <View style={styles.verifiedCardTopRow}>
-                <View style={styles.verifiedBadge}>
-                  <Text style={styles.verifiedBadgeText}>
-                    {appointment.badgeText}
-                  </Text>
-                </View>
-                <View style={styles.dateTimeBadge}>
-                  <Text style={styles.dateTimeBadgeText}>
-                    {appointment.dateTime}
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.verifiedCardContent}>
-                <Image
-                  source={{
-                    uri: appointment.staffImage,
-                  }}
-                  style={styles.verifiedCardImage}
-                  resizeMode="cover"
-                />
-                <View style={styles.verifiedCardTextContainer}>
-                  <Text numberOfLines={1} style={styles.salonName}>
-                    {appointment.services}
-                  </Text>
-                  <View style={styles.verifiedCardInfoRow}>
-                    <MonitorIcon
-                      width={widthScale(16)}
-                      height={heightScale(16)}
-                      color={theme.white80}
-                    />
-                    <Text style={styles.verifiedCardInfoText}>
-                      {appointment.membershipInfo}
-                    </Text>
-                  </View>
-                  <View style={styles.verifiedCardInfoRow2}>
-                    <View
-                      style={[styles.verifiedCardInfoRow, { width: "58%" }]}
-                    >
-                      <PersonIcon
-                        width={widthScale(16)}
-                        height={heightScale(16)}
-                        color={theme.white80}
-                      />
-                      <Text
-                        numberOfLines={1}
-                        style={styles.verifiedCardInfoText}
-                      >
-                        {appointment.staffName}
-                      </Text>
-                    </View>
-
-                    <TouchableOpacity
-                      style={styles.viewDetailLink}
-                      onPress={() => {
-                        router.push({
-                          pathname: "/(main)/bookingDetailsById",
-                          params: {
-                            bookingId: appointment.id,
-                          },
-                        });
-                      }}
-                    >
-                      <Text style={styles.viewDetailText}>View detail</Text>
-                      <ChevronRight
-                        width={widthScale(4)}
-                        height={heightScale(8)}
-                        color={theme.orangeBrown}
-                      />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-            </View>
-          ))
         ) : verifiedSalons.length > 0 ? (
           verifiedSalons.map((salon, index) => (
-            <View
-              key={salon.id}
-              style={[
-                styles.verifiedSalonCardNew,
-                index < verifiedSalons.length - 1 && {
-                  marginRight: moderateWidthScale(15),
-                },
-              ]}
-            >
+            <View key={salon.id} style={[styles.verifiedSalonCardNew]}>
               <Image
                 source={{
                   uri: salon.image ?? "",
@@ -2016,11 +1925,157 @@ export default function DashboardContent() {
                 textAlign: "center",
               }}
             >
-              No data found
+              No businesses found
             </Text>
           </View>
         )}
       </ScrollView>
+
+      {/* Booking appointment card */}
+      {userRole === "customer" && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={[styles.appCard]}
+          contentContainerStyle={styles.appointmentsScroll}
+          nestedScrollEnabled={true}
+        >
+          {appointmentsLoading ? (
+            <View
+              style={{
+                paddingVertical: moderateHeightScale(20),
+                alignItems: "center",
+                justifyContent: "center",
+                width: SCREEN_WIDTH,
+              }}
+            >
+              <ActivityIndicator size="large" color={theme.primary} />
+            </View>
+          ) : appointmentsError ? (
+            <View
+              style={{
+                paddingVertical: moderateHeightScale(20),
+                alignItems: "center",
+                justifyContent: "center",
+                width: SCREEN_WIDTH,
+                gap: moderateHeightScale(12),
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: fontSize.size14,
+                  fontFamily: fonts.fontRegular,
+                  color: theme.lightGreen,
+                  textAlign: "center",
+                }}
+              >
+                Failed to load upcoming appointments
+              </Text>
+              <RetryButton
+                onPress={fetchAppointments}
+                loading={appointmentsLoading}
+              />
+            </View>
+          ) : appointments.length > 0 ? (
+            appointments.map((appointment, index) => (
+              <View key={appointment.id} style={[styles.verifiedSalonCard]}>
+                <View style={styles.verifiedCardTopRow}>
+                  <View style={styles.verifiedBadge}>
+                    <Text style={styles.verifiedBadgeText}>
+                      {appointment.badgeText}
+                    </Text>
+                  </View>
+                  <View style={styles.dateTimeBadge}>
+                    <Text style={styles.dateTimeBadgeText}>
+                      {appointment.dateTime}
+                    </Text>
+                  </View>
+                </View>
+                <View style={styles.verifiedCardContent}>
+                  <Image
+                    source={{
+                      uri: appointment.staffImage,
+                    }}
+                    style={styles.verifiedCardImage}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.verifiedCardTextContainer}>
+                    <Text numberOfLines={1} style={styles.salonName}>
+                      {appointment.services}
+                    </Text>
+                    <View style={styles.verifiedCardInfoRow}>
+                      <MonitorIcon
+                        width={widthScale(16)}
+                        height={heightScale(16)}
+                        color={theme.white80}
+                      />
+                      <Text style={styles.verifiedCardInfoText}>
+                        {appointment.membershipInfo}
+                      </Text>
+                    </View>
+                    <View style={styles.verifiedCardInfoRow2}>
+                      <View
+                        style={[styles.verifiedCardInfoRow, { width: "58%" }]}
+                      >
+                        <PersonIcon
+                          width={widthScale(16)}
+                          height={heightScale(16)}
+                          color={theme.white80}
+                        />
+                        <Text
+                          numberOfLines={1}
+                          style={styles.verifiedCardInfoText}
+                        >
+                          {appointment.staffName}
+                        </Text>
+                      </View>
+
+                      <TouchableOpacity
+                        style={styles.viewDetailLink}
+                        onPress={() => {
+                          router.push({
+                            pathname: "/(main)/bookingDetailsById",
+                            params: {
+                              bookingId: appointment.id,
+                            },
+                          });
+                        }}
+                      >
+                        <Text style={styles.viewDetailText}>View detail</Text>
+                        <ChevronRight
+                          width={widthScale(4)}
+                          height={heightScale(8)}
+                          color={theme.orangeBrown}
+                        />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </View>
+              </View>
+            ))
+          ) : (
+            <View
+              style={{
+                paddingVertical: moderateHeightScale(20),
+                alignItems: "center",
+                justifyContent: "center",
+                width: SCREEN_WIDTH,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: fontSize.size14,
+                  fontFamily: fonts.fontMedium,
+                  color: theme.lightGreen,
+                  textAlign: "center",
+                }}
+              >
+                No upcoming appointments found
+              </Text>
+            </View>
+          )}
+        </ScrollView>
+      )}
 
       {/* Service Filters (for Individual Services) */}
       {tab === "individual" &&
@@ -2166,13 +2221,7 @@ export default function DashboardContent() {
                     {section.services.map((service, index) => (
                       <View
                         key={service.id}
-                        style={[
-                          styles.serviceCard,
-                          styles.shadow,
-                          index < (section?.services?.length ?? 0) - 1 && {
-                            marginRight: moderateWidthScale(15),
-                          },
-                        ]}
+                        style={[styles.serviceCard, styles.shadow]}
                       >
                         <View
                           style={{
@@ -2250,14 +2299,7 @@ export default function DashboardContent() {
                       {section.subscriptions.map((subscription, index) => (
                         <View
                           key={subscription.id}
-                          style={[
-                            styles.subscriptionCard,
-                            styles.shadow,
-                            index <
-                              (section?.subscriptions?.length ?? 0) - 1 && {
-                              marginRight: moderateWidthScale(15),
-                            },
-                          ]}
+                          style={[styles.subscriptionCard, styles.shadow]}
                         >
                           <View
                             style={{

@@ -585,6 +585,49 @@ export default function bookingDetailsById() {
     return totalPrice;
   };
 
+  const formatAppointmentDateTime = (date: string, time: string): string => {
+    try {
+      // Parse date format "MM/DD/YYYY"
+      const dateParts = date.split("/");
+      const month = parseInt(dateParts[0]);
+      const day = parseInt(dateParts[1]);
+      const year = parseInt(dateParts[2]);
+
+      // Parse time format "HH:mm"
+      const [hours, minutes] = time.split(":").map(Number);
+      const dateObj = new Date(year, month - 1, day, hours, minutes);
+
+      // Format as "Day, Mon DD at H:MM AM/PM"
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const months = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+      ];
+
+      const dayName = days[dateObj.getDay()];
+      const monthName = months[dateObj.getMonth()];
+      let hours12 = dateObj.getHours();
+      const ampm = hours12 >= 12 ? "PM" : "AM";
+      hours12 = hours12 % 12;
+      hours12 = hours12 ? hours12 : 12;
+      const minutesStr = dateObj.getMinutes().toString().padStart(2, "0");
+
+      return `${dayName}, ${monthName} ${day} at ${hours12}:${minutesStr} ${ampm}`;
+    } catch (error) {
+      return `${date} at ${time}`;
+    }
+  };
+
   const mapApiResponseToBookingItem = (
     apiData: ApiBookingResponse
   ): BookingItem => {
@@ -605,28 +648,33 @@ export default function bookingDetailsById() {
 
     const duration = formatDuration(services, apiData.subscriptionServices);
 
-    const dateTime = apiData.appointmentDate
-      ? `${apiData.appointmentDate} - ${apiData.appointmentTime || ""}`
-      : "---";
+    const dateTime = formatAppointmentDateTime(
+      apiData.appointmentDate,
+      apiData.appointmentTime
+    );
 
     const price = getPrice(apiData);
     const planName = apiData.subscription || "---";
+
+    const businessLogo = apiData.businessLogoUrl
+      ? process.env.EXPO_PUBLIC_API_BASE_URL + apiData.businessLogoUrl
+      : process.env.EXPO_PUBLIC_DEFAULT_BUSINESS_LOGO ?? "";
 
     return {
       id: apiData.id.toString(),
       serviceName: serviceName || "---",
       membershipType: apiData.subscriptionPlanType || "---",
       staffName: apiData.staffName || "Anyone",
-      location: apiData.businessAddress || "---",
+      location: apiData.businessAddress || "Business address",
       dateTime: dateTime,
       duration: duration,
       price: formatPrice(price),
       status: mapApiStatusToBookingStatus(apiData.status),
       businessName: apiData.businessTitle || "---",
-      businessAddress: apiData.businessAddress || "---",
+      businessAddress:apiData.businessAddress || "Business address",
       businessLatitude: apiData.businessLatitude || undefined,
       businessLongitude: apiData.businessLongitude || undefined,
-      businessLogoUrl: apiData.businessLogoUrl || undefined,
+      businessLogoUrl: businessLogo,
       businessAverageRating: apiData.businessAverageRating || 0,
       paymentMethod: apiData.paymentMethod,
       paidAmount: apiData.paidAmount,
@@ -1019,10 +1067,7 @@ export default function bookingDetailsById() {
             <Image
               source={{
                 uri: booking.businessLogoUrl
-                  ? `${process.env.EXPO_PUBLIC_API_BASE_URL || ""}${
-                      booking.businessLogoUrl
-                    }`
-                  : "https://imgcdn.stablediffusionweb.com/2024/3/24/3b153c48-649f-4ee2-b1cc-3d45333db028.jpg",
+                  
               }}
               style={styles.businessImage}
             />
@@ -1043,10 +1088,10 @@ export default function bookingDetailsById() {
           </View>
           <View style={styles.businessInfo}>
             <Text style={styles.businessName}>
-              {booking.businessName || booking.location || "---"}
+              {booking.businessName }
             </Text>
             <Text style={styles.businessAddress}>
-              {booking.businessAddress || booking.location || "---"}
+              {booking.businessAddress}
             </Text>
           </View>
           {businessLatitude && businessLongitude && (
@@ -1173,29 +1218,7 @@ export default function bookingDetailsById() {
 
       {/* Bottom Button */}
 
-      {/* <View style={styles.bottomButton}>
-        <Button
-          title={isCancelled ? "Remove from history" : "Cancel this booking"}
-          onPress={() => {
-            if (isCancelled) {
-              // Handle remove from history
-              showBanner(
-                "Removed",
-                "Booking removed from history",
-                "success",
-                2000
-              );
-            } else {
-              handleOpenCancelModal();
-            }
-          }}
-          containerStyle={
-            isCancelled ? styles.removeButton : styles.cancelButton
-          }
-          textColor={isCancelled ? undefined : "#D32F2F"}
-        />
-      </View> */}
-
+       
       {!isCancelled && (
         <View style={styles.bottomButton}>
           <Button
