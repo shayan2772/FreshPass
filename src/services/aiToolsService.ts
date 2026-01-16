@@ -9,7 +9,7 @@ const AI_API_BEARER_TOKEN = process.env.EXPO_PUBLIC_AI_API_BEARER_TOKEN || "";
 // Create axios instance for AI tools with different baseURL
 const aiToolClient: AxiosInstance = axios.create({
   baseURL: AI_TOOL_BASE_URL,
-  timeout: 180000, // 3 minutes
+  timeout: 300000, // 5 minutes
   headers: {
     "Content-Type": "multipart/form-data",
     Authorization: `Bearer ${AI_API_BEARER_TOKEN}`,
