@@ -1101,10 +1101,16 @@ export default function ManageSubscriptionsScreen() {
               .toLowerCase()
               .replace(/\s+/g, "-")}-${Date.now()}`;
 
+            // // Convert services_included array to serviceIds array
+            // const serviceIds = plan.services_included.map((service) =>
+            //   service.id.toString()
+            // );
+
             // Convert services_included array to serviceIds array
-            const serviceIds = plan.services_included.map((service) =>
-              service.id.toString()
-            );
+            // Filter out services with null/undefined IDs before mapping
+            const serviceIds = plan.services_included
+              .filter((service) => service.id != null)
+              .map((service) => service.id.toString());
 
             // Create subscription object in the required format
             const subscription = {
