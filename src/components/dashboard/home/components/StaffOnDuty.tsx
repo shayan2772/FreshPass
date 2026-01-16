@@ -172,23 +172,15 @@ export default function StaffOnDuty({ data, callApi }: StaffOnDutyProps) {
               style={[styles.staffItem, index === 0 && styles.staffItemFirst]}
             >
               <View style={styles.staffAvatar}>
-                {staff.user?.profile_image_url ? (
-                  <Image
-                    source={{
-                      uri:
-                        process.env.EXPO_PUBLIC_API_BASE_URL +
-                        staff.user.profile_image_url,
-                    }}
-                    style={styles.staffAvatarImage}
-                  />
-                ) : (
-                  <Image
-                    source={{
-                      uri: "https://www.w3schools.com/howto/img_avatar2.png",
-                    }}
-                    style={styles.staffAvatarImage}
-                  />
-                )}
+                <Image
+                  source={{
+                    uri: staff.user?.profile_image_url
+                      ? process.env.EXPO_PUBLIC_API_BASE_URL +
+                        staff.user.profile_image_url
+                      : process.env.EXPO_PUBLIC_DEFAULT_AVATAR_IMAGE ?? "",
+                  }}
+                  style={styles.staffAvatarImage}
+                />
               </View>
               <Text numberOfLines={1} style={styles.staffName}>
                 {staff?.name ?? ""}

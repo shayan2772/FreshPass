@@ -39,6 +39,7 @@ import { ApiService } from "@/src/services/api";
 import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { validateName } from "@/src/services/validationService";
+import { setBusinessId } from "@/src/state/slices/userSlice";
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -76,21 +77,21 @@ export default function CompleteProfile() {
   } = useAppSelector((state) => state.completeProfile);
   const businessStatus = useAppSelector((state) => state.user.businessStatus);
   const userRole = useAppSelector((state) => state.user.userRole);
-  
+
   // Check if onboarding is not completed - prevent back navigation
   // Only for business users (staff and client have their own profile pages)
   const isOnboardingIncomplete = Boolean(
     userRole === "business" &&
-    businessStatus &&
-    !businessStatus.onboarding_completed
+      businessStatus &&
+      !businessStatus.onboarding_completed
   );
 
   // Check if user is on the step they landed on from home
   // Only disable back on the initial step they landed on, not on subsequent steps
   const isOnInitialStepFromHome = Boolean(
     isOnboardingIncomplete &&
-    businessStatus?.next_step &&
-    currentStep === businessStatus.next_step
+      businessStatus?.next_step &&
+      currentStep === businessStatus.next_step
   );
 
   const handleBack = useCallback(() => {
@@ -155,7 +156,7 @@ export default function CompleteProfile() {
         business_name: businessName.trim(),
         owner_name: fullName.trim(),
         owner_phone: phoneNumber,
-        country_code:countryCode
+        country_code: countryCode,
       };
     }
 
@@ -286,8 +287,6 @@ export default function CompleteProfile() {
       return;
     }
 
-   
-
     // Call API for onboarding
     setIsSubmitting(true);
     try {
@@ -332,6 +331,10 @@ export default function CompleteProfile() {
       }>(businessEndpoints.onboarding, requestBody, config);
 
       if (response.success) {
+        console.log("---->business : ", response?.data?.business?.id);
+        if (currentStep === 1) {
+          dispatch(setBusinessId(response?.data?.business?.id));
+        }
         // Move to next step on success
         if (currentStep < totalSteps) {
           dispatch(goToNextStep());
@@ -400,10 +403,9 @@ export default function CompleteProfile() {
         // Navigate to acceptTerms screen after successful skip
         if (currentStep === 10) {
           dispatch(goToNextStep());
-        }else{
+        } else {
           router.replace(`/(main)/${MAIN_ROUTES.ACCEPT_TERMS}`);
         }
-       
       } else {
         showBanner(
           "Error",
@@ -523,12 +525,12 @@ export default function CompleteProfile() {
       // Step 8: Disable continue if:
       // 1. No service templates available (no services found for category)
       // 2. Services are available but none selected (must select at least 1)
-      
+
       // If no service templates available, disable continue
       if (serviceTemplates.length === 0) {
         return true;
       }
-      
+
       // If services are available, must have at least 1 selected
       return services.length === 0;
     }

@@ -228,6 +228,9 @@ const userSlice = createSlice({
     ) {
       state.selectBsnsCategory = action.payload;
     },
+    setBusinessId(state, action: PayloadAction<number | undefined>) {
+      state.business_id = action.payload;
+    },
     clearUser(state) {
       state.id = initialState.id;
       state.name = initialState.name;
@@ -296,6 +299,7 @@ export const {
   setLocation,
   setDiscover,
   setSelectBsnsCategory,
+  setBusinessId,
   clearUser,
   resetUser,
 } = userSlice.actions;
