@@ -11,7 +11,6 @@ import {
   Text,
   TouchableOpacity,
   Image,
-  KeyboardAvoidingView,
   Platform,
   TextInput,
   Pressable,
@@ -24,11 +23,9 @@ import { useTheme } from "@/src/hooks/hooks";
 import { Theme } from "@/src/theme/colors";
 import {
   moderateWidthScale,
-  moderateHeightScale,
   widthScale,
   heightScale,
 } from "@/src/theme/dimensions";
-import { fontSize, fonts } from "@/src/theme/fonts";
 import { createStyles } from "./styles";
 import StackHeader from "@/src/components/StackHeader";
 import Button from "@/src/components/button";
@@ -45,7 +42,7 @@ import ReviewSuggestionsDropdown from "@/src/components/ReviewSuggestionsDropdow
 import { ApiService } from "@/src/services/api";
 import { reviewsEndpoints } from "@/src/services/endpoints";
 import { StatusBar } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView,   KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function LeaveReview() {
   const router = useRouter();
@@ -313,7 +310,6 @@ export default function LeaveReview() {
         {/* Business Info */}
         {renderBusineesInfo()}
 
-
         {/* Heading */}
         <Text style={styles.heading}>Write your experience.</Text>
         <Text style={styles.subheading}>
@@ -453,6 +449,7 @@ export default function LeaveReview() {
   );
 
   return (
+    <KeyboardProvider> 
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title="Leave review" onBack={handleBack} />
       <StatusBar barStyle={"dark-content"} />
@@ -462,5 +459,6 @@ export default function LeaveReview() {
           ? renderRatingScreen()
           : renderReviewForm()}
     </SafeAreaView>
+    </KeyboardProvider>
   );
 }

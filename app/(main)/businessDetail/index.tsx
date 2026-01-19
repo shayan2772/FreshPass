@@ -61,6 +61,7 @@ import Button from "@/src/components/button";
 import { ApiService } from "@/src/services/api";
 import { businessEndpoints, reviewsEndpoints } from "@/src/services/endpoints";
 import RetryButton from "@/src/components/retryButton";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
@@ -1282,9 +1283,9 @@ export default function BusinessDetailScreen() {
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos((lat1 * Math.PI) / 180) *
-        Math.cos((lat2 * Math.PI) / 180) *
-        Math.sin(dLon / 2) *
-        Math.sin(dLon / 2);
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     const distance = R * c; // Distance in kilometers
     return distance;
@@ -1775,8 +1776,8 @@ export default function BusinessDetailScreen() {
     const displayText = isAboutExpanded
       ? aboutText
       : shouldShowReadMore
-      ? aboutText.substring(0, 220) + "..."
-      : aboutText;
+        ? aboutText.substring(0, 220) + "..."
+        : aboutText;
 
     // Sort business hours so current day appears first
     const currentDay = getCurrentDayName();
@@ -2022,7 +2023,7 @@ export default function BusinessDetailScreen() {
                   style={[
                     styles.filterButton,
                     selectedMembershipFilter === filter &&
-                      styles.filterButtonActive,
+                    styles.filterButtonActive,
                   ]}
                   onPress={() => setSelectedMembershipFilter(filter)}
                 >
@@ -2030,7 +2031,7 @@ export default function BusinessDetailScreen() {
                     style={[
                       styles.filterButtonText,
                       selectedMembershipFilter === filter &&
-                        styles.filterButtonTextActive,
+                      styles.filterButtonTextActive,
                     ]}
                   >
                     {filter}
@@ -2173,7 +2174,7 @@ export default function BusinessDetailScreen() {
                   style={[
                     styles.filterButton,
                     selectedServiceFilter === filter &&
-                      styles.filterButtonActive,
+                    styles.filterButtonActive,
                   ]}
                   onPress={() => setSelectedServiceFilter(filter)}
                 >
@@ -2181,7 +2182,7 @@ export default function BusinessDetailScreen() {
                     style={[
                       styles.filterButtonText,
                       selectedServiceFilter === filter &&
-                        styles.filterButtonTextActive,
+                      styles.filterButtonTextActive,
                     ]}
                   >
                     {filter}
@@ -2729,7 +2730,7 @@ export default function BusinessDetailScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" />
+      <StatusBar barStyle="light-content"   />
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}
