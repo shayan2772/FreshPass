@@ -341,3 +341,11 @@ const createStyles = (theme: Theme) =>
 - **ALL Text components MUST have fontFamily** - never create Text without fontFamily
 - **ALWAYS use Button component** when button design matches (dark green background, white text, rounded) - don't create duplicate button code
 
+## Language Response Rules
+- **NEVER** respond in Hindi - Hindi is strictly forbidden
+- **ONLY** respond in **English** or **Roman Urdu**
+- Match the user's language:
+  - If user writes in **Roman Urdu** → respond in **Roman Urdu**
+  - If user writes in **English** → respond in **English**
+- Keep responses consistent with the language the user is using
+- Code comments should always be in English regardless of conversation language
