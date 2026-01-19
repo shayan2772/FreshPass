@@ -46,7 +46,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      {/* <KeyboardProvider> */}
+      <KeyboardProvider>
         <Provider store={store}>
           <PersistGate
             persistor={persistor}
@@ -90,7 +90,7 @@ export default function RootLayout() {
             </PortalProvider>
           </PersistGate>
         </Provider>
-      {/* </KeyboardProvider> */}
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

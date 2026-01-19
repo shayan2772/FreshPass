@@ -35,11 +35,10 @@ export default function Screen2({ onNext }: Screen2Props) {
 
   return (
     <CoreFeatureScreen
-      headline="Discover & book instantly."
+      headline="Discover & book instantly"
       features={features}
       buttonTitle="Next"
       backgroundImage={IMAGES.introductionBack2}
-      footerText="Stop notifications anytime if you change you mind."
       onNext={onNext}
     />
   );

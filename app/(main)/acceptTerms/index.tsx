@@ -118,7 +118,7 @@ export default function AcceptTerms() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={"light-content"} />
+      <StatusBar backgroundColor={"transparent"} barStyle={"light-content"} translucent={true} />
       <ImageBackground
         source={IMAGES.acceptTermBack}
         style={styles.backgroundImage}

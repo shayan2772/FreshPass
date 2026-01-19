@@ -129,7 +129,7 @@ export default function NotificationScreen({
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle={"light-content"} />
+     <StatusBar backgroundColor={"transparent"} barStyle={"light-content"} translucent={true} />
       <ImageBackground
         source={backgroundImage}
         style={styles.backgroundImage}

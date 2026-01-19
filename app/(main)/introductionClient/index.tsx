@@ -5,6 +5,7 @@ import { handleNotificationPermission } from "@/src/services/notificationPermiss
 import LocationScreen from "./LocationScreen";
 import Notification from "./Notification";
 import CoreFeature from "./CoreFeature";
+import AiScreen from "./AiScreen";
 import GenderSelect from "./GenderSelect";
 import CategorySelect from "./CategorySelect";
 import { useAppDispatch } from "@/src/hooks/hooks";
@@ -14,6 +15,7 @@ type ScreenType =
   | "location"
   | "notification"
   | "coreFeature"
+  | "aiFeature"
   | "gender"
   | "category";
 
@@ -33,6 +35,7 @@ export default function IntroductionClient() {
         } else if (
           currentScreen === "notification" ||
           currentScreen === "coreFeature" ||
+          currentScreen === "aiFeature" ||
           currentScreen === "gender"
         ) {
           // Prevent going back from these screens
@@ -69,6 +72,10 @@ export default function IntroductionClient() {
   };
 
   const handleCoreFeatureNext = () => {
+    setCurrentScreen("aiFeature");
+  };
+
+  const handleAiFeatureNext = () => {
     setCurrentScreen("gender");
   };
 
@@ -94,6 +101,8 @@ export default function IntroductionClient() {
       );
     case "coreFeature":
       return <CoreFeature onNext={handleCoreFeatureNext} />;
+    case "aiFeature":
+      return <AiScreen onNext={handleAiFeatureNext} />;
     case "gender":
       return <GenderSelect onNext={handleGenderNext} />;
     case "category":

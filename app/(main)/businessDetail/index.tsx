@@ -2730,7 +2730,7 @@ export default function BusinessDetailScreen() {
 
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
-      <StatusBar barStyle="light-content"   />
+    <StatusBar backgroundColor={"transparent"} barStyle={"light-content"} translucent={true} />
       <ScrollView
         ref={scrollViewRef}
         showsVerticalScrollIndicator={false}

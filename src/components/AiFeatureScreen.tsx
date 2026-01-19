@@ -15,7 +15,6 @@ import {
   moderateHeightScale,
   moderateWidthScale,
 } from "@/src/theme/dimensions";
-import { IMAGES } from "@/src/constant/images";
 import { LeafLogo } from "@/assets/icons";
 import { Ionicons } from "@expo/vector-icons";
 import Button from "@/src/components/button";
@@ -27,13 +26,13 @@ interface Feature {
   description: string;
 }
 
-interface CoreFeatureScreenProps {
+interface AiFeatureScreen {
   headline: string;
   features: Feature[];
   buttonTitle: string;
   backgroundImage: any;
   footerText?: string;
-  onNext: () => void;
+  onNext?: () => void;
   onSkip?: () => void;
 }
 
@@ -113,15 +112,15 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-export default function CoreFeatureScreen({
+export default function AiFeatureScreen({
   headline,
   features,
   buttonTitle,
   backgroundImage,
   footerText,
-  onNext,
-  onSkip,
-}: CoreFeatureScreenProps) {
+  onNext = undefined,
+  onSkip = undefined,
+}: AiFeatureScreen) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
   const theme = colors as Theme;
@@ -193,12 +192,15 @@ export default function CoreFeatureScreen({
               <Text style={styles.footerText}>{footerText}</Text>
             )}
 
-            <Button
-              title={buttonTitle}
-              onPress={onNext}
-              backgroundColor={theme.orangeBrown}
-              textColor={theme.black}
-            />
+            {onNext && (
+              <Button
+                title={buttonTitle}
+                onPress={onNext}
+                backgroundColor={theme.orangeBrown}
+                textColor={theme.black}
+              />
+            )}
+
 
             {onSkip && (
               <TouchableOpacity

@@ -25,6 +25,8 @@ export default function Index() {
 
   if (accessToken || isGuest)
     return <Redirect href={`/(main)/${MAIN_ROUTES.DASHBOARD}/(home)` as any} />;
+  // return <Redirect href={`/(main)/${MAIN_ROUTES.ACCEPT_TERMS} ` as any} />;
+
 
   return <Redirect href={`/${MAIN_ROUTES.ROLE}`} />;
 }

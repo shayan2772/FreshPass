@@ -2014,6 +2014,119 @@ export const ChevronRightIconBusinessDetail: React.FC<ChevronRightIconBusinessDe
   return <SvgXml xml={svgXml} />;
 };
 
+// AI Hair Try-On Icon SVG
+const aiHairTryOnIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 50 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4813_636" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="-1" y="-1" width="52" height="53">
+<path d="M-1 -0.96484H51V51.0352H-1V-0.96484Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_4813_636)">
+<path d="M47.0684 13.2188C47.0684 12.4098 47.7242 11.7539 48.5332 11.7539C49.3422 11.7539 49.998 12.4098 49.998 13.2188C49.998 14.0277 49.3422 14.6836 48.5332 14.6836C47.7242 14.6836 47.0684 14.0277 47.0684 13.2188Z" fill="white"/>
+<path d="M30.8574 16.1484H19.1387V19.0781C19.1387 22.3142 21.762 24.9375 24.998 24.9375C28.2341 24.9375 30.8574 22.3142 30.8574 19.0781V16.1484Z" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M22.0682 24.1535V27.8671C19.6183 27.8671 17.4025 28.8694 15.8086 30.4863" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.1872 30.4863C32.5934 28.8694 30.3775 27.8671 27.9277 27.8671V24.1535" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M30.8574 16.1484H19.1387V7.35938C19.1387 8.97744 20.4503 10.2891 22.0684 10.2891H27.9277C29.5457 10.2891 30.8574 11.6007 30.8574 13.2188V16.1484Z" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M0 22.2031C0 21.3941 0.655859 20.7383 1.46484 20.7383C2.27383 20.7383 2.92969 21.3941 2.92969 22.2031C2.92969 23.0121 2.27383 23.668 1.46484 23.668C0.655859 23.668 0 23.0121 0 22.2031Z" fill="white"/>
+<path d="M24.998 33.7266C16.9079 33.7266 10.3496 27.1683 10.3496 19.0781V16.1484C10.3496 8.0583 16.9079 1.5 24.998 1.5C33.0881 1.5 39.6465 8.0583 39.6465 16.1484V19.0781C39.6465 27.1683 33.0882 33.7266 24.998 33.7266Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M22.0675 33.4336V41.3681C20.5188 43.6267 21.322 46.7327 23.7714 47.9574L24.9972 48.5703L26.3958 47.871C28.7843 46.6768 29.6194 43.6815 28.1935 41.424L27.9269 41.0019V33.4336" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M45.6738 2.35937V6.35938" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M43.6738 4.35938H47.6738" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M4.46289 28.9219V32.9219" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M2.46289 30.9219H6.46289" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
+`;
+
+interface AiHairTryOnIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const AiHairTryOnIcon: React.FC<AiHairTryOnIconProps> = ({
+  width = 50,
+  height = 51,
+}) => {
+  const svgXml = aiHairTryOnIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+  return <SvgXml xml={svgXml} />;
+};
+
+// AI Receptionist Icon SVG
+const aiReceptionistIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 51 51" fill="none" xmlns="http://www.w3.org/2000/svg">
+<mask id="mask0_4815_696" style="mask-type:luminance" maskUnits="userSpaceOnUse" x="-1" y="0" width="53" height="51">
+<path d="M-0.5 3.8147e-06H51.5V51H-0.5V3.8147e-06Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_4815_696)">
+<path d="M6.66504 23.4313V26.5693" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.7695 23.4313V26.5693" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M9.80342 17.1546H6.66543C4.93242 17.1546 3.52734 18.5596 3.52734 20.2926C3.52734 22.0258 4.93242 23.4307 6.66543 23.4307H9.80342V17.1546Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M28.6318 17.1546H31.7698C33.5028 17.1546 34.9079 18.5596 34.9079 20.2926C34.9079 22.0258 33.5028 23.4307 31.7698 23.4307H28.6318V17.1546Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19.2168 9.32529C19.2168 11.4018 20.0413 13.3932 21.5099 14.8614C22.9785 16.3298 24.9696 17.1546 27.0462 17.1546H28.6309V23.4307C28.6309 25.9273 27.6393 28.322 25.8733 30.0874C24.1082 31.8528 21.7139 32.8447 19.2168 32.8447C16.7197 32.8447 14.3255 31.8528 12.5603 30.0874C10.7943 28.322 9.80273 25.9273 9.80273 23.4307V17.1546H11.3875C15.7116 17.1546 19.2168 13.6492 19.2168 9.32529ZM19.2168 9.32529V9.32402" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M15.7187 9.32031C14.9672 8.48623 14.5098 7.38213 14.5098 6.17207C14.5098 3.57422 16.6193 1.46504 19.2168 1.46504C21.8143 1.46504 23.9238 3.57422 23.9238 6.17207C23.9238 7.38213 23.4664 8.48623 22.7149 9.32031C22.5956 9.31357 22.4756 9.31016 22.3548 9.31016H16.0788C15.958 9.31016 15.8379 9.31357 15.7187 9.32031Z" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M16.0794 32.3087V35.9844C16.0794 36.8162 15.7491 37.614 15.1607 38.2021C14.5724 38.7903 13.7745 39.1208 12.943 39.1208H12.9414L19.2174 42.2588L25.4935 39.1208H25.4919C23.7597 39.1208 22.3555 37.7165 22.3555 35.9844V32.3063" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19.2168 9.31025H14.5098C11.91 9.31025 9.80273 11.4177 9.80273 14.0173V17.1553H11.3718C15.7046 17.1553 19.2168 13.643 19.2168 9.31025Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M19.2168 9.31025H23.9238C26.5236 9.31025 28.6309 11.4177 28.6309 14.0173V17.1553H27.0618C22.729 17.1553 19.2168 13.643 19.2168 9.31025Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M36.5 49H29.5V40C28.0955 39.1495 28.6914 39 26.9527 39H25.3595L19 42.3333L12.6277 39H11.0473C8.51529 39 6.08745 40.0534 4.29623 41.9284C2.50581 43.8035 1.5 46.3467 1.5 48.9983V49H36.5Z" stroke="white" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M27.5 49H47.5L49.5 34H29.5L27.5 49Z" fill="#DDA15E" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M35.5 42H41.5" stroke="#283618" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>
+`;
+
+interface AiReceptionistIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const AiReceptionistIcon: React.FC<AiReceptionistIconProps> = ({
+  width = 51,
+  height = 51,
+}) => {
+  const svgXml = aiReceptionistIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+  return <SvgXml xml={svgXml} />;
+};
+
+// AI Chat Support Icon SVG
+const aiChatSupportIconSvg = `
+<svg width="{{WIDTH}}" height="{{HEIGHT}}" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_4815_756)">
+<path d="M17.155 32.845H9.30986V40.6901L1.46484 32.845V1.46484H37.5521V23.6287" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.74121 9.74121H23.4313" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.74121 22.293H15.0632" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M7.74121 16.0166H19.2473" stroke="#DDA15E" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M25.4307 34.6296L26.9997 33.0605L28.5687 34.6296" stroke="#FEFAE0" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M34.8447 34.6296L36.4138 33.0605L37.9828 34.6296" stroke="#FEFAE0" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M44.2595 30.7067C44.2595 27.2405 41.4496 24.4307 37.9834 24.4307H25.4313C21.9651 24.4307 19.1553 27.2405 19.1553 30.7067V36.9828C19.1553 40.449 21.9651 43.2589 25.4313 43.2589H37.9834C41.4496 43.2589 44.2595 40.449 44.2595 36.9828V30.7067Z" stroke="#FEFAE0" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.707 24.4307V19.7236" stroke="#FEFAE0" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M31.7073 19.7242C33.4404 19.7242 34.8453 18.3193 34.8453 16.5862C34.8453 14.8532 33.4404 13.4482 31.7073 13.4482C29.9743 13.4482 28.5693 14.8532 28.5693 16.5862C28.5693 18.3193 29.9743 19.7242 31.7073 19.7242Z" stroke="#FEFAE0" stroke-width="3" stroke-miterlimit="10" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<clipPath id="clip0_4815_756">
+<rect width="50" height="50" fill="white"/>
+</clipPath>
+</defs>
+</svg>
+`;
+
+interface AiChatSupportIconProps {
+  width?: number;
+  height?: number;
+}
+
+export const AiChatSupportIcon: React.FC<AiChatSupportIconProps> = ({
+  width = 50,
+  height = 50,
+}) => {
+  const svgXml = aiChatSupportIconSvg
+    .replace(/{{WIDTH}}/g, width.toString())
+    .replace(/{{HEIGHT}}/g, height.toString());
+  return <SvgXml xml={svgXml} />;
+};
+
 export default {
   LeafLogo,
   GoogleIcon,
@@ -2084,4 +2197,7 @@ export default {
   BackArrowIcon,
   ChevronUpIcon,
   ChevronRightIconBusinessDetail,
+  AiHairTryOnIcon,
+  AiReceptionistIcon,
+  AiChatSupportIcon,
 };
