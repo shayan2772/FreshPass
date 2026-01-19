@@ -2729,7 +2729,7 @@ export default function BusinessDetailScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StatusBar barStyle="light-content"   />
       <ScrollView
         ref={scrollViewRef}
@@ -3045,6 +3045,6 @@ export default function BusinessDetailScreen() {
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }

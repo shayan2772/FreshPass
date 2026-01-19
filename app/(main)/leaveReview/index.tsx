@@ -42,7 +42,7 @@ import ReviewSuggestionsDropdown from "@/src/components/ReviewSuggestionsDropdow
 import { ApiService } from "@/src/services/api";
 import { reviewsEndpoints } from "@/src/services/endpoints";
 import { StatusBar } from "react-native";
-import { KeyboardAwareScrollView,   KeyboardProvider } from "react-native-keyboard-controller";
+import { KeyboardAwareScrollView, KeyboardProvider } from "react-native-keyboard-controller";
 
 export default function LeaveReview() {
   const router = useRouter();
@@ -299,98 +299,96 @@ export default function LeaveReview() {
   );
 
   const renderReviewForm = () => (
-    <View style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <KeyboardAwareScrollView
+          bottomOffset={0}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Business Info */}
+          {renderBusineesInfo()}
 
-      <KeyboardAwareScrollView
-        bottomOffset={0}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Business Info */}
-        {renderBusineesInfo()}
+          {/* Heading */}
+          <Text style={styles.heading}>Write your experience.</Text>
+          <Text style={styles.subheading}>
+            Help others discover the best services by sharing your visit.
+          </Text>
 
-        {/* Heading */}
-        <Text style={styles.heading}>Write your experience.</Text>
-        <Text style={styles.subheading}>
-          Help others discover the best services by sharing your visit.
-        </Text>
+          {/* Questions */}
+          <Text style={styles.questions}>
+            What did you love about the service? How was the stylist? Would you
+            recommend this salon to others?
+          </Text>
 
-        {/* Questions */}
-        <Text style={styles.questions}>
-          What did you love about the service? How was the stylist? Would you
-          recommend this salon to others?
-        </Text>
-
-        {/* Review Title Input - Using FloatingInput with Dropdown */}
-        <View style={styles.inputContainer}>
-          <Pressable
-            ref={reviewTitleInputRef}
-            onPress={() => setShowSuggestionsDropdown(true)}
-          >
-            <FloatingInput
-              label="Give your review a title."
-              value={reviewTitle}
-              onChangeText={() => { }}
-              placeholder="Enter review title"
-              editable={false}
-              renderRightAccessory={({ isFocused, hasValue }) => (
-                <View style={styles.dropdownArrowButton}>
-                  <ChevronDownIcon
-                    width={widthScale(12)}
-                    height={heightScale(8)}
-                    color={theme.darkGreen}
-                  />
-                </View>
-              )}
-              showClearButton={false}
+          {/* Review Title Input - Using FloatingInput with Dropdown */}
+          <View style={styles.inputContainer}>
+            <Pressable
+              ref={reviewTitleInputRef}
+              onPress={() => setShowSuggestionsDropdown(true)}
+            >
+              <FloatingInput
+                label="Give your review a title."
+                value={reviewTitle}
+                onChangeText={() => { }}
+                placeholder="Enter review title"
+                editable={false}
+                renderRightAccessory={({ isFocused, hasValue }) => (
+                  <View style={styles.dropdownArrowButton}>
+                    <ChevronDownIcon
+                      width={widthScale(12)}
+                      height={heightScale(8)}
+                      color={theme.darkGreen}
+                    />
+                  </View>
+                )}
+                showClearButton={false}
+              />
+            </Pressable>
+            <ReviewSuggestionsDropdown
+              visible={showSuggestionsDropdown}
+              suggestions={reviewSuggestions}
+              onSelect={(title, id) => handleSuggestionSelect(title, id)}
+              onClose={() => setShowSuggestionsDropdown(false)}
+              buttonRef={reviewTitleInputRef}
             />
-          </Pressable>
-          <ReviewSuggestionsDropdown
-            visible={showSuggestionsDropdown}
-            suggestions={reviewSuggestions}
-            onSelect={(title, id) => handleSuggestionSelect(title, id)}
-            onClose={() => setShowSuggestionsDropdown(false)}
-            buttonRef={reviewTitleInputRef}
+          </View>
+
+          {/* Review Details Input - Using description style */}
+          <View style={styles.inputContainer}>
+            <Text style={styles.questions}>Review details.</Text>
+            <View style={styles.textInputContainer}>
+              <TextInput
+                style={styles.textInput}
+                value={reviewDetails}
+                onChangeText={setReviewDetails}
+                placeholder="Share your experience..."
+                placeholderTextColor={theme.lightGreen2}
+                multiline
+                textAlignVertical="top"
+                autoCapitalize="sentences"
+              />
+              {reviewDetails.length > 0 && (
+                <Pressable
+                  onPress={handleClearDescription}
+                  style={styles.clearButton}
+                  hitSlop={moderateWidthScale(8)}
+                >
+                  <CloseIcon color={theme.darkGreen} />
+                </Pressable>
+              )}
+            </View>
+          </View>
+        </KeyboardAwareScrollView>
+        <View style={styles.continueButtonContainer}>
+          <Button
+            title="Continue"
+            onPress={handleContinue}
+            disabled={isSubmitting}
+            loading={isSubmitting}
           />
         </View>
-
-        {/* Review Details Input - Using description style */}
-        <View style={styles.inputContainer}>
-          <Text style={styles.questions}>Review details.</Text>
-          <View style={styles.textInputContainer}>
-            <TextInput
-              style={styles.textInput}
-              value={reviewDetails}
-              onChangeText={setReviewDetails}
-              placeholder="Share your experience..."
-              placeholderTextColor={theme.lightGreen2}
-              multiline
-              textAlignVertical="top"
-              autoCapitalize="sentences"
-            />
-            {reviewDetails.length > 0 && (
-              <Pressable
-                onPress={handleClearDescription}
-                style={styles.clearButton}
-                hitSlop={moderateWidthScale(8)}
-              >
-                <CloseIcon color={theme.darkGreen} />
-              </Pressable>
-            )}
-          </View>
-        </View>
-      </KeyboardAwareScrollView>
-      <View style={styles.continueButtonContainer}>
-        <Button
-          title="Continue"
-          onPress={handleContinue}
-          disabled={isSubmitting}
-          loading={isSubmitting}
-        />
       </View>
-    </View>
-
   );
 
   const renderBusineesInfo = () => (
@@ -449,7 +447,6 @@ export default function LeaveReview() {
   );
 
   return (
-    <KeyboardProvider> 
     <SafeAreaView edges={["bottom"]} style={styles.safeArea}>
       <StackHeader title="Leave review" onBack={handleBack} />
       <StatusBar barStyle={"dark-content"} />
@@ -459,6 +456,6 @@ export default function LeaveReview() {
           ? renderRatingScreen()
           : renderReviewForm()}
     </SafeAreaView>
-    </KeyboardProvider>
+
   );
 }
