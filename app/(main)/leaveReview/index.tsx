@@ -45,6 +45,7 @@ import ReviewSuggestionsDropdown from "@/src/components/ReviewSuggestionsDropdow
 import { ApiService } from "@/src/services/api";
 import { reviewsEndpoints } from "@/src/services/endpoints";
 import { StatusBar } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function LeaveReview() {
   const router = useRouter();
@@ -301,17 +302,17 @@ export default function LeaveReview() {
   );
 
   const renderReviewForm = () => (
-    <KeyboardAvoidingView
-      style={styles.contentContainer}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <ScrollView
+    <View style={{ flex: 1 }}>
+
+      <KeyboardAwareScrollView
+        bottomOffset={0}
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
         {/* Business Info */}
         {renderBusineesInfo()}
+
 
         {/* Heading */}
         <Text style={styles.heading}>Write your experience.</Text>
@@ -334,7 +335,7 @@ export default function LeaveReview() {
             <FloatingInput
               label="Give your review a title."
               value={reviewTitle}
-              onChangeText={() => {}}
+              onChangeText={() => { }}
               placeholder="Enter review title"
               editable={false}
               renderRightAccessory={({ isFocused, hasValue }) => (
@@ -383,7 +384,7 @@ export default function LeaveReview() {
             )}
           </View>
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
       <View style={styles.continueButtonContainer}>
         <Button
           title="Continue"
@@ -392,7 +393,8 @@ export default function LeaveReview() {
           loading={isSubmitting}
         />
       </View>
-    </KeyboardAvoidingView>
+    </View>
+
   );
 
   const renderBusineesInfo = () => (
@@ -429,6 +431,7 @@ export default function LeaveReview() {
         {/* Business Info */}
         {renderBusineesInfo()}
 
+
         <View style={styles.successContainer}>
           <Text style={styles.successTitle}>Thank you for your review!</Text>
 
@@ -456,8 +459,8 @@ export default function LeaveReview() {
       {showSuccessScreen
         ? renderSuccess()
         : showRatingScreen
-        ? renderRatingScreen()
-        : renderReviewForm()}
+          ? renderRatingScreen()
+          : renderReviewForm()}
     </SafeAreaView>
   );
 }

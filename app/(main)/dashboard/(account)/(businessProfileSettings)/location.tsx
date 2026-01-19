@@ -211,7 +211,7 @@ export default function LocationScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const user = useAppSelector((state) => state.user);
-  
+
   const firstName = useMemo(() => {
     if (!user.name?.trim()) {
       return "";
@@ -634,7 +634,8 @@ export default function LocationScreen() {
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
-        bottomOffset={62}
+        bottomOffset={0}
+        keyboardShouldPersistTaps="handled"
       >
         {loading ? (
           <Skeleton screenType="StepEight" styles={styles} />

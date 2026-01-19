@@ -92,7 +92,7 @@ export const createStyles = (theme: Theme) =>
       borderColor: theme.lightGreen2,
       paddingHorizontal: moderateWidthScale(16),
       paddingVertical: moderateHeightScale(16),
-      minHeight: moderateHeightScale(200),
+      minHeight: moderateHeightScale(100),
       marginBottom: moderateHeightScale(8),
       position: "relative",
     },
@@ -101,7 +101,7 @@ export const createStyles = (theme: Theme) =>
       fontFamily: fonts.fontRegular,
       color: theme.darkGreen,
       textAlignVertical: "top",
-      minHeight: moderateHeightScale(200),
+      minHeight: moderateHeightScale(100),
     },
     continueButtonContainer: {
       paddingHorizontal: moderateWidthScale(20),
