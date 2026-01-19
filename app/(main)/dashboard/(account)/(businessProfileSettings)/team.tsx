@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect } from "expo-router";
 import {
   ScrollView,
   StyleSheet,
@@ -26,7 +27,7 @@ import {
 } from "@/src/state/slices/completeProfileSlice";
 import { setActionLoader } from "@/src/state/slices/generalSlice";
 import { ApiService } from "@/src/services/api";
-import { businessEndpoints } from "@/src/services/endpoints";
+import { businessEndpoints, staffEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { validateEmail } from "@/src/services/validationService";
 
@@ -233,9 +234,11 @@ export default function ManageTeamScreen() {
     }
   };
 
-  useEffect(() => {
-    fetchTeam();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      fetchTeam();
+    }, [])
+  );
 
   const handleClearEmail = () => {
     dispatch(setStaffInvitationEmail(""));
@@ -255,27 +258,17 @@ export default function ManageTeamScreen() {
       const response = await ApiService.post<{
         success: boolean;
         message: string;
-        data?: {
-          invited_staff: Array<{
-            email: string;
-            name: string;
-            invitation_status: string;
-            invited_at: string;
-            active: boolean;
-          }>;
-        };
-      }>(businessEndpoints.onboarding, {
-        step: 6,
+      }>(staffEndpoints.invite, {
         email: email,
       });
 
-      if (response.success && response.data?.invited_staff) {
-        fetchTeam( );
+      if (response.success) {
+        fetchTeam();
         dispatch(setStaffInvitationEmail(""));
 
         showBanner(
           "Success",
-          response.message || "Invitation sent successfully",
+          response.message || "Staff invitation sent successfully",
           "success",
           3000
         );
