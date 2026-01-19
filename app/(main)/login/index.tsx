@@ -352,7 +352,7 @@ export default function Login() {
     }
   }, [email, password, savePassword, dispatch, router]);
 
-  const handleSocialLogin = useCallback((provider: SocialProvider) => {}, []);
+  const handleSocialLogin = useCallback((provider: SocialProvider) => { }, []);
 
   const handleForgetPassword = useCallback(() => {
     // TODO: Navigate to forget password screen
@@ -494,13 +494,17 @@ export default function Login() {
         </View>
       </TouchableWithoutFeedback>
 
-      <VerificationCodeModal
-        visible={isVerificationModalVisible}
-        onClose={handleCloseVerificationModal}
-        email={email}
-        onCodeComplete={handleVerificationCodeComplete}
-        accessToken={data?.token || null}
-      />
+      {isVerificationModalVisible && (
+        <VerificationCodeModal
+          visible={isVerificationModalVisible}
+          onClose={handleCloseVerificationModal}
+          email={email}
+          onCodeComplete={handleVerificationCodeComplete}
+          accessToken={data?.token || null}
+          screen="login"
+        />
+      )}
+
     </SafeAreaView>
   );
 }

@@ -39,6 +39,7 @@ interface VerificationCodeModalProps {
   email: string;
   onCodeComplete?: () => void;
   accessToken?: string | null;
+  screen?: "signup" | "login";
 }
 
 const createStyles = (theme: Theme) =>
@@ -201,6 +202,7 @@ export default function VerificationCodeModal({
   email,
   onCodeComplete,
   accessToken,
+  screen
 }: VerificationCodeModalProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors as Theme), [colors]);
@@ -210,7 +212,7 @@ export default function VerificationCodeModal({
   const [code, setCode] = useState(["", "", "", "", ""]);
   const [isResending, setIsResending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(screen === "login");
   const [initialLoadError, setInitialLoadError] = useState(false);
   const inputRefs = useRef<(TextInput | null)[]>([]);
 
@@ -247,10 +249,10 @@ export default function VerificationCodeModal({
     try {
       const config = accessToken
         ? {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
         : undefined;
 
       const response = await ApiService.post<{
@@ -296,7 +298,7 @@ export default function VerificationCodeModal({
         showLocalBanner(
           "Error",
           error.message ||
-            "Failed to send verification email. Please try again.",
+          "Failed to send verification email. Please try again.",
           "error",
           3000
         );
@@ -310,21 +312,11 @@ export default function VerificationCodeModal({
 
   // Resend verification email when modal opens (first time only)
   useEffect(() => {
-    if (visible) {
-      setCode(["", "", "", "", ""]);
-      setIsInitialLoading(true);
-      setInitialLoadError(false);
+    setCode(["", "", "", "", ""]);
+    if (screen === "login") {
       handleResendCode(true);
-    } else {
-      // Reset when modal closes
-      setCode(["", "", "", "", ""]);
-      setIsResending(false);
-      setIsVerifying(false);
-      setIsInitialLoading(true);
-      setInitialLoadError(false);
-      Keyboard.dismiss();
     }
-  }, [visible]);
+  }, []);
 
   const handleVerifyCode = async (verificationCode: string) => {
     setIsVerifying(true);
@@ -333,11 +325,11 @@ export default function VerificationCodeModal({
       // The interceptor will automatically add token from Redux if Authorization header is not set
       const config = accessToken
         ? {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        : {}; // Pass empty config to ensure interceptor runs
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+        : undefined
 
       const response = await ApiService.post<{
         success: boolean;

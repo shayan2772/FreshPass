@@ -135,7 +135,7 @@ export default function RegisterPassword() {
   const [isVerificationModalVisible, setIsVerificationModalVisible] =
     useState(false);
 
-    const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<any>(null);
 
   const selectedRole = useAppSelector((state) => state.general.role);
 
@@ -380,14 +380,18 @@ export default function RegisterPassword() {
         </View>
       </TouchableWithoutFeedback>
 
-      <VerificationCodeModal
-        visible={isVerificationModalVisible}
-        onClose={handleCloseVerificationModal}
-        email={email}
-        onCodeComplete={handleVerificationCodeComplete}
-        accessToken={data?.token||null}
-        
-      />
+      {isVerificationModalVisible && (
+        <VerificationCodeModal
+          visible={isVerificationModalVisible}
+          onClose={handleCloseVerificationModal}
+          email={email}
+          onCodeComplete={handleVerificationCodeComplete}
+          accessToken={data?.token || null}
+          screen="signup"
+        />
+
+      )}
+
     </SafeAreaView>
   );
 }

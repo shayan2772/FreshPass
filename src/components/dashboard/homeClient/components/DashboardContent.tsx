@@ -1933,151 +1933,121 @@ export default function DashboardContent() {
         )}
       </ScrollView>
 
-      {/* Booking appointment card */}
-      {userRole === "customer" && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={[styles.appCard]}
-          contentContainerStyle={styles.appointmentsScroll}
-          nestedScrollEnabled={true}
-        >
-          {appointmentsLoading ? (
-            <View
-              style={{
-                paddingVertical: moderateHeightScale(20),
-                alignItems: "center",
-                justifyContent: "center",
-                width: SCREEN_WIDTH,
-              }}
-            >
-              <ActivityIndicator size="large" color={theme.primary} />
-            </View>
-          ) : appointmentsError ? (
-            <View
-              style={{
-                paddingVertical: moderateHeightScale(20),
-                alignItems: "center",
-                justifyContent: "center",
-                width: SCREEN_WIDTH,
-                gap: moderateHeightScale(12),
-              }}
-            >
-              <Text
+      {/* Booking appointment card - only show if error or has appointments */}
+      {userRole === "customer" &&
+        (appointmentsError || appointments.length > 0) && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={[styles.appCard]}
+            contentContainerStyle={styles.appointmentsScroll}
+            nestedScrollEnabled={true}
+          >
+            {appointmentsError ? (
+              <View
                 style={{
-                  fontSize: fontSize.size14,
-                  fontFamily: fonts.fontRegular,
-                  color: theme.lightGreen,
-                  textAlign: "center",
+                  paddingVertical: moderateHeightScale(20),
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: SCREEN_WIDTH,
+                  gap: moderateHeightScale(12),
                 }}
               >
-                Failed to load upcoming appointments
-              </Text>
-              <RetryButton
-                onPress={fetchAppointments}
-                loading={appointmentsLoading}
-              />
-            </View>
-          ) : appointments.length > 0 ? (
-            appointments.map((appointment, index) => (
-              <View key={appointment.id} style={[styles.verifiedSalonCard]}>
-                <View style={styles.verifiedCardTopRow}>
-                  <View style={styles.verifiedBadge}>
-                    <Text style={styles.verifiedBadgeText}>
-                      {appointment.badgeText}
-                    </Text>
-                  </View>
-                  <View style={styles.dateTimeBadge}>
-                    <Text style={styles.dateTimeBadgeText}>
-                      {appointment.dateTime}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.verifiedCardContent}>
-                  <Image
-                    source={{
-                      uri: appointment.staffImage,
-                    }}
-                    style={styles.verifiedCardImage}
-                    resizeMode="cover"
-                  />
-                  <View style={styles.verifiedCardTextContainer}>
-                    <Text numberOfLines={1} style={styles.salonName}>
-                      {appointment.services}
-                    </Text>
-                    <View style={styles.verifiedCardInfoRow}>
-                      <MonitorIcon
-                        width={widthScale(16)}
-                        height={heightScale(16)}
-                        color={theme.white80}
-                      />
-                      <Text style={styles.verifiedCardInfoText}>
-                        {appointment.membershipInfo}
+                <Text
+                  style={{
+                    fontSize: fontSize.size14,
+                    fontFamily: fonts.fontRegular,
+                    color: theme.lightGreen,
+                    textAlign: "center",
+                  }}
+                >
+                  Failed to load upcoming appointments
+                </Text>
+                <RetryButton
+                  onPress={fetchAppointments}
+                  loading={appointmentsLoading}
+                />
+              </View>
+            ) : (
+              appointments.map((appointment, index) => (
+                <View key={appointment.id} style={[styles.verifiedSalonCard]}>
+                  <View style={styles.verifiedCardTopRow}>
+                    <View style={styles.verifiedBadge}>
+                      <Text style={styles.verifiedBadgeText}>
+                        {appointment.badgeText}
                       </Text>
                     </View>
-                    <View style={styles.verifiedCardInfoRow2}>
-                      <View
-                        style={[styles.verifiedCardInfoRow, { width: "58%" }]}
-                      >
-                        <PersonIcon
+                    <View style={styles.dateTimeBadge}>
+                      <Text style={styles.dateTimeBadgeText}>
+                        {appointment.dateTime}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={styles.verifiedCardContent}>
+                    <Image
+                      source={{
+                        uri: appointment.staffImage,
+                      }}
+                      style={styles.verifiedCardImage}
+                      resizeMode="cover"
+                    />
+                    <View style={styles.verifiedCardTextContainer}>
+                      <Text numberOfLines={1} style={styles.salonName}>
+                        {appointment.services}
+                      </Text>
+                      <View style={styles.verifiedCardInfoRow}>
+                        <MonitorIcon
                           width={widthScale(16)}
                           height={heightScale(16)}
                           color={theme.white80}
                         />
-                        <Text
-                          numberOfLines={1}
-                          style={styles.verifiedCardInfoText}
-                        >
-                          {appointment.staffName}
+                        <Text style={styles.verifiedCardInfoText}>
+                          {appointment.membershipInfo}
                         </Text>
                       </View>
+                      <View style={styles.verifiedCardInfoRow2}>
+                        <View
+                          style={[styles.verifiedCardInfoRow, { width: "58%" }]}
+                        >
+                          <PersonIcon
+                            width={widthScale(16)}
+                            height={heightScale(16)}
+                            color={theme.white80}
+                          />
+                          <Text
+                            numberOfLines={1}
+                            style={styles.verifiedCardInfoText}
+                          >
+                            {appointment.staffName}
+                          </Text>
+                        </View>
 
-                      <TouchableOpacity
-                        style={styles.viewDetailLink}
-                        onPress={() => {
-                          router.push({
-                            pathname: "/(main)/bookingDetailsById",
-                            params: {
-                              bookingId: appointment.id,
-                            },
-                          });
-                        }}
-                      >
-                        <Text style={styles.viewDetailText}>View detail</Text>
-                        <ChevronRight
-                          width={widthScale(4)}
-                          height={heightScale(8)}
-                          color={theme.orangeBrown}
-                        />
-                      </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.viewDetailLink}
+                          onPress={() => {
+                            router.push({
+                              pathname: "/(main)/bookingDetailsById",
+                              params: {
+                                bookingId: appointment.id,
+                              },
+                            });
+                          }}
+                        >
+                          <Text style={styles.viewDetailText}>View detail</Text>
+                          <ChevronRight
+                            width={widthScale(4)}
+                            height={heightScale(8)}
+                            color={theme.orangeBrown}
+                          />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
-              </View>
-            ))
-          ) : (
-            <View
-              style={{
-                paddingVertical: moderateHeightScale(20),
-                alignItems: "center",
-                justifyContent: "center",
-                width: SCREEN_WIDTH,
-              }}
-            >
-              <Text
-                style={{
-                  fontSize: fontSize.size14,
-                  fontFamily: fonts.fontMedium,
-                  color: theme.lightGreen,
-                  textAlign: "center",
-                }}
-              >
-                No upcoming appointments found
-              </Text>
-            </View>
-          )}
-        </ScrollView>
-      )}
+              ))
+            )}
+          </ScrollView>
+        )}
 
       {/* Service Filters (for Individual Services) */}
       {tab === "individual" &&
