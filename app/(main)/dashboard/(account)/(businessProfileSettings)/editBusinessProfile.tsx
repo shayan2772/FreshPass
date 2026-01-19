@@ -44,6 +44,7 @@ import {
   CountryItem,
   Style as CountryPickerStyle,
 } from "react-native-country-codes-picker";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -773,7 +774,7 @@ export default function EditBusinessProfileScreen() {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Edit business profile" />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -906,7 +907,7 @@ export default function EditBusinessProfileScreen() {
             onClear={() => setSlogan("")}
           />
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.continueButtonContainer}>
         <Button

@@ -40,6 +40,7 @@ import { businessEndpoints } from "@/src/services/endpoints";
 import { useNotificationContext } from "@/src/contexts/NotificationContext";
 import { validateName } from "@/src/services/validationService";
 import { setBusinessId } from "@/src/state/slices/userSlice";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 export default function CompleteProfile() {
   const router = useRouter();
@@ -640,13 +641,13 @@ export default function CompleteProfile() {
         style={styles.contentContainer}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <ScrollView
+        <KeyboardAwareScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           {renderStep}
-        </ScrollView>
+        </KeyboardAwareScrollView>
         <View style={styles.buttonWrapper}>
           {(currentStep === 10 || currentStep === 11) && (
             <>

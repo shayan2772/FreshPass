@@ -59,6 +59,7 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -1129,7 +1130,7 @@ export default function EditProfileScreen() {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Edit Profile" />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
@@ -1393,7 +1394,7 @@ export default function EditProfileScreen() {
           />
           {emailError && <Text style={styles.errorText}>{emailError}</Text>}
         </View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       <View style={styles.updateButtonContainer}>
         <Button
