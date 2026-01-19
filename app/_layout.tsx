@@ -11,6 +11,7 @@ import { I18nextProvider } from "react-i18next";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { PortalProvider } from "@gorhom/portal";
 import { NotificationProvider } from "@/src/contexts/NotificationContext";
 import SessionExpiredHandler from "@/src/components/SessionExpiredHandler";
@@ -45,49 +46,51 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Provider store={store}>
-        <PersistGate
-          persistor={persistor}
-          loading={null}
-          onBeforeLift={async () => {
-            // Wait for rehydration to complete from AsyncStorage
-            await persistor.flush();
+      <KeyboardProvider>
+        <Provider store={store}>
+          <PersistGate
+            persistor={persistor}
+            loading={null}
+            onBeforeLift={async () => {
+              // Wait for rehydration to complete from AsyncStorage
+              await persistor.flush();
 
-            // Sync i18n with Redux persisted language after rehydration
-            if (!i18n || !i18n.isInitialized) {
-              return;
-            }
-
-            const state = store.getState();
-
-            // Sync language from persisted state
-            if (
-              state?.general?.language &&
-              i18n.language !== state.general.language
-            ) {
-              try {
-                i18n.changeLanguage(state.general.language);
-                setupRTL(state.general.language);
-              } catch (error) {
-                console.warn("Error changing language:", error);
+              // Sync i18n with Redux persisted language after rehydration
+              if (!i18n || !i18n.isInitialized) {
+                return;
               }
-            }
-          }}
-        >
-          <PortalProvider>
-            <I18nextProvider i18n={i18n}>
-              <NotificationProvider>
-                <ThemedStatusBar />
-                <Slot />
-                <ActionLoader />
-                <GuestModeModal />
-                <OnboardingHandler />
-                <SessionExpiredHandler />
-              </NotificationProvider>
-            </I18nextProvider>
-          </PortalProvider>
-        </PersistGate>
-      </Provider>
+
+              const state = store.getState();
+
+              // Sync language from persisted state
+              if (
+                state?.general?.language &&
+                i18n.language !== state.general.language
+              ) {
+                try {
+                  i18n.changeLanguage(state.general.language);
+                  setupRTL(state.general.language);
+                } catch (error) {
+                  console.warn("Error changing language:", error);
+                }
+              }
+            }}
+          >
+            <PortalProvider>
+              <I18nextProvider i18n={i18n}>
+                <NotificationProvider>
+                  <ThemedStatusBar />
+                  <Slot />
+                  <ActionLoader />
+                  <GuestModeModal />
+                  <OnboardingHandler />
+                  <SessionExpiredHandler />
+                </NotificationProvider>
+              </I18nextProvider>
+            </PortalProvider>
+          </PersistGate>
+        </Provider>
+      </KeyboardProvider>
     </GestureHandlerRootView>
   );
 }

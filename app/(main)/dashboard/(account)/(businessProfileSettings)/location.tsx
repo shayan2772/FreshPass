@@ -8,12 +8,12 @@ import React, {
 import {
   Modal,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -630,10 +630,11 @@ export default function LocationScreen() {
   return (
     <SafeAreaView edges={["bottom"]} style={styles.container}>
       <StackHeader title="Your business location" />
-      <ScrollView
+      <KeyboardAwareScrollView
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         showsVerticalScrollIndicator={false}
+        bottomOffset={62}
       >
         {loading ? (
           <Skeleton screenType="StepEight" styles={styles} />
@@ -694,7 +695,7 @@ export default function LocationScreen() {
             </View>
           </>
         )}
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {!loading && (
         <>
