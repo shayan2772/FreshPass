@@ -16,6 +16,7 @@ import {
 } from "@/src/theme/dimensions";
 import { fontSize, fonts } from "@/src/theme/fonts";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import AiChatBot from "@/src/components/AiChatBot";
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -134,41 +135,46 @@ export default function DashboardLayout() {
     Array.isArray(segments) &&
     segments.includes("(account)") &&
     segments.includes("subscriptionCustomer");
+  // Check if we should hide the AI chat button on certain screens
+  const shouldHideAiChat =
+    isUserReviewsScreen ||
+    isAppointmentDetailScreen ||
+    isCalendarAppointmentDetailScreen ||
+    isProfileScreen ||
+    isRulesAndTermsScreen ||
+    isNotificationSettingsScreen ||
+    isLanguageChangeScreen ||
+    isCountryChangeScreen ||
+    isBusinessProfileSettingsScreen ||
+    isChatBoxScreen ||
+    isWorkHistoryScreen ||
+    isStaffAvailabilityScreen ||
+    isBusinessListScreen ||
+    isBusinessDetailScreen ||
+    isSubscriptionScreen ||
+    isSubscriptionCustomerScreen;
+
   return (
-    <Tabs
-      initialRouteName={"(home)"}
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: theme.buttonBack,
-        tabBarInactiveTintColor: theme.lightGreen,
-        tabBarStyle: [
-          styles.tabBar,
-          {
-            height: isButtonMode
-              ? moderateHeightScale(110)
-              : moderateHeightScale(80),
-          },
-          (isUserReviewsScreen ||
-            isAppointmentDetailScreen ||
-            isCalendarAppointmentDetailScreen ||
-            isProfileScreen ||
-            isRulesAndTermsScreen ||
-            isNotificationSettingsScreen ||
-            isLanguageChangeScreen ||
-            isCountryChangeScreen ||
-            isBusinessProfileSettingsScreen ||
-            isChatBoxScreen ||
-            isWorkHistoryScreen ||
-            isStaffAvailabilityScreen ||
-            isBusinessListScreen ||
-            isBusinessDetailScreen ||
-            isSubscriptionScreen ||
-            isSubscriptionCustomerScreen) && { display: "none" },
-        ],
-        tabBarLabelStyle: styles.tabBarLabel,
-        tabBarHideOnKeyboard: true,
-      }}
-    >
+    <>
+      <Tabs
+        initialRouteName={"(home)"}
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: theme.buttonBack,
+          tabBarInactiveTintColor: theme.lightGreen,
+          tabBarStyle: [
+            styles.tabBar,
+            {
+              height: isButtonMode
+                ? moderateHeightScale(110)
+                : moderateHeightScale(80),
+            },
+            shouldHideAiChat && { display: "none" },
+          ],
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarHideOnKeyboard: true,
+        }}
+      >
       <Tabs.Screen
         name="(home)"
         options={{
@@ -268,6 +274,9 @@ export default function DashboardLayout() {
           ),
         }}
       />
-    </Tabs>
+      </Tabs>
+      {/* Floating AI ChatBot Button */}
+      {!shouldHideAiChat && <AiChatBot />}
+    </>
   );
 }
